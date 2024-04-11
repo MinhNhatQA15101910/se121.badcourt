@@ -22,7 +22,7 @@ class IntroScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               SvgPicture.asset(
-                'assets/vectors/vector_shuttlecock.svg',
+                'assets/vectors/vector-shuttlecock.svg',
                 width: 100,
                 height: 100,
               ),
