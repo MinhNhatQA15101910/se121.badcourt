@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/auth/widgets/sign_up_form.dart';
+import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 
 class AuthScreen extends StatefulWidget {
   static const String routeName = '/auth';
@@ -17,7 +17,7 @@ class _AuthScreenState extends State<AuthScreen> {
       backgroundColor: GlobalVariables.green,
       body: Center(
         child: SafeArea(
-          child: SignUpForm(),
+          child: ForgotPasswordForm(),
         ),
       ),
     );
