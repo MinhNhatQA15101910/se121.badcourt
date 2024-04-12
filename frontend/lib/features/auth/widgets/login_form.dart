@@ -109,9 +109,7 @@ class _LoginFormState extends State<LoginForm> {
               // Password text form field
               CustomTextfield(
                 controller: _passwordController,
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
+                isPassword: true,
                 hintText: 'Password',
                 validator: (password) {
                   if (password == null || password.isEmpty) {

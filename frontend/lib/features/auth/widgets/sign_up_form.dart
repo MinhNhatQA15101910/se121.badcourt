@@ -132,9 +132,7 @@ class _SignUpFormState extends State<SignUpForm> {
               // Password text form field
               CustomTextfield(
                 controller: _passwordController,
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
+                isPassword: true,
                 hintText: 'Password',
                 validator: (password) {
                   if (password == null || password.isEmpty) {
@@ -153,9 +151,7 @@ class _SignUpFormState extends State<SignUpForm> {
               // Password confirm text form field
               CustomTextfield(
                 controller: _passwordConfirmedController,
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
+                isPassword: true,
                 hintText: 'Confirm password',
                 validator: (password) {
                   if (password == null || password.isEmpty) {
