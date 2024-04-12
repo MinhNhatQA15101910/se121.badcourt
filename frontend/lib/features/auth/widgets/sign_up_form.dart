@@ -1,10 +1,14 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/oauth_button.dart';
+import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});
@@ -24,8 +28,17 @@ class _SignUpFormState extends State<SignUpForm> {
 
   void _signUpUser() {
     if (_signUpFormKey.currentState!.validate()) {
-      // TODO: Login user
+      // TODO: Sign up user
     }
+  }
+
+  void _moveToLoginForm() {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(LoginForm());
   }
 
   @override
@@ -304,10 +317,12 @@ class _SignUpFormState extends State<SignUpForm> {
                         TextSpan(
                           text: 'Log in',
                           style: GoogleFonts.inter(
-                            color: GlobalVariables.darkGreen,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                              color: GlobalVariables.darkGreen,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = _moveToLoginForm,
                         )
                       ],
                     ),

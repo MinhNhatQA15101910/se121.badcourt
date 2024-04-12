@@ -5,7 +5,12 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ForgotPasswordForm extends StatefulWidget {
-  const ForgotPasswordForm({super.key});
+  const ForgotPasswordForm({
+    super.key,
+    required this.onPreviousClicked,
+  });
+
+  final VoidCallback onPreviousClicked;
 
   @override
   State<ForgotPasswordForm> createState() => _ForgotPasswordFormState();
@@ -91,7 +96,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                     width: 150,
                     height: 40,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: widget.onPreviousClicked,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: GlobalVariables.lightGrey,
                         elevation: 0,

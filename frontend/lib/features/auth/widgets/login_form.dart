@@ -1,10 +1,15 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/oauth_button.dart';
+import 'package:frontend/features/auth/widgets/sign_up_form.dart';
+import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -23,6 +28,32 @@ class _LoginFormState extends State<LoginForm> {
     if (_loginFormKey.currentState!.validate()) {
       // TODO: Login user
     }
+  }
+
+  void _moveToSignUpForm() {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(SignUpForm());
+  }
+
+  void _moveToForgotPasswordForm() {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(
+      ForgotPasswordForm(
+        onPreviousClicked: () {
+          authFormProvider.setForm(
+            LoginForm(),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -111,12 +142,14 @@ class _LoginFormState extends State<LoginForm> {
                           fontWeight: FontWeight.w300),
                       children: [
                         TextSpan(
-                          text: 'Password?',
-                          style: GoogleFonts.inter(
-                              color: GlobalVariables.darkGreen,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold),
-                        )
+                            text: 'Password?',
+                            style: GoogleFonts.inter(
+                                color: GlobalVariables.darkGreen,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = _moveToForgotPasswordForm)
                       ],
                     ),
                   ),
@@ -268,13 +301,15 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                       children: [
                         TextSpan(
-                          text: 'Sign up',
-                          style: GoogleFonts.inter(
-                            color: GlobalVariables.darkGreen,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
+                            text: 'Sign up',
+                            style: GoogleFonts.inter(
+                              color: GlobalVariables.darkGreen,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = _moveToSignUpForm)
                       ],
                     ),
                   ),
