@@ -30,20 +30,20 @@ class CustomTextfield extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: GoogleFonts.inter(
-          color: GlobalVariables.darkGrey.withOpacity(0.5),
+          color: GlobalVariables.darkGrey,
           fontSize: 16,
         ),
         contentPadding: const EdgeInsets.all(16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: GlobalVariables.lightGreen.withOpacity(0.5),
+            color: GlobalVariables.lightGreen,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: GlobalVariables.lightGreen.withOpacity(0.5),
+            color: GlobalVariables.lightGreen,
           ),
         ),
       ),
