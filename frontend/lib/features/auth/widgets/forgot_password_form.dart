@@ -2,7 +2,10 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordForm extends StatefulWidget {
   const ForgotPasswordForm({
@@ -23,7 +26,18 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
 
   void _validateEmailAndNavigate() {
     if (_forgotPasswordFormKey.currentState!.validate()) {
-      // TODO: Handle event here
+      // TODO: Check if the input email is existed in the database
+
+      final authFormProvider = Provider.of<AuthFormProvider>(
+        context,
+        listen: false,
+      );
+
+      authFormProvider.setForm(
+        PinputForm(
+          resetEmail: _emailController.text.trim(),
+        ),
+      );
     }
   }
 
