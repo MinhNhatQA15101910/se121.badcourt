@@ -4,7 +4,7 @@ class GlobalVariables {
   // Colors
   static const Color black = Color(0xFF000000);
   static const Color blackGrey = Color(0xFF27272A);
-  static const Color darkGrey = Color(0xFF808089);
+  static const Color darkGrey = Color(0xFF72777A);
   static const Color grey = Color(0xFFEBEBF0);
   static const Color lightGrey = Color(0xFFF2F4F5);
   static const Color defaultColor = Color(0xFFFAFAFA);
@@ -17,7 +17,7 @@ class GlobalVariables {
   static const Color darkYellow = Color(0xFFCC8100);
   static const Color yellow = Color(0xFFFFBA49);
   static const Color lightYellow = Color(0xFFFFF5C7);
-  static const Color darkGreen = Color(0xFF007D3A);
-  static const Color lightGreen = Color(0xFFD7FAE0);
+  static const Color darkGreen = Color(0xFF198155);
+  static const Color lightGreen = Color(0xFFDAEFDE);
   static const Color green = Color(0xFF23C16B);
 }

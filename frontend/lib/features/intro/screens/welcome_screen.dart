@@ -2,6 +2,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/intro/widgets/first_welcome.dart';
+import 'package:frontend/features/intro/widgets/second_welcome.dart';
+import 'package:frontend/features/intro/widgets/third_welcome.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -14,11 +17,11 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  final _controller = CarouselController();
+  final _carouselController = CarouselController();
 
   var _activeIndex = 0;
 
-  void _animateToSlide(int index) => _controller.animateToPage(index);
+  void _animateToSlide(int index) => _carouselController.animateToPage(index);
 
   Widget _buildIndicator() => AnimatedSmoothIndicator(
         activeIndex: _activeIndex,
@@ -40,7 +43,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       setState(() {
         _activeIndex++;
       });
-      _controller.nextPage(
+      _carouselController.nextPage(
         duration: Duration(
           milliseconds: 200,
         ),
@@ -58,127 +61,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           children: [
             // Carousel Slider
             CarouselSlider(
-              carouselController: _controller,
+              carouselController: _carouselController,
               items: [
-                // Carousel item 1
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Welcome to',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    RichText(
-                      text: TextSpan(
-                        text: 'BAD',
-                        style: GoogleFonts.alfaSlabOne(
-                          color: GlobalVariables.yellow,
-                          fontSize: 24,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'COURT',
-                            style: GoogleFonts.alfaSlabOne(
-                              color: Colors.white,
-                              fontSize: 24,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                    Image.asset(
-                      'assets/images/img-welcome-1.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ],
-                ),
-
-                // Carousel item 2
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/img-welcome-2.png',
-                      fit: BoxFit.cover,
-                    ),
-                    Text(
-                      'Let\'s start journey with',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    Text(
-                      'BadCourt',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    Text(
-                      'BadCourt provides a variety of',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    Text(
-                      'badminton training court options.',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Carousel item 3
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/img-welcome-3.png',
-                      fit: BoxFit.cover,
-                    ),
-                    Text(
-                      'BadCourt make you feel',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    Text(
-                      'convenient',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    Text(
-                      'BadCourt provides comfort and',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                    Text(
-                      'convenience, making you feel at ease.',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                  ],
-                ),
+                FirstWelcome(),
+                SecondWelcome(),
+                ThirdWelcome(),
               ],
               options: CarouselOptions(
                 viewportFraction: 1,
@@ -208,10 +95,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             const SizedBox(height: 12),
 
             SizedBox(
-              width: 200,
+              width: 216,
               height: 40,
               child: ElevatedButton(
                 onPressed: _handleIndex,
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                ),
                 child: Text(
                   _activeIndex == 0
                       ? 'Get Started'

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/login_form.dart';
 
 class AuthScreen extends StatefulWidget {
   static const String routeName = '/auth';
@@ -11,6 +13,11 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return const Scaffold(
+      backgroundColor: GlobalVariables.green,
+      body: Center(
+        child: LoginForm(),
+      ),
+    );
   }
 }
