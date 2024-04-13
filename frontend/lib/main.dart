@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/intro/screens/intro_screen.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
 import 'package:provider/provider.dart';
 
@@ -11,7 +12,10 @@ void main() {
       providers: [
         ChangeNotifierProvider(
           create: (context) => AuthFormProvider(),
-        )
+        ),
+        ChangeNotifierProvider(
+          create: (context) => UserProvider(),
+        ),
       ],
       child: const MyApp(),
     ),

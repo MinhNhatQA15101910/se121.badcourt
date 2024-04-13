@@ -38,7 +38,7 @@ class _SignUpFormState extends State<SignUpForm> {
         _isLoading = true;
       });
 
-      await _authService.signUpUser(
+      bool isSuccessful = await _authService.signUpUser(
         context: context,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
@@ -51,12 +51,14 @@ class _SignUpFormState extends State<SignUpForm> {
         _isLoading = false;
       });
 
-      _firstNameController.clear();
-      _lastNameController.clear();
-      _phoneNumberController.clear();
-      _emailController.clear();
-      _passwordController.clear();
-      _passwordConfirmedController.clear();
+      if (isSuccessful) {
+        _firstNameController.clear();
+        _lastNameController.clear();
+        _phoneNumberController.clear();
+        _emailController.clear();
+        _passwordController.clear();
+        _passwordConfirmedController.clear();
+      }
     }
   }
 

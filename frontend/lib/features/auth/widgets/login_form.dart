@@ -3,7 +3,9 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/oauth_button.dart';
 import 'package:frontend/features/auth/widgets/sign_up_form.dart';
@@ -19,14 +21,34 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
+  final _authService = AuthService();
+  var _isLoading = false;
+
   final _loginFormKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _logInUser() {
+  void _logInUser() async {
     if (_loginFormKey.currentState!.validate()) {
-      // TODO: Log in user
+      setState(() {
+        _isLoading = true;
+      });
+
+      var isSuccessful = await _authService.logInUser(
+        context: context,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (isSuccessful) {
+        _emailController.clear();
+        _passwordController.clear();
+      }
     }
   }
 
@@ -157,25 +179,27 @@ class _LoginFormState extends State<LoginForm> {
               // Log in button
               Align(
                 alignment: Alignment.center,
-                child: SizedBox(
-                  width: 216,
-                  height: 40,
-                  child: ElevatedButton(
-                    onPressed: _logInUser,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalVariables.green,
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Log in',
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: GlobalVariables.white,
+                child: _isLoading
+                    ? const Loader()
+                    : SizedBox(
+                        width: 216,
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: _logInUser,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlobalVariables.green,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Log in',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: GlobalVariables.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 16),
 

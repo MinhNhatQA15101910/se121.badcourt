@@ -45,6 +45,7 @@ dependencies:
   pinput: ^2.2.21
   http: ^1.2.1
   flutter_icon_snackbar: ^1.1.7
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
