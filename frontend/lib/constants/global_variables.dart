@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+String uri = 'http://192.168.1.11:3000';
+
 class GlobalVariables {
   // Colors
   static const Color black = Color(0xFF000000);

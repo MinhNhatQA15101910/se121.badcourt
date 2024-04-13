@@ -3,7 +3,9 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/oauth_button.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
@@ -18,6 +20,9 @@ class SignUpForm extends StatefulWidget {
 }
 
 class _SignUpFormState extends State<SignUpForm> {
+  final _authService = AuthService();
+  var _isLoading = false;
+
   final _signUpFormKey = GlobalKey<FormState>();
 
   final _firstNameController = TextEditingController();
@@ -27,9 +32,31 @@ class _SignUpFormState extends State<SignUpForm> {
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
-  void _signUpUser() {
+  void _signUpUser() async {
     if (_signUpFormKey.currentState!.validate()) {
-      // TODO: Sign up user
+      setState(() {
+        _isLoading = true;
+      });
+
+      await _authService.signUpUser(
+        context: context,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phoneNumber: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      _firstNameController.clear();
+      _lastNameController.clear();
+      _phoneNumberController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _passwordConfirmedController.clear();
     }
   }
 
@@ -193,25 +220,27 @@ class _SignUpFormState extends State<SignUpForm> {
               // Sign up button
               Align(
                 alignment: Alignment.center,
-                child: SizedBox(
-                  width: 216,
-                  height: 40,
-                  child: ElevatedButton(
-                    onPressed: _signUpUser,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalVariables.green,
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Sign up',
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: GlobalVariables.white,
+                child: _isLoading
+                    ? const Loader()
+                    : SizedBox(
+                        width: 216,
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: _signUpUser,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlobalVariables.green,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Sign up',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: GlobalVariables.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 16),
 

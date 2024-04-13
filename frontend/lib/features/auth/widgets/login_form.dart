@@ -26,7 +26,7 @@ class _LoginFormState extends State<LoginForm> {
 
   void _logInUser() {
     if (_loginFormKey.currentState!.validate()) {
-      // TODO: Login user
+      // TODO: Log in user
     }
   }
 
