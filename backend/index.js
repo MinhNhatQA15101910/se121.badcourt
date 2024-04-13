@@ -2,10 +2,15 @@ import env from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 
+import authRouter from "./routers/auth_router.js";
+
 const app = express();
 env.config();
 
 app.use(express.static("public"));
+app.use(express.json());
+
+app.use(authRouter);
 
 app.get("/document", (req, res) => {
   res.render("index.ejs", { port: process.env.PORT });
