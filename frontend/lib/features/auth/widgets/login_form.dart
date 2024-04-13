@@ -90,6 +90,7 @@ class _LoginFormState extends State<LoginForm> {
               CustomTextfield(
                 controller: _emailController,
                 hintText: 'Email address',
+                isEmail: true,
                 validator: (email) {
                   if (email == null || email.isEmpty) {
                     return 'Please enter your email.';

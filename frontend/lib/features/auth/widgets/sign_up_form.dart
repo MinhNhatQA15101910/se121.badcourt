@@ -23,6 +23,7 @@ class _SignUpFormState extends State<SignUpForm> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
@@ -115,6 +116,7 @@ class _SignUpFormState extends State<SignUpForm> {
               CustomTextfield(
                 controller: _emailController,
                 hintText: 'Email address',
+                isEmail: true,
                 validator: (email) {
                   if (email == null || email.isEmpty) {
                     return 'Please enter your email.';
@@ -124,6 +126,27 @@ class _SignUpFormState extends State<SignUpForm> {
                     return 'Please enter a valid email address.';
                   }
 
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Phone number text form field
+              CustomTextfield(
+                controller: _phoneNumberController,
+                hintText: 'Phone number',
+                isPhoneNumber: true,
+                validator: (phoneNumber) {
+                  if (phoneNumber == null || phoneNumber.isEmpty) {
+                    return 'Please enter your phone number.';
+                  }
+                  const pattern =
+                      r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$';
+                  final regExp = RegExp(pattern);
+
+                  if (!regExp.hasMatch(phoneNumber)) {
+                    return 'Invalid phone number.';
+                  }
                   return null;
                 },
               ),
@@ -337,6 +360,7 @@ class _SignUpFormState extends State<SignUpForm> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
+    _phoneNumberController.dispose();
     _passwordController.dispose();
     _passwordConfirmedController.dispose();
     super.dispose();

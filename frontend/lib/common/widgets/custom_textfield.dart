@@ -9,12 +9,16 @@ class CustomTextfield extends StatefulWidget {
     required this.hintText,
     required this.validator,
     this.isPassword = false,
+    this.isPhoneNumber = false,
+    this.isEmail = false,
   });
 
   final TextEditingController controller;
   final String hintText;
   final String? Function(String?)? validator;
   final bool isPassword;
+  final bool isPhoneNumber;
+  final bool isEmail;
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();
@@ -35,6 +39,11 @@ class _CustomTextfieldState extends State<CustomTextfield> {
       controller: widget.controller,
       obscureText: widget.isPassword && !_showPassword,
       enableSuggestions: !widget.isPassword,
+      keyboardType: widget.isPhoneNumber
+          ? TextInputType.phone
+          : widget.isEmail
+              ? TextInputType.emailAddress
+              : null,
       autocorrect: !widget.isPassword,
       decoration: InputDecoration(
         hintText: widget.hintText,
