@@ -45,14 +45,12 @@ class _LoginFormState extends State<LoginForm> {
       listen: false,
     );
 
+    authFormProvider.setPreviousForm(
+      LoginForm(),
+    );
+
     authFormProvider.setForm(
-      ForgotPasswordForm(
-        onPreviousClicked: () {
-          authFormProvider.setForm(
-            LoginForm(),
-          );
-        },
-      ),
+      ForgotPasswordForm(),
     );
   }
 

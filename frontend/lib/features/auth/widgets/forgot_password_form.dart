@@ -8,12 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ForgotPasswordForm extends StatefulWidget {
-  const ForgotPasswordForm({
-    super.key,
-    required this.onPreviousClicked,
-  });
-
-  final VoidCallback onPreviousClicked;
+  const ForgotPasswordForm({super.key});
 
   @override
   State<ForgotPasswordForm> createState() => _ForgotPasswordFormState();
@@ -33,12 +28,29 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
         listen: false,
       );
 
+      authFormProvider.setResentEmail(
+        _emailController.text.trim(),
+      );
+
+      authFormProvider.setPreviousForm(
+        ForgotPasswordForm(),
+      );
+
       authFormProvider.setForm(
-        PinputForm(
-          resetEmail: _emailController.text.trim(),
-        ),
+        PinputForm(),
       );
     }
+  }
+
+  void _moveToPreviousForm() {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(
+      authFormProvider.previousForm,
+    );
   }
 
   @override
@@ -110,7 +122,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                     width: 150,
                     height: 40,
                     child: ElevatedButton(
-                      onPressed: widget.onPreviousClicked,
+                      onPressed: _moveToPreviousForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: GlobalVariables.lightGrey,
                         elevation: 0,

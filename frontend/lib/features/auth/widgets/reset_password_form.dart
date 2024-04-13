@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,6 +32,21 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
         LoginForm(),
       );
     }
+  }
+
+  void _moveToPreviousForm() {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(
+      authFormProvider.previousForm,
+    );
+
+    authFormProvider.setPreviousForm(
+      ForgotPasswordForm(),
+    );
   }
 
   @override
@@ -116,27 +132,54 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
               const SizedBox(height: 32),
 
               // Update password button
-              Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: 216,
-                  height: 40,
-                  child: ElevatedButton(
-                    onPressed: _updatePassword,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalVariables.green,
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Update password',
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: GlobalVariables.white,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: 150,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: _moveToPreviousForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlobalVariables.lightGrey,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: GlobalVariables.green,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Previous',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: GlobalVariables.green,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  SizedBox(
+                    width: 150,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: _updatePassword,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlobalVariables.green,
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Update',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: GlobalVariables.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

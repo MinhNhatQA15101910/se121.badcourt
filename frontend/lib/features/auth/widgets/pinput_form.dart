@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/reset_password_form.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,12 +8,7 @@ import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 
 class PinputForm extends StatefulWidget {
-  const PinputForm({
-    super.key,
-    required this.resetEmail,
-  });
-
-  final String resetEmail;
+  const PinputForm({super.key});
 
   @override
   State<PinputForm> createState() => _PinputFormState();
@@ -49,13 +45,37 @@ class _PinputFormState extends State<PinputForm> {
       listen: false,
     );
 
+    authFormProvider.setPreviousForm(
+      PinputForm(),
+    );
+
     authFormProvider.setForm(
       ResetPasswordForm(),
     );
   }
 
+  void _moveToPreviousForm() {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(
+      authFormProvider.previousForm,
+    );
+
+    authFormProvider.setPreviousForm(
+      LoginForm(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authFormProvider = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: GlobalVariables.defaultColor,
@@ -96,7 +116,7 @@ class _PinputFormState extends State<PinputForm> {
                 ),
                 children: [
                   TextSpan(
-                    text: widget.resetEmail,
+                    text: authFormProvider.resentEmail,
                     style: GoogleFonts.inter(
                       color: GlobalVariables.black,
                       fontSize: 16,
@@ -151,27 +171,54 @@ class _PinputFormState extends State<PinputForm> {
             ),
             const SizedBox(height: 36),
 
-            Align(
-              alignment: Alignment.center,
-              child: SizedBox(
-                width: 216,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: () => _verifyPincode(_pinController.text),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlobalVariables.green,
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Verify Code',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: GlobalVariables.white,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: 150,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: _moveToPreviousForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlobalVariables.lightGrey,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: GlobalVariables.green,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Previous',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: GlobalVariables.green,
+                      ),
                     ),
                   ),
                 ),
-              ),
+                SizedBox(
+                  width: 150,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () => _verifyPincode(_pinController.text),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlobalVariables.green,
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Verify',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: GlobalVariables.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
