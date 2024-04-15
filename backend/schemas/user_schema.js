@@ -1,27 +1,10 @@
 import mongoose from "mongoose";
 
 const userSchema = mongoose.Schema({
-  firstName: {
+  username: {
     required: true,
     type: String,
     trim: true,
-  },
-  lastName: {
-    required: true,
-    type: String,
-    trim: true,
-  },
-  phoneNumber: {
-    required: true,
-    type: String,
-    trim: true,
-    validate: {
-      validator: (value) => {
-        const re = /^\d{10}$/;
-        return value.match(re);
-      },
-      message: "Please enter a valid phone number.",
-    },
   },
   email: {
     required: true,
@@ -46,6 +29,10 @@ const userSchema = mongoose.Schema({
       },
       message: "Please enter a long password",
     },
+  },
+  imageUrl: {
+    type: String,
+    trim: true,
   },
   role: {
     type: String,

@@ -5,9 +5,9 @@ class UserProvider extends ChangeNotifier {
   User _user = const User(
     id: '',
     username: '',
-    phoneNumber: '',
     email: '',
     password: '',
+    imageUrl: '',
     role: '',
     token: '',
   );

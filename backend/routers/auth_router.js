@@ -9,7 +9,7 @@ const authRouter = express.Router();
 // Sign up route
 authRouter.post("/user/signup", async (req, res) => {
   try {
-    const { firstName, lastName, phoneNumber, email, password } = req.body;
+    const { username, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -25,9 +25,7 @@ authRouter.post("/user/signup", async (req, res) => {
     const hashedPassword = await bcryptjs.hash(password, 8);
 
     let user = new User({
-      firstName,
-      lastName,
-      phoneNumber,
+      username,
       email,
       password: hashedPassword,
     });
@@ -54,6 +52,35 @@ authRouter.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ msg: "Incorrect password!" });
     }
+
+    const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
+    res.json({ token, ...user._doc });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Log in with google route
+authRouter.post("/login/google", async (req, res) => {
+  try {
+    const { email, password, username, imageUrl } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ msg: "User with the same email already exists!" });
+    }
+
+    const hashedPassword = await bcryptjs.hash(password, 8);
+
+    let user = new User({
+      username,
+      email,
+      password: hashedPassword,
+      imageUrl,
+    });
+    user = await user.save();
 
     const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
     res.json({ token, ...user._doc });

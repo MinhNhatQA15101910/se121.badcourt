@@ -2,7 +2,6 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -65,10 +64,9 @@ class _LoginFormState extends State<LoginForm> {
     );
     GoogleSignInAccount? account = await googleSignIn.signIn();
     if (account != null) {
-      IconSnackBar.show(
-        context,
-        label: account.email,
-        snackBarType: SnackBarType.success,
+      await _authService.logInWithGoogle(
+        context: context,
+        account: account,
       );
     }
 
