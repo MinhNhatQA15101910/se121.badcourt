@@ -10,6 +10,7 @@ import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/oauth_button.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 class SignUpForm extends StatefulWidget {
@@ -22,6 +23,7 @@ class SignUpForm extends StatefulWidget {
 class _SignUpFormState extends State<SignUpForm> {
   final _authService = AuthService();
   var _isLoading = false;
+  var _isLoginWithGoogleLoading = false;
 
   final _signUpFormKey = GlobalKey<FormState>();
 
@@ -54,6 +56,27 @@ class _SignUpFormState extends State<SignUpForm> {
         _passwordConfirmedController.clear();
       }
     }
+  }
+
+  void _loginWithGoogle() async {
+    setState(() {
+      _isLoginWithGoogleLoading = true;
+    });
+
+    GoogleSignIn googleSignIn = GoogleSignIn(
+      scopes: ['email'],
+    );
+    GoogleSignInAccount? account = await googleSignIn.signIn();
+    if (account != null) {
+      await _authService.logInWithGoogle(
+        context: context,
+        account: account,
+      );
+    }
+
+    setState(() {
+      _isLoginWithGoogleLoading = false;
+    });
   }
 
   void _moveToLoginForm() {
@@ -229,10 +252,16 @@ class _SignUpFormState extends State<SignUpForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  OAuthButton(
-                    assetName: 'assets/vectors/vector-google.svg',
-                    onPressed: () {},
-                  ),
+                  _isLoginWithGoogleLoading
+                      ? Container(
+                          width: 120,
+                          height: 48,
+                          child: const Loader(),
+                        )
+                      : OAuthButton(
+                          assetName: 'assets/vectors/vector-google.svg',
+                          onPressed: _loginWithGoogle,
+                        ),
                   OAuthButton(
                     assetName: 'assets/vectors/vector-facebook.svg',
                     onPressed: () {},
