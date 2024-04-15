@@ -2,6 +2,7 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -11,6 +12,7 @@ import 'package:frontend/features/auth/widgets/oauth_button.dart';
 import 'package:frontend/features/auth/widgets/sign_up_form.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 class LoginForm extends StatefulWidget {
@@ -23,6 +25,7 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _authService = AuthService();
   var _isLoading = false;
+  var _isLoginWithGoogleLoading = false;
 
   final _loginFormKey = GlobalKey<FormState>();
 
@@ -50,6 +53,28 @@ class _LoginFormState extends State<LoginForm> {
         _passwordController.clear();
       }
     }
+  }
+
+  void _loginWithGoogle() async {
+    setState(() {
+      _isLoginWithGoogleLoading = true;
+    });
+
+    GoogleSignIn googleSignIn = GoogleSignIn(
+      scopes: ['email'],
+    );
+    GoogleSignInAccount? account = await googleSignIn.signIn();
+    if (account != null) {
+      IconSnackBar.show(
+        context,
+        label: account.email,
+        snackBarType: SnackBarType.success,
+      );
+    }
+
+    setState(() {
+      _isLoginWithGoogleLoading = false;
+    });
   }
 
   void _moveToSignUpForm() {
@@ -233,10 +258,16 @@ class _LoginFormState extends State<LoginForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  OAuthButton(
-                    assetName: 'assets/vectors/vector-google.svg',
-                    onPressed: () {},
-                  ),
+                  _isLoginWithGoogleLoading
+                      ? Container(
+                          width: 120,
+                          height: 48,
+                          child: const Loader(),
+                        )
+                      : OAuthButton(
+                          assetName: 'assets/vectors/vector-google.svg',
+                          onPressed: _loginWithGoogle,
+                        ),
                   OAuthButton(
                     assetName: 'assets/vectors/vector-facebook.svg',
                     onPressed: () {},

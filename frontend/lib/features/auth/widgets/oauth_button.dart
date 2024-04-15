@@ -18,7 +18,7 @@ class OAuthButton extends StatelessWidget {
       width: 120,
       height: 48,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: onPressed,
         child: SvgPicture.asset(
           assetName,
           width: 32,

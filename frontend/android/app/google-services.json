@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "627975744420",
+    "project_id": "badcourt-ce8d7",
+    "storage_bucket": "badcourt-ce8d7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:627975744420:android:2d08d62fa7f26ebc1daf31",
+        "android_client_info": {
+          "package_name": "com.donhat.badcourt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "627975744420-nvkcm65p4f53v7e7remrnrmvjqjdu4h4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.donhat.badcourt",
+            "certificate_hash": "198207e9736695720c58aebf46d24b34ce137b67"
+          }
+        },
+        {
+          "client_id": "627975744420-sm09p97tc9487q8jhgui2ttuc08m1kot.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPlI18Df9y5_nmILOebz8RarU8UZqU2Jo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "627975744420-sm09p97tc9487q8jhgui2ttuc08m1kot.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
