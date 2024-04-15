@@ -25,8 +25,7 @@ class _SignUpFormState extends State<SignUpForm> {
 
   final _signUpFormKey = GlobalKey<FormState>();
 
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -40,8 +39,7 @@ class _SignUpFormState extends State<SignUpForm> {
 
       bool isSuccessful = await _authService.signUpUser(
         context: context,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        username: _usernameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -52,8 +50,7 @@ class _SignUpFormState extends State<SignUpForm> {
       });
 
       if (isSuccessful) {
-        _firstNameController.clear();
-        _lastNameController.clear();
+        _usernameController.clear();
         _phoneNumberController.clear();
         _emailController.clear();
         _passwordController.clear();
@@ -103,41 +100,21 @@ class _SignUpFormState extends State<SignUpForm> {
               ),
               const SizedBox(height: 36),
 
-              // First name and Last name text form field
-              Row(
-                children: [
-                  // First name text form field
-                  Expanded(
-                    child: CustomTextfield(
-                      controller: _firstNameController,
-                      hintText: 'First name',
-                      validator: (firstName) {
-                        if (firstName == null || firstName.isEmpty) {
-                          return 'Please enter your first name.';
-                        }
+              // Username text form field
+              CustomTextfield(
+                controller: _usernameController,
+                hintText: 'Username',
+                validator: (username) {
+                  if (username == null || username.isEmpty) {
+                    return 'Please enter your username.';
+                  }
 
-                        return null;
-                      },
-                    ),
-                  ),
+                  if (username.length < 6) {
+                    return 'Username must be at least 6 characters long.';
+                  }
 
-                  const SizedBox(width: 16),
-
-                  // Last name text form field
-                  Expanded(
-                    child: CustomTextfield(
-                      controller: _lastNameController,
-                      hintText: 'Last name',
-                      validator: (lastName) {
-                        if (lastName == null || lastName.isEmpty) {
-                          return 'Please enter your last name.';
-                        }
-
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -388,8 +365,7 @@ class _SignUpFormState extends State<SignUpForm> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _phoneNumberController.dispose();
     _passwordController.dispose();

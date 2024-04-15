@@ -15,8 +15,7 @@ class AuthService {
   // Sign up user
   Future<bool> signUpUser({
     required BuildContext context,
-    required String firstName,
-    required String lastName,
+    required String username,
     required String phoneNumber,
     required String email,
     required String password,
@@ -24,8 +23,7 @@ class AuthService {
     try {
       User user = User(
         id: '',
-        firstName: firstName,
-        lastName: lastName,
+        username: username,
         phoneNumber: phoneNumber,
         email: email,
         password: password,

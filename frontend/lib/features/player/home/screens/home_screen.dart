@@ -17,7 +17,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Text(
-          "${currentUser.firstName} ${currentUser.lastName} - ${currentUser.role}",
+          "${currentUser.username} - ${currentUser.role}",
         ),
       ),
     );
