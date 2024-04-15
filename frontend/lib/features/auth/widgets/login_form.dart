@@ -1,7 +1,9 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -21,8 +23,12 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
+  final _firebaseAuth = FirebaseAuth.instance;
+  User? _firebaseUser;
+
   final _authService = AuthService();
   var _isLoading = false;
+  var _isLoginWithGoogleLoading = false;
 
   final _loginFormKey = GlobalKey<FormState>();
 
@@ -52,6 +58,27 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
+  void _logInWithGoogle() async {
+    try {
+      setState(() {
+        _isLoginWithGoogleLoading = true;
+      });
+
+      GoogleAuthProvider googleAuthProvider = GoogleAuthProvider();
+      await _firebaseAuth.signInWithProvider(googleAuthProvider);
+
+      setState(() {
+        _isLoginWithGoogleLoading = false;
+      });
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+  }
+
   void _moveToSignUpForm() {
     final authFormProvider = Provider.of<AuthFormProvider>(
       context,
@@ -74,6 +101,16 @@ class _LoginFormState extends State<LoginForm> {
     authFormProvider.setForm(
       ForgotPasswordForm(),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _firebaseAuth.authStateChanges().listen((event) {
+      setState(() {
+        _firebaseUser = event;
+      });
+    });
   }
 
   @override
@@ -233,10 +270,12 @@ class _LoginFormState extends State<LoginForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  OAuthButton(
-                    assetName: 'assets/vectors/vector-google.svg',
-                    onPressed: () {},
-                  ),
+                  _isLoginWithGoogleLoading
+                      ? const Loader()
+                      : OAuthButton(
+                          assetName: 'assets/vectors/vector-google.svg',
+                          onPressed: _logInWithGoogle,
+                        ),
                   OAuthButton(
                     assetName: 'assets/vectors/vector-facebook.svg',
                     onPressed: () {},
