@@ -353,15 +353,16 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                       children: [
                         TextSpan(
-                            text: 'Sign up',
-                            style: GoogleFonts.inter(
-                              color: GlobalVariables.darkGreen,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = _moveToSignUpForm)
+                          text: 'Sign up',
+                          style: GoogleFonts.inter(
+                            color: GlobalVariables.darkGreen,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = _moveToSignUpForm,
+                        )
                       ],
                     ),
                   ),
