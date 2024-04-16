@@ -2,12 +2,12 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
-import 'package:frontend/features/auth/widgets/oauth_button.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -248,25 +248,45 @@ class _SignUpFormState extends State<SignUpForm> {
               ),
               const SizedBox(height: 16),
 
-              // OAuth buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _isLoginWithGoogleLoading
-                      ? Container(
-                          width: 120,
-                          height: 48,
-                          child: const Loader(),
-                        )
-                      : OAuthButton(
-                          assetName: 'assets/vectors/vector-google.svg',
+              // Sign up with Google button.
+              Align(
+                alignment: Alignment.center,
+                child: _isLoginWithGoogleLoading
+                    ? const Loader()
+                    : SizedBox(
+                        width: 216,
+                        height: 40,
+                        child: ElevatedButton(
                           onPressed: _loginWithGoogle,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlobalVariables.lightGrey,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: GlobalVariables.green,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/vectors/vector-google.svg',
+                                width: 24,
+                                height: 24,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Sign up with Google',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: GlobalVariables.green,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                  OAuthButton(
-                    assetName: 'assets/vectors/vector-facebook.svg',
-                    onPressed: () {},
-                  ),
-                ],
+                      ),
               ),
               const SizedBox(height: 16),
 
