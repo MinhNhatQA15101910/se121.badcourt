@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/home/screens/home_screen.dart';
+import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -99,7 +99,7 @@ class AuthService {
               .setUser(response.body);
 
           Navigator.of(context).pushNamedAndRemoveUntil(
-            HomeScreen.routeName,
+            PlayerBottomBar.routeName,
             (route) => false,
           );
 
@@ -160,7 +160,7 @@ class AuthService {
               .setUser(response.body);
 
           Navigator.of(context).pushNamedAndRemoveUntil(
-            HomeScreen.routeName,
+            PlayerBottomBar.routeName,
             (route) => false,
           );
 
