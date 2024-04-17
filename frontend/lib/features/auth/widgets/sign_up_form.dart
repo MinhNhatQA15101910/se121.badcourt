@@ -24,8 +24,8 @@ class SignUpForm extends StatefulWidget {
 
 class _SignUpFormState extends State<SignUpForm> {
   final _authService = AuthService();
-  var _isLoading = false;
   var _isLoginWithGoogleLoading = false;
+  var _isMoveToPinputFormLoading = false;
 
   final _signUpFormKey = GlobalKey<FormState>();
 
@@ -34,24 +34,26 @@ class _SignUpFormState extends State<SignUpForm> {
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
-  void _loginWithGoogle() async {
+  void _loginWithGoogle() {
     setState(() {
       _isLoginWithGoogleLoading = true;
     });
 
-    GoogleSignIn googleSignIn = GoogleSignIn(
-      scopes: ['email'],
-    );
-    GoogleSignInAccount? account = await googleSignIn.signIn();
-    if (account != null) {
-      await _authService.logInWithGoogle(
-        context: context,
-        account: account,
+    Future.delayed(Duration(seconds: 2), () async {
+      GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email'],
       );
-    }
+      GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account != null) {
+        await _authService.logInWithGoogle(
+          context: context,
+          account: account,
+        );
+      }
 
-    setState(() {
-      _isLoginWithGoogleLoading = false;
+      setState(() {
+        _isLoginWithGoogleLoading = false;
+      });
     });
   }
 
@@ -66,29 +68,42 @@ class _SignUpFormState extends State<SignUpForm> {
 
   void _moveToPinputForm() {
     if (_signUpFormKey.currentState!.validate()) {
-      final authFormProvider = Provider.of<AuthProvider>(
-        context,
-        listen: false,
-      );
+      setState(() {
+        _isMoveToPinputFormLoading = true;
+      });
 
-      authFormProvider.setResentEmail(_emailController.text.trim());
-      authFormProvider.setPreviousForm(SignUpForm());
-      authFormProvider.setSignUpUser(
-        User(
-          id: '',
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          imageUrl: '',
-          role: '',
-          token: '',
-        ),
-      );
-      authFormProvider.setForm(
-        PinputForm(
-          isMoveBack: false,
-          isValidateSignUpEmail: true,
-        ),
+      Future.delayed(
+        Duration(seconds: 2),
+        () {
+          final authFormProvider = Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          );
+
+          authFormProvider.setResentEmail(_emailController.text.trim());
+          authFormProvider.setPreviousForm(SignUpForm());
+          authFormProvider.setSignUpUser(
+            User(
+              id: '',
+              username: _usernameController.text.trim(),
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+              imageUrl: '',
+              role: '',
+              token: '',
+            ),
+          );
+          authFormProvider.setForm(
+            PinputForm(
+              isMoveBack: false,
+              isValidateSignUpEmail: true,
+            ),
+          );
+
+          setState(() {
+            _isMoveToPinputFormLoading = false;
+          });
+        },
       );
     }
   }
@@ -203,12 +218,12 @@ class _SignUpFormState extends State<SignUpForm> {
               // Sign up button
               Align(
                 alignment: Alignment.center,
-                child: _isLoading
-                    ? const Loader()
-                    : SizedBox(
-                        width: 216,
-                        height: 40,
-                        child: ElevatedButton(
+                child: SizedBox(
+                  width: 216,
+                  height: 40,
+                  child: _isMoveToPinputFormLoading
+                      ? const Loader()
+                      : ElevatedButton(
                           onPressed: _moveToPinputForm,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: GlobalVariables.green,
@@ -223,7 +238,7 @@ class _SignUpFormState extends State<SignUpForm> {
                             ),
                           ),
                         ),
-                      ),
+                ),
               ),
               const SizedBox(height: 16),
 

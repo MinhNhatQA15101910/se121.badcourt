@@ -24,25 +24,27 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
-  void _updatePassword() async {
+  void _updatePassword() {
     if (_loginFormKey.currentState!.validate()) {
       setState(() {
         _isChangePasswordLoading = true;
       });
 
-      final email = Provider.of<AuthProvider>(
-        context,
-        listen: false,
-      ).resentEmail;
+      Future.delayed(Duration(seconds: 2), () async {
+        final email = Provider.of<AuthProvider>(
+          context,
+          listen: false,
+        ).resentEmail;
 
-      await _authService.changePassword(
-        context: context,
-        email: email,
-        newPassword: _passwordController.text.trim(),
-      );
+        await _authService.changePassword(
+          context: context,
+          email: email,
+          newPassword: _passwordController.text.trim(),
+        );
 
-      setState(() {
-        _isChangePasswordLoading = false;
+        setState(() {
+          _isChangePasswordLoading = false;
+        });
       });
     }
   }

@@ -31,47 +31,51 @@ class _LoginFormState extends State<LoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _logInUser() async {
+  void _logInUser() {
     if (_loginFormKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      var isSuccessful = await _authService.logInUser(
-        context: context,
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      Future.delayed(Duration(seconds: 2), () async {
+        var isSuccessful = await _authService.logInUser(
+          context: context,
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
 
-      setState(() {
-        _isLoading = false;
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (isSuccessful) {
+          _emailController.clear();
+          _passwordController.clear();
+        }
       });
-
-      if (isSuccessful) {
-        _emailController.clear();
-        _passwordController.clear();
-      }
     }
   }
 
-  void _loginWithGoogle() async {
+  void _loginWithGoogle() {
     setState(() {
       _isLoginWithGoogleLoading = true;
     });
 
-    GoogleSignIn googleSignIn = GoogleSignIn(
-      scopes: ['email'],
-    );
-    GoogleSignInAccount? account = await googleSignIn.signIn();
-    if (account != null) {
-      await _authService.logInWithGoogle(
-        context: context,
-        account: account,
+    Future.delayed(Duration(seconds: 2), () async {
+      GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email'],
       );
-    }
+      GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account != null) {
+        await _authService.logInWithGoogle(
+          context: context,
+          account: account,
+        );
+      }
 
-    setState(() {
-      _isLoginWithGoogleLoading = false;
+      setState(() {
+        _isLoginWithGoogleLoading = false;
+      });
     });
   }
 

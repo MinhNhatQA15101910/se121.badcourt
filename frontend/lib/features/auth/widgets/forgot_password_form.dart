@@ -23,19 +23,21 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
 
   final _emailController = TextEditingController();
 
-  void _validateEmailAndNavigate() async {
+  void _validateEmailAndNavigate() {
     if (_forgotPasswordFormKey.currentState!.validate()) {
       setState(() {
         _isValidateLoading = true;
       });
 
-      await _authService.validateEmail(
-        context: context,
-        email: _emailController.text.trim(),
-      );
+      Future.delayed(Duration(seconds: 2), () async {
+        await _authService.validateEmail(
+          context: context,
+          email: _emailController.text.trim(),
+        );
 
-      setState(() {
-        _isValidateLoading = false;
+        setState(() {
+          _isValidateLoading = false;
+        });
       });
     }
   }

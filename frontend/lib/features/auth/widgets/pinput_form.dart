@@ -83,33 +83,35 @@ class _PinputFormState extends State<PinputForm> {
 
     _timer!.cancel();
 
-    if (widget.isValidateSignUpEmail) {
-      setState(() {
-        _isSignUpLoading = true;
-      });
+    setState(() {
+      _isSignUpLoading = true;
+    });
 
-      _signUpUser();
+    Future.delayed(Duration(seconds: 2), () async {
+      if (widget.isValidateSignUpEmail) {
+        _signUpUser();
+      } else {
+        final authFormProvider = Provider.of<AuthProvider>(
+          context,
+          listen: false,
+        );
+
+        authFormProvider.setPreviousForm(
+          PinputForm(
+            isMoveBack: true,
+            isValidateSignUpEmail: false,
+          ),
+        );
+
+        authFormProvider.setForm(
+          ResetPasswordForm(),
+        );
+      }
 
       setState(() {
         _isSignUpLoading = false;
       });
-    } else {
-      final authFormProvider = Provider.of<AuthProvider>(
-        context,
-        listen: false,
-      );
-
-      authFormProvider.setPreviousForm(
-        PinputForm(
-          isMoveBack: true,
-          isValidateSignUpEmail: false,
-        ),
-      );
-
-      authFormProvider.setForm(
-        ResetPasswordForm(),
-      );
-    }
+    });
   }
 
   void _moveToPreviousForm() {
@@ -183,30 +185,24 @@ class _PinputFormState extends State<PinputForm> {
     );
   }
 
-  void _signUpUser() async {
-    setState(() {
-      _isSignUpLoading = true;
+  void _signUpUser() {
+    Future.delayed(Duration(seconds: 2), () async {
+      User signUpUser = Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      ).signUpUser;
+
+      bool isSuccessful = await _authService.signUpUser(
+        context: context,
+        username: signUpUser.username,
+        email: signUpUser.email,
+        password: signUpUser.password,
+      );
+
+      if (isSuccessful) {
+        _moveToLoginForm();
+      }
     });
-
-    User signUpUser = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    ).signUpUser;
-
-    bool isSuccessful = await _authService.signUpUser(
-      context: context,
-      username: signUpUser.username,
-      email: signUpUser.email,
-      password: signUpUser.password,
-    );
-
-    setState(() {
-      _isSignUpLoading = false;
-    });
-
-    if (isSuccessful) {
-      _moveToLoginForm();
-    }
   }
 
   @override
