@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -25,6 +27,8 @@ class PinputForm extends StatefulWidget {
 
 class _PinputFormState extends State<PinputForm> {
   final _authService = AuthService();
+
+  var _remainingSeconds = 60;
 
   String? _pincode;
   final _pinController = TextEditingController();
@@ -116,12 +120,46 @@ class _PinputFormState extends State<PinputForm> {
     );
   }
 
+  void _startTimer() {
+    const duration = Duration(seconds: 1);
+    Timer.periodic(
+      duration,
+      (timer) {
+        if (_remainingSeconds == 0) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Email verify timeout'),
+              content: const Text(
+                'You must enter your verify code before the time is over.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          _moveToPreviousForm();
+        } else {
+          setState(() {
+            _remainingSeconds--;
+          });
+        }
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     if (!widget.isMoveBack) {
       _sendVerifyEmail();
     }
+    _startTimer();
   }
 
   @override
@@ -193,7 +231,7 @@ class _PinputFormState extends State<PinputForm> {
                 ),
                 children: [
                   TextSpan(
-                    text: '60s',
+                    text: '${_remainingSeconds}s',
                     style: GoogleFonts.inter(
                       color: GlobalVariables.green,
                       fontSize: 16,
@@ -299,6 +337,8 @@ class _PinputFormState extends State<PinputForm> {
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = _sendVerifyEmail,
                       )
                     ],
                   ),
