@@ -1,5 +1,5 @@
 import bcryptjs from "bcryptjs";
-import express, { text } from "express";
+import express from "express";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
@@ -159,6 +159,7 @@ authRouter.post("/send-email", async (req, res) => {
 authRouter.patch("/change-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
+    console.log(req.body);
 
     let existingUser = await User.findOne({ email });
     if (!existingUser) {
@@ -185,16 +186,13 @@ function hideEmailCharacters(email) {
   // Get the length of the username
   const usernameLength = username.length;
 
-  // Calculate the number of characters to hide (leave the first and last characters visible)
   const hiddenCharactersCount = Math.max(usernameLength - 2, 0);
 
-  // Create a new username with hidden characters
   const hiddenUsername =
     username.substring(0, 1) +
     "*".repeat(hiddenCharactersCount) +
     username.substring(usernameLength - 1);
 
-  // Concatenate the hidden username with the domain
   const hiddenEmail = hiddenUsername + "@" + domain;
 
   return hiddenEmail;

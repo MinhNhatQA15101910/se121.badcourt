@@ -28,6 +28,7 @@ class PinputForm extends StatefulWidget {
 class _PinputFormState extends State<PinputForm> {
   final _authService = AuthService();
 
+  Timer? _timer;
   var _remainingSeconds = 60;
 
   String? _pincode;
@@ -74,6 +75,8 @@ class _PinputFormState extends State<PinputForm> {
       );
       return;
     }
+
+    _timer!.cancel();
 
     final authFormProvider = Provider.of<AuthFormProvider>(
       context,
@@ -122,7 +125,7 @@ class _PinputFormState extends State<PinputForm> {
 
   void _startTimer() {
     const duration = Duration(seconds: 1);
-    Timer.periodic(
+    _timer = Timer.periodic(
       duration,
       (timer) {
         if (_remainingSeconds == 0) {

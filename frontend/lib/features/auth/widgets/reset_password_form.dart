@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
-import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -15,22 +16,34 @@ class ResetPasswordForm extends StatefulWidget {
 }
 
 class _ResetPasswordFormState extends State<ResetPasswordForm> {
+  final _authService = AuthService();
+  var _isChangePasswordLoading = false;
+
   final _loginFormKey = GlobalKey<FormState>();
 
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
-  void _updatePassword() {
+  void _updatePassword() async {
     if (_loginFormKey.currentState!.validate()) {
-      // TODO: Update password
-      final authFormProvider = Provider.of<AuthFormProvider>(
+      setState(() {
+        _isChangePasswordLoading = true;
+      });
+
+      final email = Provider.of<AuthFormProvider>(
         context,
         listen: false,
+      ).resentEmail;
+
+      await _authService.changePassword(
+        context: context,
+        email: email,
+        newPassword: _passwordController.text.trim(),
       );
 
-      authFormProvider.setForm(
-        LoginForm(),
-      );
+      setState(() {
+        _isChangePasswordLoading = false;
+      });
     }
   }
 
@@ -163,21 +176,23 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
                   SizedBox(
                     width: 150,
                     height: 40,
-                    child: ElevatedButton(
-                      onPressed: _updatePassword,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlobalVariables.green,
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Update',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: GlobalVariables.white,
-                        ),
-                      ),
-                    ),
+                    child: _isChangePasswordLoading
+                        ? const Loader()
+                        : ElevatedButton(
+                            onPressed: _updatePassword,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: GlobalVariables.green,
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Update',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: GlobalVariables.white,
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),

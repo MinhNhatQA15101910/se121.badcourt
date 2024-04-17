@@ -6,6 +6,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
+import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/models/user.dart';
@@ -283,6 +284,70 @@ class AuthService {
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+
+      return false;
+    }
+  }
+
+  Future<bool> changePassword({
+    required BuildContext context,
+    required String email,
+    required String newPassword,
+  }) async {
+    try {
+      http.Response response = await http.patch(
+        Uri.parse('$uri/change-password'),
+        body: jsonEncode(
+          {
+            'email': email,
+            'newPassword': newPassword,
+          },
+        ),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          final userProvider = Provider.of<UserProvider>(
+            context,
+            listen: false,
+          );
+          final authFormProvider = Provider.of<AuthFormProvider>(
+            context,
+            listen: false,
+          );
+
+          User user = userProvider.user.copyWith(
+            password: jsonDecode(response.body)['password'],
+          );
+          userProvider.setUserFromModel(user);
+
+          authFormProvider.setForm(LoginForm());
+          authFormProvider.setResentEmail('');
+
+          IconSnackBar.show(
+            context,
+            label: 'Change password successfully!',
+            snackBarType: SnackBarType.success,
+          );
         },
       );
 
