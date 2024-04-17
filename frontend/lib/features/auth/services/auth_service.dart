@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
@@ -14,6 +15,18 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+String generateRandomNumberString() {
+  Random random = Random();
+
+  String randomNumberString = '';
+  for (int i = 0; i < 6; i++) {
+    int randomNumber = random.nextInt(10);
+    randomNumberString += randomNumber.toString();
+  }
+
+  return randomNumberString;
+}
 
 class AuthService {
   // Sign up user
@@ -191,6 +204,7 @@ class AuthService {
     }
   }
 
+  // Validate email
   Future<bool> validateEmail({
     required BuildContext context,
     required String email,
@@ -225,7 +239,9 @@ class AuthService {
         );
 
         authFormProvider.setForm(
-          PinputForm(),
+          PinputForm(
+            isMoveBack: false,
+          ),
         );
       } else {
         IconSnackBar.show(
@@ -234,6 +250,41 @@ class AuthService {
           snackBarType: SnackBarType.fail,
         );
       }
+
+      if (response.statusCode != 200) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+
+      return false;
+    }
+  }
+
+  Future<bool> sendVerifyEmail({
+    required BuildContext context,
+    required String email,
+    required String pincode,
+  }) async {
+    try {
+      http.Response response = await http.post(
+        Uri.parse('$uri/send-email'),
+        body: jsonEncode(
+          {
+            'email': email,
+            'pincode': pincode,
+          },
+        ),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
 
       if (response.statusCode != 200) {
         return false;

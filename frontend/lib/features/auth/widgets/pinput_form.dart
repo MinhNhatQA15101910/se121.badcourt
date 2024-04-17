@@ -1,5 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/reset_password_form.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
@@ -8,13 +12,21 @@ import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 
 class PinputForm extends StatefulWidget {
-  const PinputForm({super.key});
+  const PinputForm({
+    super.key,
+    required this.isMoveBack,
+  });
+
+  final bool isMoveBack;
 
   @override
   State<PinputForm> createState() => _PinputFormState();
 }
 
 class _PinputFormState extends State<PinputForm> {
+  final _authService = AuthService();
+
+  String? _pincode;
   final _pinController = TextEditingController();
 
   final _defaultPinTheme = PinTheme(
@@ -33,10 +45,29 @@ class _PinputFormState extends State<PinputForm> {
     ),
   );
 
-  void _verifyPincode(String pin) {
-    // TODO: Verify pincode and navigate to reset password form.
+  String _generateRandomNumberString() {
+    Random random = Random();
 
+    String randomNumberString = '';
+    for (int i = 0; i < 6; i++) {
+      int randomNumber = random.nextInt(10);
+      randomNumberString += randomNumber.toString();
+    }
+
+    return randomNumberString;
+  }
+
+  void _verifyPincode(String pin) {
     if (pin.isEmpty) {
+      return;
+    }
+
+    if (pin != _pincode) {
+      IconSnackBar.show(
+        context,
+        label: 'Incorrect pincode.',
+        snackBarType: SnackBarType.fail,
+      );
       return;
     }
 
@@ -46,7 +77,9 @@ class _PinputFormState extends State<PinputForm> {
     );
 
     authFormProvider.setPreviousForm(
-      PinputForm(),
+      PinputForm(
+        isMoveBack: true,
+      ),
     );
 
     authFormProvider.setForm(
@@ -67,6 +100,28 @@ class _PinputFormState extends State<PinputForm> {
     authFormProvider.setPreviousForm(
       LoginForm(),
     );
+  }
+
+  void _sendVerifyEmail() async {
+    _pincode = _generateRandomNumberString();
+    var email = Provider.of<AuthFormProvider>(
+      context,
+      listen: false,
+    ).resentEmail;
+
+    await _authService.sendVerifyEmail(
+      context: context,
+      email: email,
+      pincode: _pincode!,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.isMoveBack) {
+      _sendVerifyEmail();
+    }
   }
 
   @override
