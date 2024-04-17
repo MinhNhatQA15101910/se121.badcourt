@@ -65,7 +65,9 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
         vertical: 20,
         horizontal: 14,
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
+      margin: const EdgeInsets.symmetric(
+        horizontal: 12,
+      ),
       child: Form(
         key: _forgotPasswordFormKey,
         child: SingleChildScrollView(

@@ -1,6 +1,7 @@
 import bcryptjs from "bcryptjs";
-import express from "express";
+import express, { text } from "express";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 
 import User from "../models/user.js";
 
@@ -101,10 +102,79 @@ authRouter.post("/email-exists", async (req, res) => {
       return res.json(true);
     }
 
-    return res.json(false);
+    res.json(false);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Send verify email route
+authRouter.post("/send-email", async (req, res) => {
+  try {
+    const { email, pincode } = req.body;
+
+    var transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.BADCOURT_EMAIL,
+        pass: process.env.BADCOURT_PASSWORD,
+      },
+    });
+
+    var mailOptions = {
+      from: process.env.BADCOURT_EMAIL,
+      to: email,
+      subject: "BadCourt account verify code",
+      html: `<h2>BadCourt account</h2>
+      <h1 style="color:#23C16B;">Verify code</h1>
+      <p>
+        Please use the following verify code for the BadCourt account:
+        ${hideEmailCharacters(email)}
+      </p>
+      <p>Security code: <b>${pincode}</b></p>
+      <p>
+        If you didn't request this code, you can safely ignore this email. Someone
+        else might have typed your email address by mistake.
+      </p>
+      <br />
+      <p>Thanks,</p>
+      <p>The BadCourt development team.</p>`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.json({ msg: "Email sent: " + info.response });
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+function hideEmailCharacters(email) {
+  // Split the email into username and domain parts
+  const [username, domain] = email.split("@");
+
+  // Get the length of the username
+  const usernameLength = username.length;
+
+  // Calculate the number of characters to hide (leave the first and last characters visible)
+  const hiddenCharactersCount = Math.max(usernameLength - 2, 0);
+
+  // Create a new username with hidden characters
+  const hiddenUsername =
+    username.substring(0, 1) +
+    "*".repeat(hiddenCharactersCount) +
+    username.substring(usernameLength - 1);
+
+  // Concatenate the hidden username with the domain
+  const hiddenEmail = hiddenUsername + "@" + domain;
+
+  return hiddenEmail;
+}
 
 export default authRouter;
