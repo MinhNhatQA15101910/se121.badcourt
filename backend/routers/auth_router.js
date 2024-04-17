@@ -155,6 +155,29 @@ authRouter.post("/send-email", async (req, res) => {
   }
 });
 
+// Change password
+authRouter.patch("/change-password", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    let existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res
+        .status(400)
+        .json({ msg: "User with this email does not exist." });
+    }
+
+    const hashedPassword = await bcryptjs.hash(newPassword, 8);
+
+    existingUser.password = hashedPassword;
+
+    existingUser = await existingUser.save();
+    res.json(existingUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 function hideEmailCharacters(email) {
   // Split the email into username and domain parts
   const [username, domain] = email.split("@");
