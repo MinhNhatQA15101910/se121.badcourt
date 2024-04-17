@@ -1,8 +1,9 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -15,30 +16,27 @@ class ForgotPasswordForm extends StatefulWidget {
 }
 
 class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
+  final _authService = AuthService();
+  var _isValidateLoading = false;
+
   final _forgotPasswordFormKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
 
-  void _validateEmailAndNavigate() {
+  void _validateEmailAndNavigate() async {
     if (_forgotPasswordFormKey.currentState!.validate()) {
-      // TODO: Check if the input email is existed in the database
+      setState(() {
+        _isValidateLoading = true;
+      });
 
-      final authFormProvider = Provider.of<AuthFormProvider>(
-        context,
-        listen: false,
+      await _authService.validateEmail(
+        context: context,
+        email: _emailController.text.trim(),
       );
 
-      authFormProvider.setResentEmail(
-        _emailController.text.trim(),
-      );
-
-      authFormProvider.setPreviousForm(
-        ForgotPasswordForm(),
-      );
-
-      authFormProvider.setForm(
-        PinputForm(),
-      );
+      setState(() {
+        _isValidateLoading = false;
+      });
     }
   }
 
@@ -147,21 +145,23 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                   SizedBox(
                     width: 150,
                     height: 40,
-                    child: ElevatedButton(
-                      onPressed: _validateEmailAndNavigate,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlobalVariables.green,
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Next',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: GlobalVariables.white,
-                        ),
-                      ),
-                    ),
+                    child: _isValidateLoading
+                        ? const Loader()
+                        : ElevatedButton(
+                            onPressed: _validateEmailAndNavigate,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: GlobalVariables.green,
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Next',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: GlobalVariables.white,
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),

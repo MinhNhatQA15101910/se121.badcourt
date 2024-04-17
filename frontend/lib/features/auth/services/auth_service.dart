@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
+import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/models/user.dart';
+import 'package:frontend/providers/auth_form_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -171,6 +174,66 @@ class AuthService {
           );
         },
       );
+
+      if (response.statusCode != 200) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+
+      return false;
+    }
+  }
+
+  Future<bool> validateEmail({
+    required BuildContext context,
+    required String email,
+  }) async {
+    try {
+      http.Response response = await http.post(
+        Uri.parse('$uri/email-exists'),
+        body: jsonEncode(
+          {
+            'email': email,
+          },
+        ),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      var isExistingEmail = jsonDecode(response.body);
+
+      if (isExistingEmail) {
+        final authFormProvider = Provider.of<AuthFormProvider>(
+          context,
+          listen: false,
+        );
+
+        authFormProvider.setResentEmail(
+          email,
+        );
+
+        authFormProvider.setPreviousForm(
+          ForgotPasswordForm(),
+        );
+
+        authFormProvider.setForm(
+          PinputForm(),
+        );
+      } else {
+        IconSnackBar.show(
+          context,
+          label: 'Email not found.',
+          snackBarType: SnackBarType.fail,
+        );
+      }
 
       if (response.statusCode != 200) {
         return false;
