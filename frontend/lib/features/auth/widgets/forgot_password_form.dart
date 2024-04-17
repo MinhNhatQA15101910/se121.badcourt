@@ -4,7 +4,7 @@ import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
-import 'package:frontend/providers/auth_form_provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -41,7 +41,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
   }
 
   void _moveToPreviousForm() {
-    final authFormProvider = Provider.of<AuthFormProvider>(
+    final authFormProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );

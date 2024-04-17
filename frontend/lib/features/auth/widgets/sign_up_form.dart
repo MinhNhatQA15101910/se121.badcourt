@@ -8,7 +8,9 @@ import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
-import 'package:frontend/providers/auth_form_provider.dart';
+import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/models/user.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
@@ -32,32 +34,6 @@ class _SignUpFormState extends State<SignUpForm> {
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
-  void _signUpUser() async {
-    if (_signUpFormKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      bool isSuccessful = await _authService.signUpUser(
-        context: context,
-        username: _usernameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (isSuccessful) {
-        _usernameController.clear();
-        _emailController.clear();
-        _passwordController.clear();
-        _passwordConfirmedController.clear();
-      }
-    }
-  }
-
   void _loginWithGoogle() async {
     setState(() {
       _isLoginWithGoogleLoading = true;
@@ -80,12 +56,41 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   void _moveToLoginForm() {
-    final authFormProvider = Provider.of<AuthFormProvider>(
+    final authFormProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
     authFormProvider.setForm(LoginForm());
+  }
+
+  void _moveToPinputForm() {
+    if (_signUpFormKey.currentState!.validate()) {
+      final authFormProvider = Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      );
+
+      authFormProvider.setResentEmail(_emailController.text.trim());
+      authFormProvider.setPreviousForm(SignUpForm());
+      authFormProvider.setSignUpUser(
+        User(
+          id: '',
+          username: _usernameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          imageUrl: '',
+          role: '',
+          token: '',
+        ),
+      );
+      authFormProvider.setForm(
+        PinputForm(
+          isMoveBack: false,
+          isValidateSignUpEmail: true,
+        ),
+      );
+    }
   }
 
   @override
@@ -204,7 +209,7 @@ class _SignUpFormState extends State<SignUpForm> {
                         width: 216,
                         height: 40,
                         child: ElevatedButton(
-                          onPressed: _signUpUser,
+                          onPressed: _moveToPinputForm,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: GlobalVariables.green,
                             elevation: 0,

@@ -4,11 +4,13 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/reset_password_form.dart';
-import 'package:frontend/providers/auth_form_provider.dart';
+import 'package:frontend/models/user.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
@@ -17,9 +19,11 @@ class PinputForm extends StatefulWidget {
   const PinputForm({
     super.key,
     required this.isMoveBack,
+    required this.isValidateSignUpEmail,
   });
 
   final bool isMoveBack;
+  final bool isValidateSignUpEmail;
 
   @override
   State<PinputForm> createState() => _PinputFormState();
@@ -27,6 +31,7 @@ class PinputForm extends StatefulWidget {
 
 class _PinputFormState extends State<PinputForm> {
   final _authService = AuthService();
+  var _isSignUpLoading = false;
 
   Timer? _timer;
   var _remainingSeconds = 60;
@@ -78,24 +83,37 @@ class _PinputFormState extends State<PinputForm> {
 
     _timer!.cancel();
 
-    final authFormProvider = Provider.of<AuthFormProvider>(
-      context,
-      listen: false,
-    );
+    if (widget.isValidateSignUpEmail) {
+      setState(() {
+        _isSignUpLoading = true;
+      });
 
-    authFormProvider.setPreviousForm(
-      PinputForm(
-        isMoveBack: true,
-      ),
-    );
+      _signUpUser();
 
-    authFormProvider.setForm(
-      ResetPasswordForm(),
-    );
+      setState(() {
+        _isSignUpLoading = false;
+      });
+    } else {
+      final authFormProvider = Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      );
+
+      authFormProvider.setPreviousForm(
+        PinputForm(
+          isMoveBack: true,
+          isValidateSignUpEmail: false,
+        ),
+      );
+
+      authFormProvider.setForm(
+        ResetPasswordForm(),
+      );
+    }
   }
 
   void _moveToPreviousForm() {
-    final authFormProvider = Provider.of<AuthFormProvider>(
+    final authFormProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
@@ -109,9 +127,18 @@ class _PinputFormState extends State<PinputForm> {
     );
   }
 
+  void _moveToLoginForm() {
+    final authFormProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
+
+    authFormProvider.setForm(LoginForm());
+  }
+
   void _sendVerifyEmail() async {
     _pincode = _generateRandomNumberString();
-    var email = Provider.of<AuthFormProvider>(
+    var email = Provider.of<AuthProvider>(
       context,
       listen: false,
     ).resentEmail;
@@ -156,6 +183,32 @@ class _PinputFormState extends State<PinputForm> {
     );
   }
 
+  void _signUpUser() async {
+    setState(() {
+      _isSignUpLoading = true;
+    });
+
+    User signUpUser = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).signUpUser;
+
+    bool isSuccessful = await _authService.signUpUser(
+      context: context,
+      username: signUpUser.username,
+      email: signUpUser.email,
+      password: signUpUser.password,
+    );
+
+    setState(() {
+      _isSignUpLoading = false;
+    });
+
+    if (isSuccessful) {
+      _moveToLoginForm();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -167,7 +220,7 @@ class _PinputFormState extends State<PinputForm> {
 
   @override
   Widget build(BuildContext context) {
-    final authFormProvider = Provider.of<AuthFormProvider>(
+    final authFormProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
@@ -298,21 +351,23 @@ class _PinputFormState extends State<PinputForm> {
                 SizedBox(
                   width: 150,
                   height: 40,
-                  child: ElevatedButton(
-                    onPressed: () => _verifyPincode(_pinController.text),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalVariables.green,
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Verify',
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: GlobalVariables.white,
-                      ),
-                    ),
-                  ),
+                  child: _isSignUpLoading
+                      ? const Loader()
+                      : ElevatedButton(
+                          onPressed: () => _verifyPincode(_pinController.text),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlobalVariables.green,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Verify',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: GlobalVariables.white,
+                            ),
+                          ),
+                        ),
                 ),
               ],
             ),

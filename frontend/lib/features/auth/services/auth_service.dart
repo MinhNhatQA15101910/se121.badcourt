@@ -10,7 +10,7 @@ import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/models/user.dart';
-import 'package:frontend/providers/auth_form_provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -226,7 +226,7 @@ class AuthService {
       var isExistingEmail = jsonDecode(response.body);
 
       if (isExistingEmail) {
-        final authFormProvider = Provider.of<AuthFormProvider>(
+        final authFormProvider = Provider.of<AuthProvider>(
           context,
           listen: false,
         );
@@ -242,6 +242,7 @@ class AuthService {
         authFormProvider.setForm(
           PinputForm(
             isMoveBack: false,
+            isValidateSignUpEmail: false,
           ),
         );
       } else {
@@ -330,7 +331,7 @@ class AuthService {
             context,
             listen: false,
           );
-          final authFormProvider = Provider.of<AuthFormProvider>(
+          final authFormProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );

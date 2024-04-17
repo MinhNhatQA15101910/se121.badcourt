@@ -180,10 +180,8 @@ authRouter.patch("/change-password", async (req, res) => {
 });
 
 function hideEmailCharacters(email) {
-  // Split the email into username and domain parts
   const [username, domain] = email.split("@");
 
-  // Get the length of the username
   const usernameLength = username.length;
 
   const hiddenCharactersCount = Math.max(usernameLength - 2, 0);
