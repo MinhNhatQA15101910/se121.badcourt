@@ -3,6 +3,7 @@ import 'package:frontend/common/widgets/custom_buttom.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
 class MapScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  VietmapController? _mapController;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,6 +43,17 @@ class _MapScreenState extends State<MapScreen> {
         child: Stack(
           alignment: Alignment.topCenter,
           children: [
+            VietmapGL(
+              styleString:
+                  'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841',
+              initialCameraPosition:
+                  CameraPosition(target: LatLng(10.762317, 106.654551)),
+              onMapCreated: (VietmapController controller) {
+                setState(() {
+                  _mapController = controller;
+                });
+              },
+            ),
             Column(
               children: [
                 SizedBox(
