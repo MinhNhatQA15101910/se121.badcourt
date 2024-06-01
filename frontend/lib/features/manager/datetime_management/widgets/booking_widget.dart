@@ -42,7 +42,6 @@ class _BookingWidgetState extends State<BookingWidget> {
   Widget build(BuildContext context) {
     List<Widget> generateTimeContainer(DateTime startTime, DateTime endTime) {
       List<Widget> children = [];
-      double currentPosition = 0.0;
 
       // Container trên cùng
       children.add(Container(
@@ -67,7 +66,6 @@ class _BookingWidgetState extends State<BookingWidget> {
             ),
           ),
         ));
-        currentPosition += height;
       }
 
       int totalMinutes = endTime.difference(startTime).inMinutes;
@@ -89,7 +87,6 @@ class _BookingWidgetState extends State<BookingWidget> {
             ),
           ),
         ));
-        currentPosition += 40;
       }
 
       // Thêm container cho phút kết thúc nếu khác 0
@@ -226,25 +223,6 @@ class _BookingWidgetState extends State<BookingWidget> {
     );
   }
 
-  Widget _InterRegular16(String text, Color color, int maxLines) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
   Widget _InterBold14(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
@@ -259,25 +237,6 @@ class _BookingWidgetState extends State<BookingWidget> {
           color: color,
           fontSize: 14,
           fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterRegular14(String text, Color color, int maxLines) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 4,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
         ),
       ),
     );
@@ -305,8 +264,7 @@ class _BookingWidgetState extends State<BookingWidget> {
   List<Widget> generateBookingTimeWidgets(
       List<BookingTime> bookingTimes, DateTime startTime, DateTime endTime) {
     return bookingTimes.map((bookingTime) {
-      Duration containerDifference = endTime.difference(startTime);
-      double containerHeight = (containerDifference.inMinutes * 5 / 3) * 0.4;
+      endTime.difference(startTime);
       Duration bookingTimeDifference =
           bookingTime.endDate.difference(bookingTime.startDate);
       double currentHeight = (bookingTimeDifference.inMinutes * 5 / 3) * 0.4;
@@ -315,7 +273,7 @@ class _BookingWidgetState extends State<BookingWidget> {
       double marginTopStartTime = (marginStartTimediff.inMinutes * 5 / 3) * 0.4;
       return timespanContainer(
         bookingTime: bookingTime,
-        marginTop: marginTopStartTime + 10,
+        marginTop: marginTopStartTime,
         height: currentHeight,
         onUnlockPress: () {},
       );

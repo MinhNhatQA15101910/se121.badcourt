@@ -1,10 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:frontend/common/widgets/custom_buttom.dart';
-import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/intro/widgets/facility_item.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
 class IntroScreen extends StatefulWidget {
@@ -16,7 +13,6 @@ class IntroScreen extends StatefulWidget {
 }
 
 class _IntroScreenState extends State<IntroScreen> {
-  VietmapController? _mapController;
   @override
   Widget build(BuildContext context) {
     return Scaffold(

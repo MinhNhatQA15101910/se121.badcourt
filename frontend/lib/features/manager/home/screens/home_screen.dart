@@ -1,12 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/widgets.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/home/widgets/facility_home.dart';
 import 'package:frontend/features/manager/home/widgets/item_tag.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,11 +12,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _activeIndex = 0;
-  final _tempImageQuantity = 5;
-  int _rateNumber = 44;
-  final CarouselController _controller = CarouselController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

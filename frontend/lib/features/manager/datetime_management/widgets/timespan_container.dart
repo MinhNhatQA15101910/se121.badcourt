@@ -72,8 +72,8 @@ class timespanContainer extends StatelessWidget {
                     ],
                   ),
                   Positioned(
-                    top: 4, // Đặt vị trí ở đầu trên của Stack
-                    right: 0, // Đặt vị trí ở cạnh phải của Stack
+                    top: 4,
+                    right: 0,
                     child: GestureDetector(
                       onTap: () {},
                       child: Icon(
