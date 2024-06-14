@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
-import 'package:frontend/features/manager/manager_bottom_bar.dart';
-import 'package:frontend/features/manager/intro/screens/intro_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/manager/intro/screens/intro_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
@@ -48,7 +45,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       onGenerateRoute: (routeSettings) => generateRoute(routeSettings),
-      home: const DatetimeManagementScreen(),
+      home: const MapScreen(),
     );
   }
 }

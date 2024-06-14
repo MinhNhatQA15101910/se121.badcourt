@@ -7,7 +7,10 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 class FacilityItem extends StatefulWidget {
   const FacilityItem({
     super.key,
+    required this.onTap,
   });
+
+  final VoidCallback onTap;
 
   @override
   _FacilityItemState createState() => _FacilityItemState();
@@ -21,126 +24,129 @@ class _FacilityItemState extends State<FacilityItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: 12,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: GlobalVariables.white,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Container(
+        margin: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: 12,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              margin: EdgeInsets.only(
-                top: 12,
-              ),
-              child: Stack(
-                children: [
-                  CarouselSlider.builder(
-                    carouselController: _controller,
-                    itemCount: _tempImageQuantity,
-                    options: CarouselOptions(
-                      viewportFraction: 1.0,
-                      aspectRatio: 2,
-                      onPageChanged: (index, reason) => setState(() {
-                        _activeIndex = index;
-                      }),
-                    ),
-                    itemBuilder: (context, index, realIndex) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                          image: DecorationImage(
-                            image:
-                                AssetImage('assets/images/demo_facility.png'),
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _tempImageQuantity,
-                        (index) {
-                          return Container(
-                            margin: EdgeInsets.symmetric(horizontal: 4),
-                            child: CircleAvatar(
-                              radius: 4,
-                              backgroundColor: _activeIndex == index
-                                  ? GlobalVariables.green
-                                  : GlobalVariables.grey,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: GlobalVariables.white,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: EdgeInsets.only(
+                  top: 12,
+                ),
+                child: Stack(
+                  children: [
+                    CarouselSlider.builder(
+                      carouselController: _controller,
+                      itemCount: _tempImageQuantity,
+                      options: CarouselOptions(
+                        viewportFraction: 1.0,
+                        aspectRatio: 2,
+                        onPageChanged: (index, reason) => setState(() {
+                          _activeIndex = index;
+                        }),
+                      ),
+                      itemBuilder: (context, index, realIndex) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
                             ),
-                          );
-                        },
+                            image: DecorationImage(
+                              image:
+                                  AssetImage('assets/images/demo_facility.png'),
+                              fit: BoxFit.fill,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _tempImageQuantity,
+                          (index) {
+                            return Container(
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              child: CircleAvatar(
+                                radius: 4,
+                                backgroundColor: _activeIndex == index
+                                    ? GlobalVariables.green
+                                    : GlobalVariables.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _InterRegular16(
+                'Sân cầu lông nhật duy 1',
+                GlobalVariables.blackGrey,
+                2,
+              ),
+              Row(
+                children: [
+                  _InterBold14(
+                    '140000đ - 180000đ',
+                    GlobalVariables.blackGrey,
+                    1,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  RatingBarIndicator(
+                    rating: 3.5, // Giá trị rating hiện tại
+                    itemBuilder: (context, index) => Icon(
+                      Icons.star,
+                      color: GlobalVariables.yellow,
+                    ),
+                    itemCount: 5,
+                    itemSize: 20.0,
+                    unratedColor: GlobalVariables.lightGreen,
+                    direction: Axis.horizontal,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      ' ($_rateNumber)',
+                      style: GoogleFonts.inter(
+                        color: GlobalVariables.darkGrey,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-            _InterRegular16(
-              'Sân cầu lông nhật duy 1',
-              GlobalVariables.blackGrey,
-              2,
-            ),
-            Row(
-              children: [
-                _InterBold14(
-                  '140000đ - 180000đ',
-                  GlobalVariables.blackGrey,
-                  1,
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                RatingBarIndicator(
-                  rating: 3.5, // Giá trị rating hiện tại
-                  itemBuilder: (context, index) => Icon(
-                    Icons.star,
-                    color: GlobalVariables.yellow,
-                  ),
-                  itemCount: 5,
-                  itemSize: 20.0,
-                  unratedColor: GlobalVariables.lightGreen,
-                  direction: Axis.horizontal,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    ' ($_rateNumber)',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.darkGrey,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            _InterRegular14(
-              'Đường hàng Thuyên, khu phố 6, Phường Linh Trung, TP Thủ Đức',
-              GlobalVariables.darkGrey,
-              2,
-            ),
-            SizedBox(
-              height: 12,
-            ),
-          ],
+              _InterRegular14(
+                'Đường hàng Thuyên, khu phố 6, Phường Linh Trung, TP Thủ Đức',
+                GlobalVariables.darkGrey,
+                2,
+              ),
+              SizedBox(
+                height: 12,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -271,7 +271,7 @@ class _BookingWidgetState extends State<BookingWidget> {
       Duration marginStartTimediff =
           bookingTime.startDate.difference(startTime);
       double marginTopStartTime = (marginStartTimediff.inMinutes * 5 / 3) * 0.4;
-      return timespanContainer(
+      return TimespanContainer(
         bookingTime: bookingTime,
         marginTop: marginTopStartTime,
         height: currentHeight,

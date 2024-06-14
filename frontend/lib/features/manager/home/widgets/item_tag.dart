@@ -23,53 +23,56 @@ class ItemTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomContainer(
-      child: Row(
-        children: [
-          if (imgPath != null)
-            Image.asset(
-              imgPath!,
-              width: 40,
-              height: 40,
-            ),
-          if (iconData != null)
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: Center(
-                child: Icon(
-                  iconData,
-                  size: 24,
-                  color: Colors.black,
+    return GestureDetector(
+      onTap: onTap,
+      child: CustomContainer(
+        child: Row(
+          children: [
+            if (imgPath != null)
+              Image.asset(
+                imgPath!,
+                width: 40,
+                height: 40,
+              ),
+            if (iconData != null)
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: Icon(
+                    iconData,
+                    size: 24,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-            ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _semiBoldSizeText(title),
-                SizedBox(height: 4),
-                _detailText(description),
-              ],
-            ),
-          ),
-          if (isVisibleArrow)
-            SizedBox(
-              width: 24,
-              height: 40,
-              child: Align(
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.navigate_next,
-                  size: 20,
-                  color: GlobalVariables.darkGrey,
-                ),
+            SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _semiBoldSizeText(title),
+                  SizedBox(height: 4),
+                  _detailText(description),
+                ],
               ),
             ),
-        ],
+            if (isVisibleArrow)
+              SizedBox(
+                width: 24,
+                height: 40,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.navigate_next,
+                    size: 20,
+                    color: GlobalVariables.darkGrey,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

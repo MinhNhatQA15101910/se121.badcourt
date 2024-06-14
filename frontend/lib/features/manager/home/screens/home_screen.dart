@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/home/widgets/facility_home.dart';
 import 'package:frontend/features/manager/home/widgets/item_tag.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +13,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  void _navigateToDatetimeManagementScreen() {
+    Navigator.of(context).pushNamed(DatetimeManagementScreen.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: 'Datetime management',
                 description: 'Update the infomation of your badminton facility',
                 imgPath: 'assets/images/img_datetime.png',
-                onTap: () {},
+                onTap: _navigateToDatetimeManagementScreen,
                 isVisibleArrow: true,
               ),
               ItemTag(

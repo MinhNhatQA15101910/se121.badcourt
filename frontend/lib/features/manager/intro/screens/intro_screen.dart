@@ -1,11 +1,12 @@
 import 'package:frontend/common/widgets/custom_buttom.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/intro/widgets/facility_item.dart';
+import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 
 class IntroScreen extends StatefulWidget {
-  static const String routeName = '/map';
+  static const String routeName = '/manager-intro';
   const IntroScreen({super.key});
 
   @override
@@ -13,6 +14,10 @@ class IntroScreen extends StatefulWidget {
 }
 
 class _IntroScreenState extends State<IntroScreen> {
+  void _navigateToManagerBottomBar() {
+    Navigator.of(context).pushNamed(ManagerBottomBar.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,8 +28,12 @@ class _IntroScreenState extends State<IntroScreen> {
             SizedBox(
               height: 12,
             ),
-            FacilityItem(),
-            FacilityItem(),
+            FacilityItem(
+              onTap: _navigateToManagerBottomBar,
+            ),
+            FacilityItem(
+              onTap: _navigateToManagerBottomBar,
+            ),
             Container(
               width: 200,
               child: CustomButton(

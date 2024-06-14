@@ -3,13 +3,13 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/booking.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class timespanContainer extends StatelessWidget {
+class TimespanContainer extends StatelessWidget {
   final BookingTime bookingTime;
   final double marginTop;
   final double height;
   final void Function() onUnlockPress;
 
-  const timespanContainer({
+  const TimespanContainer({
     Key? key,
     this.marginTop = 0.0,
     this.height = 100.0,
@@ -37,21 +37,23 @@ class timespanContainer extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: !isValid(bookingTime)
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _InterMedium12(
-                    calculateTimeDifference(
-                        bookingTime.startDate, bookingTime.endDate),
-                    GlobalVariables.darkGrey,
-                    1,
-                  ),
-                  _InterMedium12(
-                    'Booking ID: ' + bookingTime.id.toString(),
-                    GlobalVariables.darkGrey,
-                    1,
-                  )
-                ],
+            ? SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _InterMedium12(
+                      calculateTimeDifference(
+                          bookingTime.startDate, bookingTime.endDate),
+                      GlobalVariables.darkGrey,
+                      1,
+                    ),
+                    _InterMedium12(
+                      'Booking ID: ' + bookingTime.id.toString(),
+                      GlobalVariables.darkGrey,
+                      1,
+                    )
+                  ],
+                ),
               )
             : Stack(
                 children: [

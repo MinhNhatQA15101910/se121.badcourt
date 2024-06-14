@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_buttom.dart';
-import 'package:frontend/common/widgets/drop_down_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:numberpicker/numberpicker.dart';
@@ -81,7 +80,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           GestureDetector(
                             onTap: () {
@@ -108,6 +107,14 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                                   ),
                                 ),
                               ),
+                            ),
+                          ),
+                          Transform.rotate(
+                            angle: 3.14,
+                            child: Icon(
+                              Icons.keyboard_backspace_outlined,
+                              color: GlobalVariables.darkGrey,
+                              size: 24,
                             ),
                           ),
                           GestureDetector(
@@ -278,46 +285,6 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
     );
   }
 
-  Widget _PaddingText(String text) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: Colors.black,
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _SemiBoldBlack24(String text) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: GlobalVariables.blackGrey,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
   Widget _SemiBoldBlack40(String text) {
     return Container(
       padding: EdgeInsets.only(
@@ -334,34 +301,6 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
           fontSize: 40,
           fontWeight: FontWeight.w600,
         ),
-      ),
-    );
-  }
-
-  Widget _customTextField(TextInputType inputText, String hint) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: GlobalVariables.darkGrey),
-      ),
-      child: TextFormField(
-        cursorColor: GlobalVariables.darkGrey,
-        keyboardType: inputText,
-        style: TextStyle(
-          color: GlobalVariables.darkGrey,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-        decoration: InputDecoration(
-            border: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            errorBorder: InputBorder.none,
-            disabledBorder: InputBorder.none,
-            hintText: hint),
       ),
     );
   }

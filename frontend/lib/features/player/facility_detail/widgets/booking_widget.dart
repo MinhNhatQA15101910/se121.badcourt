@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/models/booking.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class BookingWidget extends StatefulWidget {
   const BookingWidget({
@@ -42,7 +40,6 @@ class _BookingWidgetState extends State<BookingWidget> {
   Widget build(BuildContext context) {
     List<Widget> generateTimeContainer(DateTime startTime, DateTime endTime) {
       List<Widget> children = [];
-      double currentPosition = 0.0;
 
       // Container trên cùng
       children.add(Container(
@@ -67,7 +64,6 @@ class _BookingWidgetState extends State<BookingWidget> {
             ),
           ),
         ));
-        currentPosition += height;
       }
 
       int totalMinutes = endTime.difference(startTime).inMinutes;
@@ -89,7 +85,6 @@ class _BookingWidgetState extends State<BookingWidget> {
             ),
           ),
         ));
-        currentPosition += 40;
       }
 
       // Thêm container cho phút kết thúc nếu khác 0
@@ -211,68 +206,9 @@ class _BookingWidgetState extends State<BookingWidget> {
     );
   }
 
-  Widget _InterRegular16(String text, Color color, int maxLines) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterBold14(String text, Color color, int maxLines) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 4,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterRegular14(String text, Color color, int maxLines) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 4,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
   List<Widget> generateBookingTimeWidgets(
       List<BookingTime> bookingTimes, DateTime startTime, DateTime endTime) {
     return bookingTimes.map((bookingTime) {
-      Duration containerDifference = endTime.difference(startTime);
-      double containerHeight = (containerDifference.inMinutes * 5 / 3) * 0.4;
       Duration bookingTimeDifference =
           bookingTime.endDate.difference(bookingTime.startDate);
       double currentHeight = (bookingTimeDifference.inMinutes * 5 / 3) * 0.4;

@@ -7,6 +7,7 @@ import 'package:frontend/features/manager/datetime_management/widgets/timepicker
 import 'package:google_fonts/google_fonts.dart';
 
 class DatetimeManagementScreen extends StatefulWidget {
+  static const String routeName = '/datetime-management';
   const DatetimeManagementScreen({Key? key}) : super(key: key);
 
   @override

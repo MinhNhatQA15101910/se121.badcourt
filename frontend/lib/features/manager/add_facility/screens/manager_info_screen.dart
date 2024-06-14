@@ -526,23 +526,4 @@ class _ManagerInfoState extends State<ManagerInfo> {
       ),
     );
   }
-
-  Widget _isValidateText(bool isValidateText) {
-    String text = isValidateText ? 'Verified' : 'Not verified';
-    Color textColor = isValidateText ? Colors.green : Colors.red;
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      style: GoogleFonts.inter(
-        fontSize: 10,
-        color: textColor,
-        decoration: TextDecoration.underline,
-        decorationColor: textColor,
-        textStyle: const TextStyle(
-          overflow: TextOverflow.ellipsis,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
 }

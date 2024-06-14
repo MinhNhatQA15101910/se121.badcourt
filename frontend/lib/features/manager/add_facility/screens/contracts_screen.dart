@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_buttom.dart';
 import 'package:frontend/constants/global_variables.dart';
