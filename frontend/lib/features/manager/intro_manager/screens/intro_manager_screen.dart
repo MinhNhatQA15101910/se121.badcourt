@@ -1,19 +1,19 @@
 import 'package:frontend/common/widgets/custom_buttom.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/intro/widgets/facility_item.dart';
+import 'package:frontend/features/manager/intro_manager/widgets/facility_item.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 
-class IntroScreen extends StatefulWidget {
+class IntroManagerScreen extends StatefulWidget {
   static const String routeName = '/manager-intro';
-  const IntroScreen({super.key});
+  const IntroManagerScreen({super.key});
 
   @override
-  State<IntroScreen> createState() => _IntroScreenState();
+  State<IntroManagerScreen> createState() => _IntroManagerScreenState();
 }
 
-class _IntroScreenState extends State<IntroScreen> {
+class _IntroManagerScreenState extends State<IntroManagerScreen> {
   void _navigateToManagerBottomBar() {
     Navigator.of(context).pushNamed(ManagerBottomBar.routeName);
   }

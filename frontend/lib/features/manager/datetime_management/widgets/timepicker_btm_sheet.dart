@@ -49,7 +49,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                   ),
                   Expanded(
                     child: Container(
-                      child: _BoldSizeText('Choose a time to lock'),
+                      child: _BoldSizeText('Add a time to lock'),
                     ),
                   ),
                   IconButton(
@@ -68,11 +68,6 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
               thickness: 1.0,
             ),
             Container(
-              padding: EdgeInsets.only(
-                bottom: 12,
-                left: 16,
-                right: 16,
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -146,7 +141,10 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      Divider(
+                        color: GlobalVariables.grey,
+                        thickness: 1,
+                      ),
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
@@ -229,8 +227,8 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
               ),
             ),
             Divider(
-              color: GlobalVariables.defaultColor,
-              thickness: 12.0,
+              color: GlobalVariables.grey,
+              thickness: 1,
             ),
             Container(
               padding: EdgeInsets.symmetric(
@@ -255,7 +253,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                     child: Container(
                       child: CustomButton(
                         onTap: () {},
-                        buttonText: 'Confirm',
+                        buttonText: 'Add',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,
                         textColor: Colors.white,
