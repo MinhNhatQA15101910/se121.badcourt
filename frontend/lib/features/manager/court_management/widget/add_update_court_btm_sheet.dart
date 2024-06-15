@@ -3,7 +3,6 @@ import 'package:frontend/common/widgets/custom_buttom.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:numberpicker/numberpicker.dart';
 
 class AddUpdateCourtBottomSheet extends StatefulWidget {
   const AddUpdateCourtBottomSheet({Key? key}) : super(key: key);
@@ -150,26 +149,6 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
         color: Colors.black,
         fontSize: 16,
         fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-
-  Widget _SemiBoldBlack40(String text) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: 14,
-        top: 8,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: GlobalVariables.blackGrey,
-          fontSize: 40,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }
