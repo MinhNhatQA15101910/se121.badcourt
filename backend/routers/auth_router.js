@@ -8,9 +8,9 @@ import User from "../models/user.js";
 const authRouter = express.Router();
 
 // Sign up route
-authRouter.post("/user/signup", async (req, res) => {
+authRouter.post("/signup", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -19,15 +19,15 @@ authRouter.post("/user/signup", async (req, res) => {
         .json({ msg: "User with the same email already exists!" });
     }
 
-    if (password.length < 8) {
-      return res.status(400).json({ msg: "Password too short!" });
-    }
-
-    const hashedPassword = await bcryptjs.hash(password, 8);
+    const hashedPassword = await bcryptjs.hash(
+      password,
+      Number(process.env.SALT_ROUNDS)
+    );
 
     let user = new User({
       username,
       email,
+      role,
       password: hashedPassword,
     });
     user = await user.save();
