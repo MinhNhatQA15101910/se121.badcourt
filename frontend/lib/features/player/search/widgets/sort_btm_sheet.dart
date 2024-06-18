@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart'; // Sửa tên import cho đúng
 import 'package:google_fonts/google_fonts.dart';
 
@@ -91,42 +89,6 @@ class _SortBtmSheetState extends State<SortBtmSheet> {
         color: Colors.black,
         fontSize: 16,
         fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-
-  Widget _PaddingText(String text) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: GlobalVariables.blackGrey,
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _PaddingDescription(String text) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: GlobalVariables.darkGrey,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/widgets.dart';
 import 'package:frontend/common/widgets/custom_radio_buttom.dart';
 import 'package:frontend/common/widgets/single_facility_card.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -283,6 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: 16,
+                  vertical: 12,
                 ),
                 child: Column(
                   children: [

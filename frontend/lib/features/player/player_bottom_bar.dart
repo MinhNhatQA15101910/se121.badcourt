@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/account/screens/account_screen.dart';
+import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/features/player/home/screens/home_screen.dart';
 import 'package:frontend/features/player/search/screens/search_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -18,16 +20,8 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const SearchScreen(),
-    const Center(
-      child: Text(
-        'Favorite Screen',
-      ),
-    ),
-    const Center(
-      child: Text(
-        'Profile Screen',
-      ),
-    ),
+    const FavoriteScreen(),
+    const AccountScreen(),
   ];
 
   @override
