@@ -17,7 +17,7 @@ app.get("/document", (req, res) => {
 });
 
 mongoose
-  .connect(process.env.DB)
+  .connect(process.env.DB_URL)
   .then(() => {
     console.log("Connecting Successfully.");
   })

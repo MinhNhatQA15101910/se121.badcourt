@@ -5,6 +5,12 @@ const userSchema = mongoose.Schema({
     required: true,
     type: String,
     trim: true,
+    validate: {
+      validator: (value) => {
+        return value.length >= 6;
+      },
+      message: "Username must be at least 6 characters long.",
+    },
   },
   email: {
     required: true,
@@ -27,10 +33,10 @@ const userSchema = mongoose.Schema({
       validator: (value) => {
         return value.length >= 8;
       },
-      message: "Please enter a long password",
+      message: "Password must be at least 8 characters long.",
     },
   },
-  imageUrl: {
+  image_url: {
     type: String,
     trim: true,
   },
