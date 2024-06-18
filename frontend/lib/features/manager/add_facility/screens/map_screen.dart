@@ -1,4 +1,4 @@
-import 'package:frontend/common/widgets/custom_buttom.dart';
+import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';

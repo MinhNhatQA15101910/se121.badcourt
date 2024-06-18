@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/home/screens/home_screen.dart';
+import 'package:frontend/features/player/search/screens/search_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class PlayerBottomBar extends StatefulWidget {
@@ -16,11 +17,7 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
 
   final List<Widget> _pages = [
     const HomeScreen(),
-    const Center(
-      child: Text(
-        'Search Screen',
-      ),
-    ),
+    const SearchScreen(),
     const Center(
       child: Text(
         'Favorite Screen',

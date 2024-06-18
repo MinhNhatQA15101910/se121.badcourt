@@ -3,8 +3,6 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_detail_screen.dart';
 import 'package:frontend/features/manager/court_management/widget/add_update_court_btm_sheet.dart';
 import 'package:frontend/features/manager/court_management/widget/item_court.dart';
-import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
-import 'package:frontend/features/manager/home/widgets/item_tag.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CourtManagementScreen extends StatefulWidget {

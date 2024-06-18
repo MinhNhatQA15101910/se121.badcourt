@@ -1,6 +1,6 @@
-import 'package:frontend/common/widgets/custom_buttom.dart';
+import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/intro_manager/widgets/facility_item.dart';
+import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';

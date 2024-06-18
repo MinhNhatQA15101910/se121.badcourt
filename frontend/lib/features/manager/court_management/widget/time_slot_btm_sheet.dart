@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/widgets/custom_buttom.dart';
+import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,8 +29,6 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
   int get selectedMinute => isSelectingStartTime
       ? minuteValues[startMinuteIndex]
       : minuteValues[endMinuteIndex];
-
-  final _priceController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
