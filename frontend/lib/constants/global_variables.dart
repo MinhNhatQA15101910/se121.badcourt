@@ -3,10 +3,19 @@ import 'package:flutter/material.dart';
 String uri = 'http://192.168.1.11:3000';
 
 class GlobalVariables {
+  //Define Scales
+  static double screenWidth = 0;
+  static double screenHeight = 0;
+  static void init(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    screenWidth = screenSize.width;
+    screenHeight = screenSize.height;
+  }
+
   // Colors
   static const Color black = Color(0xFF000000);
-  static const Color blackGrey = Color(0xFF808089);
-  static const Color darkGrey = Color(0xFF72777A);
+  static const Color blackGrey = Color(0xFF27272A);
+  static const Color darkGrey = Color(0xFF808089);
   static const Color pinputColor = Color(0xFF545454);
   static const Color grey = Color(0xFFEBEBF0);
   static const Color lightGrey = Color(0xFFF2F4F5);

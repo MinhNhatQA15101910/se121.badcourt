@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/account/screens/account_screen.dart';
-import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
-import 'package:frontend/features/player/home/screens/home_screen.dart';
-import 'package:frontend/features/player/search/screens/search_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
+import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
+import 'package:frontend/features/manager/home/screens/home_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
-class PlayerBottomBar extends StatefulWidget {
-  static const String routeName = '/player-bottom-bar';
-  const PlayerBottomBar({super.key});
+class ManagerBottomBar extends StatefulWidget {
+  static const String routeName = '/customer-bottom-bar';
+  const ManagerBottomBar({super.key});
 
   @override
-  State<PlayerBottomBar> createState() => _PlayerBottomBarState();
+  State<ManagerBottomBar> createState() => _ManagerBottomBarState();
 }
 
-class _PlayerBottomBarState extends State<PlayerBottomBar> {
+class _ManagerBottomBarState extends State<ManagerBottomBar> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
     const HomeScreen(),
-    const SearchScreen(),
-    const FavoriteScreen(),
-    const AccountScreen(),
+    const CourtManagementScreen(),
+    const ContractScreen(),
+    const ContractScreen(),
   ];
 
   @override
@@ -30,20 +29,14 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
       bottomNavigationBar: Container(
         color: GlobalVariables.green,
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 12.0,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: GNav(
             gap: 6,
             backgroundColor: GlobalVariables.green,
             color: Colors.white,
             activeColor: GlobalVariables.green,
             tabBackgroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 10.0,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
             selectedIndex: _selectedIndex,
             onTabChange: (index) {
               setState(() {
@@ -56,16 +49,16 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
                 text: 'Home',
               ),
               GButton(
-                icon: Icons.search,
-                text: 'Search',
+                icon: Icons.vertical_split_outlined,
+                text: 'Courts',
               ),
               GButton(
-                icon: Icons.favorite_border,
-                text: 'Favorite',
+                icon: Icons.calendar_month,
+                text: 'Booking',
               ),
               GButton(
                 icon: Icons.account_circle,
-                text: 'Profile',
+                text: 'Account',
               )
             ],
           ),
