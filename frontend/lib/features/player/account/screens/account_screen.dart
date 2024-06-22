@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/account/widgets/item_tag.dart';
+import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -9,6 +10,10 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void _navigateToBookingManagementScreen() {
+      Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
@@ -211,7 +216,7 @@ class AccountScreen extends StatelessWidget {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: _navigateToBookingManagementScreen,
                           child: Row(
                             children: [
                               Text(
