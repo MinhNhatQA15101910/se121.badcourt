@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
-// ignore: unnecessary_import
-import 'package:flutter/widgets.dart';
-import 'package:frontend/features/player/booking_management/widgets/booking_detail_card.dart';
+import 'package:frontend/features/manager/booking_management_manager/widgets/booking_detail_card.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
 
-class BookingManagementScreen extends StatefulWidget {
-  static const String routeName = '/bookingManagement';
-  const BookingManagementScreen({super.key});
+class BookingManagementManagerScreen extends StatefulWidget {
+  const BookingManagementManagerScreen({super.key});
 
   @override
-  State<BookingManagementScreen> createState() =>
-      _BookingManagementScreenState();
+  State<BookingManagementManagerScreen> createState() =>
+      _BookingManagementManagerScreenState();
 }
 
-class _BookingManagementScreenState extends State<BookingManagementScreen> {
+class _BookingManagementManagerScreenState
+    extends State<BookingManagementManagerScreen> {
   final List<String> tabbarList = [
     'All',
-    'Pending',
-    'In Delivery',
-    'Delivered',
-    'Cancelled'
+    'Played',
+    'Not played',
+    'Cancelled',
   ];
 
   @override
@@ -31,14 +28,31 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
         appBar: AppBar(
           backgroundColor: GlobalVariables.green,
           title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Datetime management',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  decoration: TextDecoration.none,
+              Expanded(
+                child: Text(
+                  'BOOKINGS',
+                  style: GoogleFonts.alfaSlabOne(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    decoration: TextDecoration.none,
+                    color: GlobalVariables.white,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => {},
+                iconSize: 24,
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  color: GlobalVariables.white,
+                ),
+              ),
+              IconButton(
+                onPressed: () => {},
+                iconSize: 24,
+                icon: const Icon(
+                  Icons.message_outlined,
                   color: GlobalVariables.white,
                 ),
               ),
@@ -60,16 +74,19 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
                         ),
                         child: ListView(
                           children: [
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                            BookingDetailCard(),
+                            BookingDetailCardManager(),
+                            BookingDetailCardManager(),
+                            BookingDetailCardManager(),
+                            BookingDetailCardManager(),
+                            BookingDetailCardManager(),
                           ],
                         ),
                       ),
                   ],
                 ),
+              ),
+              SizedBox(
+                height: 12,
               ),
             ],
           ),

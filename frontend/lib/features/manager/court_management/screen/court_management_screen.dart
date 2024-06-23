@@ -26,18 +26,9 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
           backgroundColor: GlobalVariables.green,
           title: Row(
             children: [
-              Text(
-                'BAD',
-                style: GoogleFonts.alfaSlabOne(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w400,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.yellow,
-                ),
-              ),
               Expanded(
                 child: Text(
-                  'COURT',
+                  'COURTS',
                   style: GoogleFonts.alfaSlabOne(
                     fontSize: 24,
                     fontWeight: FontWeight.w400,

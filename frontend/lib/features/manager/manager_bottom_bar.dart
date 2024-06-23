@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
+import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
+import 'package:frontend/features/manager/booking_management_manager/screens/booking_management_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
 import 'package:frontend/features/manager/home/screens/home_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -19,8 +20,8 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const CourtManagementScreen(),
-    const ContractScreen(),
-    const ContractScreen(),
+    const BookingManagementManagerScreen(),
+    const ManagerAccountScreen(),
   ];
 
   @override

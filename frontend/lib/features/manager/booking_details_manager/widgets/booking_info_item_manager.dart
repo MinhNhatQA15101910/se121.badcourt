@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
-// ignore: unused_import
-import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class BookingInfoItem extends StatefulWidget {
-  const BookingInfoItem({super.key});
+class BookingInfoItemManager extends StatefulWidget {
+  const BookingInfoItemManager({super.key});
 
   @override
-  State<BookingInfoItem> createState() => _BookingInfoItemState();
+  State<BookingInfoItemManager> createState() => _BookingInfoItemManagerState();
 }
 
-class _BookingInfoItemState extends State<BookingInfoItem> {
+class _BookingInfoItemManagerState extends State<BookingInfoItemManager> {
   @override
   Widget build(BuildContext context) {
     return Container(

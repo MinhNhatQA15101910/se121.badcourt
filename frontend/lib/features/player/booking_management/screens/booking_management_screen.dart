@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-// ignore: unnecessary_import
-import 'package:flutter/widgets.dart';
-import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
 import 'package:frontend/features/player/booking_management/widgets/booking_detail_card.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -70,6 +67,9 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
                       ),
                   ],
                 ),
+              ),
+              SizedBox(
+                height: 12,
               ),
             ],
           ),
