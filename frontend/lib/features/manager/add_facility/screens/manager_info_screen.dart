@@ -310,27 +310,31 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   ),
                                   CustomTextfield(
                                     controller: _phoneNumberController,
-                                    hintText: 'Phone number',
+                                    hintText: 'Phone Number',
                                     validator: (phoneNumber) {
                                       if (phoneNumber == null ||
                                           phoneNumber.isEmpty) {
                                         return 'Please enter your phone number.';
+                                      } else if (phoneNumber.length != 10) {
+                                        return 'Phone number must be 10 digits.';
                                       }
                                       return null;
                                     },
                                   ),
                                   _InterRegular14(
-                                    "Citizen identification ID *",
+                                    "Citizen ID *",
                                     GlobalVariables.darkGrey,
                                     1,
                                   ),
                                   CustomTextfield(
                                     controller: _citizenIdController,
-                                    hintText: 'Citizen identification ID',
+                                    hintText: 'Citizen ID',
                                     validator: (citizenId) {
                                       if (citizenId == null ||
                                           citizenId.isEmpty) {
-                                        return 'Please enter your citizen identification ID.';
+                                        return 'Please enter your citizen ID.';
+                                      } else if (citizenId.length != 12) {
+                                        return 'Citizen ID must be 12 digits.';
                                       }
                                       return null;
                                     },

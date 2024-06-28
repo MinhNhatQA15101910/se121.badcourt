@@ -26,8 +26,6 @@ class _FacilityInfoState extends State<FacilityInfo> {
   final _wardNameController = TextEditingController();
   final _districtNameController = TextEditingController();
   final _provinceNameController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _citizenIdController = TextEditingController();
   List<File>? _images = [];
   List<String>? _facilityInfo = []; //just demo
   DetailAddress? _selectedAddress;
@@ -404,46 +402,10 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   CustomTextfield(
                                     controller: _streetNameController,
                                     hintText: 'Street/ House number',
-                                    validator: (streetName) {
-                                      if (streetName == null ||
-                                          streetName.isEmpty) {
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
                                         return 'Please enter street / house number.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  _InterRegular14(
-                                    "Phone Number *",
-                                    GlobalVariables.darkGrey,
-                                    1,
-                                  ),
-                                  CustomTextfield(
-                                    controller: _phoneNumberController,
-                                    hintText: 'Phone Number',
-                                    validator: (phoneNumber) {
-                                      if (phoneNumber == null ||
-                                          phoneNumber.isEmpty) {
-                                        return 'Please enter your phone number.';
-                                      } else if (phoneNumber.length != 10) {
-                                        return 'Phone number must be 10 digits.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  _InterRegular14(
-                                    "Citizen ID *",
-                                    GlobalVariables.darkGrey,
-                                    1,
-                                  ),
-                                  CustomTextfield(
-                                    controller: _citizenIdController,
-                                    hintText: 'Citizen ID',
-                                    validator: (citizenId) {
-                                      if (citizenId == null ||
-                                          citizenId.isEmpty) {
-                                        return 'Please enter your citizen ID.';
-                                      } else if (citizenId.length != 12) {
-                                        return 'Citizen ID must be 12 digits.';
                                       }
                                       return null;
                                     },
@@ -470,7 +432,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                             if (_images == null || _images!.isEmpty) {
                               IconSnackBar.show(
                                 context,
-                                label: 'Please select your image!',
+                                label: 'Please select you image!',
                                 snackBarType: SnackBarType.fail,
                               );
                             } else {
