@@ -67,10 +67,7 @@ const facilitySchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  active_at: {
-    type: activeSchema,
-    required: true,
-  },
+  active_at: activeSchema,
   registered_at: {
     type: Number,
     required: true,

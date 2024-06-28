@@ -25,7 +25,7 @@ const managerInfoSchema = mongoose.Schema({
     trim: true,
     validate: {
       validator: (citizenId) => {
-        const regex = /^\d{14}$/;
+        const regex = /^\d{12}$/;
         return regex.test(citizenId);
       },
       message: "Invalid citizen id.",

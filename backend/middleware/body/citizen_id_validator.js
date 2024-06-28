@@ -10,8 +10,8 @@ const citizenIdValidator = (req, res, next) => {
       return res.status(400).json({ msg: "Citizen id is required." });
     }
 
-    const regex = /^\d{14}$/;
-    if (!regex.text(citizenId)) {
+    const regex = /^\d{12}$/;
+    if (!regex.test(citizenId)) {
       return res.status(400).json({ msg: "Invalid citizen id." });
     }
 

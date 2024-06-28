@@ -17,7 +17,7 @@ const managerValidator = async (req, res, next) => {
     }
 
     const user = await User.findById(verified.id);
-    if (user.type === "player") {
+    if (user.role === "player") {
       return res.status(401).json({ msg: "You are not a manager!" });
     }
 

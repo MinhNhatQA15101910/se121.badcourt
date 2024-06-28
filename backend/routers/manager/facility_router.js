@@ -1,6 +1,11 @@
 // Packages
 import express from "express";
 
+// Models
+import Facility from "../../models/facility.js";
+import User from "../../models/user.js";
+import ManagerInfo from "../../models/manager_info.js";
+
 // Header middleware
 import managerValidator from "../../middleware/header/manager_validator.js";
 
@@ -58,6 +63,44 @@ facilityRouter.post(
         bank_card_url_back,
         business_license_image_urls,
       } = req.body;
+
+      const existingFacility = await Facility.findOne({ name: facility_name });
+      if (existingFacility) {
+        return res
+          .status(400)
+          .json({ msg: "Facility with the same name exists." });
+      }
+
+      // Save manager info
+      let user = await User.findById(req.user);
+      user.manager_info = new ManagerInfo({
+        full_name,
+        email,
+        citizen_id,
+        citizen_image_url_front,
+        citizen_image_url_back,
+        bank_card_url_front,
+        bank_card_url_back,
+        business_license_image_urls,
+      });
+      user = await user.save();
+
+      // Create new facility
+      let facility = new Facility({
+        user_id: req.user,
+        name: facility_name,
+        facebook_url,
+        phone_number,
+        detail_address,
+        province,
+        latitude: lat,
+        longitude: lon,
+        registered_at: new Date(),
+        image_urls: facility_image_urls,
+      });
+      facility = await facility.save();
+
+      res.json(facility);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
