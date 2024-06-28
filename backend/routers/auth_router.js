@@ -1,14 +1,19 @@
+// Packages
 import bcryptjs from "bcryptjs";
 import express from "express";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
+// Models
 import User from "../models/user.js";
 
+// Body middleware
 import usernameValidator from "../middleware/body/username_validator.js";
 import emailValidator from "../middleware/body/email_validator.js";
 import passwordValidator from "../middleware/body/password_validator.js";
 import roleValidator from "../middleware/body/role_validator.js";
+import pincodeValidator from "../middleware/body/pincode_validator.js";
+import newPasswordValidator from "../middleware/body/new_password_validator.js";
 
 const authRouter = express.Router();
 
@@ -50,62 +55,73 @@ authRouter.post(
 );
 
 // Log in route
-authRouter.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+authRouter.post(
+  "/login",
+  emailValidator,
+  passwordValidator,
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ msg: "User with this email does not exist." });
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ msg: "User with this email does not exist." });
+      }
+
+      const isMatch = await bcryptjs.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ msg: "Incorrect password." });
+      }
+
+      const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
+      res.json({ token, ...user._doc });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    const isMatch = await bcryptjs.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: "Incorrect password." });
-    }
-
-    const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
-    res.json({ token, ...user._doc });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 // Log in with google route
-authRouter.post("/login/google", async (req, res) => {
-  try {
-    const { email, password, username, imageUrl } = req.body;
+authRouter.post(
+  "/login/google",
+  emailValidator,
+  passwordValidator,
+  usernameValidator,
+  async (req, res) => {
+    try {
+      const { email, password, username, imageUrl } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      const token = jwt.sign(
-        { id: existingUser._id },
-        process.env.PASSWORD_KEY
-      );
-      return res.json({ token, ...existingUser._doc });
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        const token = jwt.sign(
+          { id: existingUser._id },
+          process.env.PASSWORD_KEY
+        );
+        return res.json({ token, ...existingUser._doc });
+      }
+
+      const hashedPassword = await bcryptjs.hash(password, 8);
+
+      let user = new User({
+        username,
+        email,
+        password: hashedPassword,
+        imageUrl,
+      });
+      user = await user.save();
+
+      const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
+      res.json({ token, ...user._doc });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    const hashedPassword = await bcryptjs.hash(password, 8);
-
-    let user = new User({
-      username,
-      email,
-      password: hashedPassword,
-      imageUrl,
-    });
-    user = await user.save();
-
-    const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
-    res.json({ token, ...user._doc });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 // Validate email route
-authRouter.post("/email-exists", async (req, res) => {
+authRouter.post("/email-exists", emailValidator, async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -121,25 +137,29 @@ authRouter.post("/email-exists", async (req, res) => {
 });
 
 // Send verify email route
-authRouter.post("/send-email", async (req, res) => {
-  try {
-    const { email, pincode } = req.body;
+authRouter.post(
+  "/send-email",
+  emailValidator,
+  pincodeValidator,
+  async (req, res) => {
+    try {
+      const { email, pincode } = req.body;
 
-    var transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.BADCOURT_EMAIL,
-        pass: process.env.BADCOURT_PASSWORD,
-      },
-    });
+      var transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.BADCOURT_EMAIL,
+          pass: process.env.BADCOURT_PASSWORD,
+        },
+      });
 
-    var mailOptions = {
-      from: process.env.BADCOURT_EMAIL,
-      to: email,
-      subject: "BadCourt account verify code",
-      html: `<h2>BadCourt account</h2>
+      var mailOptions = {
+        from: process.env.BADCOURT_EMAIL,
+        to: email,
+        subject: "BadCourt account verify code",
+        html: `<h2>BadCourt account</h2>
       <h1 style="color:#23C16B;">Verify code</h1>
       <p>
         Please use the following verify code for the BadCourt account:
@@ -153,43 +173,49 @@ authRouter.post("/send-email", async (req, res) => {
       <br />
       <p>Thanks,</p>
       <p>The BadCourt development team.</p>`,
-    };
+      };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.json({ msg: "Email sent: " + info.response });
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          res.status(500).json({ error: error.message });
+        } else {
+          res.json({ msg: "Email sent: " + info.response });
+        }
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
 // Change password
-authRouter.patch("/change-password", async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-    console.log(req.body);
+authRouter.patch(
+  "/change-password",
+  emailValidator,
+  newPasswordValidator,
+  async (req, res) => {
+    try {
+      const { email, new_password } = req.body;
+      console.log(req.body);
 
-    let existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      return res
-        .status(400)
-        .json({ msg: "User with this email does not exist." });
+      let existingUser = await User.findOne({ email });
+      if (!existingUser) {
+        return res
+          .status(400)
+          .json({ msg: "User with this email does not exist." });
+      }
+
+      const hashedPassword = await bcryptjs.hash(new_password, 8);
+
+      existingUser.password = hashedPassword;
+
+      existingUser = await existingUser.save();
+      res.json(existingUser);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    const hashedPassword = await bcryptjs.hash(newPassword, 8);
-
-    existingUser.password = hashedPassword;
-
-    existingUser = await existingUser.save();
-    res.json(existingUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 function hideEmailCharacters(email) {
   const [username, domain] = email.split("@");
