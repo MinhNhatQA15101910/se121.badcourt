@@ -238,20 +238,20 @@ class AuthService {
       var isExistingEmail = jsonDecode(response.body);
 
       if (isExistingEmail) {
-        final authFormProvider = Provider.of<AuthProvider>(
+        final authProvider = Provider.of<AuthProvider>(
           context,
           listen: false,
         );
 
-        authFormProvider.setResentEmail(
+        authProvider.setResentEmail(
           email,
         );
 
-        authFormProvider.setPreviousForm(
+        authProvider.setPreviousForm(
           ForgotPasswordForm(),
         );
 
-        authFormProvider.setForm(
+        authProvider.setForm(
           PinputForm(
             isMoveBack: false,
             isValidateSignUpEmail: false,
@@ -343,7 +343,7 @@ class AuthService {
             context,
             listen: false,
           );
-          final authFormProvider = Provider.of<AuthProvider>(
+          final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
@@ -353,8 +353,8 @@ class AuthService {
           );
           userProvider.setUserFromModel(user);
 
-          authFormProvider.setForm(LoginForm());
-          authFormProvider.setResentEmail('');
+          authProvider.setForm(LoginForm());
+          authProvider.setResentEmail('');
 
           IconSnackBar.show(
             context,

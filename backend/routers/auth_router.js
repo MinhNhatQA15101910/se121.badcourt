@@ -28,12 +28,11 @@ authRouter.post(
     try {
       const { username, email, password, role } = req.body;
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
+      const existingUser = await User.findOne({ email, role });
+      if (existingUser)
         return res
           .status(400)
           .json({ msg: "User with the same email already exists!" });
-      }
 
       const hashedPassword = await bcryptjs.hash(
         password,
@@ -54,20 +53,49 @@ authRouter.post(
   }
 );
 
-// Log in route
+// Login as player route
 authRouter.post(
-  "/login",
+  "/login-as-player",
   emailValidator,
   passwordValidator,
   async (req, res) => {
     try {
       const { email, password } = req.body;
 
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email, role: "player" });
       if (!user) {
         return res
           .status(400)
-          .json({ msg: "User with this email does not exist." });
+          .json({ msg: "Player with this email does not exist." });
+      }
+
+      const isMatch = await bcryptjs.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ msg: "Incorrect password." });
+      }
+
+      const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
+      res.json({ token, ...user._doc });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Login as manager route
+authRouter.post(
+  "/login-as-manager",
+  emailValidator,
+  passwordValidator,
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const user = await User.findOne({ email, role: "manager" });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ msg: "Manager with this email does not exist." });
       }
 
       const isMatch = await bcryptjs.compare(password, user.password);

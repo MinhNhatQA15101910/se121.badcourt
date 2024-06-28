@@ -4,8 +4,9 @@ import 'package:frontend/models/user.dart';
 
 class AuthProvider extends ChangeNotifier {
   Widget _authForm = LoginForm();
-  String _resentEmail = "";
   Widget _previousForm = LoginForm();
+  bool _isPlayer = false;
+  String _resentEmail = "";
   User _signUpUser = User(
     id: '',
     username: '',
@@ -17,9 +18,10 @@ class AuthProvider extends ChangeNotifier {
   );
 
   Widget get authForm => _authForm;
-  String get resentEmail => _resentEmail;
   Widget get previousForm => _previousForm;
+  String get resentEmail => _resentEmail;
   User get signUpUser => _signUpUser;
+  bool get isPlayer => _isPlayer;
 
   void setForm(Widget authForm) {
     _authForm = authForm;
@@ -38,5 +40,9 @@ class AuthProvider extends ChangeNotifier {
 
   void setSignUpUser(User user) {
     _signUpUser = user;
+  }
+
+  void setIsPlayer(bool isPlayer) {
+    _isPlayer = isPlayer;
   }
 }

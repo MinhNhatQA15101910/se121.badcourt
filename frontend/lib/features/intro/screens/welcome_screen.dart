@@ -38,7 +38,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   void _handleIndex() {
     if (_activeIndex == 2) {
-      Navigator.of(context).pushNamed(AuthOptionsScreen.routeName);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AuthOptionsScreen.routeName,
+        (route) => false,
+      );
     } else {
       setState(() {
         _activeIndex++;

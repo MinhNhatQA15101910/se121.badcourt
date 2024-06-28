@@ -91,19 +91,19 @@ class _PinputFormState extends State<PinputForm> {
       if (widget.isValidateSignUpEmail) {
         _signUpUser();
       } else {
-        final authFormProvider = Provider.of<AuthProvider>(
+        final authProvider = Provider.of<AuthProvider>(
           context,
           listen: false,
         );
 
-        authFormProvider.setPreviousForm(
+        authProvider.setPreviousForm(
           PinputForm(
             isMoveBack: true,
             isValidateSignUpEmail: false,
           ),
         );
 
-        authFormProvider.setForm(
+        authProvider.setForm(
           ResetPasswordForm(),
         );
       }
@@ -115,27 +115,27 @@ class _PinputFormState extends State<PinputForm> {
   }
 
   void _moveToPreviousForm() {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
-    authFormProvider.setForm(
-      authFormProvider.previousForm,
+    authProvider.setForm(
+      authProvider.previousForm,
     );
 
-    authFormProvider.setPreviousForm(
+    authProvider.setPreviousForm(
       LoginForm(),
     );
   }
 
   void _moveToLoginForm() {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
-    authFormProvider.setForm(LoginForm());
+    authProvider.setForm(LoginForm());
   }
 
   void _sendVerifyEmail() async {
@@ -216,7 +216,7 @@ class _PinputFormState extends State<PinputForm> {
 
   @override
   Widget build(BuildContext context) {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
@@ -261,7 +261,7 @@ class _PinputFormState extends State<PinputForm> {
                 ),
                 children: [
                   TextSpan(
-                    text: authFormProvider.resentEmail,
+                    text: authProvider.resentEmail,
                     style: GoogleFonts.inter(
                       color: GlobalVariables.black,
                       fontSize: 16,
