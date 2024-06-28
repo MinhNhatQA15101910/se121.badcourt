@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ContractScreen extends StatefulWidget {
@@ -12,7 +13,30 @@ class ContractScreen extends StatefulWidget {
 }
 
 class _ContractScreenState extends State<ContractScreen> {
+  final _addFacilityService = AddFacilityService();
+
   bool _checkBoxValue = false;
+
+  Future<void> _addFacility() async {
+    await _addFacilityService.registerFacility(
+        context: context,
+        facilityName: GlobalVariables.facilityName,
+        latitude: GlobalVariables.detailAddress.lat,
+        longitude: GlobalVariables.detailAddress.lng,
+        detailAddress: GlobalVariables.detailAddress.address,
+        province: GlobalVariables.detailAddress.city,
+        facilityImageUrls: GlobalVariables.facilityImages!,
+        fullName: GlobalVariables.managerName,
+        email: GlobalVariables.manageEmail,
+        facebookUrl: '',
+        phoneNumber: GlobalVariables.managePhoneNumber,
+        citizenId: GlobalVariables.manageCitizenId,
+        citizenImageFront: GlobalVariables.frontCitizenIdImage,
+        citizenImageBack: GlobalVariables.backCitizenIdImage,
+        bankCardFront: GlobalVariables.frontBankCardImage,
+        bankCardBack: GlobalVariables.backBankCardImage,
+        businessLicenseImageUrls: GlobalVariables.lisenceImages!);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +118,9 @@ class _ContractScreenState extends State<ContractScreen> {
                   vertical: 12,
                 ),
                 child: CustomButton(
-                  onTap: () => {},
+                  onTap: () {
+                    _addFacility();
+                  },
                   buttonText: 'Confirm registration',
                   borderColor: GlobalVariables.green,
                   fillColor: GlobalVariables.green,

@@ -6,6 +6,7 @@ import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
+import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ManagerInfo extends StatefulWidget {
