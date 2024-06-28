@@ -1,4 +1,3 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
 import mongoose from "mongoose";
 
 const managerInfoSchema = mongoose.Schema({
@@ -18,17 +17,6 @@ const managerInfoSchema = mongoose.Schema({
         return value.match(re);
       },
       message: "Invalid email address.",
-    },
-  },
-  phone_number: {
-    required: true,
-    type: String,
-    trim: true,
-    validate: {
-      validator: (phoneNumber) => {
-        return isValidPhoneNumber(phoneNumber, "VN");
-      },
-      message: "Invalid phone number.",
     },
   },
   citizen_id: {

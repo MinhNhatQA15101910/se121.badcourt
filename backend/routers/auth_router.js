@@ -217,6 +217,7 @@ authRouter.patch(
   }
 );
 
+// Function to hide email characters
 function hideEmailCharacters(email) {
   const [username, domain] = email.split("@");
 
