@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 
-String uri = 'http://172.30.161.104:3000';
+String uri = 'http://192.168.2.237:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';

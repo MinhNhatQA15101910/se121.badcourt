@@ -73,7 +73,7 @@ class AddFacilityService {
     required File bankCardBack,
     required List<File> businessLicenseImageUrls,
   }) async {
-    final userProvider = Provider.of<UserProvider>(
+    Provider.of<UserProvider>(
       context,
       listen: false,
     );
@@ -113,7 +113,7 @@ class AddFacilityService {
           folder: 'citizen_images/$facilityName',
         ),
       );
-      String citizenImageUrlFront = citizenFrontResponse.secureUrl;
+      String? citizenImageUrlFront = citizenFrontResponse.secureUrl;
 
       // Upload citizen image back
       CloudinaryResponse citizenBackResponse = await cloudinary.uploadFile(
@@ -122,7 +122,7 @@ class AddFacilityService {
           folder: 'citizen_images/$facilityName',
         ),
       );
-      String citizenImageUrlBack = citizenBackResponse.secureUrl;
+      String? citizenImageUrlBack = citizenBackResponse.secureUrl;
 
       // Upload bank card front
       CloudinaryResponse bankCardFrontResponse = await cloudinary.uploadFile(
@@ -131,7 +131,7 @@ class AddFacilityService {
           folder: 'bank_cards/$facilityName',
         ),
       );
-      String bankCardUrlFront = bankCardFrontResponse.secureUrl;
+      String? bankCardUrlFront = bankCardFrontResponse.secureUrl;
 
       // Upload bank card back
       CloudinaryResponse bankCardBackResponse = await cloudinary.uploadFile(
@@ -140,7 +140,7 @@ class AddFacilityService {
           folder: 'bank_cards/$facilityName',
         ),
       );
-      String bankCardUrlBack = bankCardBackResponse.secureUrl;
+      String? bankCardUrlBack = bankCardBackResponse.secureUrl;
 
       // Prepare and send the POST request
       http.Response response = await http.post(
