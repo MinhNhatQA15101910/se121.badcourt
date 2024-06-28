@@ -12,7 +12,7 @@ class ContractScreen extends StatefulWidget {
 }
 
 class _ContractScreenState extends State<ContractScreen> {
-  bool _checkBoxValue = false; // Di chuyển biến vào _FacilityInfoState
+  bool _checkBoxValue = false;
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
-import 'package:frontend/common/widgets/drop_down_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -16,44 +18,187 @@ class ManagerInfo extends StatefulWidget {
 
 class _ManagerInfoState extends State<ManagerInfo> {
   final _fullNameController = TextEditingController();
-  final _streetNameController = TextEditingController();
-
-  List<String> provinceList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> districtList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> wardList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> bankList = [
-    'Ngân Hàng Quân Đội Việt Nam',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
+  final _emailController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
+  final _citizenIdController = TextEditingController();
+  File? _frontCitizenIdImage;
+  File? _backCitizenIdImage;
+  File? _frontBankCardImage;
+  File? _backBankCardImage;
+  List<File>? _lisenceImages = [];
 
   void _navigateToContractScreen() {
     Navigator.of(context).pushNamed(ContractScreen.routeName);
   }
 
+  Future<void> _pickFrontCitizenIdImage() async {
+    final File? image = await pickOneImage();
+    if (image != null) {
+      setState(() {
+        _frontCitizenIdImage = image;
+      });
+    }
+  }
+
+  Future<void> _pickBackCitizenIdImage() async {
+    final File? image = await pickOneImage();
+    if (image != null) {
+      setState(() {
+        _backCitizenIdImage = image;
+      });
+    }
+  }
+
+  Future<void> _pickFrontBankCardImage() async {
+    final File? image = await pickOneImage();
+    if (image != null) {
+      setState(() {
+        _frontBankCardImage = image;
+      });
+    }
+  }
+
+  Future<void> _pickBackBankCardImage() async {
+    final File? image = await pickOneImage();
+    if (image != null) {
+      setState(() {
+        _backBankCardImage = image;
+      });
+    }
+  }
+
+  Future<void> _pickLisenceImages() async {
+    final List<File> images = await pickMultipleImages();
+    if (images.isNotEmpty) {
+      setState(() {
+        _lisenceImages!.addAll(images);
+      });
+    }
+  }
+
+  Widget _buildImagePickerButton({
+    required VoidCallback onTap,
+    File? image,
+    VoidCallback? onClear,
+  }) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: GlobalVariables.lightGrey,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: image == null
+                ? Center(
+                    child: Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: GlobalVariables.darkGrey,
+                      size: 36,
+                    ),
+                  )
+                : Image.file(image, fit: BoxFit.cover),
+          ),
+        ),
+        if (image != null && onClear != null)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: onClear,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.clear,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMultipleImagePickerButton() {
+    return GestureDetector(
+      onTap: _pickLisenceImages,
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: GlobalVariables.lightGrey,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.add_photo_alternate_outlined,
+            color: GlobalVariables.darkGrey,
+            size: 36,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedImages(List<File> images) {
+    return Row(
+      children: images
+          .asMap()
+          .entries
+          .map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Stack(
+                children: [
+                  Image.file(
+                    entry.value,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          images.removeAt(entry.key);
+                        });
+                      },
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.clear,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: AppBar(
@@ -62,7 +207,7 @@ class _ManagerInfoState extends State<ManagerInfo> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Manager infomation',
+                'Manager information',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -108,64 +253,12 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   },
                                 ),
                                 _InterRegular14(
-                                  "Province *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomDropdownButton(
-                                  items: provinceList,
-                                  initialSelectedItem: provinceList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "District *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomDropdownButton(
-                                  items: districtList,
-                                  initialSelectedItem: districtList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "Ward *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomDropdownButton(
-                                  items: wardList,
-                                  initialSelectedItem: wardList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "Street/ House number",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomTextfield(
-                                  controller: _streetNameController,
-                                  hintText: 'Street/ House number',
-                                  validator: (streetName) {
-                                    if (streetName == null ||
-                                        streetName.isEmpty) {
-                                      return '';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                _InterRegular14(
                                   "Email *",
                                   GlobalVariables.darkGrey,
                                   1,
                                 ),
                                 CustomTextfield(
-                                  controller: _streetNameController,
+                                  controller: _emailController,
                                   hintText: 'Email',
                                   validator: (streetName) {
                                     if (streetName == null ||
@@ -174,6 +267,7 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                     }
                                     return null;
                                   },
+                                  isEmail: true,
                                 ),
                                 _InterRegular14(
                                   "Phone number *",
@@ -181,7 +275,7 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   1,
                                 ),
                                 CustomTextfield(
-                                  controller: _streetNameController,
+                                  controller: _phoneNumberController,
                                   hintText: 'Phone number',
                                   validator: (streetName) {
                                     if (streetName == null ||
@@ -197,7 +291,7 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   1,
                                 ),
                                 CustomTextfield(
-                                  controller: _streetNameController,
+                                  controller: _citizenIdController,
                                   hintText: 'citizen identification ID',
                                   validator: (streetName) {
                                     if (streetName == null ||
@@ -216,87 +310,27 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      _buildImagePickerButton(
+                                        onTap: _pickFrontCitizenIdImage,
+                                        image: _frontCitizenIdImage,
+                                        onClear: () {
+                                          setState(() {
+                                            _frontCitizenIdImage = null;
+                                          });
+                                        },
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      SizedBox(width: 8),
+                                      _buildImagePickerButton(
+                                        onTap: _pickBackCitizenIdImage,
+                                        image: _backCitizenIdImage,
+                                        onClear: () {
+                                          setState(() {
+                                            _backCitizenIdImage = null;
+                                          });
+                                        },
                                       ),
                                     ],
                                   ),
-                                ),
-                                _InterRegular14(
-                                  "Bank name *",
-                                  GlobalVariables.darkGrey,
-                                  2,
-                                ),
-                                CustomDropdownButton(
-                                  items: bankList,
-                                  initialSelectedItem: bankList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "Bank account number *",
-                                  GlobalVariables.darkGrey,
-                                  2,
-                                ),
-                                CustomTextfield(
-                                  controller: _fullNameController,
-                                  hintText: '0000 0000 0000 0000',
-                                  validator: (fullName) {
-                                    if (fullName == null || fullName.isEmpty) {
-                                      return '';
-                                    }
-                                    return null;
-                                  },
                                 ),
                                 _InterRegular14(
                                   "Photos of bank card (Includes front and back) *",
@@ -307,57 +341,24 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      _buildImagePickerButton(
+                                        onTap: _pickFrontBankCardImage,
+                                        image: _frontBankCardImage,
+                                        onClear: () {
+                                          setState(() {
+                                            _frontBankCardImage = null;
+                                          });
+                                        },
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      SizedBox(width: 8),
+                                      _buildImagePickerButton(
+                                        onTap: _pickBackBankCardImage,
+                                        image: _backBankCardImage,
+                                        onClear: () {
+                                          setState(() {
+                                            _backBankCardImage = null;
+                                          });
+                                        },
                                       ),
                                     ],
                                   ),
@@ -371,108 +372,9 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                _InterRegular14(
-                                  "Photo of tax code *",
-                                  GlobalVariables.darkGrey,
-                                  2,
-                                ),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                _InterRegular14(
-                                  "Photos of relevant documents",
-                                  GlobalVariables.darkGrey,
-                                  2,
-                                ),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 8),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            // Handle button tap
-                                            print('Button tapped!');
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                              color: GlobalVariables.lightGrey,
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Adjust border radius here
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                      if (_lisenceImages != null)
+                                        _buildSelectedImages(_lisenceImages!),
+                                      _buildMultipleImagePickerButton(),
                                     ],
                                   ),
                                 ),
@@ -481,7 +383,7 @@ class _ManagerInfoState extends State<ManagerInfo> {
                                 ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -492,7 +394,25 @@ class _ManagerInfoState extends State<ManagerInfo> {
                       vertical: 12,
                     ),
                     child: CustomButton(
-                        onTap: _navigateToContractScreen,
+                        onTap: () {
+                          GlobalVariables.managerName =
+                              _fullNameController.text;
+                          GlobalVariables.manageEmail = _emailController.text;
+                          GlobalVariables.managePhoneNumber =
+                              _phoneNumberController.text;
+                          GlobalVariables.manageCitizenId =
+                              _citizenIdController.text;
+                          GlobalVariables.frontCitizenIdImage =
+                              _frontCitizenIdImage!;
+                          GlobalVariables.backCitizenIdImage =
+                              _backCitizenIdImage!;
+                          GlobalVariables.frontBankCardImage =
+                              _frontBankCardImage!;
+                          GlobalVariables.backBankCardImage =
+                              _backBankCardImage!;
+                          GlobalVariables.lisenceImages = _lisenceImages!;
+                          _navigateToContractScreen();
+                        },
                         buttonText: 'Next',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,

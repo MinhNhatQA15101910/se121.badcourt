@@ -1,3 +1,4 @@
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -247,15 +248,48 @@ class _MapScreenState extends State<MapScreen> {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: CustomButton(
-                      onTap: () {
-                        _fetchSearchCode();
-                        _fetchDetailAddress();
-                      },
-                      buttonText: 'Select',
-                      borderColor: GlobalVariables.green,
-                      fillColor: GlobalVariables.green,
-                      textColor: Colors.white),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          child: CustomButton(
+                            onTap: () {
+                              _fetchSearchCode();
+                              _fetchDetailAddress();
+                            },
+                            buttonText: 'Search',
+                            borderColor: GlobalVariables.green,
+                            fillColor: Colors.white,
+                            textColor: GlobalVariables.green,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          child: CustomButton(
+                            onTap: () {
+                              if (_detailAddress.lat != 0.0 &&
+                                  _detailAddress.lng != 0.0) {
+                                GlobalVariables.detailAddress = _detailAddress;
+                                Navigator.of(context).pop(_detailAddress);
+                              } else {
+                                IconSnackBar.show(
+                                  context,
+                                  label: 'Please choose your location!',
+                                  snackBarType: SnackBarType.fail,
+                                );
+                              }
+                            },
+                            buttonText: 'Select',
+                            borderColor: GlobalVariables.green,
+                            fillColor: GlobalVariables.green,
+                            textColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             )

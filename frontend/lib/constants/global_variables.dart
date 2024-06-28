@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 
 String uri = 'http://192.168.1.11:3000';
 
@@ -15,6 +18,34 @@ class GlobalVariables {
     screenWidth = screenSize.width;
     screenHeight = screenSize.height;
   }
+
+  static DetailAddress detailAddress = DetailAddress(
+    display: '',
+    name: '',
+    hsNum: '',
+    street: '',
+    address: '',
+    cityId: 0,
+    city: '',
+    districtId: 0,
+    district: '',
+    wardId: 0,
+    ward: '',
+    lat: 0.0,
+    lng: 0.0,
+  );
+
+  static List<File>? facilityImages = [];
+  static File frontCitizenIdImage = File('');
+  static File backCitizenIdImage = File('');
+  static File frontBankCardImage = File('');
+  static File backBankCardImage = File('');
+  static List<File>? lisenceImages = [];
+  static String facilityName = "";
+  static String managerName = "";
+  static String manageEmail = "";
+  static String managePhoneNumber = "";
+  static String manageCitizenId = "";
 
   // Colors
   static const Color black = Color(0xFF000000);

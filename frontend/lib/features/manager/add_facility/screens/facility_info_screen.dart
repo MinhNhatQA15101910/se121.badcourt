@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
-import 'package:frontend/common/widgets/drop_down_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,37 +21,32 @@ class FacilityInfo extends StatefulWidget {
 class _FacilityInfoState extends State<FacilityInfo> {
   final _facilityNameController = TextEditingController();
   final _streetNameController = TextEditingController();
+  final _wardNameController = TextEditingController();
+  final _districtNameController = TextEditingController();
+  final _provinceNameController = TextEditingController();
   List<File>? _images = [];
   List<String>? _facilityInfo = []; //just demo
-
-  List<String> provinceList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> districtList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> wardList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
+  DetailAddress? _selectedAddress;
 
   void _navigateToManagerInfoScreen() {
     Navigator.of(context).pushNamed(ManagerInfo.routeName);
   }
 
-  void _navigateToMapScreen() {
-    Navigator.of(context).pushNamed(MapScreen.routeName);
+  void _navigateToMapScreen() async {
+    final DetailAddress? selectedAddress = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MapScreen()),
+    );
+
+    if (selectedAddress != null) {
+      setState(() {
+        _selectedAddress = selectedAddress;
+        _provinceNameController.text = _selectedAddress!.city;
+        _districtNameController.text = _selectedAddress!.district;
+        _wardNameController.text = _selectedAddress!.ward;
+        _streetNameController.text = _selectedAddress!.address;
+      });
+    }
   }
 
   void _selectMultipleImages() async {
@@ -77,6 +72,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: AppBar(
@@ -335,18 +331,25 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 4),
-                                  child: _isValidateText(false),
+                                  child: (_selectedAddress?.lat != 0.0 &&
+                                          _selectedAddress?.lng != 0.0)
+                                      ? _isValidateText(true)
+                                      : _isValidateText(false),
                                 ),
                                 _InterRegular14(
                                   "Province *",
                                   GlobalVariables.darkGrey,
                                   1,
                                 ),
-                                CustomDropdownButton(
-                                  items: provinceList,
-                                  initialSelectedItem: provinceList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
+                                CustomTextfield(
+                                  controller: _provinceNameController,
+                                  hintText: 'Province',
+                                  validator: (streetName) {
+                                    if (streetName == null ||
+                                        streetName.isEmpty) {
+                                      return '';
+                                    }
+                                    return null;
                                   },
                                 ),
                                 _InterRegular14(
@@ -354,11 +357,15 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   GlobalVariables.darkGrey,
                                   1,
                                 ),
-                                CustomDropdownButton(
-                                  items: districtList,
-                                  initialSelectedItem: districtList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
+                                CustomTextfield(
+                                  controller: _districtNameController,
+                                  hintText: 'District',
+                                  validator: (streetName) {
+                                    if (streetName == null ||
+                                        streetName.isEmpty) {
+                                      return '';
+                                    }
+                                    return null;
                                   },
                                 ),
                                 _InterRegular14(
@@ -366,11 +373,15 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   GlobalVariables.darkGrey,
                                   1,
                                 ),
-                                CustomDropdownButton(
-                                  items: wardList,
-                                  initialSelectedItem: wardList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
+                                CustomTextfield(
+                                  controller: _wardNameController,
+                                  hintText: 'Ward',
+                                  validator: (streetName) {
+                                    if (streetName == null ||
+                                        streetName.isEmpty) {
+                                      return '';
+                                    }
+                                    return null;
                                   },
                                 ),
                                 _InterRegular14(
@@ -406,7 +417,10 @@ class _FacilityInfoState extends State<FacilityInfo> {
                     ),
                     child: CustomButton(
                         onTap: () {
-                          _navigateToManagerInfoScreen;
+                          GlobalVariables.facilityImages = _images;
+                          GlobalVariables.facilityName =
+                              _facilityNameController.text;
+                          _navigateToManagerInfoScreen();
                         },
                         buttonText: 'Next',
                         borderColor: GlobalVariables.green,
