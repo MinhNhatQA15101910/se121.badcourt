@@ -1,7 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/intro/widgets/first_welcome.dart';
 import 'package:frontend/features/intro/widgets/second_welcome.dart';
 import 'package:frontend/features/intro/widgets/third_welcome.dart';
@@ -38,7 +38,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   void _handleIndex() {
     if (_activeIndex == 2) {
-      Navigator.of(context).pushNamed(AuthScreen.routeName);
+      Navigator.of(context).pushNamed(AuthOptionsScreen.routeName);
     } else {
       setState(() {
         _activeIndex++;

@@ -7,14 +7,14 @@ import 'package:google_fonts/google_fonts.dart';
 class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
 
-  void _navigateToWelcomeScreen(BuildContext context) {
+  void navigateToWelcomeScreen(BuildContext context) {
     Navigator.of(context).pushNamed(WelcomeScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _navigateToWelcomeScreen(context),
+      onTap: () => navigateToWelcomeScreen(context),
       child: Scaffold(
         backgroundColor: GlobalVariables.green,
         body: Center(

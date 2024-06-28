@@ -19,7 +19,7 @@ const authRouter = express.Router();
 
 // Sign up route
 authRouter.post(
-  "/signup",
+  "/sign-up",
   usernameValidator,
   emailValidator,
   passwordValidator,

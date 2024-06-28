@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-String uri = 'http://192.168.1.11:3000';
+String uri = 'http://10.45.134.83:3000';
 
 class GlobalVariables {
   //Define Scales
   static double screenWidth = 0;
   static double screenHeight = 0;
+
   static void init(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     screenWidth = screenSize.width;

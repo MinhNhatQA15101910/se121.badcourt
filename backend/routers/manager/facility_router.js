@@ -4,7 +4,6 @@ import express from "express";
 // Models
 import Facility from "../../models/facility.js";
 import User from "../../models/user.js";
-import ManagerInfo from "../../models/manager_info.js";
 
 // Header middleware
 import managerValidator from "../../middleware/header/manager_validator.js";
@@ -73,7 +72,7 @@ facilityRouter.post(
 
       // Save manager info
       let user = await User.findById(req.user);
-      user.manager_info = new ManagerInfo({
+      user.manager_info = {
         full_name,
         email,
         citizen_id,
@@ -82,7 +81,7 @@ facilityRouter.post(
         bank_card_url_front,
         bank_card_url_back,
         business_license_image_urls,
-      });
+      };
       user = await user.save();
 
       // Create new facility

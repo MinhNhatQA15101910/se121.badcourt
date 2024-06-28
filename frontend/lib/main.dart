@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/player_bottom_bar.dart';
+import 'package:frontend/features/intro/screens/intro_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       onGenerateRoute: (routeSettings) => generateRoute(routeSettings),
-      home: const PlayerBottomBar(),
+      home: IntroScreen(),
     );
   }
 }
