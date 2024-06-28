@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
@@ -23,6 +24,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const WelcomeScreen(),
+      );
+    case AuthOptionsScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const AuthOptionsScreen(),
       );
     case AuthScreen.routeName:
       return MaterialPageRoute(

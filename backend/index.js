@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 
 import authRouter from "./routers/auth_router.js";
 
+import facilityRouter from "./routers/manager/facility_router.js";
+
 const app = express();
 env.config();
 
@@ -12,7 +14,9 @@ app.use(express.json());
 
 app.use(authRouter);
 
-app.get("/document", (req, res) => {
+app.use(facilityRouter);
+
+app.get("/", (req, res) => {
   res.render("index.ejs", { port: process.env.PORT });
 });
 

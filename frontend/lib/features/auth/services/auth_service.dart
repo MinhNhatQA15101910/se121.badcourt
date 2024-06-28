@@ -8,6 +8,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/auth_provider.dart';
@@ -49,7 +50,7 @@ class AuthService {
       );
 
       http.Response response = await http.post(
-        Uri.parse('$uri/user/signup'),
+        Uri.parse('$uri/user/sign-up'),
         body: user.toJson(),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -90,6 +91,11 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
     try {
       http.Response response = await http.post(
         Uri.parse('$uri/login'),
@@ -112,13 +118,19 @@ class AuthService {
           await prefs.setString(
               'x-auth-token', jsonDecode(response.body)['token']);
 
-          Provider.of<UserProvider>(context, listen: false)
-              .setUser(response.body);
+          userProvider.setUser(response.body);
 
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            PlayerBottomBar.routeName,
-            (route) => false,
-          );
+          if (jsonDecode(response.body)['role'] == 'player') {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              PlayerBottomBar.routeName,
+              (route) => false,
+            );
+          } else if (jsonDecode(response.body)['role'] == 'manager') {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              ManagerBottomBar.routeName,
+              (route) => false,
+            );
+          }
 
           IconSnackBar.show(
             context,
@@ -315,7 +327,7 @@ class AuthService {
         body: jsonEncode(
           {
             'email': email,
-            'newPassword': newPassword,
+            'new_password': newPassword,
           },
         ),
         headers: <String, String>{

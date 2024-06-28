@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 
-String uri = 'http://192.168.1.11:3000';
+String uri = 'http://10.45.134.83:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
@@ -13,6 +13,7 @@ class GlobalVariables {
   //Define Scales
   static double screenWidth = 0;
   static double screenHeight = 0;
+
   static void init(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     screenWidth = screenSize.width;
