@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:frontend/features/manager/booking_details_manager/screens/booking_detail_manager_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_detail_screen.dart';
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
@@ -58,6 +60,16 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const ManagerBottomBar(),
+      );
+    case FacilityInfo.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const FacilityInfo(),
+      );
+    case MapScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const MapScreen(),
       );
     case DatetimeManagementScreen.routeName:
       return MaterialPageRoute(

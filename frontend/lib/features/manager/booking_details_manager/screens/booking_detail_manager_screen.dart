@@ -291,38 +291,6 @@ class _BookingDetailManagerScreenState
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterRegular12(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
   Widget _InterMedium14(String text, Color color, int maxLines) {
     return Container(
       child: Text(

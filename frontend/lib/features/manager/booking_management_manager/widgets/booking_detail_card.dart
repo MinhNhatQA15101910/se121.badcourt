@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/booking_details_manager/screens/booking_detail_manager_screen.dart';
-import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class BookingDetailCardManager extends StatefulWidget {

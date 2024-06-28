@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/drop_down_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,6 +21,8 @@ class FacilityInfo extends StatefulWidget {
 class _FacilityInfoState extends State<FacilityInfo> {
   final _facilityNameController = TextEditingController();
   final _streetNameController = TextEditingController();
+  List<File>? _images = [];
+  List<String>? _facilityInfo = []; //just demo
 
   List<String> provinceList = [
     'TP Hồ Chí Minh',
@@ -47,6 +52,26 @@ class _FacilityInfoState extends State<FacilityInfo> {
 
   void _navigateToMapScreen() {
     Navigator.of(context).pushNamed(MapScreen.routeName);
+  }
+
+  void _selectMultipleImages() async {
+    List<File>? res =
+        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
+    setState(() {
+      if (res.isNotEmpty) {
+        _images?.addAll(res); // Assuming _images is List<File>
+      }
+    });
+  }
+
+  void _clearImage(int index, bool isFile) {
+    setState(() {
+      if (isFile) {
+        _images!.removeAt(index);
+      } else {
+        _facilityInfo!.removeAt(index);
+      }
+    });
   }
 
   @override
@@ -85,20 +110,71 @@ class _FacilityInfoState extends State<FacilityInfo> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          //Pick first image
                           GestureDetector(
-                            onTap: () => {},
+                            onTap: _selectMultipleImages,
                             child: Container(
                               color: GlobalVariables.lightGrey,
-                              height: 240,
-                              child: Center(
-                                child: Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                  color: GlobalVariables.darkGrey,
-                                  size: 120,
-                                ),
+                              child: AspectRatio(
+                                aspectRatio: 4 / 3,
+                                child: (_images != null && _images!.isNotEmpty)
+                                    ? Stack(
+                                        children: [
+                                          Image.file(
+                                            _images!.first,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                          ),
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: IconButton(
+                                              icon: Icon(Icons.clear,
+                                                  color: Colors.white),
+                                              onPressed: () {
+                                                _clearImage(0, true);
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : (_facilityInfo != null &&
+                                            _facilityInfo!.isNotEmpty)
+                                        ? Stack(
+                                            children: [
+                                              Image.network(
+                                                _facilityInfo!.first,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                height: double.infinity,
+                                              ),
+                                              Positioned(
+                                                top: 8,
+                                                right: 8,
+                                                child: IconButton(
+                                                  icon: Icon(Icons.clear,
+                                                      color: Colors.white),
+                                                  onPressed: () {
+                                                    _clearImage(0, false);
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Center(
+                                            child: Icon(
+                                              Icons
+                                                  .add_photo_alternate_outlined,
+                                              color: GlobalVariables.darkGrey,
+                                              size: 120,
+                                            ),
+                                          ),
                               ),
                             ),
                           ),
+
+                          //Pick others image
                           Container(
                             height: 124,
                             padding:
@@ -107,20 +183,87 @@ class _FacilityInfoState extends State<FacilityInfo> {
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
+                                  if (_images != null)
+                                    for (int i = 1; i < _images!.length; i++)
+                                      Padding(
+                                        padding: EdgeInsets.only(left: 16),
+                                        child: Stack(
+                                          children: [
+                                            Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                image: DecorationImage(
+                                                  image: FileImage(_images![i]),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              top: 4,
+                                              right: 4,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  _clearImage(i, true);
+                                                },
+                                                child: Icon(
+                                                  Icons.clear,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  for (int i = 1;
+                                      i < _facilityInfo!.length;
+                                      i++)
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 16),
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: 100,
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              image: DecorationImage(
+                                                image: NetworkImage(
+                                                    _facilityInfo![i]),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                _clearImage(i, false);
+                                              },
+                                              child: Icon(
+                                                Icons.clear,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   Padding(
                                     padding: EdgeInsets.only(left: 16),
                                     child: GestureDetector(
-                                      onTap: () {
-                                        // Handle button tap
-                                        print('Button tapped!');
-                                      },
+                                      onTap: _selectMultipleImages,
                                       child: Container(
                                         width: 100,
                                         height: 100,
                                         decoration: BoxDecoration(
                                           color: GlobalVariables.lightGrey,
-                                          borderRadius: BorderRadius.circular(
-                                              10), // Adjust border radius here
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Center(
                                           child: Icon(
@@ -136,6 +279,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                               ),
                             ),
                           ),
+
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Column(
@@ -250,7 +394,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                 ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -261,7 +405,9 @@ class _FacilityInfoState extends State<FacilityInfo> {
                       vertical: 12,
                     ),
                     child: CustomButton(
-                        onTap: _navigateToManagerInfoScreen,
+                        onTap: () {
+                          _navigateToManagerInfoScreen;
+                        },
                         buttonText: 'Next',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,

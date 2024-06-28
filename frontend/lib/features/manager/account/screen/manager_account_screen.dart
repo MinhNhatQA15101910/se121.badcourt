@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/account/widgets/item_tag.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ManagerAccountScreen extends StatelessWidget {
@@ -242,50 +240,6 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _regularSizeText(String text) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: Colors.black,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
-
-  Widget _boldSizeText(String text) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: Colors.black,
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-
-  Widget _InterMedium18(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
   Widget _InterBold16(String text, Color color, int maxLines) {
     return Container(
       child: Text(
@@ -312,22 +266,6 @@ class ManagerAccountScreen extends StatelessWidget {
         style: GoogleFonts.inter(
           color: color,
           fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterRegular12(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 12,
           fontWeight: FontWeight.w400,
         ),
       ),

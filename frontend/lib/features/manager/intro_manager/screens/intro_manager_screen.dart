@@ -1,6 +1,7 @@
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
+import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,10 @@ class IntroManagerScreen extends StatefulWidget {
 class _IntroManagerScreenState extends State<IntroManagerScreen> {
   void _navigateToManagerBottomBar() {
     Navigator.of(context).pushNamed(ManagerBottomBar.routeName);
+  }
+
+  void _navigateToFacilityInfo() {
+    Navigator.of(context).pushNamed(FacilityInfo.routeName);
   }
 
   @override
@@ -37,7 +42,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
             Container(
               width: 200,
               child: CustomButton(
-                onTap: () => {},
+                onTap: _navigateToFacilityInfo,
                 buttonText: 'Register a facility',
                 borderColor: GlobalVariables.white,
                 fillColor: GlobalVariables.white,
