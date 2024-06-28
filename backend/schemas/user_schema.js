@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import managerInfoSchema from "./manager_info_schema.js";
+
 const userSchema = mongoose.Schema({
   username: {
     required: true,
@@ -43,8 +45,9 @@ const userSchema = mongoose.Schema({
   role: {
     type: String,
     trim: true,
-    default: "user",
+    default: "player",
   },
+  manager_info: managerInfoSchema,
 });
 
 export default userSchema;

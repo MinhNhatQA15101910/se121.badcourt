@@ -5,37 +5,49 @@ import nodemailer from "nodemailer";
 
 import User from "../models/user.js";
 
+import usernameValidator from "../middleware/body/username_validator.js";
+import emailValidator from "../middleware/body/email_validator.js";
+import passwordValidator from "../middleware/body/password_validator.js";
+import roleValidator from "../middleware/body/role_validator.js";
+
 const authRouter = express.Router();
 
 // Sign up route
-authRouter.post("/signup", async (req, res) => {
-  try {
-    const { username, email, password, role } = req.body;
+authRouter.post(
+  "/signup",
+  usernameValidator,
+  emailValidator,
+  passwordValidator,
+  roleValidator,
+  async (req, res) => {
+    try {
+      const { username, email, password, role } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ msg: "User with the same email already exists!" });
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res
+          .status(400)
+          .json({ msg: "User with the same email already exists!" });
+      }
+
+      const hashedPassword = await bcryptjs.hash(
+        password,
+        Number(process.env.SALT_ROUNDS)
+      );
+
+      let user = new User({
+        username,
+        email,
+        role,
+        password: hashedPassword,
+      });
+      user = await user.save();
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    const hashedPassword = await bcryptjs.hash(
-      password,
-      Number(process.env.SALT_ROUNDS)
-    );
-
-    let user = new User({
-      username,
-      email,
-      role,
-      password: hashedPassword,
-    });
-    user = await user.save();
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 // Log in route
 authRouter.post("/login", async (req, res) => {
@@ -46,12 +58,12 @@ authRouter.post("/login", async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ msg: "User with this email does not exist!" });
+        .json({ msg: "User with this email does not exist." });
     }
 
     const isMatch = await bcryptjs.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Incorrect password!" });
+      return res.status(400).json({ msg: "Incorrect password." });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
