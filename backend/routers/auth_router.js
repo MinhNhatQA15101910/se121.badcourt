@@ -15,6 +15,9 @@ import roleValidator from "../middleware/body/role_validator.js";
 import pincodeValidator from "../middleware/body/pincode_validator.js";
 import newPasswordValidator from "../middleware/body/new_password_validator.js";
 
+// Header middleware
+import authValidator from "../middleware/header/auth_validator.js";
+
 const authRouter = express.Router();
 
 // Sign up route
@@ -244,6 +247,37 @@ authRouter.patch(
     }
   }
 );
+
+// Validate token
+authRouter.post("/token-is-valid", async (req, res) => {
+  try {
+    const token = req.header("x-auth-token");
+
+    if (!token) {
+      return res.json(false);
+    }
+
+    const verified = jwt.verify(token, process.env.PASSWORD_KEY);
+    if (!verified) {
+      return res.json(false);
+    }
+
+    const user = await User.findById(verified.id);
+    if (!user) {
+      return res.json(false);
+    }
+
+    return res.json(true);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get user data route
+authRouter.get("/user", authValidator, async (req, res) => {
+  const user = await User.findById(req.user);
+  res.json({ ...user._doc, token: req.token });
+});
 
 // Function to hide email characters
 function hideEmailCharacters(email) {

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
@@ -18,18 +17,6 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-String generateRandomNumberString() {
-  Random random = Random();
-
-  String randomNumberString = '';
-  for (int i = 0; i < 6; i++) {
-    int randomNumber = random.nextInt(10);
-    randomNumberString += randomNumber.toString();
-  }
-
-  return randomNumberString;
-}
-
 class AuthService {
   // Sign up user
   Future<bool> signUpUser({
@@ -38,6 +25,11 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
+
     try {
       User user = User(
         id: '',
@@ -45,12 +37,12 @@ class AuthService {
         email: email,
         password: password,
         imageUrl: '',
-        role: '',
+        role: authProvider.isPlayer ? 'player' : 'manager',
         token: '',
       );
 
       http.Response response = await http.post(
-        Uri.parse('$uri/user/sign-up'),
+        Uri.parse('$uri/sign-up'),
         body: user.toJson(),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -95,10 +87,16 @@ class AuthService {
       context,
       listen: false,
     );
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
 
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/login'),
+        Uri.parse(
+          '$uri/${authProvider.isPlayer ? 'login-as-player' : 'login-as-manager'}',
+        ),
         body: jsonEncode(
           {
             'email': email,
@@ -377,6 +375,52 @@ class AuthService {
       );
 
       return false;
+    }
+  }
+
+  // Get user data
+  void getUserData(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('x-auth-token');
+
+      if (token == null) {
+        await prefs.setString('x-auth-token', '');
+        return;
+      }
+
+      var tokenRes = await http.post(
+        Uri.parse('$uri/token-is-valid'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': token,
+        },
+      );
+
+      var isValidToken = jsonDecode(tokenRes.body);
+
+      if (isValidToken) {
+        http.Response userRes = await http.get(
+          Uri.parse('$uri/user'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': token,
+          },
+        );
+
+        Provider.of<UserProvider>(
+          context,
+          listen: false,
+        ).setUser(userRes.body);
+
+        print('Token: $token');
+      }
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
     }
   }
 }
