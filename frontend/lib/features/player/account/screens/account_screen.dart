@@ -381,7 +381,7 @@ class AccountScreen extends StatelessWidget {
                 child: ItemTag(
                   title: 'Change password',
                   description: 'Change your account password',
-                  onTap: () {},
+                  onTap: () => navigateToPinputForm(context),
                   iconData: Icons.password,
                 ),
               ),
