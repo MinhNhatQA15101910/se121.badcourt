@@ -1,6 +1,7 @@
 import 'package:flutter_svg/svg.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,22 @@ class SearchByLocationScreen extends StatefulWidget {
 
 class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
   final _searchController = TextEditingController();
-
+  final Facility _facility = Facility(
+    id: '',
+    userId: '',
+    name: '',
+    facebookUrl: '',
+    phoneNumber: '',
+    courtsAmount: 0,
+    detailAddress: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    ratingAvg: 0.0,
+    totalRating: 0,
+    activeAt: '',
+    registeredAt: 0,
+    imageUrls: [],
+  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,6 +157,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                   child: Container(),
                 ),
                 FacilityItem(
+                  facility: _facility,
                   onTap: () {},
                 ),
               ],
