@@ -7,7 +7,6 @@ import 'package:frontend/features/player/account/services/account_service.dart';
 import 'package:frontend/features/player/account/widgets/item_tag.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -272,7 +271,7 @@ class AccountScreen extends StatelessWidget {
                           ),
                         ),
                         GestureDetector(
-                          onTap: _navigateToBookingManagementScreen,
+                          onTap: () {},
                           child: Row(
                             children: [
                               Text(
