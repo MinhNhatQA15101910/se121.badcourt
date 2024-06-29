@@ -65,6 +65,7 @@ managerCourtRouter.post(
   }
 );
 
+// Update court route
 managerCourtRouter.patch(
   "/manager/update-court/:court_id",
   managerValidator,
@@ -117,6 +118,7 @@ managerCourtRouter.patch(
   }
 );
 
+// Delete court route
 managerCourtRouter.delete(
   "/manager/delete-court/:court_id",
   managerValidator,
@@ -151,6 +153,34 @@ managerCourtRouter.delete(
       await facility.save();
 
       res.json(court);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Get courts route
+managerCourtRouter.get(
+  "/manager/courts",
+  managerValidator,
+  async (req, res) => {
+    try {
+      const { facility_id } = req.query;
+
+      // Validate if current user is the facility's owner
+      let existingFacility = await Facility.findOne({
+        _id: facility_id,
+        user_id: req.user,
+      });
+      if (!existingFacility) {
+        return res
+          .status(400)
+          .json({ msg: "You are not the facility's owner." });
+      }
+
+      const courts = await Court.find({ facility_id });
+
+      res.json(courts);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
