@@ -223,13 +223,14 @@ authRouter.post(
 authRouter.patch(
   "/change-password",
   emailValidator,
+  roleValidator,
   newPasswordValidator,
   async (req, res) => {
     try {
-      const { email, new_password } = req.body;
+      const { email, role, new_password } = req.body;
       console.log(req.body);
 
-      let existingUser = await User.findOne({ email });
+      let existingUser = await User.findOne({ email, role });
       if (!existingUser) {
         return res
           .status(400)

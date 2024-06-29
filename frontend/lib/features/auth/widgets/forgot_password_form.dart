@@ -49,7 +49,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
     );
 
     authProvider.setForm(
-      authProvider.previousForm,
+      authProvider.previousForm!,
     );
   }
 
