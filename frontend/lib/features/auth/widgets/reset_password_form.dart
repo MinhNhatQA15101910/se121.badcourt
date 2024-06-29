@@ -50,16 +50,16 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
   }
 
   void _moveToPreviousForm() {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
-    authFormProvider.setForm(
-      authFormProvider.previousForm,
+    authProvider.setForm(
+      authProvider.previousForm!,
     );
 
-    authFormProvider.setPreviousForm(
+    authProvider.setPreviousForm(
       ForgotPasswordForm(),
     );
   }

@@ -33,7 +33,7 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
     case AuthScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const AuthScreen(),
+        builder: (_) => AuthScreen(),
       );
     case PlayerBottomBar.routeName:
       return MaterialPageRoute(

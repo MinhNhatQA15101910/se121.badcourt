@@ -23,6 +23,9 @@ import citizenImageUrlValidator from "../../middleware/body/citizen_image_url_va
 import bankCardUrlValidator from "../../middleware/body/bank_card_url_validator.js";
 import businessLicenseImageUrlsValidator from "../../middleware/body/business_license_image_urls_validator.js";
 
+// Params middleware
+import facilityIdValidator from "../../middleware/params/facility_id_validator.js";
+
 const facilityRouter = express.Router();
 
 // Register facility route
@@ -99,6 +102,37 @@ facilityRouter.post(
       });
       facility = await facility.save();
 
+      res.json(facility);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Get all facilities route
+facilityRouter.get(
+  "/manager/facilities",
+  managerValidator,
+  async (req, res) => {
+    try {
+      const facilities = await Facility.find({ user_id: req.user });
+      res.json(facilities);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Get facility by id route
+facilityRouter.get(
+  "/manager/facilities/:facility_id",
+  managerValidator,
+  facilityIdValidator,
+  async (req, res) => {
+    try {
+      const { facility_id } = req.params;
+
+      const facility = await Facility.findById(facility_id);
       res.json(facility);
     } catch (err) {
       res.status(500).json({ error: err.message });

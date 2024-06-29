@@ -15,6 +15,9 @@ import roleValidator from "../middleware/body/role_validator.js";
 import pincodeValidator from "../middleware/body/pincode_validator.js";
 import newPasswordValidator from "../middleware/body/new_password_validator.js";
 
+// Header middleware
+import authValidator from "../middleware/header/auth_validator.js";
+
 const authRouter = express.Router();
 
 // Sign up route
@@ -28,12 +31,11 @@ authRouter.post(
     try {
       const { username, email, password, role } = req.body;
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
+      const existingUser = await User.findOne({ email, role });
+      if (existingUser)
         return res
           .status(400)
           .json({ msg: "User with the same email already exists!" });
-      }
 
       const hashedPassword = await bcryptjs.hash(
         password,
@@ -54,20 +56,49 @@ authRouter.post(
   }
 );
 
-// Log in route
+// Login as player route
 authRouter.post(
-  "/login",
+  "/login-as-player",
   emailValidator,
   passwordValidator,
   async (req, res) => {
     try {
       const { email, password } = req.body;
 
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email, role: "player" });
       if (!user) {
         return res
           .status(400)
-          .json({ msg: "User with this email does not exist." });
+          .json({ msg: "Player with this email does not exist." });
+      }
+
+      const isMatch = await bcryptjs.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ msg: "Incorrect password." });
+      }
+
+      const token = jwt.sign({ id: user._id }, process.env.PASSWORD_KEY);
+      res.json({ token, ...user._doc });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Login as manager route
+authRouter.post(
+  "/login-as-manager",
+  emailValidator,
+  passwordValidator,
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const user = await User.findOne({ email, role: "manager" });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ msg: "Manager with this email does not exist." });
       }
 
       const isMatch = await bcryptjs.compare(password, user.password);
@@ -192,13 +223,14 @@ authRouter.post(
 authRouter.patch(
   "/change-password",
   emailValidator,
+  roleValidator,
   newPasswordValidator,
   async (req, res) => {
     try {
-      const { email, new_password } = req.body;
+      const { email, role, new_password } = req.body;
       console.log(req.body);
 
-      let existingUser = await User.findOne({ email });
+      let existingUser = await User.findOne({ email, role });
       if (!existingUser) {
         return res
           .status(400)
@@ -216,6 +248,37 @@ authRouter.patch(
     }
   }
 );
+
+// Validate token
+authRouter.post("/token-is-valid", async (req, res) => {
+  try {
+    const token = req.header("x-auth-token");
+
+    if (!token) {
+      return res.json(false);
+    }
+
+    const verified = jwt.verify(token, process.env.PASSWORD_KEY);
+    if (!verified) {
+      return res.json(false);
+    }
+
+    const user = await User.findById(verified.id);
+    if (!user) {
+      return res.json(false);
+    }
+
+    return res.json(true);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get user data route
+authRouter.get("/user", authValidator, async (req, res) => {
+  const user = await User.findById(req.user);
+  res.json({ ...user._doc, token: req.token });
+});
 
 // Function to hide email characters
 function hideEmailCharacters(email) {

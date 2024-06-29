@@ -6,6 +6,7 @@ import 'package:frontend/features/intro/widgets/first_welcome.dart';
 import 'package:frontend/features/intro/widgets/second_welcome.dart';
 import 'package:frontend/features/intro/widgets/third_welcome.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -36,9 +37,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
       );
 
-  void _handleIndex() {
+  void _handleIndex() async {
     if (_activeIndex == 2) {
-      Navigator.of(context).pushNamed(AuthOptionsScreen.routeName);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool(
+        'is-first-launch',
+        false,
+      );
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AuthOptionsScreen.routeName,
+        (route) => false,
+      );
     } else {
       setState(() {
         _activeIndex++;

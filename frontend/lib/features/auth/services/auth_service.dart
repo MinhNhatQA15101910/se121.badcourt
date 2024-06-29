@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
@@ -8,7 +7,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/auth_provider.dart';
@@ -18,18 +17,6 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-String generateRandomNumberString() {
-  Random random = Random();
-
-  String randomNumberString = '';
-  for (int i = 0; i < 6; i++) {
-    int randomNumber = random.nextInt(10);
-    randomNumberString += randomNumber.toString();
-  }
-
-  return randomNumberString;
-}
-
 class AuthService {
   // Sign up user
   Future<bool> signUpUser({
@@ -38,6 +25,11 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
+
     try {
       User user = User(
         id: '',
@@ -45,12 +37,12 @@ class AuthService {
         email: email,
         password: password,
         imageUrl: '',
-        role: '',
+        role: authProvider.isPlayer ? 'player' : 'manager',
         token: '',
       );
 
       http.Response response = await http.post(
-        Uri.parse('$uri/user/sign-up'),
+        Uri.parse('$uri/sign-up'),
         body: user.toJson(),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -95,10 +87,16 @@ class AuthService {
       context,
       listen: false,
     );
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
 
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/login'),
+        Uri.parse(
+          '$uri/${authProvider.isPlayer ? 'login-as-player' : 'login-as-manager'}',
+        ),
         body: jsonEncode(
           {
             'email': email,
@@ -127,7 +125,7 @@ class AuthService {
             );
           } else if (jsonDecode(response.body)['role'] == 'manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              ManagerBottomBar.routeName,
+              IntroManagerScreen.routeName,
               (route) => false,
             );
           }
@@ -238,20 +236,20 @@ class AuthService {
       var isExistingEmail = jsonDecode(response.body);
 
       if (isExistingEmail) {
-        final authFormProvider = Provider.of<AuthProvider>(
+        final authProvider = Provider.of<AuthProvider>(
           context,
           listen: false,
         );
 
-        authFormProvider.setResentEmail(
+        authProvider.setResentEmail(
           email,
         );
 
-        authFormProvider.setPreviousForm(
+        authProvider.setPreviousForm(
           ForgotPasswordForm(),
         );
 
-        authFormProvider.setForm(
+        authProvider.setForm(
           PinputForm(
             isMoveBack: false,
             isValidateSignUpEmail: false,
@@ -321,12 +319,18 @@ class AuthService {
     required String email,
     required String newPassword,
   }) async {
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
+
     try {
       http.Response response = await http.patch(
         Uri.parse('$uri/change-password'),
         body: jsonEncode(
           {
             'email': email,
+            'role': authProvider.isPlayer ? 'player' : 'manager',
             'new_password': newPassword,
           },
         ),
@@ -343,7 +347,7 @@ class AuthService {
             context,
             listen: false,
           );
-          final authFormProvider = Provider.of<AuthProvider>(
+          final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
@@ -353,8 +357,8 @@ class AuthService {
           );
           userProvider.setUserFromModel(user);
 
-          authFormProvider.setForm(LoginForm());
-          authFormProvider.setResentEmail('');
+          authProvider.setForm(LoginForm());
+          authProvider.setResentEmail('');
 
           IconSnackBar.show(
             context,
@@ -377,6 +381,52 @@ class AuthService {
       );
 
       return false;
+    }
+  }
+
+  // Get user data
+  void getUserData(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('x-auth-token');
+
+      if (token == null) {
+        await prefs.setString('x-auth-token', '');
+        return;
+      }
+
+      var tokenRes = await http.post(
+        Uri.parse('$uri/token-is-valid'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': token,
+        },
+      );
+
+      var isValidToken = jsonDecode(tokenRes.body);
+
+      if (isValidToken) {
+        http.Response userRes = await http.get(
+          Uri.parse('$uri/user'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': token,
+          },
+        );
+
+        Provider.of<UserProvider>(
+          context,
+          listen: false,
+        ).setUser(userRes.body);
+
+        print('Token: $token');
+      }
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
     }
   }
 }

@@ -8,8 +8,12 @@ const roleValidator = (req, res, next) => {
   try {
     let { role } = req.body;
 
-    if (role && !roles.includes(role)) {
-      return res.status(400).json({ msg: "Invalid role." });
+    if (role) {
+      if (!roles.includes(role)) {
+        return res.status(400).json({ msg: "Invalid role." });
+      }
+    } else {
+      req.body.role = "player";
     }
 
     next();

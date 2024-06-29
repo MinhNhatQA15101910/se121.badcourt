@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class AuthOptionsScreen extends StatelessWidget {
   static const String routeName = '/auth-options';
   const AuthOptionsScreen({super.key});
 
-  void navigateToAuthScreen(BuildContext context) {
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AuthScreen.routeName,
-      (route) => false,
-    );
+  void navigateToAuthScreen(
+    BuildContext context,
+    bool isPlayer,
+  ) {
+    Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).setIsPlayer(isPlayer);
+    Navigator.of(context).pushNamed(AuthScreen.routeName);
   }
 
   @override
@@ -57,7 +63,7 @@ class AuthOptionsScreen extends StatelessWidget {
               width: 240,
               height: 40,
               child: ElevatedButton(
-                onPressed: () => navigateToAuthScreen(context),
+                onPressed: () => navigateToAuthScreen(context, false),
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                 ),
@@ -78,7 +84,7 @@ class AuthOptionsScreen extends StatelessWidget {
               width: 240,
               height: 40,
               child: ElevatedButton(
-                onPressed: () => navigateToAuthScreen(context),
+                onPressed: () => navigateToAuthScreen(context, true),
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                 ),

@@ -16,7 +16,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 class SignUpForm extends StatefulWidget {
-  const SignUpForm({super.key});
+  const SignUpForm({
+    super.key,
+  });
 
   @override
   State<SignUpForm> createState() => _SignUpFormState();
@@ -58,12 +60,12 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   void _moveToLoginForm() {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
-    authFormProvider.setForm(LoginForm());
+    authProvider.setForm(LoginForm());
   }
 
   void _moveToPinputForm() {
@@ -75,14 +77,14 @@ class _SignUpFormState extends State<SignUpForm> {
       Future.delayed(
         Duration(seconds: 2),
         () {
-          final authFormProvider = Provider.of<AuthProvider>(
+          final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
 
-          authFormProvider.setResentEmail(_emailController.text.trim());
-          authFormProvider.setPreviousForm(SignUpForm());
-          authFormProvider.setSignUpUser(
+          authProvider.setResentEmail(_emailController.text.trim());
+          authProvider.setPreviousForm(SignUpForm());
+          authProvider.setSignUpUser(
             User(
               id: '',
               username: _usernameController.text.trim(),
@@ -93,7 +95,7 @@ class _SignUpFormState extends State<SignUpForm> {
               token: '',
             ),
           );
-          authFormProvider.setForm(
+          authProvider.setForm(
             PinputForm(
               isMoveBack: false,
               isValidateSignUpEmail: true,
@@ -110,6 +112,8 @@ class _SignUpFormState extends State<SignUpForm> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
     return Container(
       decoration: BoxDecoration(
         color: GlobalVariables.defaultColor,
@@ -243,133 +247,137 @@ class _SignUpFormState extends State<SignUpForm> {
               const SizedBox(height: 16),
 
               // Continue with separator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    width: 78,
-                    height: 1,
-                    color: GlobalVariables.lightGreen,
-                  ),
-                  Text(
-                    'Continue with',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.darkGreen,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
+              if (authProvider.isPlayer)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                      width: 78,
+                      height: 1,
+                      color: GlobalVariables.lightGreen,
                     ),
-                  ),
-                  Container(
-                    width: 78,
-                    height: 1,
-                    color: GlobalVariables.lightGreen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    Text(
+                      'Continue with',
+                      style: GoogleFonts.inter(
+                        color: GlobalVariables.darkGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    Container(
+                      width: 78,
+                      height: 1,
+                      color: GlobalVariables.lightGreen,
+                    ),
+                  ],
+                ),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
 
               // Sign up with Google button.
-              Align(
-                alignment: Alignment.center,
-                child: _isLoginWithGoogleLoading
-                    ? const Loader()
-                    : SizedBox(
-                        width: 216,
-                        height: 40,
-                        child: ElevatedButton(
-                          onPressed: _loginWithGoogle,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: GlobalVariables.lightGrey,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
-                                color: GlobalVariables.green,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/vectors/vector-google.svg',
-                                width: 24,
-                                height: 24,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Sign up with Google',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
+              if (authProvider.isPlayer)
+                Align(
+                  alignment: Alignment.center,
+                  child: _isLoginWithGoogleLoading
+                      ? const Loader()
+                      : SizedBox(
+                          width: 216,
+                          height: 40,
+                          child: ElevatedButton(
+                            onPressed: _loginWithGoogle,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: GlobalVariables.lightGrey,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
                                   color: GlobalVariables.green,
                                 ),
                               ),
-                            ],
+                            ),
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/vectors/vector-google.svg',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Sign up with Google',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: GlobalVariables.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
+
+              // OR Separator
+              if (authProvider.isPlayer)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    DottedLine(
+                      lineLength: 120,
+                      lineThickness: 1,
+                      dashLength: 2,
+                      dashGapLength: 2,
+                      dashColor: GlobalVariables.lightGreen,
+                    ),
+                    Text(
+                      'OR',
+                      style: GoogleFonts.inter(
+                        color: GlobalVariables.darkGreen,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 19,
+                      ),
+                    ),
+                    DottedLine(
+                      lineLength: 120,
+                      lineThickness: 1,
+                      dashLength: 2,
+                      dashGapLength: 2,
+                      dashColor: GlobalVariables.lightGreen,
+                    ),
+                  ],
+                ),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
+
+              // Continue as a guess button
+              if (authProvider.isPlayer)
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 216,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlobalVariables.lightGrey,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: GlobalVariables.green,
                           ),
                         ),
                       ),
-              ),
-              const SizedBox(height: 16),
-
-              // OR Separator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  DottedLine(
-                    lineLength: 120,
-                    lineThickness: 1,
-                    dashLength: 2,
-                    dashGapLength: 2,
-                    dashColor: GlobalVariables.lightGreen,
-                  ),
-                  Text(
-                    'OR',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.darkGreen,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 19,
-                    ),
-                  ),
-                  DottedLine(
-                    lineLength: 120,
-                    lineThickness: 1,
-                    dashLength: 2,
-                    dashGapLength: 2,
-                    dashColor: GlobalVariables.lightGreen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Continue as a guess button
-              Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: 216,
-                  height: 40,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalVariables.lightGrey,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(
+                      child: Text(
+                        'Continue as a guest',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                           color: GlobalVariables.green,
                         ),
                       ),
                     ),
-                    child: Text(
-                      'Continue as a guest',
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: GlobalVariables.green,
-                      ),
-                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
 
               // Navigate to Sign Up form text
               Align(
