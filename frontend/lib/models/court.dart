@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 class Court {
+  final String id;
   final String facilityId;
   final String name;
   final String description;
   final int pricePerHour;
 
   Court({
+    required this.id,
     required this.facilityId,
     required this.name,
     required this.description,
@@ -15,6 +17,7 @@ class Court {
 
   Map<String, dynamic> toMap() {
     return {
+      '_id': id,
       'facility_id': facilityId,
       'name': name,
       'description': description,
@@ -24,6 +27,7 @@ class Court {
 
   factory Court.fromMap(Map<String, dynamic> map) {
     return Court(
+      id: map['_id'] ?? '',
       facilityId: map['facility_id'] ?? '',
       name: map['name'] ?? '',
       description: map['description'] ?? '',
@@ -36,12 +40,14 @@ class Court {
   factory Court.fromJson(String source) => Court.fromMap(json.decode(source));
 
   Court copyWith({
+    String? id,
     String? facilityId,
     String? name,
     String? description,
     int? pricePerHour,
   }) {
     return Court(
+      id: id ?? this.id,
       facilityId: facilityId ?? this.facilityId,
       name: name ?? this.name,
       description: description ?? this.description,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'dart:convert';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/facility.dart';

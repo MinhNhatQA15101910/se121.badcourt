@@ -6,10 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class TimeSlotBottomSheet extends StatefulWidget {
-  final TextEditingController textController;
-
-  const TimeSlotBottomSheet({Key? key, required this.textController})
-      : super(key: key);
+  const TimeSlotBottomSheet({Key? key}) : super(key: key);
 
   @override
   State<TimeSlotBottomSheet> createState() => _TimeSlotBottomSheetState();
@@ -54,7 +51,7 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
                       top: 8,
                     ),
                     child: Expanded(
-                      child: _BoldSizeText('Add a time slot'),
+                      child: _BoldSizeText('Update time range'),
                     ),
                   ),
                   IconButton(
@@ -228,40 +225,6 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
                   ],
                 ),
               ],
-            ),
-            Divider(
-              color: GlobalVariables.grey,
-              thickness: 1,
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                vertical: 8,
-              ),
-              child: Row(
-                children: [
-                  _BoldSizeText('Price'),
-                  SizedBox(
-                    width: 32,
-                  ),
-                  _BoldSizeText('\$'),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  Expanded(
-                    child: CustomTextfield(
-                      controller: widget.textController,
-                      hintText: '0',
-                      validator: (priceNumber) {
-                        if (priceNumber == null || priceNumber.isEmpty) {
-                          return 'Please enter your price.';
-                        }
-                        return null;
-                      },
-                      isPhoneNumber: true,
-                    ),
-                  ),
-                ],
-              ),
             ),
             Divider(
               color: GlobalVariables.grey,

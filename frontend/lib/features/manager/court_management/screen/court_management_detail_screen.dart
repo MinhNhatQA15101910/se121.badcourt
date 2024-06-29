@@ -93,9 +93,7 @@ class _CourtManagementDetailScreenState
                                 topRight: Radius.circular(8),
                               ),
                             ),
-                            child: TimeSlotBottomSheet(
-                              textController: _controller,
-                            ),
+                            child: TimeSlotBottomSheet(),
                           );
                         },
                       );

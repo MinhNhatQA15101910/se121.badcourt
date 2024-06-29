@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
+import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 
-String uri = 'http://192.168.137.1:3000';
+String uri = 'http://192.168.1.39:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
@@ -70,6 +71,13 @@ class GlobalVariables {
   static String manageCitizenId = "";
   static String facilityDescription = "";
   static String facilityPolicy = "";
+  static Court court = Court(
+    id: '',
+    facilityId: '',
+    name: '',
+    description: '',
+    pricePerHour: 0,
+  );
 
   // Colors
   static const Color black = Color(0xFF000000);
