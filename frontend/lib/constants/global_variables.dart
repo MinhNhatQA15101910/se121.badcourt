@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-String uri = 'http://10.45.134.83:3000';
+String uri = 'http://172.30.156.169:3000';
 
 class GlobalVariables {
-  //Define Scales
+  // Define Scales
   static double screenWidth = 0;
   static double screenHeight = 0;
 

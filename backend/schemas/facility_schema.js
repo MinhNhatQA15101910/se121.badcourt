@@ -29,6 +29,8 @@ const facilitySchema = mongoose.Schema({
       message: "Invalid phone number.",
     },
   },
+  description: { type: String, trim: true, required: true },
+  policy: { type: String, trim: true, required: true },
   courts_amount: {
     type: Number,
     default: 0,
