@@ -117,6 +117,11 @@ class _PinputFormState extends State<PinputForm> {
   }
 
   void _moveToPreviousForm() {
+    if (PinputForm.isUserChangePassword) {
+      Navigator.of(context).pop();
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
@@ -179,6 +184,8 @@ class _PinputFormState extends State<PinputForm> {
           );
           _moveToPreviousForm();
         } else {
+          if (!mounted) return;
+
           setState(() {
             _remainingSeconds--;
           });

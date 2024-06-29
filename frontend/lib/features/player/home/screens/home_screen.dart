@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:frontend/common/widgets/custom_radio_buttom.dart';
+import 'package:frontend/common/widgets/custom_radio_button.dart';
 import 'package:frontend/common/widgets/single_facility_card.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Image.asset(
-                      'assets/images/img_carousel_demo.png',
+                      'assets/images/img_carousel_${index + 1}.jpg',
                       fit: BoxFit.cover,
                     ),
                   ),

@@ -357,14 +357,19 @@ class AuthService {
           );
           userProvider.setUserFromModel(user);
 
-          authProvider.setForm(LoginForm());
-          authProvider.setResentEmail('');
-
           IconSnackBar.show(
             context,
             label: 'Change password successfully!',
             snackBarType: SnackBarType.success,
           );
+
+          if (PinputForm.isUserChangePassword) {
+            Navigator.of(context).pop();
+            return;
+          }
+
+          authProvider.setForm(LoginForm());
+          authProvider.setResentEmail('');
         },
       );
 

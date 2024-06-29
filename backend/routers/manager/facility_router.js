@@ -22,19 +22,23 @@ import citizenIdValidator from "../../middleware/body/citizen_id_validator.js";
 import citizenImageUrlValidator from "../../middleware/body/citizen_image_url_validator.js";
 import bankCardUrlValidator from "../../middleware/body/bank_card_url_validator.js";
 import businessLicenseImageUrlsValidator from "../../middleware/body/business_license_image_urls_validator.js";
+import descriptionValidator from "../../middleware/body/description_validator.js";
+import policyValidator from "../../middleware/body/policy_validator.js";
 
 // Params middleware
 import facilityIdValidator from "../../middleware/params/facility_id_validator.js";
 
-const facilityRouter = express.Router();
+const managerFacilityRouter = express.Router();
 
 // Register facility route
-facilityRouter.post(
+managerFacilityRouter.post(
   "/manager/register-facility",
   managerValidator,
   facilityNameValidator,
   latitudeValidator,
   longitudeValidator,
+  descriptionValidator,
+  policyValidator,
   detailAddressValidator,
   provinceValidator,
   facilityImageUrlsValidator,
@@ -51,6 +55,8 @@ facilityRouter.post(
         facility_name,
         lat,
         lon,
+        description,
+        policy,
         detail_address,
         province,
         facebook_url,
@@ -94,6 +100,8 @@ facilityRouter.post(
         facebook_url,
         phone_number,
         detail_address,
+        description,
+        policy,
         province,
         latitude: lat,
         longitude: lon,
@@ -110,7 +118,7 @@ facilityRouter.post(
 );
 
 // Get all facilities route
-facilityRouter.get(
+managerFacilityRouter.get(
   "/manager/facilities",
   managerValidator,
   async (req, res) => {
@@ -124,7 +132,7 @@ facilityRouter.get(
 );
 
 // Get facility by id route
-facilityRouter.get(
+managerFacilityRouter.get(
   "/manager/facilities/:facility_id",
   managerValidator,
   facilityIdValidator,
@@ -140,4 +148,4 @@ facilityRouter.get(
   }
 );
 
-export default facilityRouter;
+export default managerFacilityRouter;

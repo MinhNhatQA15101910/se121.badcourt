@@ -228,7 +228,6 @@ authRouter.patch(
   async (req, res) => {
     try {
       const { email, role, new_password } = req.body;
-      console.log(req.body);
 
       let existingUser = await User.findOne({ email, role });
       if (!existingUser) {
