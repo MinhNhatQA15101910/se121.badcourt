@@ -1,7 +1,7 @@
 // Validate description
 const descriptionValidator = (req, res, next) => {
   console.log("Description validator middleware:");
-  console.log("- Description: " + req.body.detail_address);
+  console.log("- Description: " + req.body.description);
 
   try {
     const description = req.body.description;

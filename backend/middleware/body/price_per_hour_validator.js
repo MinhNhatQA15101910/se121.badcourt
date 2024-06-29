@@ -1,7 +1,7 @@
 // Validate price per hour
 const pricePerHourValidator = (req, res, next) => {
   console.log("Price per hour validator middleware:");
-  console.log("- Price per hour: " + req.body.price);
+  console.log("- Price per hour: " + req.body.price_per_hour);
 
   try {
     const pricePerHour = req.body.price_per_hour;

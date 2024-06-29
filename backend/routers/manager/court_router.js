@@ -13,6 +13,7 @@ import Facility from "../../models/facility.js";
 
 // Models
 import Court from "../../models/court.js";
+import courtIdValidator from "../../middleware/params/court_id_validator.js";
 
 const managerCourtRouter = express.Router();
 
@@ -37,8 +38,15 @@ managerCourtRouter.post(
           .status(400)
           .json({ msg: "You are not the owner of this facility." });
       }
-      existingFacility.courts_amount = existingFacility.courts_amount++;
+      existingFacility.courts_amount++;
       await existingFacility.save();
+
+      const existingCourt = await Court.findOne({ name, facility_id });
+      if (existingCourt) {
+        return res
+          .status(400)
+          .json({ msg: "Court with the same name already exists." });
+      }
 
       let court = new Court({
         facility_id,
@@ -46,6 +54,31 @@ managerCourtRouter.post(
         description,
         price_per_hour,
       });
+      court = await court.save();
+      res.json(court);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Update court route
+managerCourtRouter.patch(
+  "/manager/update-court/:court_id",
+  managerValidator,
+  courtIdValidator,
+  nameValidator,
+  descriptionValidator,
+  pricePerHourValidator,
+  async (req, res) => {
+    try {
+      const { court_id } = req.params;
+      const { name, description, price_per_hour } = req.body;
+
+      let court = await Court.findById(court_id);
+      court.name = name;
+      court.description = description;
+      court.price_per_hour = price_per_hour;
       court = await court.save();
       res.json(court);
     } catch (err) {
