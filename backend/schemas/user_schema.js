@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-import managerInfoSchema from "./manager_info_schema.js";
-
 const userSchema = mongoose.Schema({
   username: {
     required: true,
@@ -47,7 +45,6 @@ const userSchema = mongoose.Schema({
     trim: true,
     default: "player",
   },
-  manager_info: managerInfoSchema,
 });
 
 export default userSchema;
