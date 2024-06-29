@@ -72,6 +72,8 @@ class AddFacilityService {
     required File bankCardFront,
     required File bankCardBack,
     required List<File> businessLicenseImageUrls,
+    required String description,
+    required String policy,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -85,25 +87,25 @@ class AddFacilityService {
       List<String> uploadedBusinessLicenseImageUrls = [];
 
       // Upload facility images
-      for (File imageUrl in facilityImageUrls) {
-        CloudinaryResponse cloudinaryResponse = await cloudinary.uploadFile(
+      for (File file in facilityImageUrls) {
+        CloudinaryResponse response = await cloudinary.uploadFile(
           CloudinaryFile.fromFile(
-            imageUrl.path,
+            file.path,
             folder: 'facilities/$facilityName',
           ),
         );
-        uploadedFacilityImageUrls.add(cloudinaryResponse.secureUrl);
+        uploadedFacilityImageUrls.add(response.secureUrl);
       }
 
       // Upload business license images
-      for (File imageUrl in businessLicenseImageUrls) {
-        CloudinaryResponse cloudinaryResponse = await cloudinary.uploadFile(
+      for (File file in businessLicenseImageUrls) {
+        CloudinaryResponse response = await cloudinary.uploadFile(
           CloudinaryFile.fromFile(
-            imageUrl.path,
+            file.path,
             folder: 'business_license/$facilityName',
           ),
         );
-        uploadedBusinessLicenseImageUrls.add(cloudinaryResponse.secureUrl);
+        uploadedBusinessLicenseImageUrls.add(response.secureUrl);
       }
 
       // Upload citizen image front
@@ -163,11 +165,13 @@ class AddFacilityService {
             "bank_card_url_front": bankCardUrlFront,
             "bank_card_url_back": bankCardUrlBack,
             "business_license_image_urls": uploadedBusinessLicenseImageUrls,
+            "description": description,
+            "policy": policy,
           },
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token
+          'x-auth-token': userProvider.user.token,
         },
       );
 

@@ -26,6 +26,9 @@ class _FacilityInfoState extends State<FacilityInfo> {
   final _wardNameController = TextEditingController();
   final _districtNameController = TextEditingController();
   final _provinceNameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _policyController = TextEditingController();
+
   List<File>? _images = [];
   List<String>? _facilityInfo = []; //just demo
   DetailAddress? _selectedAddress;
@@ -395,7 +398,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                     },
                                   ),
                                   _InterRegular14(
-                                    "Street/ House number",
+                                    "Street/ House number *",
                                     GlobalVariables.darkGrey,
                                     1,
                                   ),
@@ -406,6 +409,38 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       if (wardName == null ||
                                           wardName.isEmpty) {
                                         return 'Please enter street / house number.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Facility description *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _descriptionController,
+                                    hintText: 'Facility description',
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
+                                        return 'Please enter facility description.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Facility policy *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _policyController,
+                                    hintText: 'Facility policy',
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
+                                        return 'Please enter facility policy.';
                                       }
                                       return null;
                                     },
@@ -439,6 +474,10 @@ class _FacilityInfoState extends State<FacilityInfo> {
                               GlobalVariables.facilityImages = _images;
                               GlobalVariables.facilityName =
                                   _facilityNameController.text;
+                              GlobalVariables.facilityDescription =
+                                  _descriptionController.text;
+                              GlobalVariables.facilityPolicy =
+                                  _policyController.text;
                               _navigateToManagerInfoScreen();
                             }
                           }

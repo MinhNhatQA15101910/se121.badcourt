@@ -8,6 +8,7 @@ class Facility {
   final String phoneNumber;
   final int courtsAmount;
   final String detailAddress;
+  final String province;
   final double latitude;
   final double longitude;
   final double ratingAvg;
@@ -15,6 +16,8 @@ class Facility {
   final Active activeAt;
   final int registeredAt;
   final List<String> imageUrls;
+  final String description;
+  final String policy;
 
   Facility({
     required this.id,
@@ -24,6 +27,7 @@ class Facility {
     required this.phoneNumber,
     required this.courtsAmount,
     required this.detailAddress,
+    required this.province,
     required this.latitude,
     required this.longitude,
     required this.ratingAvg,
@@ -31,6 +35,8 @@ class Facility {
     required this.activeAt,
     required this.registeredAt,
     required this.imageUrls,
+    required this.description,
+    required this.policy,
   });
 
   Map<String, dynamic> toMap() {
@@ -42,6 +48,7 @@ class Facility {
       'phone_number': phoneNumber,
       'courts_amount': courtsAmount,
       'detail_address': detailAddress,
+      'province': province,
       'latitude': latitude,
       'longitude': longitude,
       'rating_avg': ratingAvg,
@@ -49,6 +56,8 @@ class Facility {
       'active_at': activeAt.toMap(),
       'registered_at': registeredAt,
       'image_urls': imageUrls,
+      'description': description,
+      'policy': policy,
     };
   }
 
@@ -61,6 +70,7 @@ class Facility {
       phoneNumber: map['phone_number'] ?? '',
       courtsAmount: map['courts_amount'] ?? 0,
       detailAddress: map['detail_address'] ?? '',
+      province: map['province'] ?? '',
       latitude: map['latitude']?.toDouble() ?? 0.0,
       longitude: map['longitude']?.toDouble() ?? 0.0,
       ratingAvg: map['rating_avg']?.toDouble() ?? 0.0,
@@ -68,6 +78,8 @@ class Facility {
       activeAt: Active.fromMap(map['active_at'] ?? {}),
       registeredAt: map['registered_at'] ?? 0,
       imageUrls: List<String>.from(map['image_urls'] ?? []),
+      description: map['description'] ?? '',
+      policy: map['policy'] ?? '',
     );
   }
 
@@ -84,6 +96,7 @@ class Facility {
     String? phoneNumber,
     int? courtsAmount,
     String? detailAddress,
+    String? province,
     double? latitude,
     double? longitude,
     double? ratingAvg,
@@ -91,6 +104,8 @@ class Facility {
     Active? activeAt,
     int? registeredAt,
     List<String>? imageUrls,
+    String? description,
+    String? policy,
   }) {
     return Facility(
       id: id ?? this.id,
@@ -100,6 +115,7 @@ class Facility {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       courtsAmount: courtsAmount ?? this.courtsAmount,
       detailAddress: detailAddress ?? this.detailAddress,
+      province: province ?? this.province,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       ratingAvg: ratingAvg ?? this.ratingAvg,
@@ -107,6 +123,8 @@ class Facility {
       activeAt: activeAt ?? this.activeAt,
       registeredAt: registeredAt ?? this.registeredAt,
       imageUrls: imageUrls ?? this.imageUrls,
+      description: description ?? this.description,
+      policy: policy ?? this.policy,
     );
   }
 }

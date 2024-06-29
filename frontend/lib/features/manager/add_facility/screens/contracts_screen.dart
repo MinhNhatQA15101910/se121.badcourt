@@ -4,6 +4,7 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ContractScreen extends StatefulWidget {
@@ -18,6 +19,10 @@ class _ContractScreenState extends State<ContractScreen> {
   final _addFacilityService = AddFacilityService();
   bool _checkBoxValue = false;
   bool _isLoading = false;
+
+  void _navigateToIntroManagerScreen() {
+    Navigator.of(context).pushReplacementNamed(IntroManagerScreen.routeName);
+  }
 
   Future<void> _addFacility() async {
     setState(() {
@@ -49,7 +54,10 @@ class _ContractScreenState extends State<ContractScreen> {
         bankCardFront: GlobalVariables.frontBankCardImage,
         bankCardBack: GlobalVariables.backBankCardImage,
         businessLicenseImageUrls: GlobalVariables.lisenceImages!,
+        description: GlobalVariables.facilityDescription,
+        policy: GlobalVariables.facilityPolicy,
       );
+      _navigateToIntroManagerScreen();
     } finally {
       setState(() {
         _isLoading = false;

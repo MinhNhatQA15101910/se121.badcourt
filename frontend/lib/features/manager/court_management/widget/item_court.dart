@@ -31,7 +31,9 @@ class ItemCourt extends StatelessWidget {
                   topRight: Radius.circular(8),
                 ),
               ),
-              child: AddUpdateCourtBottomSheet(),
+              child: AddUpdateCourtBottomSheet(
+                StateText: 'Update',
+              ),
             );
           },
         );

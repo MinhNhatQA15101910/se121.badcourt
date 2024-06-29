@@ -144,7 +144,9 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                               topRight: Radius.circular(8),
                             ),
                           ),
-                          child: AddUpdateCourtBottomSheet(),
+                          child: AddUpdateCourtBottomSheet(
+                            StateText: 'Add',
+                          ),
                         );
                       },
                     );

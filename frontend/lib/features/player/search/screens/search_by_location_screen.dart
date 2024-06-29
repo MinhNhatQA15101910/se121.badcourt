@@ -32,6 +32,9 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     activeAt: Active(schedule: {}),
     registeredAt: 0,
     imageUrls: [],
+    province: '',
+    description: '',
+    policy: '',
   );
   @override
   Widget build(BuildContext context) {

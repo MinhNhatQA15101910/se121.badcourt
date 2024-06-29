@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/court_management/services/court_management_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AddUpdateCourtBottomSheet extends StatefulWidget {
-  const AddUpdateCourtBottomSheet({Key? key}) : super(key: key);
+  final String StateText;
+
+  const AddUpdateCourtBottomSheet({Key? key, required this.StateText})
+      : super(key: key);
 
   @override
   State<AddUpdateCourtBottomSheet> createState() =>
@@ -16,6 +20,29 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
   final _courtNameController = TextEditingController();
   final _courtDescController = TextEditingController();
   final _pricePerHourController = TextEditingController();
+  final _courtManagementService = CourtManagementService();
+  bool _isLoading = false;
+
+  Future<void> _addUpdateFacility() async {
+    setState(() {
+      _isLoading = true;
+    });
+    if (widget.StateText == 'Add') {
+      try {
+        await _courtManagementService.addCourt(
+          context: context,
+          facilityId: GlobalVariables.facility.id,
+          name: _courtNameController.text,
+          description: _courtDescController.text,
+          pricePerHour: int.parse(_pricePerHourController.text),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +69,7 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
                       top: 8,
                     ),
                     child: Expanded(
-                      child: _BoldSizeText('Add a court'),
+                      child: _BoldSizeText(widget.StateText + ' a court'),
                     ),
                   ),
                   IconButton(
@@ -139,8 +166,8 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
                   SizedBox(width: 8),
                   Expanded(
                     child: CustomButton(
-                      onTap: () {},
-                      buttonText: 'Add',
+                      onTap: _addUpdateFacility,
+                      buttonText: widget.StateText,
                       borderColor: GlobalVariables.green,
                       fillColor: GlobalVariables.green,
                       textColor: Colors.white,

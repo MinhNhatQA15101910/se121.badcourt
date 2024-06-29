@@ -52,6 +52,9 @@ class GlobalVariables {
     activeAt: Active(schedule: {}),
     registeredAt: 0,
     imageUrls: [],
+    description: '',
+    policy: '',
+    province: '',
   );
 
   static List<File>? facilityImages = [];
@@ -65,6 +68,8 @@ class GlobalVariables {
   static String manageEmail = "";
   static String managePhoneNumber = "";
   static String manageCitizenId = "";
+  static String facilityDescription = "";
+  static String facilityPolicy = "";
 
   // Colors
   static const Color black = Color(0xFF000000);
