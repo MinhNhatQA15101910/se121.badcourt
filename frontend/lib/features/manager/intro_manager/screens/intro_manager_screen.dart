@@ -1,6 +1,7 @@
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
+import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,12 @@ class IntroManagerScreen extends StatefulWidget {
 class _IntroManagerScreenState extends State<IntroManagerScreen> {
   void _navigateToManagerBottomBar() {
     Navigator.of(context).pushNamed(ManagerBottomBar.routeName);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentLocation(context);
   }
 
   @override
