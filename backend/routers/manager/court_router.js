@@ -9,11 +9,13 @@ import facilityIdFromBodyValidator from "../../middleware/body/facility_id_valid
 import nameValidator from "../../middleware/body/name_validator.js";
 import descriptionValidator from "../../middleware/body/description_validator.js";
 import pricePerHourValidator from "../../middleware/body/price_per_hour_validator.js";
-import Facility from "../../models/facility.js";
+
+// Param middleware
+import courtIdValidator from "../../middleware/params/court_id_validator.js";
 
 // Models
 import Court from "../../models/court.js";
-import courtIdValidator from "../../middleware/params/court_id_validator.js";
+import Facility from "../../models/facility.js";
 
 const managerCourtRouter = express.Router();
 
@@ -36,10 +38,8 @@ managerCourtRouter.post(
       if (!existingFacility) {
         return res
           .status(400)
-          .json({ msg: "You are not the owner of this facility." });
+          .json({ msg: "You are not the facility's owner." });
       }
-      existingFacility.courts_amount++;
-      await existingFacility.save();
 
       const existingCourt = await Court.findOne({ name, facility_id });
       if (existingCourt) {
@@ -47,6 +47,9 @@ managerCourtRouter.post(
           .status(400)
           .json({ msg: "Court with the same name already exists." });
       }
+
+      existingFacility.courts_amount++;
+      await existingFacility.save();
 
       let court = new Court({
         facility_id,
@@ -62,7 +65,6 @@ managerCourtRouter.post(
   }
 );
 
-// Update court route
 managerCourtRouter.patch(
   "/manager/update-court/:court_id",
   managerValidator,
@@ -76,10 +78,78 @@ managerCourtRouter.patch(
       const { name, description, price_per_hour } = req.body;
 
       let court = await Court.findById(court_id);
+
+      // Check if the current user is the facility's owner
+      const facility = await Facility.find({
+        _id: court.facility_id,
+        user_id: req.user,
+      });
+      if (!facility) {
+        return res
+          .status(400)
+          .json({ msg: "You are not the facility's owner." });
+      }
+
+      // Check if facility name has already existed
+      const existingCourt = await Court.findOne({
+        name,
+        facility_id: court.facility_id,
+      });
+      if (
+        existingCourt &&
+        existingCourt._id.toString() !== court._id.toString()
+      ) {
+        return res
+          .status(400)
+          .json({ msg: "Court with the same name already exists." });
+      }
+
+      // Update facility
       court.name = name;
       court.description = description;
       court.price_per_hour = price_per_hour;
       court = await court.save();
+
+      res.json(court);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+managerCourtRouter.delete(
+  "/manager/delete-court/:court_id",
+  managerValidator,
+  courtIdValidator,
+  async (req, res) => {
+    try {
+      const { court_id } = req.params;
+
+      let court = await Court.findById(court_id);
+
+      let facility = await Facility.findOne({
+        _id: court.facility_id,
+        user_id: req.user,
+      });
+      if (!facility) {
+        return res
+          .status(400)
+          .json({ msg: "You are not the facility's owner." });
+      }
+
+      if (court.order_periods.length !== 0) {
+        return res
+          .status(400)
+          .json(
+            "Cannot delete court because there are bookings to this court."
+          );
+      }
+
+      court = await Court.findByIdAndDelete(court_id);
+
+      facility.courts_amount--;
+      await facility.save();
+
       res.json(court);
     } catch (err) {
       res.status(500).json({ error: err.message });
