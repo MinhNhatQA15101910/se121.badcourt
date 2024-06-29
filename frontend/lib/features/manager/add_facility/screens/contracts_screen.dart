@@ -23,14 +23,20 @@ class _ContractScreenState extends State<ContractScreen> {
     setState(() {
       _isLoading = true;
     });
-
+    String detail_address = GlobalVariables.detailAddress.street +
+        ', ' +
+        GlobalVariables.detailAddress.ward +
+        ', ' +
+        GlobalVariables.detailAddress.district +
+        ', ' +
+        GlobalVariables.detailAddress.city;
     try {
       await _addFacilityService.registerFacility(
         context: context,
         facilityName: GlobalVariables.facilityName,
         latitude: GlobalVariables.detailAddress.lat,
         longitude: GlobalVariables.detailAddress.lng,
-        detailAddress: GlobalVariables.detailAddress.address,
+        detailAddress: detail_address,
         province: GlobalVariables.detailAddress.city,
         facilityImageUrls: GlobalVariables.facilityImages!,
         fullName: GlobalVariables.managerName,

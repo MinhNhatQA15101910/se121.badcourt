@@ -15,6 +15,7 @@ class AddUpdateCourtBottomSheet extends StatefulWidget {
 class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
   final _courtNameController = TextEditingController();
   final _courtDescController = TextEditingController();
+  final _pricePerHourController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +88,21 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
                   CustomTextfield(
                     controller: _courtDescController,
                     hintText: 'Description',
+                    validator: (streetName) {
+                      if (streetName == null || streetName.isEmpty) {
+                        return '';
+                      }
+                      return null;
+                    },
+                  ),
+                  _InterRegular14(
+                    'Price per hour (\$)',
+                    GlobalVariables.darkGrey,
+                    1,
+                  ),
+                  CustomTextfield(
+                    controller: _pricePerHourController,
+                    hintText: '0',
                     validator: (streetName) {
                       if (streetName == null || streetName.isEmpty) {
                         return '';

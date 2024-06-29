@@ -29,7 +29,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     longitude: 0.0,
     ratingAvg: 0.0,
     totalRating: 0,
-    activeAt: '',
+    activeAt: Active(schedule: {}),
     registeredAt: 0,
     imageUrls: [],
   );
@@ -158,7 +158,6 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                 ),
                 FacilityItem(
                   facility: _facility,
-                  onTap: () {},
                 ),
               ],
             )

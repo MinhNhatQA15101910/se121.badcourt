@@ -73,7 +73,7 @@ class AddFacilityService {
     required File bankCardBack,
     required List<File> businessLicenseImageUrls,
   }) async {
-    Provider.of<UserProvider>(
+    final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
@@ -167,8 +167,7 @@ class AddFacilityService {
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token':
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NmZiYmRmZDFjNDQxYjI1OTQ1M2I2NCIsImlhdCI6MTcxOTU2Mjc1NH0.z0APkaKaROb54RMqQNKqtf2RNPorWjh2NOt-Je_d8wA',
+          'x-auth-token': userProvider.user.token
         },
       );
 

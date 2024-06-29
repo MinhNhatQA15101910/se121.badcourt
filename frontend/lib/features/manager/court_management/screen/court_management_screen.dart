@@ -13,10 +13,6 @@ class CourtManagementScreen extends StatefulWidget {
 }
 
 class _CourtManagementScreenState extends State<CourtManagementScreen> {
-  void _navigateToCourtManagementDetailScreen() {
-    Navigator.of(context).pushNamed(CourtManagementDetailScreen.routeName);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +64,8 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                   Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/demo_facility.png'),
+                        image: NetworkImage(
+                            GlobalVariables.facility.imageUrls.first),
                         fit: BoxFit.fill,
                       ),
                     ),
@@ -89,7 +86,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _InterRegular18(
-                            'Sân cầu lông Nhật Duy 1',
+                            GlobalVariables.facility.name,
                             GlobalVariables.blackGrey,
                             1,
                           ),
@@ -98,21 +95,18 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     ),
                   ),
                   ItemCourt(
-                      title: "Court 1",
-                      description: 'With covered',
-                      onTap: _navigateToCourtManagementDetailScreen),
+                    title: "Court 1",
+                    description: 'With covered',
+                  ),
                   ItemCourt(
-                      title: "Court 2",
-                      description: 'With covered',
-                      onTap: () => {}),
+                    title: "Court 2",
+                    description: 'With covered',
+                  ),
                   ItemCourt(
-                      title: "Court 3",
-                      description: 'With covered',
-                      onTap: () => {}),
-                  ItemCourt(
-                      title: "Court 4",
-                      description: 'With covered',
-                      onTap: () => {}),
+                    title: "Court 3",
+                    description: 'With covered',
+                  ),
+                  ItemCourt(title: "Court 4", description: 'With covered'),
                   SizedBox(
                     height: 12,
                   )

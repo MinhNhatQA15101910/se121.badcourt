@@ -12,11 +12,11 @@ class Facility {
   final double longitude;
   final double ratingAvg;
   final int totalRating;
-  final String activeAt;
+  final Active activeAt;
   final int registeredAt;
   final List<String> imageUrls;
 
-  const Facility({
+  Facility({
     required this.id,
     required this.userId,
     required this.name,
@@ -46,9 +46,9 @@ class Facility {
       'longitude': longitude,
       'rating_avg': ratingAvg,
       'total_rating': totalRating,
-      'active_at': activeAt,
+      'active_at': activeAt.toMap(),
       'registered_at': registeredAt,
-      'image_urls': imageUrls
+      'image_urls': imageUrls,
     };
   }
 
@@ -65,9 +65,9 @@ class Facility {
       longitude: map['longitude']?.toDouble() ?? 0.0,
       ratingAvg: map['rating_avg']?.toDouble() ?? 0.0,
       totalRating: map['total_rating'] ?? 0,
-      activeAt: map['active_at'] ?? '',
+      activeAt: Active.fromMap(map['active_at'] ?? {}),
       registeredAt: map['registered_at'] ?? 0,
-      imageUrls: map['image_urls'] ?? [],
+      imageUrls: List<String>.from(map['image_urls'] ?? []),
     );
   }
 
@@ -88,7 +88,7 @@ class Facility {
     double? longitude,
     double? ratingAvg,
     int? totalRating,
-    String? activeAt,
+    Active? activeAt,
     int? registeredAt,
     List<String>? imageUrls,
   }) {
@@ -108,5 +108,50 @@ class Facility {
       registeredAt: registeredAt ?? this.registeredAt,
       imageUrls: imageUrls ?? this.imageUrls,
     );
+  }
+}
+
+class Active {
+  final Map<String, PeriodTime> schedule;
+
+  Active({required this.schedule});
+
+  factory Active.fromMap(Map<String, dynamic> map) {
+    Map<String, PeriodTime> schedule = {};
+    map.forEach((key, value) {
+      if (key != '_id') {
+        schedule[key] = PeriodTime.fromMap(value);
+      }
+    });
+    return Active(schedule: schedule);
+  }
+
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
+    schedule.forEach((key, value) {
+      map[key] = value.toMap();
+    });
+    return map;
+  }
+}
+
+class PeriodTime {
+  final int hourFrom;
+  final int hourTo;
+
+  PeriodTime({required this.hourFrom, required this.hourTo});
+
+  factory PeriodTime.fromMap(Map<String, dynamic> map) {
+    return PeriodTime(
+      hourFrom: map['hour_from'] ?? 0,
+      hourTo: map['hour_to'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'hour_from': hourFrom,
+      'hour_to': hourTo,
+    };
   }
 }

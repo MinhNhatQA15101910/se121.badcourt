@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -8,12 +10,10 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 class FacilityItem extends StatefulWidget {
   const FacilityItem({
     super.key,
-    required this.onTap,
     required this.facility,
   });
 
   final Facility facility;
-  final VoidCallback onTap;
 
   @override
   _FacilityItemState createState() => _FacilityItemState();
@@ -21,13 +21,19 @@ class FacilityItem extends StatefulWidget {
 
 class _FacilityItemState extends State<FacilityItem> {
   int _activeIndex = 0;
-  final int _tempImageQuantity = 5; // Placeholder for image count
   final CarouselController _controller = CarouselController();
+
+  void _navigateToFacilityManagerBottomBar() {
+    GlobalVariables.facility = widget.facility;
+    Navigator.of(context).pushReplacementNamed(ManagerBottomBar.routeName);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final int imageCount = widget.facility.imageUrls.length;
+
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: _navigateToFacilityManagerBottomBar,
       child: Container(
         margin: EdgeInsets.only(
           left: 16,
@@ -53,7 +59,7 @@ class _FacilityItemState extends State<FacilityItem> {
                   children: [
                     CarouselSlider.builder(
                       carouselController: _controller,
-                      itemCount: _tempImageQuantity,
+                      itemCount: imageCount,
                       options: CarouselOptions(
                         viewportFraction: 1.0,
                         aspectRatio: 2,
@@ -83,7 +89,7 @@ class _FacilityItemState extends State<FacilityItem> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          _tempImageQuantity,
+                          imageCount,
                           (index) {
                             return Container(
                               margin: EdgeInsets.symmetric(horizontal: 4),
@@ -118,8 +124,7 @@ class _FacilityItemState extends State<FacilityItem> {
               Row(
                 children: [
                   RatingBarIndicator(
-                    rating: widget.facility.ratingAvg
-                        .toDouble(), // Use the facility's rating
+                    rating: widget.facility.ratingAvg,
                     itemBuilder: (context, index) => Icon(
                       Icons.star,
                       color: GlobalVariables.yellow,

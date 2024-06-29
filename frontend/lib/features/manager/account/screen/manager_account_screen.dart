@@ -4,7 +4,6 @@ import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ManagerAccountScreen extends StatelessWidget {
@@ -12,22 +11,6 @@ class ManagerAccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Facility _facility = Facility(
-      id: '',
-      userId: '',
-      name: '',
-      facebookUrl: '',
-      phoneNumber: '',
-      courtsAmount: 0,
-      detailAddress: '',
-      latitude: 0.0,
-      longitude: 0.0,
-      ratingAvg: 0.0,
-      totalRating: 0,
-      activeAt: '',
-      registeredAt: 0,
-      imageUrls: [],
-    );
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
@@ -235,8 +218,7 @@ class ManagerAccountScreen extends StatelessWidget {
                   ),
                 ),
                 FacilityItem(
-                  facility: _facility,
-                  onTap: () {},
+                  facility: GlobalVariables.facility,
                 ),
               ],
             ),

@@ -19,10 +19,6 @@ class IntroManagerScreen extends StatefulWidget {
 class _IntroManagerScreenState extends State<IntroManagerScreen> {
   final _introManagerService = IntroManagerService();
 
-  void _navigateToManagerBottomBar() {
-    Navigator.of(context).pushNamed(ManagerBottomBar.routeName);
-  }
-
   void _navigateToFacilityInfo() {
     Navigator.of(context).pushNamed(FacilityInfo.routeName);
   }
@@ -58,7 +54,6 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
                   children: facilities.map((facility) {
                     return FacilityItem(
                       facility: facility,
-                      onTap: _navigateToManagerBottomBar,
                     );
                   }).toList(),
                 );

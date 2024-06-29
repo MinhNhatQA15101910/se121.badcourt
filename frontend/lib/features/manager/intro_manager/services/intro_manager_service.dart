@@ -19,7 +19,7 @@ class IntroManagerService {
     List<Facility> facilities = [];
     try {
       http.Response response = await http.get(
-        Uri.parse('$uri/facilities'),
+        Uri.parse('$uri/manager/facilities'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'x-auth-token': userProvider.user.token,
@@ -34,10 +34,11 @@ class IntroManagerService {
         throw Exception('Failed to load facilities');
       }
     } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load facilities: ${error.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
 
