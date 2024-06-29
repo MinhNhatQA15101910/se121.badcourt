@@ -2,6 +2,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import mongoose from "mongoose";
 
 import activeSchema from "./active_schema.js";
+import managerInfoSchema from "./manager_info_schema.js";
 
 const facilitySchema = mongoose.Schema({
   user_id: {
@@ -81,6 +82,7 @@ const facilitySchema = mongoose.Schema({
       trim: true,
     },
   ],
+  manager_info: managerInfoSchema,
 });
 
 export default facilitySchema;

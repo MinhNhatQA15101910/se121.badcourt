@@ -79,20 +79,6 @@ managerFacilityRouter.post(
           .json({ msg: "Facility with the same name exists." });
       }
 
-      // Save manager info
-      let user = await User.findById(req.user);
-      user.manager_info = {
-        full_name,
-        email,
-        citizen_id,
-        citizen_image_url_front,
-        citizen_image_url_back,
-        bank_card_url_front,
-        bank_card_url_back,
-        business_license_image_urls,
-      };
-      user = await user.save();
-
       // Create new facility
       let facility = new Facility({
         user_id: req.user,
@@ -107,6 +93,16 @@ managerFacilityRouter.post(
         longitude: lon,
         registered_at: new Date(),
         image_urls: facility_image_urls,
+        manager_info: {
+          full_name,
+          email,
+          citizen_id,
+          citizen_image_url_front,
+          citizen_image_url_back,
+          bank_card_url_front,
+          bank_card_url_back,
+          business_license_image_urls,
+        },
       });
       facility = await facility.save();
 
