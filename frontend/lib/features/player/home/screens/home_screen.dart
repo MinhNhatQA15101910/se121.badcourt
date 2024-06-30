@@ -213,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     itemBuilder: (context, index) {
                                       return SingleFacilityCard(
-                                        facility: _facility![index],
+                                        facility: _facility[index],
                                       );
                                     },
                                     physics: const BouncingScrollPhysics(),
@@ -299,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     itemBuilder: (context, index) {
                                       return SingleFacilityCard(
-                                        facility: _facility![index],
+                                        facility: _facility[index],
                                       );
                                     },
                                     physics: const BouncingScrollPhysics(),
@@ -371,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   itemBuilder: (context, index) {
                                     return SingleFacilityCard(
-                                      facility: _facility![index],
+                                      facility: _facility[index],
                                     );
                                   },
                                   physics: const NeverScrollableScrollPhysics(),
