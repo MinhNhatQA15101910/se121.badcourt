@@ -37,7 +37,7 @@ managerCourtRouter.post(
       });
       if (!existingFacility) {
         return res
-          .status(400)
+          .status(403)
           .json({ msg: "You are not the facility's owner." });
       }
 
@@ -87,7 +87,7 @@ managerCourtRouter.patch(
       });
       if (!facility) {
         return res
-          .status(400)
+          .status(403)
           .json({ msg: "You are not the facility's owner." });
       }
 
@@ -135,7 +135,7 @@ managerCourtRouter.delete(
       });
       if (!facility) {
         return res
-          .status(400)
+          .status(403)
           .json({ msg: "You are not the facility's owner." });
       }
 
@@ -174,7 +174,7 @@ managerCourtRouter.get(
       });
       if (!existingFacility) {
         return res
-          .status(400)
+          .status(403)
           .json({ msg: "You are not the facility's owner." });
       }
 
