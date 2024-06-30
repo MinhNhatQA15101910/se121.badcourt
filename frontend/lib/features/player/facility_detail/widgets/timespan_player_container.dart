@@ -50,8 +50,7 @@ class TimespanPlayerContainer extends StatelessWidget {
                       1,
                     ),
                     _InterMedium12(
-                      calculateTimeDifference(
-                          bookingTime.startDate, bookingTime.endDate),
+                      'Unavailable',
                       GlobalVariables.darkGrey,
                       1,
                     ),

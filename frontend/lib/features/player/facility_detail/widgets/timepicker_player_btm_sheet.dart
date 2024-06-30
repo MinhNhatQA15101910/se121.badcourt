@@ -53,12 +53,7 @@ class _TimePickerPlayerBottomSheetState
     );
   }
 
-  Future<void> updateActiveSchedule() async {
-    /*await _facilityDetailService.bookCourt(
-        context,
-        widget.court.id,
-        combineDateTime(widget.dateTime, startHour, startMinuteIndex),
-        combineDateTime(widget.dateTime, endHour, endMinuteIndex));*/
+  void updateActiveSchedule() {
     _navigateToCheckoutScreen();
   }
 

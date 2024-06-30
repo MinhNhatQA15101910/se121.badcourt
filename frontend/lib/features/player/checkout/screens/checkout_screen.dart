@@ -5,6 +5,8 @@ import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_item.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_total_price.dart';
+import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
+import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
@@ -19,6 +21,25 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _facilityDetailService = FacilityDetailService();
+
+  void _navigateToCourtDetailScreen() {
+    Navigator.of(context).pushReplacementNamed(FacilityDetailScreen.routeName);
+  }
+
+  Future<void> bookCourt(
+      String id, DateTime startTime, DateTime endTime) async {
+    try {
+      _facilityDetailService.bookCourt(
+        context,
+        id,
+        startTime,
+        endTime,
+      );
+      _navigateToCourtDetailScreen();
+    } catch (e) {}
+  }
+
   final titleStyle = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w500,
@@ -248,7 +269,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     borderColor: GlobalVariables.green,
                     fillColor: GlobalVariables.green,
                     textColor: Colors.white,
-                    onTap: () {},
+                    onTap: () {
+                      bookCourt(court.id, startDate, endDate);
+                    },
                   ),
                 ),
               ],
