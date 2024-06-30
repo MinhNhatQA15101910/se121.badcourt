@@ -119,9 +119,9 @@ function isCollapse(timePeriod1, timePeriod2) {
   console.log(timePeriod2);
 
   return (
-    (timePeriod1.hour_to > timePeriod2.hour_from &&
+    (timePeriod1.hour_to >= timePeriod2.hour_from &&
       timePeriod1.hour_to < timePeriod2.hour_to) ||
-    (timePeriod2.hour_to > timePeriod1.hour_from &&
+    (timePeriod2.hour_to >= timePeriod1.hour_from &&
       timePeriod2.hour_to < timePeriod1.hour_to)
   );
 }

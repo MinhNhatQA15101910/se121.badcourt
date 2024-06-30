@@ -8,8 +8,10 @@ import Facility from "../../models/facility.js";
 import playerValidator from "../../middleware/header/player_validator.js";
 import sortValidator from "../../middleware/query/sort_validator.js";
 import facilityIdValidator from "../../middleware/params/facility_id_validator.js";
-import Court from "../../models/court.js";
 import priceRangeValidator from "../../middleware/query/price_range_validator.js";
+
+// Models
+import Court from "../../models/court.js";
 
 const playerFacilityRouter = express.Router();
 
