@@ -90,6 +90,7 @@ class GlobalVariables {
     name: '',
     description: '',
     pricePerHour: 0,
+    orderPeriods: [],
   );
 
   // Colors

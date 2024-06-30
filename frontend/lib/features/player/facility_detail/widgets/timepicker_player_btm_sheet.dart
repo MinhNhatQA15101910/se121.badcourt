@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
+import 'package:frontend/models/court.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class TimePickerPlayerBottomSheet extends StatefulWidget {
-  const TimePickerPlayerBottomSheet({
-    Key? key,
-  }) : super(key: key);
+  final Court court;
+  final DateTime dateTime;
+  const TimePickerPlayerBottomSheet(
+      {Key? key, required this.court, required this.dateTime})
+      : super(key: key);
 
   @override
   State<TimePickerPlayerBottomSheet> createState() =>
@@ -21,6 +25,7 @@ class _TimePickerPlayerBottomSheetState
   int endHour = 0;
   int endMinuteIndex = 0;
   bool isSelectingStartTime = true;
+  final _facilityDetailService = FacilityDetailService();
   final List<int> minuteValues = List.generate(12, (index) => index * 5);
 
   Color startColor = GlobalVariables.grey;
@@ -29,6 +34,25 @@ class _TimePickerPlayerBottomSheetState
   int get selectedMinute => isSelectingStartTime
       ? minuteValues[startMinuteIndex]
       : minuteValues[endMinuteIndex];
+
+  DateTime combineDateTime(DateTime currentDateTime, int hour, int minute) {
+    return DateTime(
+      currentDateTime.year,
+      currentDateTime.month,
+      currentDateTime.day,
+      hour,
+      minute,
+    );
+  }
+
+  Future<void> updateActiveSchedule() async {
+    await _facilityDetailService.bookCourt(
+        context,
+        widget.court.id,
+        combineDateTime(widget.dateTime, startHour, startMinuteIndex),
+        combineDateTime(widget.dateTime, endHour, endMinuteIndex));
+  }
+
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
@@ -51,7 +75,7 @@ class _TimePickerPlayerBottomSheetState
                   ),
                   Expanded(
                     child: Container(
-                      child: _BoldSizeText('Add a time to lock'),
+                      child: _BoldSizeText('Book a playtime'),
                     ),
                   ),
                   IconButton(
@@ -254,8 +278,8 @@ class _TimePickerPlayerBottomSheetState
                   Expanded(
                     child: Container(
                       child: CustomButton(
-                        onTap: () {},
-                        buttonText: 'Add',
+                        onTap: updateActiveSchedule,
+                        buttonText: 'Confirm',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,
                         textColor: Colors.white,

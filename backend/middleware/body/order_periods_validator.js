@@ -2,6 +2,8 @@
 const orderPeriodsValidator = (req, res, next) => {
   console.log("Order periods validator middleware:");
 
+  console.log(req.body);
+
   try {
     const orderPeriods = req.body.order_periods;
 

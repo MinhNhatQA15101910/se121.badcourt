@@ -20,7 +20,7 @@ class FacilityDetailService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/player/courts?facility_id=668017233475c2b2bf19dc02'),
+        Uri.parse('$uri/player/courts?facility_id=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'x-auth-token': userProvider.user.token,
@@ -89,60 +89,23 @@ class FacilityDetailService {
     }
   }
 
-  Future<void> updateActiveSchedule(BuildContext context, String facilityId,
-      Map<String, dynamic> activeSchedule) async {
+  Future<void> bookCourt(BuildContext context, String courtId,
+      DateTime startTime, DateTime endTime) async {
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
+    final requestBody = {
+      "order_periods": [
+        {
+          "hour_from": startTime.millisecondsSinceEpoch,
+          "hour_to": endTime.millisecondsSinceEpoch
+        }
+      ]
+    };
     try {
-      Map<String, dynamic> requestBody = {"active": {}};
-
-      if (activeSchedule['monday'] != null) {
-        requestBody['active']['monday'] = {
-          "hour_from": activeSchedule['monday']['hour_from'],
-          "hour_to": activeSchedule['monday']['hour_to'],
-        };
-      }
-      if (activeSchedule['tuesday'] != null) {
-        requestBody['active']['tuesday'] = {
-          "hour_from": activeSchedule['tuesday']['hour_from'],
-          "hour_to": activeSchedule['tuesday']['hour_to'],
-        };
-      }
-      if (activeSchedule['wednesday'] != null) {
-        requestBody['active']['wednesday'] = {
-          "hour_from": activeSchedule['wednesday']['hour_from'],
-          "hour_to": activeSchedule['wednesday']['hour_to'],
-        };
-      }
-      if (activeSchedule['thursday'] != null) {
-        requestBody['active']['thursday'] = {
-          "hour_from": activeSchedule['thursday']['hour_from'],
-          "hour_to": activeSchedule['thursday']['hour_to'],
-        };
-      }
-      if (activeSchedule['friday'] != null) {
-        requestBody['active']['friday'] = {
-          "hour_from": activeSchedule['friday']['hour_from'],
-          "hour_to": activeSchedule['friday']['hour_to'],
-        };
-      }
-      if (activeSchedule['saturday'] != null) {
-        requestBody['active']['saturday'] = {
-          "hour_from": activeSchedule['saturday']['hour_from'],
-          "hour_to": activeSchedule['saturday']['hour_to'],
-        };
-      }
-      if (activeSchedule['sunday'] != null) {
-        requestBody['active']['sunday'] = {
-          "hour_from": activeSchedule['sunday']['hour_from'],
-          "hour_to": activeSchedule['sunday']['hour_to'],
-        };
-      }
-
       final response = await http.patch(
-        Uri.parse('$uri/manager/update-active/$facilityId'),
+        Uri.parse('$uri/player/book-court/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'x-auth-token': userProvider.user.token,
@@ -153,7 +116,14 @@ class FacilityDetailService {
       httpErrorHandler(
         response: response,
         context: context,
-        onSuccess: () {},
+        onSuccess: () {
+          Navigator.pop(context);
+          IconSnackBar.show(
+            context,
+            label: 'Booking successfully',
+            snackBarType: SnackBarType.success,
+          );
+        },
       );
     } catch (error) {
       IconSnackBar.show(

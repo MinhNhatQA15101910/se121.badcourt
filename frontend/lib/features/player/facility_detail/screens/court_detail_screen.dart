@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
@@ -10,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class CourtDetailScreen extends StatefulWidget {
   static const String routeName = '/courtDetail';
+
   const CourtDetailScreen({Key? key}) : super(key: key);
 
   @override
@@ -21,6 +23,13 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   List<DateTime> _dates = [];
   final _facilityDetailService = FacilityDetailService();
   List<Court> _courts = [];
+  Court _selectedCourt = Court(
+      id: '',
+      facilityId: '',
+      name: '',
+      description: '',
+      pricePerHour: 0,
+      orderPeriods: []);
 
   void _removeInactiveDays() {
     const List<String> daysOfWeek = [
@@ -72,6 +81,12 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
     });
   }
 
+  void _handleCourtSelection(Court court) {
+    setState(() {
+      _selectedCourt = court; // 3. Lưu trữ Court được chọn vào _selectedCourt
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +109,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () => {},
+                onPressed: () {},
                 iconSize: 24,
                 icon: const Icon(
                   Icons.notifications_outlined,
@@ -102,7 +117,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () => {},
+                onPressed: () {},
                 iconSize: 24,
                 icon: const Icon(
                   Icons.message_outlined,
@@ -113,7 +128,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
           ),
         ),
       ),
-      body: (_dates != null && _dates.isNotEmpty)
+      body: (_dates.isNotEmpty)
           ? Container(
               color: GlobalVariables.defaultColor,
               child: Column(
@@ -130,9 +145,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
-                                  SizedBox(
-                                    width: 16,
-                                  ),
+                                  SizedBox(width: 16),
                                   for (DateTime date in _dates)
                                     DateTagPlayer(
                                       datetime: date,
@@ -140,28 +153,29 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                                       onPressed: () =>
                                           _handleDateTagPressed(date),
                                     ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
+                                  SizedBox(width: 8),
                                 ],
                               ),
                             ),
                           ),
                           Container(
-                              padding: EdgeInsets.only(
-                                left: 16,
-                                right: 16,
-                                bottom: 12,
-                              ),
-                              color: GlobalVariables.defaultColor,
-                              child: Column(
-                                children: List.generate(
-                                  _courts.length,
-                                  (index) => CourtExpandPlayer(
-                                    court: _courts[index],
-                                  ),
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              bottom: 12,
+                            ),
+                            color: GlobalVariables.defaultColor,
+                            child: Column(
+                              children: List.generate(
+                                _courts.length,
+                                (index) => CourtExpandPlayer(
+                                  court: _courts[index],
+                                  currentDateTime: _selectedDate,
+                                  onExpansionChanged: _handleCourtSelection,
                                 ),
-                              )),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -174,20 +188,21 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: GlobalVariables.grey,
-                                  width: 1.0,
-                                ),
-                              )),
+                            color: Colors.white,
+                            border: Border(
+                              bottom: BorderSide(
+                                color: GlobalVariables.grey,
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              _subTotalText('Selected court '),
-                              _subTotalPriceText('Court 1'),
+                              _subTotalText('Selected court:'),
+                              _subTotalPriceText(_selectedCourt.name ?? 'None'),
                             ],
                           ),
                         ),
@@ -199,23 +214,35 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                           ),
                           child: CustomButton(
                             onTap: () => {
-                              showModalBottomSheet<dynamic>(
-                                context: context,
-                                useRootNavigator: true,
-                                isScrollControlled: true,
-                                builder: (BuildContext context) {
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(8),
-                                        topRight: Radius.circular(8),
-                                      ),
-                                    ),
-                                    child: TimePickerPlayerBottomSheet(),
-                                  );
-                                },
-                              ),
+                              if (_selectedCourt.id == "")
+                                {
+                                  IconSnackBar.show(context,
+                                      label: 'No selected court',
+                                      snackBarType: SnackBarType.fail)
+                                }
+                              else
+                                {
+                                  showModalBottomSheet<dynamic>(
+                                    context: context,
+                                    useRootNavigator: true,
+                                    isScrollControlled: true,
+                                    builder: (BuildContext context) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(8),
+                                            topRight: Radius.circular(8),
+                                          ),
+                                        ),
+                                        child: TimePickerPlayerBottomSheet(
+                                          court: _selectedCourt,
+                                          dateTime: _selectedDate,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                }
                             },
                             buttonText: 'Add a time slot',
                             borderColor: GlobalVariables.green,

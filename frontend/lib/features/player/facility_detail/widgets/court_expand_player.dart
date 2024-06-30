@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/datetime_management/widgets/booking_widget.dart';
+import 'package:frontend/features/player/facility_detail/widgets/booking_widget_player.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/court_provider.dart';
+import 'package:provider/provider.dart';
 
-class CourtExpandPlayer extends StatefulWidget {
+class CourtExpandPlayer extends StatelessWidget {
   final Court court;
+  final DateTime currentDateTime;
+  final Function(Court)? onExpansionChanged;
 
-  const CourtExpandPlayer({Key? key, required this.court}) : super(key: key);
+  const CourtExpandPlayer({
+    Key? key,
+    required this.court,
+    required this.currentDateTime,
+    this.onExpansionChanged,
+  }) : super(key: key);
 
-  @override
-  State<CourtExpandPlayer> createState() => _CourtExpandPlayerState();
-}
-
-class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -33,39 +36,50 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             ),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: ExpansionTile(
-            title: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                widget.court.name,
-                style: const TextStyle(
-                  color: GlobalVariables.blackGrey,
-                  fontSize: 20,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
+          child: Consumer<CourtState>(
+            builder: (context, courtState, child) {
+              return ExpansionTile(
+                title: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    court.name ?? '',
+                    style: TextStyle(
+                      color: GlobalVariables.blackGrey,
+                      fontSize: 20,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                widget.court.description,
-                textAlign: TextAlign.start,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: GlobalVariables.darkGrey,
-                  fontSize: 14,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w400,
+                subtitle: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    court.description ?? '',
+                    textAlign: TextAlign.start,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: GlobalVariables.darkGrey,
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            children: const [
-              BookingWidget(),
-              BookingWidget(),
-              BookingWidget(),
-            ],
+                onExpansionChanged: (isExpanded) {
+                  courtState.toggleExpanded();
+                  if (onExpansionChanged != null) {
+                    onExpansionChanged!(court);
+                  }
+                },
+                children: [
+                  BookingWidgetPlayer(
+                    court: court,
+                    currentDateTime: currentDateTime,
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
