@@ -17,6 +17,11 @@ const orderSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  facility_name: {
+    required: true,
+    type: String,
+    trim: true,
+  },
   address: {
     required: true,
     type: String,

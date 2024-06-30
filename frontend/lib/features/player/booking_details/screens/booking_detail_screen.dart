@@ -9,7 +9,7 @@ import 'package:frontend/features/player/booking_details/widgets/total_price.dar
 import 'package:google_fonts/google_fonts.dart';
 
 class BookingDetailScreen extends StatefulWidget {
-  static const String routeName = '/bookingDetailScreen';
+  static const String routeName = '/booking-detail-screen';
   const BookingDetailScreen({Key? key}) : super(key: key);
 
   @override

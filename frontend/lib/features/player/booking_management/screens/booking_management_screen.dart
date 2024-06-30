@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/loader.dart';
+import 'package:frontend/features/player/booking_management/services/booking_management_service.dart';
 import 'package:frontend/features/player/booking_management/widgets/booking_detail_card.dart';
+import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
 
@@ -13,7 +16,22 @@ class BookingManagementScreen extends StatefulWidget {
 }
 
 class _BookingManagementScreenState extends State<BookingManagementScreen> {
+  final _bookingManagementService = BookingManagementService();
+
   final List<String> tabbarList = ['All', 'Played', 'Not played'];
+
+  List<Order>? orders;
+
+  void _fetchAllOrders() async {
+    orders = await _bookingManagementService.fetchAllOrders(context: context);
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllOrders();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +44,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Datetime management',
+                'Booking management',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -50,15 +68,18 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16.0,
                         ),
-                        child: ListView(
-                          children: [
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                            BookingDetailCard(),
-                          ],
-                        ),
+                        child: orders == null
+                            ? const Loader()
+                            : ListView.builder(
+                                itemCount: orders?.length ?? 0,
+                                itemBuilder: (
+                                  BuildContext _,
+                                  int index,
+                                ) =>
+                                    BookingDetailCard(
+                                  order: orders![index],
+                                ),
+                              ),
                       ),
                   ],
                 ),

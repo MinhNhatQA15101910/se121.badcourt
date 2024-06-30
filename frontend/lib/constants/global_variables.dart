@@ -5,7 +5,7 @@ import 'package:frontend/features/manager/add_facility/models/detail_address.dar
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 
-String uri = 'http://172.19.200.102:3000';
+String uri = 'http://172.20.38.73:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';

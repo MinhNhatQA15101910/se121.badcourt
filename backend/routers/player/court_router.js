@@ -31,7 +31,10 @@ playerCourtRouter.post(
       // Check for overlap
       for (let i = 0; i < order_periods.length; i++) {
         for (let j = 0; j < court.order_periods.length; j++) {
+          console.log(order_periods[i]);
+          console.log(court.order_periods[j]);
           if (isCollapse(order_periods[i], court.order_periods[j])) {
+            console.log("Collapse occurred.");
             return res.json(true);
           }
         }
@@ -79,6 +82,7 @@ playerCourtRouter.patch(
           user_id: req.user,
           court_id,
           ordered_at: Date.now(),
+          facility_name: facility.name,
           address: facility.detail_address,
           period: order_periods[i],
           price,
@@ -120,9 +124,9 @@ function isCollapse(timePeriod1, timePeriod2) {
 
   return (
     (timePeriod1.hour_to >= timePeriod2.hour_from &&
-      timePeriod1.hour_to < timePeriod2.hour_to) ||
+      timePeriod1.hour_to <= timePeriod2.hour_to) ||
     (timePeriod2.hour_to >= timePeriod1.hour_from &&
-      timePeriod2.hour_to < timePeriod1.hour_to)
+      timePeriod2.hour_to <= timePeriod1.hour_to)
   );
 }
 
