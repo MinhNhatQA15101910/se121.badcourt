@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/providers/checkout_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'package:provider/provider.dart';
 
 class TimePickerPlayerBottomSheet extends StatefulWidget {
   final Court court;
@@ -31,9 +34,14 @@ class _TimePickerPlayerBottomSheetState
   Color startColor = GlobalVariables.grey;
   Color endColor = GlobalVariables.white;
 
+  final checkoutProvider = Provider.of<CheckoutProvider>;
   int get selectedMinute => isSelectingStartTime
       ? minuteValues[startMinuteIndex]
       : minuteValues[endMinuteIndex];
+
+  void _navigateToCheckoutScreen() {
+    Navigator.of(context).pushNamed(CheckoutScreen.routeName);
+  }
 
   DateTime combineDateTime(DateTime currentDateTime, int hour, int minute) {
     return DateTime(
@@ -46,11 +54,12 @@ class _TimePickerPlayerBottomSheetState
   }
 
   Future<void> updateActiveSchedule() async {
-    await _facilityDetailService.bookCourt(
+    /*await _facilityDetailService.bookCourt(
         context,
         widget.court.id,
         combineDateTime(widget.dateTime, startHour, startMinuteIndex),
-        combineDateTime(widget.dateTime, endHour, endMinuteIndex));
+        combineDateTime(widget.dateTime, endHour, endMinuteIndex));*/
+    _navigateToCheckoutScreen();
   }
 
   @override
@@ -278,7 +287,21 @@ class _TimePickerPlayerBottomSheetState
                   Expanded(
                     child: Container(
                       child: CustomButton(
-                        onTap: updateActiveSchedule,
+                        onTap: () {
+                          Provider.of<CheckoutProvider>(context, listen: false)
+                                  .startDate =
+                              combineDateTime(
+                                  widget.dateTime, startHour, startMinuteIndex);
+                          Provider.of<CheckoutProvider>(context, listen: false)
+                                  .endDate =
+                              combineDateTime(
+                                  widget.dateTime, endHour, endMinuteIndex);
+                          Provider.of<CheckoutProvider>(context, listen: false)
+                              .court = widget.court;
+                          combineDateTime(
+                              widget.dateTime, startHour, startMinuteIndex);
+                          updateActiveSchedule();
+                        },
                         buttonText: 'Confirm',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,

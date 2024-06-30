@@ -16,8 +16,6 @@ class FacilityDetailScreen extends StatefulWidget {
 
 class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
   int _activeIndex = 0;
-  final _tempImageQuantity = 5;
-  int _rateNumber = 44;
   final CarouselController _controller = CarouselController();
 
   @override
@@ -74,7 +72,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 children: [
                   CarouselSlider.builder(
                     carouselController: _controller,
-                    itemCount: _tempImageQuantity,
+                    itemCount: GlobalVariables
+                        .facility.imageUrls.length, // Số lượng hình ảnh
                     options: CarouselOptions(
                       viewportFraction: 1.0,
                       aspectRatio: 3 / 2,
@@ -86,8 +85,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       return Container(
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image:
-                                AssetImage('assets/images/demo_facility.png'),
+                            image: NetworkImage(GlobalVariables.facility
+                                .imageUrls[index]), // Sử dụng NetworkImage
                             fit: BoxFit.fill,
                           ),
                         ),
@@ -101,7 +100,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        _tempImageQuantity,
+                        GlobalVariables
+                            .facility.imageUrls.length, // Số lượng hình ảnh
                         (index) {
                           return Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),
@@ -169,7 +169,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                             onRatingUpdate: (rating) {},
                           ),
                           Text(
-                            ' ($_rateNumber)',
+                            ' (0)',
                             style: GoogleFonts.inter(
                               color: GlobalVariables.darkGrey,
                             ),
@@ -180,10 +180,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         height: 4,
                       ),
                       Text(
-                        GlobalVariables.facility.minPrice.toString() +
-                            'đ - ' +
-                            GlobalVariables.facility.maxPrice.toString() +
-                            'đ / h',
+                        '${GlobalVariables.facility.minPrice}đ - ${GlobalVariables.facility.maxPrice}đ / h',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/features/player/facility_detail/widgets/court_expand_player.dart';
 import 'package:frontend/features/player/facility_detail/widgets/date_tag_player.dart';
