@@ -102,7 +102,7 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image(
-                        image: AssetImage('assets/images/demo_facility.png'),
+                        image: NetworkImage(widget.order.imageUrl),
                         fit: BoxFit.fill,
                       ),
                     ),

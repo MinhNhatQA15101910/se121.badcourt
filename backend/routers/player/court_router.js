@@ -105,6 +105,7 @@ playerCourtRouter.patch(
           ordered_at: Date.now(),
           facility_name: facility.name,
           address: facility.detail_address,
+          image_url: facility.image_urls[0],
           period: order_periods[i],
           price,
         });
