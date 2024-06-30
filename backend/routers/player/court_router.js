@@ -59,4 +59,17 @@ function isCollapse(timePeriod1, timePeriod2) {
   );
 }
 
+// Get courts route
+playerCourtRouter.get("/player/courts", playerValidator, async (req, res) => {
+  try {
+    const { facility_id } = req.query;
+
+    const courts = await Court.find({ facility_id });
+
+    res.json(courts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default playerCourtRouter;

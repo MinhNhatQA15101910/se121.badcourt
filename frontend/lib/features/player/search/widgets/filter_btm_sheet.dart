@@ -21,6 +21,8 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
 
   late List<bool> _selectedPriceRange;
 
+  bool _isToggleSelected = false;
+
   @override
   void initState() {
     super.initState();
@@ -142,6 +144,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                             _paddingText('From'),
                             TextFormField(
                               controller: _fromController,
+                              readOnly: _isToggleSelected,
                               decoration: InputDecoration(
                                 hintText: 'Lowest price',
                                 hintStyle: GoogleFonts.inter(
@@ -196,6 +199,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                             _paddingText('To'),
                             TextFormField(
                               controller: _toController,
+                              readOnly: _isToggleSelected,
                               decoration: InputDecoration(
                                 hintText: 'Highest price',
                                 hintStyle: GoogleFonts.inter(
@@ -369,9 +373,18 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     return Container(
       child: OutlinedButton(
         onPressed: () {
-          setState(() {
-            selectedListState[index] = !selectedListState[index];
-          });
+          selectedListState[index] = !selectedListState[index];
+          _toController.text = '';
+          _fromController.text = '';
+
+          _isToggleSelected = false;
+          for (var i = 0; i < selectedListState.length; i++) {
+            if (selectedListState[i]) {
+              _isToggleSelected = true;
+              break;
+            }
+          }
+          setState(() {});
         },
         style: OutlinedButton.styleFrom(
           splashFactory: NoSplash.splashFactory,
