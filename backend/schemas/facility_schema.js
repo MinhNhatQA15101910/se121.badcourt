@@ -36,6 +36,14 @@ const facilitySchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
+  min_price: {
+    type: Number,
+    default: 0,
+  },
+  max_price: {
+    type: Number,
+    default: 0,
+  },
   detail_address: {
     required: true,
     type: String,

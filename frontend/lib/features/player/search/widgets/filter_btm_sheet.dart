@@ -1,57 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/drop_down_button.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/search/services/search_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FilterBtmSheet extends StatefulWidget {
-  const FilterBtmSheet({
-    Key? key,
-  }) : super(key: key);
+  const FilterBtmSheet({super.key});
 
   @override
   State<FilterBtmSheet> createState() => _FilterBtmSheetState();
 }
 
 class _FilterBtmSheetState extends State<FilterBtmSheet> {
+  final _searchService = SearchService();
+
   final _fromController = TextEditingController();
   final _toController = TextEditingController();
+
   late List<bool> _selectedPriceRange;
 
   @override
   void initState() {
     super.initState();
-    _selectedPriceRange = List.generate(priceRangeList.length, (_) => false);
+    _selectedPriceRange = List.generate(_priceRangeList.length, (_) => false);
+    _fetchAllProvinces();
   }
 
-  List<String> provinceList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> districtList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> wardList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
+  void _fetchAllProvinces() async {
+    _provinceList = await _searchService.fetchAllProvinces(context: context);
+    _provinceList!.insert(0, "Select province");
+    setState(() {});
+  }
+
+  List<String>? _provinceList;
+
+  static const List<Widget> _priceRangeList = [
+    Text(
+      'Under 100.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+    Text(
+      '100.000đ - 200.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+    Text(
+      '200.000đ - 750.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+    Text(
+      'Over 750.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
   ];
 
-  static const List<Widget> priceRangeList = [
-    Text('Under 100.000đ'),
-    Text('100.000đ - 200.000đ'),
-    Text('200.000đ - 750.000đ'),
-    Text('Over 750.000đ'),
-  ];
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
@@ -75,7 +86,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                   ),
                   Expanded(
                     child: Container(
-                      child: _BoldSizeText('Filter'),
+                      child: _boldSizeText('Filter'),
                     ),
                   ),
                   IconButton(
@@ -102,7 +113,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _PaddingText('Price'),
+                  _paddingText('Price'),
                   Wrap(
                     alignment: WrapAlignment.spaceEvenly,
                     runAlignment: WrapAlignment.spaceEvenly,
@@ -110,29 +121,32 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                     spacing: 8.0,
                     runSpacing: 8.0,
                     children: List.generate(
-                      priceRangeList.length,
+                      _priceRangeList.length,
                       (index) => _buildToggleButton(
-                          index, priceRangeList, _selectedPriceRange),
+                        index,
+                        _priceRangeList,
+                        _selectedPriceRange,
+                      ),
                     ),
                   ),
                   SizedBox(
                     height: 12,
                   ),
-                  _PaddingDescription('Or enter a price range'),
+                  _paddingDescription('Or enter a price range'),
                   Row(
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _PaddingText('From'),
+                            _paddingText('From'),
                             TextFormField(
                               controller: _fromController,
                               decoration: InputDecoration(
                                 hintText: 'Lowest price',
                                 hintStyle: GoogleFonts.inter(
                                   color: GlobalVariables.darkGrey,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                                 contentPadding: const EdgeInsets.all(16),
                                 border: OutlineInputBorder(
@@ -179,14 +193,14 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _PaddingText('To'),
+                            _paddingText('To'),
                             TextFormField(
                               controller: _toController,
                               decoration: InputDecoration(
                                 hintText: 'Highest price',
                                 hintStyle: GoogleFonts.inter(
                                   color: GlobalVariables.darkGrey,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                                 contentPadding: const EdgeInsets.all(16),
                                 border: OutlineInputBorder(
@@ -237,32 +251,20 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                       color: GlobalVariables.grey,
                     ),
                   ),
-                  _PaddingText('Choose location'),
-                  _PaddingDescription('Province'),
+                  _paddingText('Choose location'),
+                  _paddingDescription('Province'),
                   SizedBox(
                     height: 8,
                   ),
-                  CustomDropdownButton(
-                    items: provinceList,
-                    initialSelectedItem: provinceList[0],
-                    onChanged: (selectedItem) {
-                      print('Selected item: $selectedItem');
-                    },
-                  ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  _PaddingDescription('District'),
-                  SizedBox(
-                    height: 8,
-                  ),
-                  CustomDropdownButton(
-                    items: districtList,
-                    initialSelectedItem: districtList[0],
-                    onChanged: (selectedItem) {
-                      print('Selected item: $selectedItem');
-                    },
-                  ),
+                  _provinceList == null
+                      ? const Loader()
+                      : CustomDropdownButton(
+                          items: _provinceList,
+                          initialSelectedItem: _provinceList![0],
+                          onChanged: (selectedItem) {
+                            print('Selected item: $selectedItem');
+                          },
+                        ),
                 ],
               ),
             ),
@@ -309,7 +311,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     );
   }
 
-  Widget _BoldSizeText(String text) {
+  Widget _boldSizeText(String text) {
     return Text(
       text,
       textAlign: TextAlign.center,
@@ -323,7 +325,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     );
   }
 
-  Widget _PaddingText(String text) {
+  Widget _paddingText(String text) {
     return Container(
       padding: EdgeInsets.only(
         bottom: 8,
@@ -343,7 +345,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     );
   }
 
-  Widget _PaddingDescription(String text) {
+  Widget _paddingDescription(String text) {
     return Container(
       child: Text(
         text,
@@ -360,7 +362,10 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
   }
 
   Widget _buildToggleButton(
-      int index, List<Widget> selectedList, List<bool> selectedListState) {
+    int index,
+    List<Widget> selectedList,
+    List<bool> selectedListState,
+  ) {
     return Container(
       child: OutlinedButton(
         onPressed: () {

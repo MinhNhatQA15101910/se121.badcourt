@@ -7,7 +7,7 @@ import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
 class SearchByLocationScreen extends StatefulWidget {
-  static const String routeName = '/searchByLocation';
+  static const String routeName = '/search-by-location';
 
   const SearchByLocationScreen({super.key});
 

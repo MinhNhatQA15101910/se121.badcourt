@@ -49,6 +49,12 @@ managerCourtRouter.post(
       }
 
       existingFacility.courts_amount++;
+      if (existingFacility.min_price > price_per_hour) {
+        existingFacility.min_price = price_per_hour;
+      }
+      if (existingFacility.max_price < price_per_hour) {
+        existingFacility.max_price = price_per_hour;
+      }
       await existingFacility.save();
 
       let court = new Court({
@@ -91,7 +97,7 @@ managerCourtRouter.patch(
           .json({ msg: "You are not the facility's owner." });
       }
 
-      // Check if facility name has already existed
+      // Check if court name has already existed
       const existingCourt = await Court.findOne({
         name,
         facility_id: court.facility_id,
@@ -105,7 +111,7 @@ managerCourtRouter.patch(
           .json({ msg: "Court with the same name already exists." });
       }
 
-      // Update facility
+      // Update court
       court.name = name;
       court.description = description;
       court.price_per_hour = price_per_hour;
