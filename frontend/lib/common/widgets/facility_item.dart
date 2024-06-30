@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class FacilityItem extends StatefulWidget {
   const FacilityItem({
     super.key,
-    required this.onTap,
+    required this.facility,
   });
 
-  final VoidCallback onTap;
+  final Facility facility;
 
   @override
   _FacilityItemState createState() => _FacilityItemState();
@@ -18,14 +20,19 @@ class FacilityItem extends StatefulWidget {
 
 class _FacilityItemState extends State<FacilityItem> {
   int _activeIndex = 0;
-  final _tempImageQuantity = 5;
-  int _rateNumber = 44;
   final CarouselController _controller = CarouselController();
+
+  void _navigateToFacilityManagerBottomBar() {
+    GlobalVariables.facility = widget.facility;
+    Navigator.of(context).pushReplacementNamed(ManagerBottomBar.routeName);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final int imageCount = widget.facility.imageUrls.length;
+
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: _navigateToFacilityManagerBottomBar,
       child: Container(
         margin: EdgeInsets.only(
           left: 16,
@@ -51,7 +58,7 @@ class _FacilityItemState extends State<FacilityItem> {
                   children: [
                     CarouselSlider.builder(
                       carouselController: _controller,
-                      itemCount: _tempImageQuantity,
+                      itemCount: imageCount,
                       options: CarouselOptions(
                         viewportFraction: 1.0,
                         aspectRatio: 2,
@@ -66,8 +73,8 @@ class _FacilityItemState extends State<FacilityItem> {
                               Radius.circular(10),
                             ),
                             image: DecorationImage(
-                              image:
-                                  AssetImage('assets/images/demo_facility.png'),
+                              image: NetworkImage(
+                                  widget.facility.imageUrls[index]),
                               fit: BoxFit.fill,
                             ),
                           ),
@@ -81,7 +88,7 @@ class _FacilityItemState extends State<FacilityItem> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          _tempImageQuantity,
+                          imageCount,
                           (index) {
                             return Container(
                               margin: EdgeInsets.symmetric(horizontal: 4),
@@ -100,7 +107,7 @@ class _FacilityItemState extends State<FacilityItem> {
                 ),
               ),
               _InterRegular16(
-                'Sân cầu lông nhật duy 1',
+                widget.facility.name,
                 GlobalVariables.blackGrey,
                 2,
               ),
@@ -116,7 +123,7 @@ class _FacilityItemState extends State<FacilityItem> {
               Row(
                 children: [
                   RatingBarIndicator(
-                    rating: 3.5, // Giá trị rating hiện tại
+                    rating: widget.facility.ratingAvg,
                     itemBuilder: (context, index) => Icon(
                       Icons.star,
                       color: GlobalVariables.yellow,
@@ -129,7 +136,7 @@ class _FacilityItemState extends State<FacilityItem> {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      ' ($_rateNumber)',
+                      ' (${widget.facility.totalRating})',
                       style: GoogleFonts.inter(
                         color: GlobalVariables.darkGrey,
                       ),
@@ -138,7 +145,7 @@ class _FacilityItemState extends State<FacilityItem> {
                 ],
               ),
               _InterRegular14(
-                'Đường hàng Thuyên, khu phố 6, Phường Linh Trung, TP Thủ Đức',
+                widget.facility.detailAddress,
                 GlobalVariables.darkGrey,
                 2,
               ),

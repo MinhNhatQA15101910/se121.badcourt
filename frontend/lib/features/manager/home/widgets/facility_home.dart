@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FacilityHome extends StatefulWidget {
@@ -14,11 +15,16 @@ class FacilityHome extends StatefulWidget {
 
 class _FacilityHomeState extends State<FacilityHome> {
   int _activeIndex = 0;
-  final _tempImageQuantity = 5;
+
   final CarouselController _controller = CarouselController();
+  void _navigateToFacilityInfo() {
+    Navigator.of(context).pushReplacementNamed(IntroManagerScreen.routeName);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final imageCount = GlobalVariables.facility.imageUrls.length;
+
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,17 +32,17 @@ class _FacilityHomeState extends State<FacilityHome> {
           Container(
             height: 56,
             color: GlobalVariables.green,
-            padding: EdgeInsets.symmetric(
-              horizontal: 16,
+            padding: EdgeInsets.only(
+              left: 16,
             ),
             child: Row(
               children: [
                 Expanded(
                   child: _InterMedium16(
-                      'Sân cầu lông nhật duy 1', GlobalVariables.white, 1),
+                      GlobalVariables.facility.name, GlobalVariables.white, 1),
                 ),
                 IconButton(
-                  onPressed: () => {},
+                  onPressed: _navigateToFacilityInfo,
                   iconSize: 24,
                   icon: const Icon(
                     Icons.sync_alt_outlined,
@@ -46,9 +52,31 @@ class _FacilityHomeState extends State<FacilityHome> {
                 IconButton(
                   onPressed: () => {},
                   iconSize: 24,
-                  icon: const Icon(
-                    Icons.more_vert_outlined,
-                    color: GlobalVariables.white,
+                  color: GlobalVariables.white,
+                  icon: PopupMenuButton<String>(
+                    onSelected: (String result) {
+                      switch (result) {
+                        case 'Edit':
+                          // Xử lý khi chọn Edit
+                          print('Edit selected');
+                          break;
+                        case 'Delete':
+                          // Xử lý khi chọn Delete
+                          print('Delete selected');
+                          break;
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'Edit',
+                        child: Text('Edit'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'Delete',
+                        child: Text('Delete'),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -58,7 +86,7 @@ class _FacilityHomeState extends State<FacilityHome> {
             children: [
               CarouselSlider.builder(
                 carouselController: _controller,
-                itemCount: _tempImageQuantity,
+                itemCount: imageCount,
                 options: CarouselOptions(
                   viewportFraction: 1.0,
                   aspectRatio: 2,
@@ -70,7 +98,8 @@ class _FacilityHomeState extends State<FacilityHome> {
                   return Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/demo_facility.png'),
+                        image: NetworkImage(
+                            GlobalVariables.facility.imageUrls[index]),
                         fit: BoxFit.fill,
                       ),
                     ),
@@ -84,7 +113,7 @@ class _FacilityHomeState extends State<FacilityHome> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    _tempImageQuantity,
+                    imageCount,
                     (index) {
                       return Container(
                         margin: EdgeInsets.symmetric(horizontal: 4),
@@ -114,7 +143,7 @@ class _FacilityHomeState extends State<FacilityHome> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _InterRegular18(
-                    'Sân cầu lông Nhật Duy 1',
+                    GlobalVariables.facility.name,
                     GlobalVariables.blackGrey,
                     1,
                   ),

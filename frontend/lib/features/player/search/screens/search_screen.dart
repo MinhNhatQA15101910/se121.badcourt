@@ -273,7 +273,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   horizontal: 16,
                   vertical: 12,
                 ),
-                child: GridView.builder(
+                /*child: GridView.builder(
                   itemCount: 10,
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -286,7 +286,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     return const SingleFacilityCard();
                   },
                   physics: const NeverScrollableScrollPhysics(),
-                ),
+                ),*/
               ),
             ],
           ),

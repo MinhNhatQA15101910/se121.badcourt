@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
-import 'package:frontend/common/widgets/drop_down_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/constants/utils.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,42 +20,66 @@ class FacilityInfo extends StatefulWidget {
 }
 
 class _FacilityInfoState extends State<FacilityInfo> {
+  final _formKey = GlobalKey<FormState>();
   final _facilityNameController = TextEditingController();
   final _streetNameController = TextEditingController();
+  final _wardNameController = TextEditingController();
+  final _districtNameController = TextEditingController();
+  final _provinceNameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _policyController = TextEditingController();
 
-  List<String> provinceList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> districtList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> wardList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
+  List<File>? _images = [];
+  List<String>? _facilityInfo = []; //just demo
+  DetailAddress? _selectedAddress;
 
   void _navigateToManagerInfoScreen() {
-    Navigator.of(context).pushNamed(ManagerInfo.routeName);
+    if (_formKey.currentState!.validate()) {
+      Navigator.of(context).pushNamed(ManagerInfo.routeName);
+    }
   }
 
-  void _navigateToMapScreen() {
-    Navigator.of(context).pushNamed(MapScreen.routeName);
+  void _navigateToMapScreen() async {
+    final DetailAddress? selectedAddress = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MapScreen()),
+    );
+
+    if (selectedAddress != null) {
+      setState(() {
+        _selectedAddress = selectedAddress;
+        _provinceNameController.text = _selectedAddress!.city;
+        _districtNameController.text = _selectedAddress!.district;
+        _wardNameController.text = _selectedAddress!.ward;
+        _streetNameController.text = _selectedAddress!.address;
+      });
+    }
+  }
+
+  void _selectMultipleImages() async {
+    List<File>? res =
+        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
+    setState(() {
+      if (res.isNotEmpty) {
+        _images?.addAll(res); // Assuming _images is List<File>
+      }
+    });
+  }
+
+  void _clearImage(int index, bool isFile) {
+    setState(() {
+      if (isFile) {
+        _images!.removeAt(index);
+      } else {
+        _facilityInfo!.removeAt(index);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: AppBar(
@@ -60,7 +88,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Facility infomation',
+                'Facility information',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -82,176 +110,349 @@ class _FacilityInfoState extends State<FacilityInfo> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onTap: () => {},
-                            child: Container(
-                              color: GlobalVariables.lightGrey,
-                              height: 240,
-                              child: Center(
-                                child: Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                  color: GlobalVariables.darkGrey,
-                                  size: 120,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //Pick first image
+                            GestureDetector(
+                              onTap: _selectMultipleImages,
+                              child: Container(
+                                color: GlobalVariables.lightGrey,
+                                child: AspectRatio(
+                                  aspectRatio: 4 / 3,
+                                  child: (_images != null &&
+                                          _images!.isNotEmpty)
+                                      ? Stack(
+                                          children: [
+                                            Image.file(
+                                              _images!.first,
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                            ),
+                                            Positioned(
+                                              top: 8,
+                                              right: 8,
+                                              child: IconButton(
+                                                icon: Icon(Icons.clear,
+                                                    color: Colors.white),
+                                                onPressed: () {
+                                                  _clearImage(0, true);
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : (_facilityInfo != null &&
+                                              _facilityInfo!.isNotEmpty)
+                                          ? Stack(
+                                              children: [
+                                                Image.network(
+                                                  _facilityInfo!.first,
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                ),
+                                                Positioned(
+                                                  top: 8,
+                                                  right: 8,
+                                                  child: IconButton(
+                                                    icon: Icon(Icons.clear,
+                                                        color: Colors.white),
+                                                    onPressed: () {
+                                                      _clearImage(0, false);
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Center(
+                                              child: Icon(
+                                                Icons
+                                                    .add_photo_alternate_outlined,
+                                                color: GlobalVariables.darkGrey,
+                                                size: 120,
+                                              ),
+                                            ),
                                 ),
                               ),
                             ),
-                          ),
-                          Container(
-                            height: 124,
-                            padding:
-                                EdgeInsets.only(top: 16, bottom: 16, right: 12),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 16),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // Handle button tap
-                                        print('Button tapped!');
-                                      },
-                                      child: Container(
-                                        width: 100,
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                          color: GlobalVariables.lightGrey,
-                                          borderRadius: BorderRadius.circular(
-                                              10), // Adjust border radius here
+
+                            //Pick others image
+                            Container(
+                              height: 124,
+                              padding: EdgeInsets.only(
+                                  top: 16, bottom: 16, right: 12),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    if (_images != null)
+                                      for (int i = 1; i < _images!.length; i++)
+                                        Padding(
+                                          padding: EdgeInsets.only(left: 16),
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                width: 100,
+                                                height: 100,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  image: DecorationImage(
+                                                    image:
+                                                        FileImage(_images![i]),
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                top: 4,
+                                                right: 4,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    _clearImage(i, true);
+                                                  },
+                                                  child: Icon(
+                                                    Icons.clear,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.add_photo_alternate_outlined,
-                                            color: GlobalVariables.darkGrey,
-                                            size: 60,
+                                    for (int i = 1;
+                                        i < _facilityInfo!.length;
+                                        i++)
+                                      Padding(
+                                        padding: EdgeInsets.only(left: 16),
+                                        child: Stack(
+                                          children: [
+                                            Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(
+                                                      _facilityInfo![i]),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              top: 4,
+                                              right: 4,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  _clearImage(i, false);
+                                                },
+                                                child: Icon(
+                                                  Icons.clear,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 16),
+                                      child: GestureDetector(
+                                        onTap: _selectMultipleImages,
+                                        child: Container(
+                                          width: 100,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            color: GlobalVariables.lightGrey,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Center(
+                                            child: Icon(
+                                              Icons
+                                                  .add_photo_alternate_outlined,
+                                              color: GlobalVariables.darkGrey,
+                                              size: 60,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _InterRegular14(
+                                    "Badminton facility Name *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _facilityNameController,
+                                    hintText: 'Facility name',
+                                    validator: (facilityName) {
+                                      if (facilityName == null ||
+                                          facilityName.isEmpty) {
+                                        return 'Please enter your facility name.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Select a location on the map *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: SizedBox(
+                                      width: double.maxFinite,
+                                      height: 48,
+                                      child: ElevatedButton(
+                                        onPressed: _navigateToMapScreen,
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            side: BorderSide(
+                                              color: GlobalVariables.green,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          backgroundColor:
+                                              GlobalVariables.white,
+                                          elevation: 0,
+                                        ),
+                                        child: Icon(
+                                          Icons.add_location_alt_outlined,
+                                          color: GlobalVariables.green,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 4),
+                                    child: (_selectedAddress?.lat != 0.0 &&
+                                            _selectedAddress?.lng != 0.0)
+                                        ? _isValidateText(true)
+                                        : _isValidateText(false),
+                                  ),
+                                  _InterRegular14(
+                                    "Province *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _provinceNameController,
+                                    hintText: 'Province',
+                                    validator: (provinceName) {
+                                      if (provinceName == null ||
+                                          provinceName.isEmpty) {
+                                        return 'Please enter the province.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "District *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _districtNameController,
+                                    hintText: 'District',
+                                    validator: (districtName) {
+                                      if (districtName == null ||
+                                          districtName.isEmpty) {
+                                        return 'Please enter the district.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Ward *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _wardNameController,
+                                    hintText: 'Ward',
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
+                                        return 'Please enter the ward.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Street/ House number *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _streetNameController,
+                                    hintText: 'Street/ House number',
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
+                                        return 'Please enter street / house number.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Facility description *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _descriptionController,
+                                    hintText: 'Facility description',
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
+                                        return 'Please enter facility description.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  _InterRegular14(
+                                    "Facility policy *",
+                                    GlobalVariables.darkGrey,
+                                    1,
+                                  ),
+                                  CustomTextfield(
+                                    controller: _policyController,
+                                    hintText: 'Facility policy',
+                                    validator: (wardName) {
+                                      if (wardName == null ||
+                                          wardName.isEmpty) {
+                                        return 'Please enter facility policy.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  SizedBox(
+                                    height: 12,
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _InterRegular14(
-                                  "Badminton facility Name *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomTextfield(
-                                  controller: _facilityNameController,
-                                  hintText: 'Facility name',
-                                  validator: (facilityName) {
-                                    if (facilityName == null ||
-                                        facilityName.isEmpty) {
-                                      return 'Please enter your facility name.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "Select a location on the map *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: double.maxFinite,
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      onPressed: _navigateToMapScreen,
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          side: BorderSide(
-                                            color: GlobalVariables.green,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        backgroundColor: GlobalVariables.white,
-                                        elevation: 0,
-                                      ),
-                                      child: Icon(
-                                        Icons.add_location_alt_outlined,
-                                        color: GlobalVariables.green,
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 4),
-                                  child: _isValidateText(false),
-                                ),
-                                _InterRegular14(
-                                  "Province *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomDropdownButton(
-                                  items: provinceList,
-                                  initialSelectedItem: provinceList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "District *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomDropdownButton(
-                                  items: districtList,
-                                  initialSelectedItem: districtList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "Ward *",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomDropdownButton(
-                                  items: wardList,
-                                  initialSelectedItem: wardList[0],
-                                  onChanged: (selectedItem) {
-                                    print('Selected item: $selectedItem');
-                                  },
-                                ),
-                                _InterRegular14(
-                                  "Street/ House number",
-                                  GlobalVariables.darkGrey,
-                                  1,
-                                ),
-                                CustomTextfield(
-                                  controller: _streetNameController,
-                                  hintText: 'Street/ House number',
-                                  validator: (streetName) {
-                                    if (streetName == null ||
-                                        streetName.isEmpty) {
-                                      return '';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(
-                                  height: 12,
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -261,7 +462,26 @@ class _FacilityInfoState extends State<FacilityInfo> {
                       vertical: 12,
                     ),
                     child: CustomButton(
-                        onTap: _navigateToManagerInfoScreen,
+                        onTap: () {
+                          if (_formKey.currentState!.validate()) {
+                            if (_images == null || _images!.isEmpty) {
+                              IconSnackBar.show(
+                                context,
+                                label: 'Please select you image!',
+                                snackBarType: SnackBarType.fail,
+                              );
+                            } else {
+                              GlobalVariables.facilityImages = _images;
+                              GlobalVariables.facilityName =
+                                  _facilityNameController.text;
+                              GlobalVariables.facilityDescription =
+                                  _descriptionController.text;
+                              GlobalVariables.facilityPolicy =
+                                  _policyController.text;
+                              _navigateToManagerInfoScreen();
+                            }
+                          }
+                        },
                         buttonText: 'Next',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,
