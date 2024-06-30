@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SingleFacilityCard extends StatelessWidget {
-  const SingleFacilityCard({super.key});
+  const SingleFacilityCard({
+    super.key,
+    required this.facility,
+  });
+  final Facility facility;
 
   @override
   Widget build(BuildContext context) {
@@ -23,18 +28,25 @@ class SingleFacilityCard extends StatelessWidget {
               aspectRatio: 1,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/demo_facility.png',
-                  fit: BoxFit.cover,
-                ),
+                child: facility.imageUrls.isNotEmpty &&
+                        facility.imageUrls[0] != null
+                    ? Image.network(
+                        facility.imageUrls[0],
+                        fit: BoxFit.fill,
+                      )
+                    : Image.asset(
+                        'assets/images/badminton_court_default.png',
+                        fit: BoxFit.fill,
+                      ),
               ),
             ),
             const SizedBox(height: 4),
-            _buildText('Court 1'),
+            _buildText(facility.name),
             const SizedBox(height: 4),
             Row(
               children: [
                 RatingBar.builder(
+                  initialRating: facility.ratingAvg,
                   direction: Axis.horizontal,
                   allowHalfRating: true,
                   ignoreGestures: true,
@@ -52,13 +64,13 @@ class SingleFacilityCard extends StatelessWidget {
                 SizedBox(
                   width: 4,
                 ),
-                _RatingNumberText('(44)'),
+                _RatingNumberText('(${facility.totalRating})'),
               ],
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                _priceText('\$19.99'),
+                _priceText('120000 đ'),
                 SizedBox(
                   width: 4,
                 ),

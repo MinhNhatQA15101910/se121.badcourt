@@ -154,7 +154,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    GridView.builder(
+                    /*GridView.builder(
                       itemCount: 10,
                       shrinkWrap: true,
                       gridDelegate:
@@ -168,7 +168,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                         return const SingleFacilityCard();
                       },
                       physics: const NeverScrollableScrollPhysics(),
-                    ),
+                    ),*/
                   ],
                 ),
               ),
