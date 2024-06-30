@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
+import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 class TimePickerPlayerBottomSheet extends StatefulWidget {
   final Court court;
   final DateTime dateTime;
+
   const TimePickerPlayerBottomSheet(
       {Key? key, required this.court, required this.dateTime})
       : super(key: key);
@@ -32,27 +34,37 @@ class _TimePickerPlayerBottomSheetState
   Color startColor = GlobalVariables.grey;
   Color endColor = GlobalVariables.white;
 
-  final checkoutProvider = Provider.of<CheckoutProvider>;
-  int get selectedMinute => isSelectingStartTime
-      ? minuteValues[startMinuteIndex]
-      : minuteValues[endMinuteIndex];
+  final _facilityDetailService = FacilityDetailService();
 
-  void _navigateToCheckoutScreen() {
-    Navigator.of(context).pushNamed(CheckoutScreen.routeName);
+  @override
+  void initState() {
+    super.initState();
+    startHour = widget.dateTime.hour;
+    endHour = widget.dateTime.hour;
   }
 
-  DateTime combineDateTime(DateTime currentDateTime, int hour, int minute) {
+  DateTime combineDateTime(
+      DateTime currentDateTime, int hour, int minuteIndex) {
     return DateTime(
       currentDateTime.year,
       currentDateTime.month,
       currentDateTime.day,
       hour,
-      minute,
+      minuteValues[minuteIndex],
+    );
+  }
+
+  Future<bool> isOverlapse() async {
+    return await _facilityDetailService.validateOverlap(
+      context,
+      widget.court.id,
+      combineDateTime(widget.dateTime, startHour, startMinuteIndex),
+      combineDateTime(widget.dateTime, endHour, endMinuteIndex),
     );
   }
 
   void updateActiveSchedule() {
-    _navigateToCheckoutScreen();
+    Navigator.of(context).pushNamed(CheckoutScreen.routeName);
   }
 
   @override
@@ -280,20 +292,18 @@ class _TimePickerPlayerBottomSheetState
                   Expanded(
                     child: Container(
                       child: CustomButton(
-                        onTap: () {
-                          Provider.of<CheckoutProvider>(context, listen: false)
-                                  .startDate =
-                              combineDateTime(
-                                  widget.dateTime, startHour, startMinuteIndex);
-                          Provider.of<CheckoutProvider>(context, listen: false)
-                                  .endDate =
-                              combineDateTime(
-                                  widget.dateTime, endHour, endMinuteIndex);
-                          Provider.of<CheckoutProvider>(context, listen: false)
-                              .court = widget.court;
-                          combineDateTime(
-                              widget.dateTime, startHour, startMinuteIndex);
-                          updateActiveSchedule();
+                        onTap: () async {
+                          if (await isOverlapse() == false) {
+                            final checkoutProvider =
+                                Provider.of<CheckoutProvider>(context,
+                                    listen: false);
+                            checkoutProvider.startDate = combineDateTime(
+                                widget.dateTime, startHour, startMinuteIndex);
+                            checkoutProvider.endDate = combineDateTime(
+                                widget.dateTime, endHour, endMinuteIndex);
+                            checkoutProvider.court = widget.court;
+                            updateActiveSchedule();
+                          }
                         },
                         buttonText: 'Confirm',
                         borderColor: GlobalVariables.green,
