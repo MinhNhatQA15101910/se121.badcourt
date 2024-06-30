@@ -27,6 +27,10 @@ const orderSchema = mongoose.Schema({
     type: String,
     trim: true,
   },
+  image_url: {
+    type: String,
+    trim: true,
+  },
   period: {
     required: true,
     type: timePeriodSchema,

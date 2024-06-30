@@ -18,12 +18,31 @@ class BookingManagementScreen extends StatefulWidget {
 class _BookingManagementScreenState extends State<BookingManagementScreen> {
   final _bookingManagementService = BookingManagementService();
 
-  final List<String> tabbarList = ['All', 'Played', 'Not played'];
+  final List<String> _tabbarList = ['All', 'Played', 'Not played'];
 
-  List<Order>? orders;
+  List<Order>? _orders;
+  List<Order>? _playedOrders;
+  List<Order>? _notPlayedOrders;
+
+  int _ordersCount = 0;
+  int _playedOrdersCount = 0;
+  int _notPlayedOrdersCount = 0;
 
   void _fetchAllOrders() async {
-    orders = await _bookingManagementService.fetchAllOrders(context: context);
+    _orders = await _bookingManagementService.fetchAllOrders(context: context);
+    _playedOrders = _orders!.where((order) {
+      DateTime now = DateTime.now();
+      DateTime playTime = order.period.hourFrom;
+      return now.isAfter(playTime);
+    }).toList();
+    _notPlayedOrders = _orders!.where((order) {
+      DateTime now = DateTime.now();
+      DateTime playTime = order.period.hourFrom;
+      return now.isBefore(playTime);
+    }).toList();
+    _ordersCount = _orders!.length;
+    _playedOrdersCount = _playedOrders!.length;
+    _notPlayedOrdersCount = _ordersCount - _playedOrdersCount;
     setState(() {});
   }
 
@@ -36,7 +55,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: tabbarList.length,
+      length: _tabbarList.length,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: GlobalVariables.green,
@@ -59,26 +78,37 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
           color: GlobalVariables.defaultColor,
           child: Column(
             children: [
-              _buildTabbar(tabbarList),
+              _buildTabbar(_tabbarList),
               Expanded(
                 child: TabBarView(
                   children: [
-                    for (int i = 0; i < tabbarList.length; i++)
+                    for (int i = 0; i < _tabbarList.length; i++)
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16.0,
                         ),
-                        child: orders == null
+                        child: _orders == null
                             ? const Loader()
                             : ListView.builder(
-                                itemCount: orders?.length ?? 0,
+                                itemCount: _orders == null
+                                    ? 0
+                                    : i == 0
+                                        ? _orders!.length
+                                        : i == 1
+                                            ? _playedOrdersCount
+                                            : _notPlayedOrdersCount,
                                 itemBuilder: (
                                   BuildContext _,
                                   int index,
-                                ) =>
-                                    BookingDetailCard(
-                                  order: orders![index],
-                                ),
+                                ) {
+                                  return BookingDetailCard(
+                                    order: i == 0
+                                        ? _orders![index]
+                                        : i == 1
+                                            ? _playedOrders![index]
+                                            : _notPlayedOrders![index],
+                                  );
+                                },
                               ),
                       ),
                   ],

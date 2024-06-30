@@ -9,6 +9,7 @@ class Order {
   final DateTime orderedAt;
   final String facilityName;
   final String address;
+  final String imageUrl;
   final double price;
   final OrderPeriod period;
 
@@ -19,6 +20,7 @@ class Order {
     required this.orderedAt,
     required this.facilityName,
     required this.address,
+    required this.imageUrl,
     required this.price,
     required this.period,
   });
@@ -31,6 +33,7 @@ class Order {
       'ordered_at': orderedAt.millisecondsSinceEpoch,
       'facility_name': facilityName,
       'address': address,
+      'image_url': imageUrl,
       'price': price,
       'period': period.toMap(),
     };
@@ -46,6 +49,7 @@ class Order {
       ),
       facilityName: map['facility_name'] ?? '',
       address: map['address'] ?? '',
+      imageUrl: map['image_url'] ?? '',
       price: map['price']?.toDouble() ?? 0.0,
       period: OrderPeriod.fromMap(map['period']),
     );
