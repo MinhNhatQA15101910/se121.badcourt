@@ -1,18 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/constants/global_variables.dart'; // Sửa tên import cho đúng
+import 'package:frontend/common/widgets/custom_button.dart';
+import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SortBtmSheet extends StatefulWidget {
   const SortBtmSheet({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+    required this.sortProvider,
+    required this.onDoneSort,
+  });
+
+  final SortProvider sortProvider;
+  final VoidCallback onDoneSort;
 
   @override
   State<SortBtmSheet> createState() => _SortBtmSheetState();
 }
 
 class _SortBtmSheetState extends State<SortBtmSheet> {
-  int? _selectedValue = 1;
+  Sort _selectedValue = Sort.location_asc;
+
+  void _confirmSort() {
+    Navigator.of(context).pop();
+
+    widget.sortProvider.setSort(_selectedValue);
+    widget.onDoneSort();
+  }
+
+  @override
+  void initState() {
+    _selectedValue = widget.sortProvider.sort;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +57,7 @@ class _SortBtmSheetState extends State<SortBtmSheet> {
                   ),
                   Expanded(
                     child: Container(
-                      child: _BoldSizeText('Sort'),
+                      child: _boldSizeText('Sort'),
                     ),
                   ),
                   IconButton(
@@ -63,11 +83,58 @@ class _SortBtmSheetState extends State<SortBtmSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildCustomRadioOption(1, 'Popular'),
-                        _buildCustomRadioOption(2, 'Top rating'),
-                        _buildCustomRadioOption(3, 'Price: Low to High'),
-                        _buildCustomRadioOption(4, 'Price: High to Low'),
+                        _buildCustomRadioOption(
+                          Sort.location_asc,
+                        ),
+                        _buildCustomRadioOption(
+                          Sort.location_desc,
+                        ),
+                        _buildCustomRadioOption(
+                          Sort.registered_at_asc,
+                        ),
+                        _buildCustomRadioOption(
+                          Sort.registered_at_desc,
+                        ),
+                        _buildCustomRadioOption(
+                          Sort.price_asc,
+                        ),
+                        _buildCustomRadioOption(
+                          Sort.price_desc,
+                        ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      child: CustomButton(
+                        onTap: () => Navigator.pop(context),
+                        buttonText: 'Cancel',
+                        borderColor: GlobalVariables.green,
+                        fillColor: Colors.white,
+                        textColor: GlobalVariables.green,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      child: CustomButton(
+                        onTap: _confirmSort,
+                        buttonText: 'Confirm',
+                        borderColor: GlobalVariables.green,
+                        fillColor: GlobalVariables.green,
+                        textColor: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -79,7 +146,7 @@ class _SortBtmSheetState extends State<SortBtmSheet> {
     );
   }
 
-  Widget _BoldSizeText(String text) {
+  Widget _boldSizeText(String text) {
     return Text(
       text,
       textAlign: TextAlign.center,
@@ -93,7 +160,7 @@ class _SortBtmSheetState extends State<SortBtmSheet> {
     );
   }
 
-  Widget _buildCustomRadioOption(int value, String title) {
+  Widget _buildCustomRadioOption(Sort value) {
     bool isSelected = _selectedValue == value;
     return GestureDetector(
       onTap: () {
@@ -115,7 +182,7 @@ class _SortBtmSheetState extends State<SortBtmSheet> {
         child: Row(
           children: [
             Text(
-              title,
+              value.value,
               style: GoogleFonts.inter(
                 fontSize: 16.0,
                 color: GlobalVariables.blackGrey,

@@ -8,6 +8,7 @@ import 'package:frontend/features/player/search/widgets/filter_btm_sheet.dart';
 import 'package:frontend/features/player/search/widgets/sort_btm_sheet.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final _searchService = SearchService();
 
   late FilterProvider _filterProvider;
+  late SortProvider _sortProvider;
 
   final _searchController = TextEditingController();
 
@@ -34,24 +36,21 @@ class _SearchScreenState extends State<SearchScreen> {
   void _fetchAllFacilities() async {
     _facilities = await _searchService.fetchAllFacilities(
       context: context,
+      sort: Sort.location_asc,
     );
     setState(() {});
   }
 
   void _refreshFacilities() async {
-    final filterProvider = Provider.of<FilterProvider>(
-      context,
-      listen: false,
-    );
-
     _facilities = null;
     setState(() {});
 
     _facilities = await _searchService.fetchAllFacilities(
       context: context,
-      province: filterProvider.province,
-      minPrice: filterProvider.minPrice,
-      maxPrice: filterProvider.maxPrice,
+      province: _filterProvider.province,
+      minPrice: _filterProvider.minPrice,
+      maxPrice: _filterProvider.maxPrice,
+      sort: _sortProvider.sort,
     );
     setState(() {});
   }
@@ -61,6 +60,10 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
 
     _filterProvider = Provider.of<FilterProvider>(
+      context,
+      listen: false,
+    );
+    _sortProvider = Provider.of<SortProvider>(
       context,
       listen: false,
     );
@@ -268,7 +271,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                         topRight: Radius.circular(8),
                                       ),
                                     ),
-                                    child: SortBtmSheet(),
+                                    child: SortBtmSheet(
+                                      sortProvider: _sortProvider,
+                                      onDoneSort: _refreshFacilities,
+                                    ),
                                   );
                                 },
                               ),
@@ -299,7 +305,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     width: 8,
                                   ),
                                   _interRegular14(
-                                    'Popular',
+                                    _sortProvider.sort.value,
                                     GlobalVariables.green,
                                     1,
                                   )
@@ -355,6 +361,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void dispose() {
     _filterProvider.resetFilter();
+    _sortProvider.resetSort();
     _searchController.dispose();
     super.dispose();
   }

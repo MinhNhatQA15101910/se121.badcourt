@@ -5,6 +5,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -16,8 +17,7 @@ class SearchService {
     String? province,
     double? minPrice,
     double? maxPrice,
-    String? sort,
-    String? order,
+    Sort? sort,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -50,14 +50,14 @@ class SearchService {
       isQuery = true;
     }
 
-    if (sort != null && order != null) {
+    if (sort != null) {
       if (isQuery)
-        requestUri += '&sort=$sort&order=$order';
+        requestUri += '&sort=${sort.sort}&order=${sort.order}';
       else
-        requestUri += '?sort=$sort&order=$order';
+        requestUri += '?sort=${sort.sort}&order=${sort.order}';
       isQuery = true;
 
-      if (sort == "location") {
+      if (sort.sort == "location") {
         final latitude = prefs.getDouble('latitude');
         final longitude = prefs.getDouble('longitude');
         requestUri += '&lat=$latitude&lon=$longitude';

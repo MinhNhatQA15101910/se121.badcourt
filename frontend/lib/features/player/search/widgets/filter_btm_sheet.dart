@@ -103,7 +103,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
 
     widget.onDoneFilter();
 
-    Navigator.pop(context);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -332,9 +332,10 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                       ? const Loader()
                       : CustomDropdownButton(
                           items: _provinceList,
-                          initialSelectedItem: widget.filterProvider.province == ''
-                              ? _provinceList![0]
-                              : widget.filterProvider.province,
+                          initialSelectedItem:
+                              widget.filterProvider.province == ''
+                                  ? _provinceList![0]
+                                  : widget.filterProvider.province,
                           onChanged: (selectedProvince) {
                             _selectedProvince = selectedProvince;
                           },

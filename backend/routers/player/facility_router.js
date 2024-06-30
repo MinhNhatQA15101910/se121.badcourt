@@ -65,6 +65,14 @@ playerFacilityRouter.get(
             return b.registered_at - a.registered_at;
           }
         });
+      } else if (sort === "price") {
+        facilities.sort((a, b) => {
+          if (order === "asc") {
+            return a.min_price - b.min_price;
+          } else {
+            return b.min_price - a.min_price;
+          }
+        });
       }
 
       res.json(facilities);
