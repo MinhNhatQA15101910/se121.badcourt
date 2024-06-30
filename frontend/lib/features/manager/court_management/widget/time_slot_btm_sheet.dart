@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class TimeSlotBottomSheet extends StatefulWidget {
-  const TimeSlotBottomSheet({Key? key}) : super(key: key);
+  final Function(int, int, int, int) onTimeRangeSelected;
+
+  const TimeSlotBottomSheet({Key? key, required this.onTimeRangeSelected})
+      : super(key: key);
 
   @override
   State<TimeSlotBottomSheet> createState() => _TimeSlotBottomSheetState();
@@ -22,10 +24,6 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
 
   Color startColor = GlobalVariables.grey;
   Color endColor = GlobalVariables.white;
-
-  int get selectedMinute => isSelectingStartTime
-      ? minuteValues[startMinuteIndex]
-      : minuteValues[endMinuteIndex];
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +247,15 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
                   SizedBox(width: 8),
                   Expanded(
                     child: CustomButton(
-                      onTap: () {},
+                      onTap: () {
+                        widget.onTimeRangeSelected(
+                          startHour,
+                          minuteValues[startMinuteIndex],
+                          endHour,
+                          minuteValues[endMinuteIndex],
+                        );
+                        Navigator.pop(context);
+                      },
                       buttonText: 'Add',
                       borderColor: GlobalVariables.green,
                       fillColor: GlobalVariables.green,

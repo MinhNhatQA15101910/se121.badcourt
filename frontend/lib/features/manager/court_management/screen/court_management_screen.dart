@@ -1,12 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/court_management/services/court_management_service.dart';
 import 'package:frontend/features/manager/court_management/widget/add_update_court_btm_sheet.dart';
 import 'package:frontend/features/manager/court_management/widget/day_picker.dart';
 import 'package:frontend/features/manager/court_management/widget/item_court.dart';
-import 'package:frontend/features/manager/court_management/widget/item_time_slot.dart';
 import 'package:frontend/features/manager/court_management/widget/time_slot_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,12 +18,78 @@ class CourtManagementScreen extends StatefulWidget {
 class _CourtManagementScreenState extends State<CourtManagementScreen> {
   final _courtManagementService = CourtManagementService();
   List<Court> _courts = [];
+  List<int> selectedDays = [];
+  int startHour = 7;
+  int startMinute = 30;
+  int endHour = 19;
+  int endMinute = 30;
+
+  int hourMinuteToMilliseconds(int hour, int minute) {
+    DateTime baseDate = DateTime(2000, 1, 1);
+    DateTime time = baseDate.add(Duration(hours: hour, minutes: minute));
+    return time.millisecondsSinceEpoch;
+  }
+
+  String _getDayName(int day) {
+    switch (day) {
+      case 1:
+        return 'sunday';
+      case 2:
+        return 'monday';
+      case 3:
+        return 'tuesday';
+      case 4:
+        return 'wednesday';
+      case 5:
+        return 'thursday';
+      case 6:
+        return 'friday';
+      case 7:
+        return 'saturday';
+      default:
+        return '';
+    }
+  }
+
+  Future<void> updateActiveSchedule() async {
+    Map<String, dynamic> activeSchedule = {};
+    selectedDays.forEach((day) {
+      String dayName = _getDayName(day); // Helper function to get day name
+      activeSchedule[dayName] = {
+        'hour_from': hourMinuteToMilliseconds(startHour, startMinute),
+        'hour_to': hourMinuteToMilliseconds(endHour, endMinute),
+      };
+    });
+    await _courtManagementService.updateActiveSchedule(
+      context,
+      GlobalVariables.facility.id,
+      activeSchedule,
+    );
+  }
 
   void _updateSuccessCallback(bool success) {
     if (success) {
-      fetchCourtByFacilityId(); // Cập nhật danh sách sân sau khi xóa thành công
+      fetchCourtByFacilityId();
     }
     setState(() {});
+  }
+
+  void _updateSelectedDays(List<int> days) {
+    setState(() {
+      selectedDays = days;
+      updateActiveSchedule();
+    });
+  }
+
+  void _updateSelectedTime(
+      int startHour, int startMinute, int endHour, int endMinute) {
+    setState(() {
+      this.startHour = startHour;
+      this.startMinute = startMinute;
+      this.endHour = endHour;
+      this.endMinute = endMinute;
+      updateActiveSchedule();
+    });
   }
 
   Future<void> fetchCourtByFacilityId() async {
@@ -42,7 +105,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   @override
   void initState() {
     super.initState();
-    fetchCourtByFacilityId(); // Lấy danh sách sân khi khởi động màn hình
+    fetchCourtByFacilityId();
   }
 
   @override
@@ -129,7 +192,9 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     height: 1,
                     color: GlobalVariables.grey,
                   ),
-                  DayPicker(),
+                  DayPicker(
+                    onDaysSelected: _updateSelectedDays,
+                  ),
                   GestureDetector(
                     onTap: () {
                       showModalBottomSheet<dynamic>(
@@ -145,7 +210,9 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                                 topRight: Radius.circular(8),
                               ),
                             ),
-                            child: TimeSlotBottomSheet(),
+                            child: TimeSlotBottomSheet(
+                              onTimeRangeSelected: _updateSelectedTime,
+                            ),
                           );
                         },
                       );
@@ -159,7 +226,8 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                           Expanded(
                             child: _semiBoldSizeText('Time range:'),
                           ),
-                          _boldSizeText('7:30 to 19:30'),
+                          _boldSizeText(
+                              '$startHour:${startMinute.toString().padLeft(2, '0')} to $endHour:${endMinute.toString().padLeft(2, '0')}'),
                           SizedBox(
                             width: 8,
                           ),
@@ -275,7 +343,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
       style: GoogleFonts.inter(
         color: Colors.black,
         fontSize: 16,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w700,
       ),
     );
   }

@@ -15,7 +15,10 @@ class SingleFacilityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void _navigateToFacilityDetailScreen() {
-      Navigator.of(context).pushNamed(FacilityDetailScreen.routeName);
+      Navigator.of(context).pushNamed(
+        FacilityDetailScreen.routeName,
+        arguments: facility,
+      );
     }
 
     return GestureDetector(

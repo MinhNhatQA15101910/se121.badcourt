@@ -154,6 +154,8 @@ managerFacilityRouter.patch(
       const { facility_id } = req.params;
       const { active } = req.body;
 
+      console.log(req.body);
+
       let facility = await Facility.findById(facility_id);
 
       // Check if the user is facility's owner
