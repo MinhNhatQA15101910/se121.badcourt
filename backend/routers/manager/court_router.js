@@ -49,11 +49,16 @@ managerCourtRouter.post(
       }
 
       existingFacility.courts_amount++;
-      if (existingFacility.min_price > price_per_hour) {
+      if (existingCourt.court_amount === 1) {
         existingFacility.min_price = price_per_hour;
-      }
-      if (existingFacility.max_price < price_per_hour) {
         existingFacility.max_price = price_per_hour;
+      } else {
+        if (existingFacility.min_price > price_per_hour) {
+          existingFacility.min_price = price_per_hour;
+        }
+        if (existingFacility.max_price < price_per_hour) {
+          existingFacility.max_price = price_per_hour;
+        }
       }
       await existingFacility.save();
 
