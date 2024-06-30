@@ -29,6 +29,7 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
   void initState() {
     super.initState();
     getCurrentLocation(context);
+    setState(() {});
   }
 
   @override

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/widgets/single_facility_card.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
 import 'package:frontend/features/player/search/widgets/filter_btm_sheet.dart';
@@ -15,6 +14,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
+  
   void _navigateToSearchByLocationScreen() {
     Navigator.of(context).pushNamed(SearchByLocationScreen.routeName);
   }

@@ -32,7 +32,7 @@ class SingleFacilityCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: facility.imageUrls.isNotEmpty &&
-                        facility.imageUrls[0] != null
+                        facility.imageUrls[0].isNotEmpty
                     ? Image.network(
                         facility.imageUrls[0],
                         fit: BoxFit.fill,
