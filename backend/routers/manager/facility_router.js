@@ -3,6 +3,7 @@ import express from "express";
 
 // Models
 import Facility from "../../models/facility.js";
+import Court from "../../models/court.js";
 
 // Header middleware
 import managerValidator from "../../middleware/header/manager_validator.js";
@@ -144,6 +145,7 @@ managerFacilityRouter.get(
   }
 );
 
+// Update facility active
 managerFacilityRouter.patch(
   "/manager/update-active/:facility_id",
   managerValidator,
@@ -168,6 +170,37 @@ managerFacilityRouter.patch(
       facility = await facility.save();
 
       res.json(facility);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Get facility price range
+managerFacilityRouter.get(
+  "/manager/facilities/price-range/:facility_id",
+  managerValidator,
+  facilityIdValidator,
+  async (req, res) => {
+    try {
+      const { facility_id } = req.params;
+
+      const courts = await Court.find({ facility_id });
+
+      let minPrice = courts[0].price_per_hour;
+      let maxPrice = courts[0].price_per_hour;
+
+      for (let i = 1; i < courts.length; i++) {
+        if (courts[i].price_per_hour < minPrice) {
+          minPrice = courts[i].price_per_hour;
+        }
+
+        if (courts[i].price_per_hour > maxPrice) {
+          maxPrice = courts[i].price_per_hour;
+        }
+      }
+
+      res.json({ minPrice, maxPrice });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
