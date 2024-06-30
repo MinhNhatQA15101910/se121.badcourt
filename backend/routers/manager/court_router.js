@@ -49,11 +49,16 @@ managerCourtRouter.post(
       }
 
       existingFacility.courts_amount++;
-      if (existingFacility.min_price > price_per_hour) {
+      if (existingFacility.courts_amount === 1) {
         existingFacility.min_price = price_per_hour;
-      }
-      if (existingFacility.max_price < price_per_hour) {
         existingFacility.max_price = price_per_hour;
+      } else {
+        if (existingFacility.min_price > price_per_hour) {
+          existingFacility.min_price = price_per_hour;
+        }
+        if (existingFacility.max_price < price_per_hour) {
+          existingFacility.max_price = price_per_hour;
+        }
       }
       await existingFacility.save();
 
@@ -110,6 +115,15 @@ managerCourtRouter.patch(
           .status(400)
           .json({ msg: "Court with the same name already exists." });
       }
+
+      // Update facility's min_price and max_price
+      if (facility.min_price > price_per_hour) {
+        facility.min_price = price_per_hour;
+      }
+      if (facility.max_price < price_per_hour) {
+        facility.max_price = price_per_hour;
+      }
+      await facility.save();
 
       // Update court
       court.name = name;

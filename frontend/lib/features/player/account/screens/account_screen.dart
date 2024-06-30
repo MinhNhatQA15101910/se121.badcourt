@@ -5,6 +5,7 @@ import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/account/services/account_service.dart';
 import 'package:frontend/features/player/account/widgets/item_tag.dart';
+import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,6 +33,10 @@ class AccountScreen extends StatelessWidget {
     authProvider.setResentEmail(userProvider.user.email);
 
     Navigator.of(context).pushNamed(AuthScreen.routeName);
+  }
+
+  void navigateToBookingManagementScreen(BuildContext context) {
+    Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
   }
 
   void logOut(BuildContext context) {
@@ -271,7 +276,8 @@ class AccountScreen extends StatelessWidget {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () =>
+                              navigateToBookingManagementScreen(context),
                           child: Row(
                             children: [
                               Text(

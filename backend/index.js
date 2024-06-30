@@ -9,6 +9,7 @@ import managerFacilityRouter from "./routers/manager/facility_router.js";
 
 import playerCourtRouter from "./routers/player/court_router.js";
 import playerFacilityRouter from "./routers/player/facility_router.js";
+import playerOrderRouter from "./routers/player/order_router.js";
 
 const app = express();
 env.config();
@@ -20,6 +21,7 @@ app.use(authRouter);
 
 app.use(playerFacilityRouter);
 app.use(playerCourtRouter);
+app.use(playerOrderRouter);
 
 app.use(managerFacilityRouter);
 app.use(managerCourtRouter);

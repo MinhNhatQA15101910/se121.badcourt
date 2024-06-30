@@ -1,4 +1,4 @@
-const sortOptions = ["location", "registered_at"];
+const sortOptions = ["location", "registered_at", "price"];
 const orderOptions = ["asc", "desc"];
 
 // Validate sort

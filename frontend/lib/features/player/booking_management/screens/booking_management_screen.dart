@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
 
 class BookingManagementScreen extends StatefulWidget {
-  static const String routeName = '/bookingManagement';
+  static const String routeName = '/booking-management';
   const BookingManagementScreen({super.key});
 
   @override
@@ -13,12 +13,7 @@ class BookingManagementScreen extends StatefulWidget {
 }
 
 class _BookingManagementScreenState extends State<BookingManagementScreen> {
-  final List<String> tabbarList = [
-    'All',
-    'Played',
-    'Not played',
-    'Cancelled',
-  ];
+  final List<String> tabbarList = ['All', 'Played', 'Not played'];
 
   @override
   Widget build(BuildContext context) {

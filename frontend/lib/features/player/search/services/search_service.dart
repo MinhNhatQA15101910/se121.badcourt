@@ -5,6 +5,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -14,8 +15,9 @@ class SearchService {
   Future<List<Facility>> fetchAllFacilities({
     required BuildContext context,
     String? province,
-    String? sort,
-    String? order,
+    double? minPrice,
+    double? maxPrice,
+    Sort? sort,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -31,13 +33,31 @@ class SearchService {
       requestUri += '?province=$province';
       isQuery = true;
     }
-    if (sort != null && order != null) {
-      if (isQuery)
-        requestUri += '&sort=$sort&order=$order';
-      else
-        requestUri += '?sort=$sort&order=$order';
 
-      if (sort == "location") {
+    if (minPrice != null) {
+      if (isQuery)
+        requestUri += '&min_price=$minPrice';
+      else
+        requestUri += '?min_price=$minPrice';
+      isQuery = true;
+    }
+
+    if (maxPrice != null) {
+      if (isQuery)
+        requestUri += '&max_price=$maxPrice';
+      else
+        requestUri += '?max_price=$maxPrice';
+      isQuery = true;
+    }
+
+    if (sort != null) {
+      if (isQuery)
+        requestUri += '&sort=${sort.sort}&order=${sort.order}';
+      else
+        requestUri += '?sort=${sort.sort}&order=${sort.order}';
+      isQuery = true;
+
+      if (sort.sort == "location") {
         final latitude = prefs.getDouble('latitude');
         final longitude = prefs.getDouble('longitude');
         requestUri += '&lat=$latitude&lon=$longitude';

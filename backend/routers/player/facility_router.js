@@ -8,6 +8,9 @@ import Facility from "../../models/facility.js";
 import playerValidator from "../../middleware/header/player_validator.js";
 import sortValidator from "../../middleware/query/sort_validator.js";
 import facilityIdValidator from "../../middleware/params/facility_id_validator.js";
+import priceRangeValidator from "../../middleware/query/price_range_validator.js";
+
+// Models
 import Court from "../../models/court.js";
 
 const playerFacilityRouter = express.Router();
@@ -16,17 +19,26 @@ const playerFacilityRouter = express.Router();
 playerFacilityRouter.get(
   "/player/facilities",
   playerValidator,
+  priceRangeValidator,
   sortValidator,
   async (req, res) => {
     try {
       let facilities = await Facility.find();
 
+      // Filter
       const { province } = req.query;
       if (province) {
         facilities = facilities.filter(
           (facility) => facility.province === province
         );
       }
+
+      const { min_price, max_price } = req.query;
+      facilities = facilities.filter((facility) => {
+        return (
+          facility.min_price >= min_price && facility.max_price <= max_price
+        );
+      });
 
       // Sort
       const { sort, order } = req.query;
@@ -53,6 +65,14 @@ playerFacilityRouter.get(
             return a.registered_at - b.registered_at;
           } else {
             return b.registered_at - a.registered_at;
+          }
+        });
+      } else if (sort === "price") {
+        facilities.sort((a, b) => {
+          if (order === "asc") {
+            return a.min_price - b.min_price;
+          } else {
+            return b.min_price - a.min_price;
           }
         });
       }
