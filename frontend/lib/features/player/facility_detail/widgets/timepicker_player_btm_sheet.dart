@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
-import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,7 +27,6 @@ class _TimePickerPlayerBottomSheetState
   int endHour = 0;
   int endMinuteIndex = 0;
   bool isSelectingStartTime = true;
-  final _facilityDetailService = FacilityDetailService();
   final List<int> minuteValues = List.generate(12, (index) => index * 5);
 
   Color startColor = GlobalVariables.grey;

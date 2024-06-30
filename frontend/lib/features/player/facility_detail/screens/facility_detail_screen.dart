@@ -4,6 +4,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
@@ -22,6 +23,10 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
   Widget build(BuildContext context) {
     void _navigateToCourtDetailScreen() {
       Navigator.of(context).pushNamed(CourtDetailScreen.routeName);
+    }
+
+    void _navigateToPlayerMapScreen() {
+      Navigator.of(context).pushNamed(PlayerMapScreen.routeName);
     }
 
     return Scaffold(
@@ -313,7 +318,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       height: 8,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: _navigateToPlayerMapScreen,
                       child: Container(
                         padding:
                             EdgeInsets.symmetric(horizontal: 16, vertical: 12),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/court_management/widget/item_time_slot.dart';
-import 'package:frontend/features/manager/court_management/widget/time_slot_btm_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CourtManagementDetailScreen extends StatefulWidget {

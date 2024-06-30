@@ -1,4 +1,3 @@
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -8,19 +7,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
-class MapScreen extends StatefulWidget {
-  static const String routeName = '/map';
-  const MapScreen({super.key});
+class PlayerMapScreen extends StatefulWidget {
+  static const String routeName = '/playerMap';
+  const PlayerMapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<PlayerMapScreen> createState() => _PlayerMapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _PlayerMapScreenState extends State<PlayerMapScreen> {
   final _searchController = TextEditingController();
   final _addFacilityService = AddFacilityService();
   VietmapController? _mapController;
-  LatLng markerPosition = LatLng(10.762317, 106.654551);
+  LatLng markerPosition = LatLng(
+      GlobalVariables.facility.latitude, GlobalVariables.facility.longitude);
   String _searchCode = "";
   DetailAddress _detailAddress = DetailAddress(
     display: '',
@@ -41,6 +41,13 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void OnUpdateLocation() {
+    setState(() {
+      markerPosition = LatLng(GlobalVariables.facility.latitude,
+          GlobalVariables.facility.longitude);
+    });
   }
 
   Future<void> _fetchSearchCode() async {
@@ -111,7 +118,7 @@ class _MapScreenState extends State<MapScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select a location',
+                'Detail Adress',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -128,12 +135,13 @@ class _MapScreenState extends State<MapScreen> {
           alignment: Alignment.topCenter,
           children: [
             VietmapGL(
-              myLocationTrackingMode: MyLocationTrackingMode.Tracking,
               myLocationEnabled: true,
               trackCameraPosition: true,
               styleString: vietmap_string_key,
               initialCameraPosition: CameraPosition(
-                  target: LatLng(10.762317, 106.654551), zoom: 15),
+                  target: LatLng(GlobalVariables.facility.latitude,
+                      GlobalVariables.facility.longitude),
+                  zoom: 15),
               onMapCreated: (VietmapController controller) {
                 setState(() {
                   _mapController = controller;
@@ -268,20 +276,8 @@ class _MapScreenState extends State<MapScreen> {
                       Expanded(
                         child: Container(
                           child: CustomButton(
-                            onTap: () {
-                              if (_detailAddress.lat != 0.0 &&
-                                  _detailAddress.lng != 0.0) {
-                                GlobalVariables.detailAddress = _detailAddress;
-                                Navigator.of(context).pop(_detailAddress);
-                              } else {
-                                IconSnackBar.show(
-                                  context,
-                                  label: 'Please choose your location!',
-                                  snackBarType: SnackBarType.fail,
-                                );
-                              }
-                            },
-                            buttonText: 'Select',
+                            onTap: OnUpdateLocation,
+                            buttonText: 'Address',
                             borderColor: GlobalVariables.green,
                             fillColor: GlobalVariables.green,
                             textColor: Colors.white,

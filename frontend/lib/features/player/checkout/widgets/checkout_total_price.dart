@@ -27,7 +27,7 @@ class CheckoutTotalPrice extends StatelessWidget {
                 SizedBox(
                   width: 8,
                 ),
-                _boldSizeText(subTotalPrice.toStringAsFixed(2) + '\ đ')
+                _boldSizeText(subTotalPrice.toStringAsFixed(0) + '\ đ')
               ],
             ),
           ),
@@ -50,7 +50,7 @@ class CheckoutTotalPrice extends StatelessWidget {
                   width: 8,
                 ),
                 _boldGreenSizeText(
-                    '- ' + promotionPrice.toStringAsFixed(2) + '\ đ')
+                    '- ' + promotionPrice.toStringAsFixed(0) + '\ đ')
               ],
             ),
           ),
@@ -78,7 +78,7 @@ class CheckoutTotalPrice extends StatelessWidget {
                   width: 8,
                 ),
                 _boldSizeText(
-                    (subTotalPrice - promotionPrice).toStringAsFixed(2) + '\ đ')
+                    (subTotalPrice - promotionPrice).toStringAsFixed(0) + '\ đ')
               ],
             ),
           ),

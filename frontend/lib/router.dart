@@ -16,6 +16,7 @@ import 'package:frontend/features/player/booking_management/screens/booking_mana
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
+import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
@@ -116,6 +117,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const CheckoutScreen(),
+      );
+    case PlayerMapScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const PlayerMapScreen(),
       );
     default:
       return MaterialPageRoute(

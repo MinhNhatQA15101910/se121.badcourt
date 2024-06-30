@@ -20,12 +20,8 @@ class CourtExpandPlayer extends StatefulWidget {
 }
 
 class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
-  bool _isExpanded = false;
-
   void _handleExpansion(bool isExpanded) {
-    setState(() {
-      _isExpanded = isExpanded;
-    });
+    setState(() {});
     if (widget.onExpansionChanged != null) {
       widget.onExpansionChanged!(widget.court);
     }
@@ -54,7 +50,7 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             title: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                widget.court.name ?? '',
+                widget.court.name,
                 style: TextStyle(
                   color: GlobalVariables.blackGrey,
                   fontSize: 20,
@@ -66,7 +62,7 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             subtitle: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                widget.court.description ?? '',
+                widget.court.description,
                 textAlign: TextAlign.start,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

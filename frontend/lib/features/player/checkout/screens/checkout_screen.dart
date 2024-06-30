@@ -10,7 +10,8 @@ import 'package:frontend/features/player/facility_detail/services/facility_detai
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
-import 'package:intl/intl.dart'; // Import intl package
+import 'package:intl/intl.dart';
+import 'package:pay/pay.dart';
 
 class CheckoutScreen extends StatefulWidget {
   static const String routeName = '/checkoutScreen';
@@ -22,6 +23,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _facilityDetailService = FacilityDetailService();
+  late final Future<PaymentConfiguration> _googlePayConfigFuture;
 
   void _navigateToCourtDetailScreen() {
     Navigator.of(context).pushReplacementNamed(FacilityDetailScreen.routeName);
@@ -314,22 +316,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _InterRegular16(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
   Widget _InterRegular14(String text, Color color, int maxLines) {
     return Container(
       child: Text(
@@ -357,38 +343,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           color: color,
           fontSize: 12,
           fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterMedium14(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterSemiBold14(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );

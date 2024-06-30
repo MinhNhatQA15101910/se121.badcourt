@@ -244,7 +244,10 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         left: 16,
         right: 16,
       ),
-      color: GlobalVariables.white,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: GlobalVariables.white,
+      ),
       child: Column(
         children: [
           Row(

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/loader.dart';
+import 'package:frontend/common/widgets/single_facility_card.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/home/services/home_service.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FavoriteScreen extends StatefulWidget {
@@ -10,6 +14,23 @@ class FavoriteScreen extends StatefulWidget {
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
+  final _homeService = HomeService();
+
+  List<Facility>? _recommendedFacilities;
+
+  Future<void> _fetchAllFacilities() async {
+    _recommendedFacilities = await _homeService.fetchAllFacilities(
+      context: context,
+    );
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllFacilities();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,21 +174,29 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    /*GridView.builder(
-                      itemCount: 10,
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 3 / 5,
-                      ),
-                      itemBuilder: (context, index) {
-                        return const SingleFacilityCard();
-                      },
-                      physics: const NeverScrollableScrollPhysics(),
-                    ),*/
+                    _recommendedFacilities == null
+                        ? const Loader()
+                        : _recommendedFacilities!.isNotEmpty
+                            ? GridView.builder(
+                                itemCount: _recommendedFacilities!.length,
+                                shrinkWrap: true,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 3 / 5,
+                                ),
+                                itemBuilder: (context, index) {
+                                  return SingleFacilityCard(
+                                    facility: _recommendedFacilities![index],
+                                  );
+                                },
+                                physics: const NeverScrollableScrollPhysics(),
+                              )
+                            : Center(
+                                child: Text('No facilities available'),
+                              ),
                   ],
                 ),
               ),
