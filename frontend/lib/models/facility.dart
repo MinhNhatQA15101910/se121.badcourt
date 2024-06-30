@@ -18,6 +18,9 @@ class Facility {
   final List<String> imageUrls;
   final String description;
   final String policy;
+  final int maxPrice;
+  final int minPrice;
+  final ManagerInfo managerInfo;
 
   Facility({
     required this.id,
@@ -37,6 +40,9 @@ class Facility {
     required this.imageUrls,
     required this.description,
     required this.policy,
+    required this.maxPrice,
+    required this.minPrice,
+    required this.managerInfo,
   });
 
   Map<String, dynamic> toMap() {
@@ -58,6 +64,9 @@ class Facility {
       'image_urls': imageUrls,
       'description': description,
       'policy': policy,
+      'max_price': maxPrice,
+      'min_price': minPrice,
+      'manager_info': managerInfo.toMap(),
     };
   }
 
@@ -80,6 +89,9 @@ class Facility {
       imageUrls: List<String>.from(map['image_urls'] ?? []),
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
+      maxPrice: map['max_price'] ?? 0,
+      minPrice: map['min_price'] ?? 0,
+      managerInfo: ManagerInfo.fromMap(map['manager_info'] ?? {}),
     );
   }
 
@@ -106,6 +118,9 @@ class Facility {
     List<String>? imageUrls,
     String? description,
     String? policy,
+    int? maxPrice,
+    int? minPrice,
+    ManagerInfo? managerInfo,
   }) {
     return Facility(
       id: id ?? this.id,
@@ -125,7 +140,14 @@ class Facility {
       imageUrls: imageUrls ?? this.imageUrls,
       description: description ?? this.description,
       policy: policy ?? this.policy,
+      maxPrice: maxPrice ?? this.maxPrice,
+      minPrice: minPrice ?? this.minPrice,
+      managerInfo: managerInfo ?? this.managerInfo,
     );
+  }
+
+  bool hasDay(String day) {
+    return activeAt.schedule.containsKey(day.toLowerCase());
   }
 }
 
@@ -171,5 +193,58 @@ class PeriodTime {
       'hour_from': hourFrom,
       'hour_to': hourTo,
     };
+  }
+}
+
+class ManagerInfo {
+  final String fullName;
+  final String email;
+  final String citizenId;
+  final String citizenImageUrlFront;
+  final String citizenImageUrlBack;
+  final String bankCardUrlFront;
+  final String bankCardUrlBack;
+  final List<String> businessLicenseImageUrls;
+  final String id;
+
+  ManagerInfo({
+    required this.fullName,
+    required this.email,
+    required this.citizenId,
+    required this.citizenImageUrlFront,
+    required this.citizenImageUrlBack,
+    required this.bankCardUrlFront,
+    required this.bankCardUrlBack,
+    required this.businessLicenseImageUrls,
+    required this.id,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'full_name': fullName,
+      'email': email,
+      'citizen_id': citizenId,
+      'citizen_image_url_front': citizenImageUrlFront,
+      'citizen_image_url_back': citizenImageUrlBack,
+      'bank_card_url_front': bankCardUrlFront,
+      'bank_card_url_back': bankCardUrlBack,
+      'business_license_image_urls': businessLicenseImageUrls,
+      '_id': id,
+    };
+  }
+
+  factory ManagerInfo.fromMap(Map<String, dynamic> map) {
+    return ManagerInfo(
+      fullName: map['full_name'] ?? '',
+      email: map['email'] ?? '',
+      citizenId: map['citizen_id'] ?? '',
+      citizenImageUrlFront: map['citizen_image_url_front'] ?? '',
+      citizenImageUrlBack: map['citizen_image_url_back'] ?? '',
+      bankCardUrlFront: map['bank_card_url_front'] ?? '',
+      bankCardUrlBack: map['bank_card_url_back'] ?? '',
+      businessLicenseImageUrls:
+          List<String>.from(map['business_license_image_urls'] ?? []),
+      id: map['_id'] ?? '',
+    );
   }
 }

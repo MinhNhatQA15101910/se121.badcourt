@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/features/player/facility_detail/widgets/court_expand_player.dart';
 import 'package:frontend/features/player/facility_detail/widgets/date_tag_player.dart';
 import 'package:frontend/features/player/facility_detail/widgets/timepicker_player_btm_sheet.dart';
+import 'package:frontend/models/court.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CourtDetailScreen extends StatefulWidget {
@@ -17,6 +19,39 @@ class CourtDetailScreen extends StatefulWidget {
 class _CourtDetailScreenState extends State<CourtDetailScreen> {
   DateTime _selectedDate = DateTime.now();
   List<DateTime> _dates = [];
+  final _facilityDetailService = FacilityDetailService();
+  List<Court> _courts = [];
+
+  void _removeInactiveDays() {
+    const List<String> daysOfWeek = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+
+    for (int i = 0; i < daysOfWeek.length; i++) {
+      if (!GlobalVariables.facility.hasDay(daysOfWeek[i])) {
+        _dates.removeWhere((date) => date.weekday == (i + 1));
+      }
+    }
+    if (_dates.isNotEmpty) {
+      _selectedDate = _dates[0];
+    }
+  }
+
+  Future<void> _fetchCourtByFacilityId() async {
+    final courts = await _facilityDetailService.fetchCourtByFacilityId(
+      context,
+      GlobalVariables.facility.id,
+    );
+    setState(() {
+      _courts = courts;
+    });
+  }
 
   @override
   void initState() {
@@ -24,6 +59,8 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
     for (int i = 0; i < 14; i++) {
       _dates.add(_selectedDate.add(Duration(days: i)));
     }
+    _removeInactiveDays();
+    _fetchCourtByFacilityId();
   }
 
   void _handleDateTagPressed(DateTime selectedDate) {
@@ -76,132 +113,123 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
           ),
         ),
       ),
-      body: Container(
-        color: GlobalVariables.defaultColor,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Container(
-                      color: GlobalVariables.white,
-                      padding: EdgeInsets.only(top: 12, bottom: 16),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 16,
-                            ),
-                            for (DateTime date in _dates)
-                              DateTagPlayer(
-                                datetime: date,
-                                isActived: date == _selectedDate,
-                                onPressed: () => _handleDateTagPressed(date),
-                              ),
-                            SizedBox(
-                              width: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                        bottom: 12,
-                      ),
-                      color: GlobalVariables.defaultColor,
+      body: (_dates != null && _dates.isNotEmpty)
+          ? Container(
+              color: GlobalVariables.defaultColor,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          CourtExpandPlayer(
-                            titleText: 'Court 1',
-                            descriptionText:
-                                'Detail: With covered badminton court',
+                          Container(
+                            color: GlobalVariables.white,
+                            padding: EdgeInsets.only(top: 12, bottom: 16),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                  ),
+                                  for (DateTime date in _dates)
+                                    DateTagPlayer(
+                                      datetime: date,
+                                      isActived: date == _selectedDate,
+                                      onPressed: () =>
+                                          _handleDateTagPressed(date),
+                                    ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          CourtExpandPlayer(
-                            titleText: 'Court 2',
-                            descriptionText:
-                                'Detail: With covered badminton court',
-                          ),
-                          CourtExpandPlayer(
-                            titleText: 'Court 3',
-                            descriptionText:
-                                'Detail: With covered badminton court',
-                          ),
+                          Container(
+                              padding: EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                bottom: 12,
+                              ),
+                              color: GlobalVariables.defaultColor,
+                              child: Column(
+                                children: List.generate(
+                                  _courts.length,
+                                  (index) => CourtExpandPlayer(
+                                    court: _courts[index],
+                                  ),
+                                ),
+                              )),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              child: Column(
-                children: [
-                  Container(
-                    height: 40,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: GlobalVariables.grey,
-                            width: 1.0,
-                          ),
-                        )),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _subTotalText('Selected court '),
-                        _subTotalPriceText('Court 1'),
-                      ],
-                    ),
                   ),
                   Container(
-                    color: GlobalVariables.white,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: CustomButton(
-                      onTap: () => {
-                        showModalBottomSheet<dynamic>(
-                          context: context,
-                          useRootNavigator: true,
-                          isScrollControlled: true,
-                          builder: (BuildContext context) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(8),
-                                  topRight: Radius.circular(8),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: GlobalVariables.grey,
+                                  width: 1.0,
                                 ),
-                              ),
-                              child: TimePickerPlayerBottomSheet(),
-                            );
-                          },
+                              )),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _subTotalText('Selected court '),
+                              _subTotalPriceText('Court 1'),
+                            ],
+                          ),
                         ),
-                      },
-                      buttonText: 'Add a time slot',
-                      borderColor: GlobalVariables.green,
-                      fillColor: GlobalVariables.green,
-                      textColor: Colors.white,
+                        Container(
+                          color: GlobalVariables.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: CustomButton(
+                            onTap: () => {
+                              showModalBottomSheet<dynamic>(
+                                context: context,
+                                useRootNavigator: true,
+                                isScrollControlled: true,
+                                builder: (BuildContext context) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(8),
+                                        topRight: Radius.circular(8),
+                                      ),
+                                    ),
+                                    child: TimePickerPlayerBottomSheet(),
+                                  );
+                                },
+                              ),
+                            },
+                            buttonText: 'Add a time slot',
+                            borderColor: GlobalVariables.green,
+                            fillColor: GlobalVariables.green,
+                            textColor: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
+            )
+          : Center(child: _subTotalText('No data found')),
     );
   }
 

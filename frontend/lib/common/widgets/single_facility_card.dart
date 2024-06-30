@@ -15,6 +15,7 @@ class SingleFacilityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void _navigateToFacilityDetailScreen() {
+      GlobalVariables.facility = facility;
       Navigator.of(context).pushNamed(
         FacilityDetailScreen.routeName,
         arguments: facility,
@@ -73,7 +74,7 @@ class SingleFacilityCard extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                _priceText('120000 đ'),
+                _priceText(facility.minPrice.toString() + 'đ'),
                 SizedBox(
                   width: 4,
                 ),

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/datetime_management/widgets/booking_widget.dart';
+import 'package:frontend/models/court.dart';
+import 'package:frontend/models/facility.dart';
 
 class CourtExpandPlayer extends StatefulWidget {
-  final String titleText;
-  final String descriptionText;
+  final Court court;
 
-  const CourtExpandPlayer(
-      {Key? key, required this.titleText, required this.descriptionText})
-      : super(key: key);
+  const CourtExpandPlayer({Key? key, required this.court}) : super(key: key);
 
   @override
   State<CourtExpandPlayer> createState() => _CourtExpandPlayerState();
@@ -38,7 +37,7 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             title: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                widget.titleText,
+                widget.court.name,
                 style: const TextStyle(
                   color: GlobalVariables.blackGrey,
                   fontSize: 20,
@@ -50,7 +49,7 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             subtitle: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                widget.descriptionText,
+                widget.court.description,
                 textAlign: TextAlign.start,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

@@ -144,7 +144,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
-                        'Sân cầu lông Nhật Duy',
+                        GlobalVariables.facility.name,
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
@@ -180,7 +180,10 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         height: 4,
                       ),
                       Text(
-                        '\$12 -\$20 /1h',
+                        GlobalVariables.facility.minPrice.toString() +
+                            'đ - ' +
+                            GlobalVariables.facility.maxPrice.toString() +
+                            'đ / h',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -189,35 +192,6 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       ),
                       SizedBox(
                         height: 4,
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 0),
-                            decoration: BoxDecoration(
-                              color: GlobalVariables.red,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Text(
-                              '- 10%',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '\$24',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              decoration: TextDecoration.lineThrough,
-                              color: GlobalVariables.darkGrey,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -259,7 +233,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _InterRegular14(
-                            'Mai Hoàng Nhật Duy',
+                            GlobalVariables.facility.managerInfo.fullName,
                             GlobalVariables.blackGrey,
                             1,
                           ),
@@ -272,7 +246,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                                   size: 20,
                                 ),
                                 _InterRegular12(
-                                  'TP Hồ Chí Minh',
+                                  GlobalVariables.facility.province,
                                   GlobalVariables.darkGrey,
                                   1,
                                 )
@@ -369,7 +343,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '288 Erie Street South Unit D, Leamington, Ontario',
+                                    GlobalVariables.facility.detailAddress,
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -416,11 +390,11 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       ),
                     ),
                     SizedBox(height: 12),
-                    _buildProductDetail('Type of courts', 'Single, Double'),
-                    _buildProductDetail('Number of courts', '8'),
+                    _buildProductDetail('Number of courts',
+                        GlobalVariables.facility.courtsAmount.toString()),
                     SizedBox(height: 12),
                     Text(
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Adipiscing augue nisl, gravida a, sapien leo. Morbi vulputate fermentum porta nunc. Viverra laoreet convallis massa elementum vel. Eget tincidunt massa sodales non massa euismod.',
+                      GlobalVariables.facility.description,
                       style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -450,7 +424,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Adipiscing augue nisl, gravida a, sapien leo. Morbi vulputate fermentum porta nunc. Viverra laoreet convallis massa elementum vel. Eget tincidunt massa sodales non massa euismod.',
+                      GlobalVariables.facility.policy,
                       style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,

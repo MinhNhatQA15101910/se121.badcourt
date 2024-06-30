@@ -5,7 +5,7 @@ import 'package:frontend/features/manager/add_facility/models/detail_address.dar
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 
-String uri = 'http://192.168.111.177:3000';
+String uri = 'http://172.19.201.12:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
@@ -53,9 +53,22 @@ class GlobalVariables {
     activeAt: Active(schedule: {}),
     registeredAt: 0,
     imageUrls: [],
+    province: '',
     description: '',
     policy: '',
-    province: '',
+    maxPrice: 0,
+    minPrice: 0,
+    managerInfo: ManagerInfo(
+      fullName: '',
+      email: '',
+      citizenId: '',
+      citizenImageUrlFront: '',
+      citizenImageUrlBack: '',
+      bankCardUrlFront: '',
+      bankCardUrlBack: '',
+      businessLicenseImageUrls: [],
+      id: '',
+    ),
   );
 
   static List<File>? facilityImages = [];

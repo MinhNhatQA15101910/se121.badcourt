@@ -35,7 +35,21 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     province: '',
     description: '',
     policy: '',
+    maxPrice: 0,
+    minPrice: 0,
+    managerInfo: ManagerInfo(
+      fullName: '',
+      email: '',
+      citizenId: '',
+      citizenImageUrlFront: '',
+      citizenImageUrlBack: '',
+      bankCardUrlFront: '',
+      bankCardUrlBack: '',
+      businessLicenseImageUrls: [],
+      id: '',
+    ),
   );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

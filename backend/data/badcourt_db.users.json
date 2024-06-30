@@ -1,172 +1,40 @@
-[
-  {
-    "_id": {
-      "$oid": "666fb8eb845336e0a864a377"
-    },
-    "username": "Do Nhat",
-    "email": "dmnhat.pt@gmail.com",
-    "password": "$2a$10$IfN9LWlqS6JGkYgjkyEPSuPoejTszAShsz1XqcljUaV6XiYhzRzhC",
-    "role": "player",
-    "__v": 0
+[{
+  "_id": {
+    "$oid": "66800a346b012dd0615419d0"
   },
-  {
-    "_id": {
-      "$oid": "666fb90d845336e0a864a37a"
-    },
-    "username": "Đỗ Nhật",
-    "email": "donhat.ktpm@gmail.com",
-    "password": "$2a$10$oazoYeIIXCIDJkgtLqIPJe3YkVCswxdGMaw3abOuQuoQoEfvJscGe",
-    "role": "player",
-    "__v": 0
+  "username": "Player1",
+  "email": "player1@gmail.com",
+  "password": "$2a$10$LmAJgsqeHRKIjyD11RJxLOmmoFeuVHyRQF7/381/NQSnGf/YGV2cS",
+  "role": "player",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66800ac86b012dd0615419f1"
   },
-  {
-    "_id": {
-      "$oid": "666fb92d845336e0a864a37d"
-    },
-    "username": "Do Minh Nhat",
-    "email": "21522415@gm.uit.edu.vn",
-    "password": "$2a$10$a3mAJ4SIEGlErwzY6.UgL.jhsLkAp.riotzP.zAsK09eJy4bFRVOy",
-    "role": "admin",
-    "__v": 0
+  "username": "Manager1",
+  "email": "manager1@gmail.com",
+  "password": "$2a$10$Yq6rvwgy3rCJxrmTGoGmc.CcLcpOQo8dORI1gFAiRsupZHUtm1.Xi",
+  "role": "manager",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66800acd6b012dd0615419f4"
   },
-  {
-    "_id": {
-      "$oid": "666fb98fd1c441b259453b61"
-    },
-    "username": "Đỗ Minh Nhật",
-    "email": "dmnhat.uit@gmail.com",
-    "password": "$2a$10$dnSCEZYL6jqcFiZGFuQyaeK9Ip1ksyYfDxaM4aD0D8S/DnpsW4Rru",
-    "role": "manager",
-    "__v": 0
+  "username": "Manager2",
+  "email": "manager2@gmail.com",
+  "password": "$2a$10$sP/AFzUo4JJ4q2mRYGWX2ualId1paf8CZ2MxGBX17x4fVjgP3fHbW",
+  "role": "manager",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66800ad16b012dd0615419f7"
   },
-  {
-    "_id": {
-      "$oid": "666fbbdfd1c441b259453b64"
-    },
-    "username": "Manager1",
-    "email": "manager1@gmail.com",
-    "password": "$2a$10$pBkQicM31T6u.LRLwkhaf.UoopCL1YMrOWbHmx0CYL3qpuOLYHUAS",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc4bd1c441b259453b68"
-    },
-    "username": "Manager2",
-    "email": "manager2@gmail.com",
-    "password": "$2a$10$EJH6QFdBl63cFCjfT2rBke4JliUIc3XOTJFS.5FYHtdmjXZpgLlpW",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc51d1c441b259453b6b"
-    },
-    "username": "Manager3",
-    "email": "manager3@gmail.com",
-    "password": "$2a$10$SqFfoCM4teXlXhj.nrYA2eRoW8zhBiT47LjXw3aLxTv7HjM.pZMuW",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc56d1c441b259453b6e"
-    },
-    "username": "Manager4",
-    "email": "manager4@gmail.com",
-    "password": "$2a$10$GttFu26f35sPCdkRXUpqzus8os64Nr7ZoEvuJiAnShmt/is3/dTni",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc5dd1c441b259453b71"
-    },
-    "username": "Manager5",
-    "email": "manager5@gmail.com",
-    "password": "$2a$10$HcDyeiDiaMEafzdUgi.D6uJd64K4juC9jSIU2XIeDNf2EsuzPPZmS",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc63d1c441b259453b74"
-    },
-    "username": "Manager6",
-    "email": "manager6@gmail.com",
-    "password": "$2a$10$I2gfAUY61yQyi37MGnJZU.hyh0G0WffuBaw6NlD6pV2BcAeuOeMpi",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc6bd1c441b259453b77"
-    },
-    "username": "Manager7",
-    "email": "manager7@gmail.com",
-    "password": "$2a$10$af6Y7MehVTnA8JqERh4lm.H9nc0Dx.8rTwJsDW/DDAwCQzSONBqZi",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc74d1c441b259453b7a"
-    },
-    "username": "Manager8",
-    "email": "manager8@gmail.com",
-    "password": "$2a$10$37IVXJrq1cWcUlPyDGg6j.hXWvJ/5FAzh7duUOti0LmRykd5EUDoG",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc7cd1c441b259453b7d"
-    },
-    "username": "Manager9",
-    "email": "manager9@gmail.com",
-    "password": "$2a$10$fp/rM7cY2nxdS2QC5a1S.ua51GdCSm5gVMyrlxY3suxHpF4gRH1xK",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc84d1c441b259453b80"
-    },
-    "username": "Manager10",
-    "email": "manager10@gmail.com",
-    "password": "$2a$10$ixYvU80kB.zNS7/R9d.AHeymYoCCeMcWmqwQ8TZ2Fbi/U0ijcurNS",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc8ad1c441b259453b83"
-    },
-    "username": "Manager11",
-    "email": "manager11@gmail.com",
-    "password": "$2a$10$4C1OTA3lz2x6eF/Mzyet1.QESK6p./uJBkBzUznGiOWSJzM1H5ona",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc90d1c441b259453b86"
-    },
-    "username": "Manager12",
-    "email": "manager12@gmail.com",
-    "password": "$2a$10$yTND6s/16U03EhzGuVzAc.0Um4qb.hYgc.sLoB8aBfdYN1SsHY.Q.",
-    "role": "manager",
-    "__v": 0
-  },
-  {
-    "_id": {
-      "$oid": "666fbc95d1c441b259453b89"
-    },
-    "username": "Manager13",
-    "email": "manager13@gmail.com",
-    "password": "$2a$10$K2s2d4ZV9D4AqMHsxsf8fuR69.BinAsKjf0gqZKFPOrUN.2hzQCcu",
-    "role": "manager",
-    "__v": 0
-  }
-]
+  "username": "Manager3",
+  "email": "manager3@gmail.com",
+  "password": "$2a$10$ZkKW2Iv5GHJ.eqdLrhV4QuzL5blasu3lprY9OZizU88R9HT.WPZWu",
+  "role": "manager",
+  "__v": 0
+}]
