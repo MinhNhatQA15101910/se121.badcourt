@@ -6,10 +6,43 @@ import playerValidator from "../../middleware/header/player_validator.js";
 
 // Params middleware
 import courtIdValidator from "../../middleware/params/court_id_validator.js";
-import Court from "../../models/court.js";
 import orderPeriodsValidator from "../../middleware/body/order_periods_validator.js";
 
+// Models
+import Court from "../../models/court.js";
+import Facility from "../../models/facility.js";
+import Order from "../../models/order.js";
+
 const playerCourtRouter = express.Router();
+
+// Check overlap route
+playerCourtRouter.post(
+  "/player/validate-overlap/:court_id",
+  playerValidator,
+  courtIdValidator,
+  orderPeriodsValidator,
+  async (req, res) => {
+    try {
+      const { court_id } = req.params;
+      const { order_periods } = req.body;
+
+      let court = await Court.findById(court_id);
+
+      // Check for overlap
+      for (let i = 0; i < order_periods.length; i++) {
+        for (let j = 0; j < court.order_periods.length; j++) {
+          if (isCollapse(order_periods[i], court.order_periods[j])) {
+            return res.json(true);
+          }
+        }
+      }
+
+      res.json(false);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 // Book court route
 playerCourtRouter.patch(
@@ -33,6 +66,27 @@ playerCourtRouter.patch(
         }
       }
 
+      // Create new orders
+      for (let i = 0; i < order_periods.length; i++) {
+        let courtPricePerHour = court.price_per_hour;
+        let orderedPeriodRange =
+          order_periods[i].hour_to - order_periods[i].hour_from;
+        let price = (orderedPeriodRange * courtPricePerHour) / 3600000;
+
+        let facility = await Facility.findById(court.facility_id);
+
+        let order = new Order({
+          user_id: req.user,
+          court_id,
+          ordered_at: Date.now(),
+          address: facility.detail_address,
+          period: order_periods[i],
+          price,
+        });
+        order = await order.save();
+      }
+
+      // Add order periods
       for (let i = 0; i < order_periods.length; i++) {
         order_periods[i].user_id = req.user;
       }

@@ -26,6 +26,5 @@ class SortProvider extends ChangeNotifier {
 
   void resetSort() {
     _sort = Sort.location_asc;
-    notifyListeners();
   }
 }
