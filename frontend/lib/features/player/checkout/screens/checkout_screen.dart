@@ -11,7 +11,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:pay/pay.dart';
 
 class CheckoutScreen extends StatefulWidget {
   static const String routeName = '/checkoutScreen';
@@ -23,7 +22,6 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _facilityDetailService = FacilityDetailService();
-  late final Future<PaymentConfiguration> _googlePayConfigFuture;
 
   void _navigateToCourtDetailScreen() {
     Navigator.of(context).pushReplacementNamed(FacilityDetailScreen.routeName);

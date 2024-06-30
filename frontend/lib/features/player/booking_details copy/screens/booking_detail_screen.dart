@@ -6,10 +6,9 @@ import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/booking_details/widgets/total_price.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 class BookingDetailScreen extends StatefulWidget {
-  static const String routeName = '/booking-detail-screen';
+  static const String routeName = '/bookingDetailScreen';
   const BookingDetailScreen({Key? key}) : super(key: key);
 
   @override
@@ -17,24 +16,28 @@ class BookingDetailScreen extends StatefulWidget {
 }
 
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
+  String currentStatus = 'Pending';
+
+  final deliverState = {
+    'Pending': GlobalVariables.darkYellow,
+    'Indelivery': GlobalVariables.darkBlue,
+    'Delivered': GlobalVariables.darkGreen,
+    'Cancelled': GlobalVariables.darkRed,
+  };
   final titleStyle = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w500,
-    color: GlobalVariables.blackGrey,
+    color: Colors.black,
   );
 
   final contentStyle = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w700,
-    color: GlobalVariables.blackGrey,
+    color: Colors.black,
   );
 
   @override
   Widget build(BuildContext context) {
-    DateTime now = DateTime.now();
-    DateTime playTime = GlobalVariables.order.period.hourFrom;
-    bool isPlayed = now.isAfter(playTime);
-
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -76,7 +79,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       vertical: 12,
                     ),
                     child: _InterMedium18(
-                      GlobalVariables.order.facilityName,
+                      'Sân cầu lông Nhật Duy',
                       GlobalVariables.blackGrey,
                       2,
                     ),
@@ -102,13 +105,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                             children: [
                               _InterMedium14(
                                   'Booking ID', GlobalVariables.blackGrey, 1),
-                              SizedBox(
-                                width: 8,
-                              ),
-                              Expanded(
-                                child: _InterBold14(GlobalVariables.order.id,
-                                    GlobalVariables.blackGrey, 1),
-                              ),
+                              _InterBold14(
+                                  '000000', GlobalVariables.blackGrey, 1),
                             ],
                           ),
                           Separator(color: GlobalVariables.darkGrey),
@@ -117,11 +115,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                             children: [
                               _InterMedium14(
                                   'Booking date', GlobalVariables.blackGrey, 1),
-                              _InterBold14(
-                                '${GlobalVariables.order.orderedAt.hour}:${GlobalVariables.order.orderedAt.minute}, ${GlobalVariables.order.orderedAt.day}/${GlobalVariables.order.orderedAt.month}/${GlobalVariables.order.orderedAt.year}',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
+                              _InterBold14('16:24, 21/05/2021',
+                                  GlobalVariables.blackGrey, 1),
                             ],
                           ),
                           Separator(color: GlobalVariables.darkGrey),
@@ -131,12 +126,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               _InterMedium14(
                                   'Order status', GlobalVariables.blackGrey, 1),
                               _InterBold14(
-                                isPlayed ? 'Played' : 'Not played',
-                                isPlayed
-                                    ? GlobalVariables.darkGreen
-                                    : GlobalVariables.darkYellow,
-                                1,
-                              ),
+                                  currentStatus, GlobalVariables.darkGreen, 1),
                             ],
                           ),
                         ],
@@ -236,7 +226,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                           ),
                           Expanded(
                             child: _InterBold14(
-                              GlobalVariables.order.address,
+                              '288 Erie Street South Unit D, Leamington, Ontario',
                               GlobalVariables.blackGrey,
                               4,
                             ),
@@ -262,54 +252,15 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _InterBold16(
-                          DateFormat('EEEE, dd/MM/yyyy')
-                              .format(GlobalVariables.order.period.hourFrom),
+                          'Saturday, 29/03/2024',
                           GlobalVariables.blackGrey,
                           1,
                         ),
                         Separator(color: GlobalVariables.darkGrey),
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _InterBold14(
-                                'Court 1',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _InterRegular14(
-                                    DateFormat('hh:mm').format(GlobalVariables
-                                            .order.period.hourFrom) +
-                                        ' to ' +
-                                        DateFormat('hh:mm').format(
-                                            GlobalVariables
-                                                .order.period.hourTo),
-                                    GlobalVariables.blackGrey,
-                                    1,
-                                  ),
-                                  _InterSemiBold14(
-                                    GlobalVariables.order.price
-                                            .toStringAsFixed(0) +
-                                        ' đ',
-                                    GlobalVariables.blackGrey,
-                                    1,
-                                  ),
-                                ],
-                              ),
-                              Separator(color: GlobalVariables.darkGrey),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
-                  TotalPrice(
-                      promotionPrice: 0,
-                      subTotalPrice: GlobalVariables.order.price),
+                  TotalPrice(promotionPrice: 0, subTotalPrice: 80),
                   SizedBox(
                     height: 12,
                   ),

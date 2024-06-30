@@ -25,6 +25,7 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
     bool isPlayed = now.isAfter(playTime);
 
     void _navigateToBookingDetailScreen() {
+      GlobalVariables.order = widget.order;
       Navigator.of(context).pushNamed(BookingDetailScreen.routeName);
     }
 
@@ -101,10 +102,15 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                     height: 100,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image(
-                        image: NetworkImage(widget.order.imageUrl),
-                        fit: BoxFit.fill,
-                      ),
+                      child: widget.order.imageUrl.isNotEmpty
+                          ? Image.network(
+                              widget.order.imageUrl,
+                              fit: BoxFit.fill,
+                            )
+                          : Image.asset(
+                              'assets/images/badminton_court_default.png',
+                              fit: BoxFit.fill,
+                            ),
                     ),
                   ),
                   SizedBox(width: 8),

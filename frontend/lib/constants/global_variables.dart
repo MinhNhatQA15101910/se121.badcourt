@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/models/order.dart';
+import 'package:frontend/models/order_period.dart';
 
 String uri = 'http://172.19.201.12:3000';
 
@@ -68,6 +70,22 @@ class GlobalVariables {
       bankCardUrlBack: '',
       businessLicenseImageUrls: [],
       id: '',
+    ),
+  );
+
+  static Order order = Order(
+    id: '',
+    userId: '',
+    courtId: '',
+    orderedAt: DateTime.now(),
+    facilityName: '',
+    address: '',
+    imageUrl: '',
+    price: 0,
+    period: OrderPeriod(
+      hourFrom: DateTime.now(),
+      hourTo: DateTime.now().add(Duration(hours: 1)),
+      userId: '',
     ),
   );
 
