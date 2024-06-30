@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
+import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class BookingDetailCard extends StatefulWidget {
-  const BookingDetailCard({super.key});
+  const BookingDetailCard({
+    super.key,
+    required this.order,
+  });
+
+  final Order order;
 
   @override
   State<BookingDetailCard> createState() => _BookingDetailCardState();
@@ -13,6 +20,10 @@ class BookingDetailCard extends StatefulWidget {
 class _BookingDetailCardState extends State<BookingDetailCard> {
   @override
   Widget build(BuildContext context) {
+    DateTime now = DateTime.now();
+    DateTime playTime = widget.order.period.hourFrom;
+    bool isPlayed = now.isAfter(playTime);
+
     void _navigateToBookingDetailScreen() {
       Navigator.of(context).pushNamed(BookingDetailScreen.routeName);
     }
@@ -20,7 +31,10 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
     return GestureDetector(
       onTap: _navigateToBookingDetailScreen,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 12.0,
+        ),
         margin: const EdgeInsets.only(top: 12),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -35,25 +49,35 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Saturday, 29/03/2024',
+                      DateFormat('EEEE, dd/MM/yyyy').format(
+                        playTime,
+                      ),
                       style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: GlobalVariables.darkGrey),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: GlobalVariables.darkGrey,
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: GlobalVariables.lightGreen,
+                    color: isPlayed
+                        ? GlobalVariables.lightGreen
+                        : GlobalVariables.lightYellow,
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Text(
-                    'Played',
-                    style: TextStyle(
+                    isPlayed ? 'Played' : 'Not Play',
+                    style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: GlobalVariables.darkGreen,
+                      color: isPlayed
+                          ? GlobalVariables.darkGreen
+                          : GlobalVariables.darkYellow,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -90,7 +114,7 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Sân cầu lông nhật duy 123456789',
+                          widget.order.facilityName,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.start,
                           maxLines: 2,
@@ -100,7 +124,7 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                               color: GlobalVariables.blackGrey),
                         ),
                         Text(
-                          'Đường hàng Thuyên, khu phố 6, Phường Linh Trung, TP Thủ Đức',
+                          widget.order.address,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.start,
                           maxLines: 2,
@@ -110,11 +134,15 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                               color: GlobalVariables.darkGrey),
                         ),
                         Text(
-                          'Price: \$20',
+                          'Price: ${NumberFormat.currency(
+                            locale: 'vi_VN',
+                            symbol: 'đ',
+                          ).format(widget.order.price)}',
                           style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: GlobalVariables.darkGrey),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: GlobalVariables.darkGrey,
+                          ),
                         ),
                       ],
                     ),
@@ -133,7 +161,7 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                   ),
                 ),
                 Text(
-                  'Method Name',
+                  'Google Pay',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,

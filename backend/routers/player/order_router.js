@@ -13,9 +13,7 @@ const playerOrderRouter = express.Router();
 // Get all orders route
 playerOrderRouter.get("/player/orders", playerValidator, async (req, res) => {
   try {
-    const { user_id } = req.query;
-
-    const orders = await Order.find({ user_id });
+    const orders = await Order.find({ user_id: req.user });
 
     res.json(orders);
   } catch (err) {
