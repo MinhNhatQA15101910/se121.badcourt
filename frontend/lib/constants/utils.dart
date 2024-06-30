@@ -2,9 +2,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/providers/location_provider.dart';
 import 'package:location/location.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<File?> pickOneImage() async {
   try {
@@ -71,9 +70,8 @@ void getCurrentLocation(BuildContext context) async {
     }
   }
 
-  final locationProvider = Provider.of<LocationProvider>(
-    context,
-    listen: false,
-  );
-  locationProvider.setLocation(await location.getLocation());
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  LocationData locationData = await location.getLocation();
+  prefs.setDouble('latitude', locationData.latitude!);
+  prefs.setDouble('longitude', locationData.longitude!);
 }

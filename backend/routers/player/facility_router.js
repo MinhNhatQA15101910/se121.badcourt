@@ -22,27 +22,37 @@ playerFacilityRouter.get(
       let facilities = await Facility.find();
 
       const { province } = req.query;
-      facilities = facilities.filter(
-        (facility) => facility.province === province
-      );
+      if (province) {
+        facilities = facilities.filter(
+          (facility) => facility.province === province
+        );
+      }
 
       // Sort
       const { sort, order } = req.query;
 
       if (sort === "location") {
-        const { lat, lon } = req.body;
+        const { lat, lon } = req.query;
         facilities.sort((a, b) => {
           const distanceA = Math.sqrt(
-            Math.pow(a.lat - lat, 2) + Math.pow(a.lon - lon, 2)
+            Math.pow(a.latitude - lat, 2) + Math.pow(a.longitude - lon, 2)
           );
           const distanceB = Math.sqrt(
-            Math.pow(b.lat - lat, 2) + Math.pow(b.lon - lon, 2)
+            Math.pow(b.latitude - lat, 2) + Math.pow(b.longitude - lon, 2)
           );
 
           if (order === "asc") {
             return distanceA - distanceB;
           } else {
             return distanceB - distanceA;
+          }
+        });
+      } else if (sort === "registered_at") {
+        facilities.sort((a, b) => {
+          if (order === "asc") {
+            return a.registered_at - b.registered_at;
+          } else {
+            return b.registered_at - a.registered_at;
           }
         });
       }
@@ -79,6 +89,24 @@ playerFacilityRouter.get(
       }
 
       res.json({ minPrice, maxPrice });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Get all provinces
+playerFacilityRouter.get(
+  "/player/facilities/provinces",
+  playerValidator,
+  async (req, res) => {
+    try {
+      const facilities = await Facility.find();
+
+      const provinces = facilities.map((facility) => facility.province);
+      const uniqueProvinces = [...new Set(provinces)];
+
+      res.json(uniqueProvinces);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

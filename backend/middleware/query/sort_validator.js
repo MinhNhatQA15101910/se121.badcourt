@@ -1,4 +1,4 @@
-const sortOptions = ["location"];
+const sortOptions = ["location", "registered_at"];
 const orderOptions = ["asc", "desc"];
 
 // Validate sort
@@ -20,7 +20,7 @@ const sortValidator = (req, res, next) => {
       }
 
       if (sort === "location") {
-        const { lat, lon } = req.body;
+        const { lat, lon } = req.query;
         if (!lat || !lon) {
           return res
             .status(400)
@@ -28,7 +28,7 @@ const sortValidator = (req, res, next) => {
         }
       }
     } else {
-      req.query.sort = "id";
+      req.query.sort = "registered_at";
       req.query.order = "asc";
     }
 
