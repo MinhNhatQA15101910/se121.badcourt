@@ -3,7 +3,6 @@ import express from "express";
 
 // Models
 import Facility from "../../models/facility.js";
-import User from "../../models/user.js";
 
 // Header middleware
 import managerValidator from "../../middleware/header/manager_validator.js";
@@ -27,6 +26,7 @@ import policyValidator from "../../middleware/body/policy_validator.js";
 
 // Params middleware
 import facilityIdValidator from "../../middleware/params/facility_id_validator.js";
+import activeValidator from "../../middleware/body/active_validator.js";
 
 const managerFacilityRouter = express.Router();
 
@@ -137,6 +137,36 @@ managerFacilityRouter.get(
       const { facility_id } = req.params;
 
       const facility = await Facility.findById(facility_id);
+      res.json(facility);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+managerFacilityRouter.patch(
+  "/manager/update-active/:facility_id",
+  managerValidator,
+  facilityIdValidator,
+  activeValidator,
+  async (req, res) => {
+    try {
+      const { facility_id } = req.params;
+      const { active } = req.body;
+
+      let facility = await Facility.findById(facility_id);
+
+      // Check if the user is facility's owner
+      if (facility.user_id.toString() !== req.user) {
+        return res
+          .status(403)
+          .json({ msg: "You are not the facility's owner" });
+      }
+
+      // Update facility active
+      facility.active_at = active;
+      facility = await facility.save();
+
       res.json(facility);
     } catch (err) {
       res.status(500).json({ error: err.message });
