@@ -6,6 +6,8 @@ import 'package:frontend/features/intro/screens/intro_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +22,12 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => UserProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => FilterProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SortProvider(),
         ),
       ],
       child: const MyApp(),

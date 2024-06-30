@@ -14,6 +14,8 @@ class SearchService {
   Future<List<Facility>> fetchAllFacilities({
     required BuildContext context,
     String? province,
+    double? minPrice,
+    double? maxPrice,
     String? sort,
     String? order,
   }) async {
@@ -31,11 +33,29 @@ class SearchService {
       requestUri += '?province=$province';
       isQuery = true;
     }
+
+    if (minPrice != null) {
+      if (isQuery)
+        requestUri += '&min_price=$minPrice';
+      else
+        requestUri += '?min_price=$minPrice';
+      isQuery = true;
+    }
+
+    if (maxPrice != null) {
+      if (isQuery)
+        requestUri += '&max_price=$maxPrice';
+      else
+        requestUri += '?max_price=$maxPrice';
+      isQuery = true;
+    }
+
     if (sort != null && order != null) {
       if (isQuery)
         requestUri += '&sort=$sort&order=$order';
       else
         requestUri += '?sort=$sort&order=$order';
+      isQuery = true;
 
       if (sort == "location") {
         final latitude = prefs.getDouble('latitude');

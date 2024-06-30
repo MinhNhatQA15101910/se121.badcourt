@@ -7,7 +7,9 @@ import 'package:frontend/features/player/search/services/search_service.dart';
 import 'package:frontend/features/player/search/widgets/filter_btm_sheet.dart';
 import 'package:frontend/features/player/search/widgets/sort_btm_sheet.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/filter_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -18,6 +20,8 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _searchService = SearchService();
+
+  late FilterProvider _filterProvider;
 
   final _searchController = TextEditingController();
 
@@ -34,9 +38,33 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {});
   }
 
+  void _refreshFacilities() async {
+    final filterProvider = Provider.of<FilterProvider>(
+      context,
+      listen: false,
+    );
+
+    _facilities = null;
+    setState(() {});
+
+    _facilities = await _searchService.fetchAllFacilities(
+      context: context,
+      province: filterProvider.province,
+      minPrice: filterProvider.minPrice,
+      maxPrice: filterProvider.maxPrice,
+    );
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+
+    _filterProvider = Provider.of<FilterProvider>(
+      context,
+      listen: false,
+    );
+
     _fetchAllFacilities();
   }
 
@@ -186,7 +214,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                         topRight: Radius.circular(8),
                                       ),
                                     ),
-                                    child: FilterBtmSheet(),
+                                    child: FilterBtmSheet(
+                                      filterProvider: _filterProvider,
+                                      onDoneFilter: _refreshFacilities,
+                                    ),
                                   );
                                 },
                               ),
@@ -323,6 +354,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _filterProvider.resetFilter();
     _searchController.dispose();
     super.dispose();
   }

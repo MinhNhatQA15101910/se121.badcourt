@@ -9,6 +9,7 @@ import playerValidator from "../../middleware/header/player_validator.js";
 import sortValidator from "../../middleware/query/sort_validator.js";
 import facilityIdValidator from "../../middleware/params/facility_id_validator.js";
 import Court from "../../models/court.js";
+import priceRangeValidator from "../../middleware/query/price_range_validator.js";
 
 const playerFacilityRouter = express.Router();
 
@@ -16,17 +17,26 @@ const playerFacilityRouter = express.Router();
 playerFacilityRouter.get(
   "/player/facilities",
   playerValidator,
+  priceRangeValidator,
   sortValidator,
   async (req, res) => {
     try {
       let facilities = await Facility.find();
 
+      // Filter
       const { province } = req.query;
       if (province) {
         facilities = facilities.filter(
           (facility) => facility.province === province
         );
       }
+
+      const { min_price, max_price } = req.query;
+      facilities = facilities.filter((facility) => {
+        return (
+          facility.min_price >= min_price && facility.max_price <= max_price
+        );
+      });
 
       // Sort
       const { sort, order } = req.query;

@@ -47,18 +47,6 @@ playerCourtRouter.patch(
   }
 );
 
-function isCollapse(timePeriod1, timePeriod2) {
-  console.log(timePeriod1);
-  console.log(timePeriod2);
-
-  return (
-    (timePeriod1.hour_to > timePeriod2.hour_from &&
-      timePeriod1.hour_to < timePeriod2.hour_to) ||
-    (timePeriod2.hour_to > timePeriod1.hour_from &&
-      timePeriod2.hour_to < timePeriod1.hour_to)
-  );
-}
-
 // Get courts route
 playerCourtRouter.get("/player/courts", playerValidator, async (req, res) => {
   try {
@@ -71,5 +59,17 @@ playerCourtRouter.get("/player/courts", playerValidator, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+function isCollapse(timePeriod1, timePeriod2) {
+  console.log(timePeriod1);
+  console.log(timePeriod2);
+
+  return (
+    (timePeriod1.hour_to > timePeriod2.hour_from &&
+      timePeriod1.hour_to < timePeriod2.hour_to) ||
+    (timePeriod2.hour_to > timePeriod1.hour_from &&
+      timePeriod2.hour_to < timePeriod1.hour_to)
+  );
+}
 
 export default playerCourtRouter;
