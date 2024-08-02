@@ -4,6 +4,13 @@ import mongoose from "mongoose";
 
 import authRouter from "./routers/auth_router.js";
 
+import managerCourtRouter from "./routers/manager/court_router.js";
+import managerFacilityRouter from "./routers/manager/facility_router.js";
+
+import playerCourtRouter from "./routers/player/court_router.js";
+import playerFacilityRouter from "./routers/player/facility_router.js";
+import playerOrderRouter from "./routers/player/order_router.js";
+
 const app = express();
 env.config();
 
@@ -12,7 +19,14 @@ app.use(express.json());
 
 app.use(authRouter);
 
-app.get("/document", (req, res) => {
+app.use(playerFacilityRouter);
+app.use(playerCourtRouter);
+app.use(playerOrderRouter);
+
+app.use(managerFacilityRouter);
+app.use(managerCourtRouter);
+
+app.get("/", (req, res) => {
   res.render("index.ejs", { port: process.env.PORT });
 });
 
@@ -25,6 +39,6 @@ mongoose
     console.log(err);
   });
 
-app.listen(process.env.PORT, "0.0.0.0", () => {
+app.listen(process.env.PORT, () => {
   console.log(`Server running on http://localhost:${process.env.PORT}`);
 });

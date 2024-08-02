@@ -39,7 +39,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   carousel_slider: ^4.2.1
   smooth_page_indicator: ^1.1.0
-  email_validator: ^2.1.17
+  email_validator: ^3.0.0
   dotted_line: ^3.2.2
   provider: ^6.1.2
   pinput: ^2.2.21
@@ -50,8 +50,12 @@ dependencies:
   google_nav_bar: ^5.0.6
   vietmap_flutter_gl: ^2.0.1
   flutter_rating_bar: ^4.0.1
-  intl: ^0.19.0
+  intl: ^0.18.1
   numberpicker: ^2.1.1
+  file_picker: ^8.0.5
+  cloudinary_public: ^0.23.1
+  location: ^6.0.2
+  pay: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +87,7 @@ flutter:
   assets:
     - assets/images/
     - assets/vectors/
+    - assets/default_google_pay_config.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

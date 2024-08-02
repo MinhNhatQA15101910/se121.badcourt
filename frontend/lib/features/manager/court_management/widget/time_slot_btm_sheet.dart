@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class TimeSlotBottomSheet extends StatefulWidget {
-  final TextEditingController textController;
+  final Function(int, int, int, int) onTimeRangeSelected;
 
-  const TimeSlotBottomSheet({Key? key, required this.textController})
+  const TimeSlotBottomSheet({Key? key, required this.onTimeRangeSelected})
       : super(key: key);
 
   @override
@@ -25,10 +24,6 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
 
   Color startColor = GlobalVariables.grey;
   Color endColor = GlobalVariables.white;
-
-  int get selectedMinute => isSelectingStartTime
-      ? minuteValues[startMinuteIndex]
-      : minuteValues[endMinuteIndex];
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +49,7 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
                       top: 8,
                     ),
                     child: Expanded(
-                      child: _BoldSizeText('Add a time slot'),
+                      child: _BoldSizeText('Update time range'),
                     ),
                   ),
                   IconButton(
@@ -235,40 +230,6 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
             ),
             Container(
               padding: EdgeInsets.symmetric(
-                vertical: 8,
-              ),
-              child: Row(
-                children: [
-                  _BoldSizeText('Price'),
-                  SizedBox(
-                    width: 32,
-                  ),
-                  _BoldSizeText('\$'),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  Expanded(
-                    child: CustomTextfield(
-                      controller: widget.textController,
-                      hintText: '0',
-                      validator: (priceNumber) {
-                        if (priceNumber == null || priceNumber.isEmpty) {
-                          return 'Please enter your price.';
-                        }
-                        return null;
-                      },
-                      isPhoneNumber: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(
-              color: GlobalVariables.grey,
-              thickness: 1,
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
               ),
@@ -286,7 +247,15 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
                   SizedBox(width: 8),
                   Expanded(
                     child: CustomButton(
-                      onTap: () {},
+                      onTap: () {
+                        widget.onTimeRangeSelected(
+                          startHour,
+                          minuteValues[startMinuteIndex],
+                          endHour,
+                          minuteValues[endMinuteIndex],
+                        );
+                        Navigator.pop(context);
+                      },
                       buttonText: 'Add',
                       borderColor: GlobalVariables.green,
                       fillColor: GlobalVariables.green,

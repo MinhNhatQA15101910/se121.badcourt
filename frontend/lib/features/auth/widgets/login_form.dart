@@ -80,31 +80,33 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _moveToSignUpForm() {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
-    authFormProvider.setForm(SignUpForm());
+    authProvider.setForm(SignUpForm());
   }
 
   void _moveToForgotPasswordForm() {
-    final authFormProvider = Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
 
-    authFormProvider.setPreviousForm(
+    authProvider.setPreviousForm(
       LoginForm(),
     );
 
-    authFormProvider.setForm(
+    authProvider.setForm(
       ForgotPasswordForm(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
     return Container(
       decoration: BoxDecoration(
         color: GlobalVariables.defaultColor,
@@ -231,134 +233,138 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(height: 16),
 
               // Continue with separator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    width: 78,
-                    height: 1,
-                    color: GlobalVariables.lightGreen,
-                  ),
-                  Text(
-                    'Continue with',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.darkGreen,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
+              if (authProvider.isPlayer)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Container(
+                      width: 78,
+                      height: 1,
+                      color: GlobalVariables.lightGreen,
                     ),
-                  ),
-                  Container(
-                    width: 78,
-                    height: 1,
-                    color: GlobalVariables.lightGreen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    Text(
+                      'Continue with',
+                      style: GoogleFonts.inter(
+                        color: GlobalVariables.darkGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    Container(
+                      width: 78,
+                      height: 1,
+                      color: GlobalVariables.lightGreen,
+                    ),
+                  ],
+                ),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
 
               // OAuth buttons
               // Sign up with Google button.
-              Align(
-                alignment: Alignment.center,
-                child: _isLoginWithGoogleLoading
-                    ? const Loader()
-                    : SizedBox(
-                        width: 216,
-                        height: 40,
-                        child: ElevatedButton(
-                          onPressed: _loginWithGoogle,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: GlobalVariables.lightGrey,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
-                                color: GlobalVariables.green,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/vectors/vector-google.svg',
-                                width: 24,
-                                height: 24,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Log in with Google',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
+              if (authProvider.isPlayer)
+                Align(
+                  alignment: Alignment.center,
+                  child: _isLoginWithGoogleLoading
+                      ? const Loader()
+                      : SizedBox(
+                          width: 216,
+                          height: 40,
+                          child: ElevatedButton(
+                            onPressed: _loginWithGoogle,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: GlobalVariables.lightGrey,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
                                   color: GlobalVariables.green,
                                 ),
                               ),
-                            ],
+                            ),
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/vectors/vector-google.svg',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Log in with Google',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: GlobalVariables.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
+
+              // OR Separator
+              if (authProvider.isPlayer)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    DottedLine(
+                      lineLength: 120,
+                      lineThickness: 1,
+                      dashLength: 2,
+                      dashGapLength: 2,
+                      dashColor: GlobalVariables.lightGreen,
+                    ),
+                    Text(
+                      'OR',
+                      style: GoogleFonts.inter(
+                        color: GlobalVariables.darkGreen,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 19,
+                      ),
+                    ),
+                    DottedLine(
+                      lineLength: 120,
+                      lineThickness: 1,
+                      dashLength: 2,
+                      dashGapLength: 2,
+                      dashColor: GlobalVariables.lightGreen,
+                    ),
+                  ],
+                ),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
+
+              // Continue as a guess button
+              if (authProvider.isPlayer)
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 216,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlobalVariables.lightGrey,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: GlobalVariables.green,
                           ),
                         ),
                       ),
-              ),
-              const SizedBox(height: 16),
-
-              // OR Separator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  DottedLine(
-                    lineLength: 120,
-                    lineThickness: 1,
-                    dashLength: 2,
-                    dashGapLength: 2,
-                    dashColor: GlobalVariables.lightGreen,
-                  ),
-                  Text(
-                    'OR',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.darkGreen,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 19,
-                    ),
-                  ),
-                  DottedLine(
-                    lineLength: 120,
-                    lineThickness: 1,
-                    dashLength: 2,
-                    dashGapLength: 2,
-                    dashColor: GlobalVariables.lightGreen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Continue as a guess button
-              Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: 216,
-                  height: 40,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalVariables.lightGrey,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(
+                      child: Text(
+                        'Continue as a guest',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                           color: GlobalVariables.green,
                         ),
                       ),
                     ),
-                    child: Text(
-                      'Continue as a guest',
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: GlobalVariables.green,
-                      ),
-                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+              if (authProvider.isPlayer) const SizedBox(height: 16),
 
               // Navigate to Sign Up form text
               Align(

@@ -1,57 +1,136 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/drop_down_button.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/search/services/search_service.dart';
+import 'package:frontend/providers/filter_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FilterBtmSheet extends StatefulWidget {
   const FilterBtmSheet({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+    required this.filterProvider,
+    required this.onDoneFilter,
+  });
+
+  final FilterProvider filterProvider;
+  final VoidCallback onDoneFilter;
 
   @override
   State<FilterBtmSheet> createState() => _FilterBtmSheetState();
 }
 
 class _FilterBtmSheetState extends State<FilterBtmSheet> {
+  final _searchService = SearchService();
+  final _formKey = GlobalKey<FormState>();
   final _fromController = TextEditingController();
   final _toController = TextEditingController();
+  String _selectedProvince = '';
+
   late List<bool> _selectedPriceRange;
+
+  bool _isToggleSelected = false;
+
+  List<String>? _provinceList;
+
+  static const List<Widget> _priceRangeList = [
+    Text(
+      'Under 100.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+    Text(
+      '100.000đ - 200.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+    Text(
+      '200.000đ - 750.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+    Text(
+      'Over 750.000đ',
+      style: TextStyle(
+        fontSize: 13,
+      ),
+    ),
+  ];
+
+  void _confirmFilter() {
+    widget.filterProvider.setFirstFilter(false);
+
+    if (_isToggleSelected) {
+      for (var i = 0; i < _selectedPriceRange.length; i++) {
+        if (_selectedPriceRange[i]) {
+          widget.filterProvider.setTagIndex(i);
+          switch (i) {
+            case 0:
+              widget.filterProvider.setMinPrice(0);
+              widget.filterProvider.setMaxPrice(100000);
+              break;
+            case 1:
+              widget.filterProvider.setMinPrice(100000);
+              widget.filterProvider.setMaxPrice(200000);
+              break;
+            case 2:
+              widget.filterProvider.setMinPrice(200000);
+              widget.filterProvider.setMaxPrice(750000);
+              break;
+            case 3:
+              widget.filterProvider.setMinPrice(750000);
+              widget.filterProvider.setMaxPrice(double.infinity);
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      widget.filterProvider.setUsingTag(true);
+    } else {
+      if (_formKey.currentState!.validate()) {
+        widget.filterProvider.setMinPrice(double.parse(_fromController.text));
+        widget.filterProvider.setMaxPrice(double.parse(_toController.text));
+        widget.filterProvider.setUsingTag(false);
+      }
+    }
+
+    widget.filterProvider.setProvince(_selectedProvince);
+
+    widget.onDoneFilter();
+
+    Navigator.of(context).pop();
+  }
 
   @override
   void initState() {
     super.initState();
-    _selectedPriceRange = List.generate(priceRangeList.length, (_) => false);
+
+    _selectedPriceRange = List.generate(_priceRangeList.length, (_) => false);
+
+    _fetchAllProvinces();
+    _selectedProvince = widget.filterProvider.province;
+
+    if (widget.filterProvider.usingTag) {
+      _selectedPriceRange[widget.filterProvider.tagIndex] = true;
+    } else if (widget.filterProvider.tagIndex != -1) {
+      _fromController.text = widget.filterProvider.minPrice.toString();
+      _toController.text = widget.filterProvider.maxPrice.toString();
+    }
   }
 
-  List<String> provinceList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> districtList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
-  List<String> wardList = [
-    'TP Hồ Chí Minh',
-    'Hà Nội',
-    'Đà Nẵng',
-    'Cần Thơ',
-    'Đồng Nai',
-  ];
+  void _fetchAllProvinces() async {
+    _provinceList = await _searchService.fetchAllProvinces(context: context);
+    if (widget.filterProvider.province == '') {
+      _provinceList!.insert(0, "Select province");
+    }
+    setState(() {});
+  }
 
-  static const List<Widget> priceRangeList = [
-    Text('Under 100.000đ'),
-    Text('100.000đ - 200.000đ'),
-    Text('200.000đ - 750.000đ'),
-    Text('Over 750.000đ'),
-  ];
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
@@ -75,7 +154,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                   ),
                   Expanded(
                     child: Container(
-                      child: _BoldSizeText('Filter'),
+                      child: _boldSizeText('Filter'),
                     ),
                   ),
                   IconButton(
@@ -102,7 +181,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _PaddingText('Price'),
+                  _paddingText('Price'),
                   Wrap(
                     alignment: WrapAlignment.spaceEvenly,
                     runAlignment: WrapAlignment.spaceEvenly,
@@ -110,123 +189,130 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                     spacing: 8.0,
                     runSpacing: 8.0,
                     children: List.generate(
-                      priceRangeList.length,
+                      _priceRangeList.length,
                       (index) => _buildToggleButton(
-                          index, priceRangeList, _selectedPriceRange),
+                        index,
+                        _priceRangeList,
+                        _selectedPriceRange,
+                      ),
                     ),
                   ),
                   SizedBox(
                     height: 12,
                   ),
-                  _PaddingDescription('Or enter a price range'),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _PaddingText('From'),
-                            TextFormField(
-                              controller: _fromController,
-                              decoration: InputDecoration(
-                                hintText: 'Lowest price',
-                                hintStyle: GoogleFonts.inter(
-                                  color: GlobalVariables.darkGrey,
-                                  fontSize: 16,
-                                ),
-                                contentPadding: const EdgeInsets.all(16),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: GlobalVariables.lightGreen,
+                  _paddingDescription('Or enter a price range'),
+                  Form(
+                    key: _formKey,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _paddingText('From'),
+                              TextFormField(
+                                controller: _fromController,
+                                readOnly: _isToggleSelected,
+                                decoration: InputDecoration(
+                                  hintText: 'Lowest price',
+                                  hintStyle: GoogleFonts.inter(
+                                    color: GlobalVariables.darkGrey,
+                                    fontSize: 14,
                                   ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: GlobalVariables.lightGreen,
+                                  contentPadding: const EdgeInsets.all(16),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: GlobalVariables.lightGreen,
+                                    ),
                                   ),
-                                ),
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Text(
-                                    ' \$',
-                                    style: GoogleFonts.inter(
-                                      color: GlobalVariables.blackGrey,
-                                      fontSize: 16,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: GlobalVariables.lightGreen,
+                                    ),
+                                  ),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(
+                                      ' \$',
+                                      style: GoogleFonts.inter(
+                                        color: GlobalVariables.blackGrey,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                              ),
-                              validator: (facilityName) {
-                                if (facilityName == null ||
-                                    facilityName.isEmpty) {
-                                  return 'Please enter your facility name.';
-                                }
-                                return null;
-                              },
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _PaddingText('To'),
-                            TextFormField(
-                              controller: _toController,
-                              decoration: InputDecoration(
-                                hintText: 'Highest price',
-                                hintStyle: GoogleFonts.inter(
-                                  color: GlobalVariables.darkGrey,
+                                style: GoogleFonts.inter(
                                   fontSize: 16,
                                 ),
-                                contentPadding: const EdgeInsets.all(16),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: GlobalVariables.lightGreen,
+                                validator: (minPrice) {
+                                  if (double.tryParse(minPrice!) == null) {
+                                    return 'Please enter a valid price.';
+                                  }
+
+                                  return null;
+                                },
+                              )
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          width: 8,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _paddingText('To'),
+                              TextFormField(
+                                controller: _toController,
+                                readOnly: _isToggleSelected,
+                                decoration: InputDecoration(
+                                  hintText: 'Highest price',
+                                  hintStyle: GoogleFonts.inter(
+                                    color: GlobalVariables.darkGrey,
+                                    fontSize: 14,
                                   ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: GlobalVariables.lightGreen,
+                                  contentPadding: const EdgeInsets.all(16),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: GlobalVariables.lightGreen,
+                                    ),
                                   ),
-                                ),
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Text(
-                                    ' \$',
-                                    style: GoogleFonts.inter(
-                                      color: GlobalVariables.blackGrey,
-                                      fontSize: 16,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: GlobalVariables.lightGreen,
+                                    ),
+                                  ),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(
+                                      ' \$',
+                                      style: GoogleFonts.inter(
+                                        color: GlobalVariables.blackGrey,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                              ),
-                              validator: (facilityName) {
-                                if (facilityName == null ||
-                                    facilityName.isEmpty) {
-                                  return 'Please enter your facility name.';
-                                }
-                                return null;
-                              },
-                            )
-                          ],
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                ),
+                                validator: (maxPrice) {
+                                  if (double.tryParse(maxPrice!) == null) {
+                                    return 'Please enter a valid price.';
+                                  }
+                                  return null;
+                                },
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Container(
                     padding: EdgeInsets.only(
@@ -237,32 +323,23 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                       color: GlobalVariables.grey,
                     ),
                   ),
-                  _PaddingText('Choose location'),
-                  _PaddingDescription('Province'),
+                  _paddingText('Choose location'),
+                  _paddingDescription('Province'),
                   SizedBox(
                     height: 8,
                   ),
-                  CustomDropdownButton(
-                    items: provinceList,
-                    initialSelectedItem: provinceList[0],
-                    onChanged: (selectedItem) {
-                      print('Selected item: $selectedItem');
-                    },
-                  ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  _PaddingDescription('District'),
-                  SizedBox(
-                    height: 8,
-                  ),
-                  CustomDropdownButton(
-                    items: districtList,
-                    initialSelectedItem: districtList[0],
-                    onChanged: (selectedItem) {
-                      print('Selected item: $selectedItem');
-                    },
-                  ),
+                  _provinceList == null
+                      ? const Loader()
+                      : CustomDropdownButton(
+                          items: _provinceList,
+                          initialSelectedItem:
+                              widget.filterProvider.province == ''
+                                  ? _provinceList![0]
+                                  : widget.filterProvider.province,
+                          onChanged: (selectedProvince) {
+                            _selectedProvince = selectedProvince;
+                          },
+                        ),
                 ],
               ),
             ),
@@ -292,7 +369,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
                   Expanded(
                     child: Container(
                       child: CustomButton(
-                        onTap: () {},
+                        onTap: _confirmFilter,
                         buttonText: 'Confirm',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,
@@ -309,7 +386,14 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     );
   }
 
-  Widget _BoldSizeText(String text) {
+  @override
+  void dispose() {
+    _fromController.dispose();
+    _toController.dispose();
+    super.dispose();
+  }
+
+  Widget _boldSizeText(String text) {
     return Text(
       text,
       textAlign: TextAlign.center,
@@ -323,7 +407,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     );
   }
 
-  Widget _PaddingText(String text) {
+  Widget _paddingText(String text) {
     return Container(
       padding: EdgeInsets.only(
         bottom: 8,
@@ -343,7 +427,7 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
     );
   }
 
-  Widget _PaddingDescription(String text) {
+  Widget _paddingDescription(String text) {
     return Container(
       child: Text(
         text,
@@ -360,13 +444,31 @@ class _FilterBtmSheetState extends State<FilterBtmSheet> {
   }
 
   Widget _buildToggleButton(
-      int index, List<Widget> selectedList, List<bool> selectedListState) {
+    int index,
+    List<Widget> selectedList,
+    List<bool> selectedListState,
+  ) {
     return Container(
       child: OutlinedButton(
         onPressed: () {
-          setState(() {
-            selectedListState[index] = !selectedListState[index];
-          });
+          selectedListState[index] = !selectedListState[index];
+          for (var i = 0; i < selectedListState.length; i++) {
+            if (i != index) {
+              selectedListState[i] = false;
+            }
+          }
+
+          _toController.text = '';
+          _fromController.text = '';
+
+          _isToggleSelected = false;
+          for (var i = 0; i < selectedListState.length; i++) {
+            if (selectedListState[i]) {
+              _isToggleSelected = true;
+              break;
+            }
+          }
+          setState(() {});
         },
         style: OutlinedButton.styleFrom(
           splashFactory: NoSplash.splashFactory,

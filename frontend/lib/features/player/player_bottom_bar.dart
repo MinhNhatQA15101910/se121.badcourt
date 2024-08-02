@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/player/account/screens/account_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/features/player/home/screens/home_screen.dart';
@@ -23,6 +24,13 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
     const FavoriteScreen(),
     const AccountScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentLocation(context);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {

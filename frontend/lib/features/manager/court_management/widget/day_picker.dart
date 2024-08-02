@@ -3,6 +3,14 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DayPicker extends StatefulWidget {
+  final void Function(List<int>)
+      onDaysSelected; // Callback để truyền danh sách ngày đã chọn
+
+  const DayPicker({
+    required this.onDaysSelected,
+    Key? key,
+  }) : super(key: key);
+
   @override
   _DayPickerState createState() => _DayPickerState();
 }
@@ -53,6 +61,8 @@ class _DayPickerState extends State<DayPicker> {
                                 .add(day); // Select the day if not selected
                           }
                         });
+                        widget.onDaysSelected(
+                            selectedDays); // Callback to pass selected days to parent
                       },
                       child: Container(
                         margin: EdgeInsets.symmetric(horizontal: 4.0),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/court_management/widget/day_picker.dart';
 import 'package:frontend/features/manager/court_management/widget/item_time_slot.dart';
-import 'package:frontend/features/manager/court_management/widget/time_slot_btm_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CourtManagementDetailScreen extends StatefulWidget {
@@ -60,7 +58,6 @@ class _CourtManagementDetailScreenState
         color: GlobalVariables.defaultColor,
         child: Column(
           children: [
-            DayPicker(),
             Container(
               color: GlobalVariables.white,
               padding: EdgeInsets.symmetric(
@@ -72,34 +69,6 @@ class _CourtManagementDetailScreenState
                   Expanded(
                     child: _InterBold16(
                         'Time slots', GlobalVariables.blackGrey, 1),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.add,
-                      color: GlobalVariables.green,
-                      size: 24,
-                    ),
-                    onPressed: () {
-                      showModalBottomSheet<dynamic>(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(8),
-                                topRight: Radius.circular(8),
-                              ),
-                            ),
-                            child: TimeSlotBottomSheet(
-                              textController: _controller,
-                            ),
-                          );
-                        },
-                      );
-                    },
                   ),
                 ],
               ),

@@ -1,12 +1,13 @@
 import 'package:flutter_svg/svg.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
 class SearchByLocationScreen extends StatefulWidget {
-  static const String routeName = '/searchByLocation';
+  static const String routeName = '/search-by-location';
 
   const SearchByLocationScreen({super.key});
 
@@ -16,6 +17,38 @@ class SearchByLocationScreen extends StatefulWidget {
 
 class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
   final _searchController = TextEditingController();
+  final Facility _facility = Facility(
+    id: '',
+    userId: '',
+    name: '',
+    facebookUrl: '',
+    phoneNumber: '',
+    courtsAmount: 0,
+    detailAddress: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    ratingAvg: 0.0,
+    totalRating: 0,
+    activeAt: Active(schedule: {}),
+    registeredAt: 0,
+    imageUrls: [],
+    province: '',
+    description: '',
+    policy: '',
+    maxPrice: 0,
+    minPrice: 0,
+    managerInfo: ManagerInfo(
+      fullName: '',
+      email: '',
+      citizenId: '',
+      citizenImageUrlFront: '',
+      citizenImageUrlBack: '',
+      bankCardUrlFront: '',
+      bankCardUrlBack: '',
+      businessLicenseImageUrls: [],
+      id: '',
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +174,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                   child: Container(),
                 ),
                 FacilityItem(
-                  onTap: () {},
+                  facility: _facility,
                 ),
               ],
             )

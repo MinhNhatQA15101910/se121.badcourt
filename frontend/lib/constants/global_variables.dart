@@ -1,16 +1,115 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-String uri = 'http://192.168.1.11:3000';
+import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
+import 'package:frontend/models/court.dart';
+import 'package:frontend/models/facility.dart';
+import 'package:frontend/models/order.dart';
+import 'package:frontend/models/order_period.dart';
+
+String uri = 'http://172.19.201.12:3000';
+
+String vietmap_string_key =
+    'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
+String vietmap_api_key = '506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
 
 class GlobalVariables {
   //Define Scales
   static double screenWidth = 0;
   static double screenHeight = 0;
+
   static void init(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     screenWidth = screenSize.width;
     screenHeight = screenSize.height;
   }
+
+  static DetailAddress detailAddress = DetailAddress(
+    display: '',
+    name: '',
+    hsNum: '',
+    street: '',
+    address: '',
+    cityId: 0,
+    city: '',
+    districtId: 0,
+    district: '',
+    wardId: 0,
+    ward: '',
+    lat: 0.0,
+    lng: 0.0,
+  );
+
+  static Facility facility = Facility(
+    id: '',
+    userId: '',
+    name: '',
+    facebookUrl: '',
+    phoneNumber: '',
+    courtsAmount: 0,
+    detailAddress: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    ratingAvg: 0.0,
+    totalRating: 0,
+    activeAt: Active(schedule: {}),
+    registeredAt: 0,
+    imageUrls: [],
+    province: '',
+    description: '',
+    policy: '',
+    maxPrice: 0,
+    minPrice: 0,
+    managerInfo: ManagerInfo(
+      fullName: '',
+      email: '',
+      citizenId: '',
+      citizenImageUrlFront: '',
+      citizenImageUrlBack: '',
+      bankCardUrlFront: '',
+      bankCardUrlBack: '',
+      businessLicenseImageUrls: [],
+      id: '',
+    ),
+  );
+
+  static Order order = Order(
+    id: '',
+    userId: '',
+    courtId: '',
+    orderedAt: DateTime.now(),
+    facilityName: '',
+    address: '',
+    imageUrl: '',
+    price: 0,
+    period: OrderPeriod(
+      hourFrom: DateTime.now(),
+      hourTo: DateTime.now().add(Duration(hours: 1)),
+      userId: '',
+    ),
+  );
+
+  static List<File>? facilityImages = [];
+  static File frontCitizenIdImage = File('');
+  static File backCitizenIdImage = File('');
+  static File frontBankCardImage = File('');
+  static File backBankCardImage = File('');
+  static List<File>? lisenceImages = [];
+  static String facilityName = "";
+  static String managerName = "";
+  static String manageEmail = "";
+  static String managePhoneNumber = "";
+  static String manageCitizenId = "";
+  static String facilityDescription = "";
+  static String facilityPolicy = "";
+  static Court court = Court(
+    id: '',
+    facilityId: '',
+    name: '',
+    description: '',
+    pricePerHour: 0,
+    orderPeriods: [],
+  );
 
   // Colors
   static const Color black = Color(0xFF000000);

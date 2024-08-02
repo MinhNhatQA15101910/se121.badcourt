@@ -43,7 +43,7 @@ const userSchema = mongoose.Schema({
   role: {
     type: String,
     trim: true,
-    default: "user",
+    default: "player",
   },
 });
 

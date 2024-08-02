@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/common/widgets/single_facility_card.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
+import 'package:frontend/features/player/search/services/search_service.dart';
 import 'package:frontend/features/player/search/widgets/filter_btm_sheet.dart';
 import 'package:frontend/features/player/search/widgets/sort_btm_sheet.dart';
+import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -14,9 +20,55 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  final _searchService = SearchService();
+
+  late FilterProvider _filterProvider;
+  late SortProvider _sortProvider;
+
   final _searchController = TextEditingController();
+
+  List<Facility>? _facilities;
+
   void _navigateToSearchByLocationScreen() {
     Navigator.of(context).pushNamed(SearchByLocationScreen.routeName);
+  }
+
+  void _fetchAllFacilities() async {
+    _facilities = await _searchService.fetchAllFacilities(
+      context: context,
+      sort: Sort.location_asc,
+    );
+    setState(() {});
+  }
+
+  void _refreshFacilities() async {
+    _facilities = null;
+    setState(() {});
+
+    _facilities = await _searchService.fetchAllFacilities(
+      context: context,
+      province: _filterProvider.province,
+      minPrice: _filterProvider.minPrice,
+      maxPrice: _filterProvider.maxPrice,
+      sort: _sortProvider.sort,
+    );
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _filterProvider = Provider.of<FilterProvider>(
+      context,
+      listen: false,
+    );
+    _sortProvider = Provider.of<SortProvider>(
+      context,
+      listen: false,
+    );
+
+    _fetchAllFacilities();
   }
 
   @override
@@ -165,7 +217,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                         topRight: Radius.circular(8),
                                       ),
                                     ),
-                                    child: FilterBtmSheet(),
+                                    child: FilterBtmSheet(
+                                      filterProvider: _filterProvider,
+                                      onDoneFilter: _refreshFacilities,
+                                    ),
                                   );
                                 },
                               ),
@@ -192,7 +247,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   SizedBox(
                                     width: 8,
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     'Filter',
                                     GlobalVariables.blackGrey,
                                     1,
@@ -216,7 +271,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                         topRight: Radius.circular(8),
                                       ),
                                     ),
-                                    child: SortBtmSheet(),
+                                    child: SortBtmSheet(
+                                      sortProvider: _sortProvider,
+                                      onDoneSort: _refreshFacilities,
+                                    ),
                                   );
                                 },
                               ),
@@ -246,8 +304,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                   SizedBox(
                                     width: 8,
                                   ),
-                                  _InterRegular14(
-                                    'Popular',
+                                  _interRegular14(
+                                    _sortProvider.sort.value,
                                     GlobalVariables.green,
                                     1,
                                   )
@@ -273,20 +331,25 @@ class _SearchScreenState extends State<SearchScreen> {
                   horizontal: 16,
                   vertical: 12,
                 ),
-                child: GridView.builder(
-                  itemCount: 10,
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 3 / 5,
-                  ),
-                  itemBuilder: (context, index) {
-                    return const SingleFacilityCard();
-                  },
-                  physics: const NeverScrollableScrollPhysics(),
-                ),
+                child: _facilities == null
+                    ? const Loader()
+                    : GridView.builder(
+                        itemCount: _facilities!.length,
+                        shrinkWrap: true,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 3 / 5,
+                        ),
+                        itemBuilder: (context, index) {
+                          return SingleFacilityCard(
+                            facility: _facilities![index],
+                          );
+                        },
+                        physics: const NeverScrollableScrollPhysics(),
+                      ),
               ),
             ],
           ),
@@ -295,7 +358,19 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  @override
+  void dispose() {
+    _filterProvider.resetFilter();
+    _sortProvider.resetSort();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Widget _interRegular14(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       padding: EdgeInsets.only(
         top: 4,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:frontend/common/widgets/custom_radio_buttom.dart';
+import 'package:frontend/common/widgets/custom_radio_button.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/common/widgets/single_facility_card.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/home/services/home_service.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -14,16 +17,51 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _homeService = HomeService();
+
   int _activeIndex = 0;
+
   final CarouselController _carouselController = CarouselController();
-  final List<String> cities = [
-    'Hà Nội',
-    'Thành phố Hồ Chí Minh',
-    'Đà Nẵng',
-    'Hải Phòng',
-    'Cần Thơ',
-  ];
-  String _selectedCity = 'Hà Nội';
+
+  List<String>? _cities;
+  String? _selectedCity;
+
+  List<Facility>? _nearbyFacilities;
+  List<Facility>? _selectedCityFacilities;
+  List<Facility>? _recommendedFacilities;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllFacilities();
+  }
+
+  void _fetchSelectedCityFacilities() async {
+    _selectedCityFacilities = await _homeService.fetchAllFacilities(
+      context: context,
+      province: _selectedCity,
+    );
+    setState(() {});
+  }
+
+  Future<void> _fetchAllFacilities() async {
+    _cities = await _homeService.fetchAllProvinces(context: context);
+    _selectedCity = _cities!.first;
+
+    _nearbyFacilities = await _homeService.fetchAllFacilities(
+      context: context,
+      sort: 'location',
+      order: 'asc',
+    );
+    _selectedCityFacilities = await _homeService.fetchAllFacilities(
+      context: context,
+      province: _selectedCity,
+    );
+    _recommendedFacilities = await _homeService.fetchAllFacilities(
+      context: context,
+    );
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Image.asset(
-                      'assets/images/img_carousel_demo.png',
+                      'assets/images/img_carousel_${index + 1}.jpg',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -144,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Near by your location',
+                          'Nearby your location',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -178,20 +216,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Container(
                       height: 240,
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(0),
-                        itemCount: 10,
-                        scrollDirection: Axis.horizontal,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 1,
-                          mainAxisSpacing: 20,
-                          childAspectRatio: 5 / 3,
-                        ),
-                        itemBuilder: (context, index) {
-                          return const SingleFacilityCard();
-                        },
-                        physics: const BouncingScrollPhysics(),
-                      ),
+                      child: _nearbyFacilities == null
+                          ? const Loader()
+                          : _nearbyFacilities!.isNotEmpty
+                              ? GridView.builder(
+                                  padding: const EdgeInsets.all(0),
+                                  itemCount: _nearbyFacilities!.length,
+                                  scrollDirection: Axis.horizontal,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 1,
+                                    mainAxisSpacing: 20,
+                                    childAspectRatio: 5 / 3,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    return SingleFacilityCard(
+                                      facility: _nearbyFacilities![index],
+                                    );
+                                  },
+                                  physics: const BouncingScrollPhysics(),
+                                )
+                              : Center(
+                                  child: Text('No facilities available'),
+                                ),
                     ),
                   ],
                 ),
@@ -243,34 +290,44 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(
                       height: 12,
                     ),
-                    CustomRadioButton(
-                      choices: cities,
-                      selectedChoice: _selectedCity,
-                      onSelected: (choice) {
-                        setState(() {
-                          _selectedCity = choice;
-                        });
-                      },
-                    ),
+                    _selectedCityFacilities == null
+                        ? const Loader()
+                        : CustomRadioButton(
+                            choices: _cities!,
+                            selectedChoice: _selectedCity!,
+                            onSelected: (choice) {
+                              _selectedCity = choice;
+                              _fetchSelectedCityFacilities();
+                            },
+                          ),
                     SizedBox(
                       height: 12,
                     ),
                     Container(
                       height: 240,
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(0),
-                        itemCount: 10,
-                        scrollDirection: Axis.horizontal,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 1,
-                          mainAxisSpacing: 20,
-                          childAspectRatio: 5 / 3,
-                        ),
-                        itemBuilder: (context, index) {
-                          return const SingleFacilityCard();
-                        },
-                        physics: const BouncingScrollPhysics(),
-                      ),
+                      child: _selectedCityFacilities == null
+                          ? const Loader()
+                          : _selectedCityFacilities!.isNotEmpty
+                              ? GridView.builder(
+                                  padding: const EdgeInsets.all(0),
+                                  itemCount: _selectedCityFacilities!.length,
+                                  scrollDirection: Axis.horizontal,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 1,
+                                    mainAxisSpacing: 20,
+                                    childAspectRatio: 5 / 3,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    return SingleFacilityCard(
+                                      facility: _selectedCityFacilities![index],
+                                    );
+                                  },
+                                  physics: const BouncingScrollPhysics(),
+                                )
+                              : Center(
+                                  child: Text('No facilities available'),
+                                ),
                     ),
                   ],
                 ),
@@ -322,21 +379,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    GridView.builder(
-                      itemCount: 10,
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 3 / 5,
-                      ),
-                      itemBuilder: (context, index) {
-                        return const SingleFacilityCard();
-                      },
-                      physics: const NeverScrollableScrollPhysics(),
-                    ),
+                    _recommendedFacilities == null
+                        ? const Loader()
+                        : _recommendedFacilities!.isNotEmpty
+                            ? GridView.builder(
+                                itemCount: _recommendedFacilities!.length,
+                                shrinkWrap: true,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 3 / 5,
+                                ),
+                                itemBuilder: (context, index) {
+                                  return SingleFacilityCard(
+                                    facility: _recommendedFacilities![index],
+                                  );
+                                },
+                                physics: const NeverScrollableScrollPhysics(),
+                              )
+                            : Center(
+                                child: Text('No facilities available'),
+                              ),
                   ],
                 ),
               ),
