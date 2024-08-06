@@ -7,7 +7,7 @@ import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
 
-String uri = 'http://172.19.201.12:3000';
+String uri = 'http://172.20.21.225:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';

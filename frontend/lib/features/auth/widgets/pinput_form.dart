@@ -165,6 +165,8 @@ class _PinputFormState extends State<PinputForm> {
       duration,
       (timer) {
         if (_remainingSeconds == 0) {
+          if (!mounted) return;
+
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
