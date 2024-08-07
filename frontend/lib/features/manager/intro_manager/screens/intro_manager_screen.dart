@@ -3,6 +3,7 @@ import 'package:frontend/common/widgets/colored_safe_area.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
+import 'package:frontend/features/manager/manager_drawer.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -148,6 +149,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
     return ColoredSafeArea(
       child: Scaffold(
         backgroundColor: GlobalVariables.white,
+        drawer: ManagerDrawer(),
         appBar: AppBar(
           backgroundColor: GlobalVariables.green,
           title: Row(
