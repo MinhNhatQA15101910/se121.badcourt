@@ -1,12 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/account/services/account_service.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ManagerDrawer extends StatelessWidget {
   const ManagerDrawer({super.key});
+
+  void logOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Log out confirm'),
+          content: const Text('Are you sure to log out the app?'),
+          actions: [
+            // The "Yes" button
+            TextButton(
+              onPressed: () {
+                final accountService = AccountService();
+                accountService.logOut(context);
+
+                Navigator.of(context).pop();
+              },
+              child: const Text('Yes'),
+            ),
+            // The "No" button
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  void navigateToManagerAccountScreen(BuildContext context) {
+    Navigator.of(context).pushNamed('/manager/account');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +96,7 @@ class ManagerDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
+            onTap: () => navigateToManagerAccountScreen(context),
           ),
           const Divider(color: GlobalVariables.white),
           ListTile(
@@ -85,6 +122,7 @@ class ManagerDrawer extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
+            onTap: () => logOut(context),
           ),
           Expanded(
             child: Column(

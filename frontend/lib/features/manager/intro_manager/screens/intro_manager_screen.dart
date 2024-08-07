@@ -1,5 +1,6 @@
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/colored_safe_area.dart';
+import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
@@ -130,12 +131,10 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
   }
 
   void _fetchFacilitiesByUserId() async {
-    final facilities = await _introManagerService.fetchFacilitiesByUserId(
+    _facilityList = await _introManagerService.fetchFacilitiesByUserId(
       context: context,
     );
-    setState(() {
-      _facilityList = facilities;
-    });
+    setState(() {});
   }
 
   @override
@@ -146,6 +145,115 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget content = Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Vector badminton cross
+          SvgPicture.asset(
+            'assets/vectors/vector-badminton-cross.svg',
+            width: 240,
+            height: 240,
+            colorFilter: ColorFilter.mode(
+              GlobalVariables.green,
+              BlendMode.srcIn,
+            ),
+          ),
+          const SizedBox(height: 15),
+
+          // No badminton facility yet text
+          Text(
+            'No badminton',
+            style: GoogleFonts.inter(
+              color: GlobalVariables.green,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            'facility yet',
+            style: GoogleFonts.inter(
+              color: GlobalVariables.green,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          // Let's add a badminton facility text
+          Text(
+            "Let's add a badminton facility",
+            style: GoogleFonts.inter(
+              color: GlobalVariables.green,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 15),
+
+          // Add a new facility button
+          SizedBox(
+            width: 240,
+            height: 40,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: GlobalVariables.green,
+              ),
+              child: Text(
+                'Add a new facility',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: GlobalVariables.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (_facilityList.isNotEmpty) {
+      content = Expanded(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    'Choose your badminton facility',
+                    style: GoogleFonts.inter(
+                      color: GlobalVariables.green,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 450,
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _facilityList.length,
+                  itemBuilder: (context, index) => FacilityItem(
+                    facility: _facilityList[index],
+                    onPrimary: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ColoredSafeArea(
       child: Scaffold(
         backgroundColor: GlobalVariables.white,
@@ -195,77 +303,35 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
         ),
         body: Column(
           children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Vector badminton cross
-                  SvgPicture.asset(
-                    'assets/vectors/vector-badminton-cross.svg',
-                    width: 240,
-                    height: 240,
-                    colorFilter: ColorFilter.mode(
-                      GlobalVariables.green,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
+            content,
 
-                  // No badminton facility yet text
-                  Text(
-                    'No badminton',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.green,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+            // Register a facility button
+            if (_facilityList.isNotEmpty)
+              SizedBox(
+                width: 240,
+                height: 40,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: GlobalVariables.green,
                   ),
-                  Text(
-                    'facility yet',
+                  child: Text(
+                    'Register a facility',
                     style: GoogleFonts.inter(
-                      color: GlobalVariables.green,
-                      fontSize: 24,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  // Let's add a badminton facility text
-                  Text(
-                    "Let's add a badminton facility",
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.green,
                       fontSize: 16,
+                      color: GlobalVariables.white,
                     ),
                   ),
-                  const SizedBox(height: 15),
-
-                  // Add a new facility button
-                  SizedBox(
-                    width: 240,
-                    height: 40,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        backgroundColor: GlobalVariables.green,
-                      ),
-                      child: Text(
-                        'Add a new facility',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: GlobalVariables.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            const SizedBox(height: 32),
+
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Align(
-                alignment: Alignment.center,
+                alignment: Alignment.bottomCenter,
                 child: RichText(
                   text: TextSpan(
                     text: 'View ',

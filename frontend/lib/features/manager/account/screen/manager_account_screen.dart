@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ManagerAccountScreen extends StatelessWidget {
+  static const String routeName = '/manager/account';
   const ManagerAccountScreen({super.key});
 
   @override
