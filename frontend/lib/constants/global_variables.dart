@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
@@ -13,7 +10,7 @@ String vietmap_string_key =
 String vietmap_api_key = '506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
 
 class GlobalVariables {
-  //Define Scales
+  // Define Scales
   static double screenWidth = 0;
   static double screenHeight = 0;
 
@@ -22,22 +19,6 @@ class GlobalVariables {
     screenWidth = screenSize.width;
     screenHeight = screenSize.height;
   }
-
-  static DetailAddress detailAddress = DetailAddress(
-    display: '',
-    name: '',
-    hsNum: '',
-    street: '',
-    address: '',
-    cityId: 0,
-    city: '',
-    districtId: 0,
-    district: '',
-    wardId: 0,
-    ward: '',
-    lat: 0.0,
-    lng: 0.0,
-  );
 
   static Order order = Order(
     id: '',
@@ -55,19 +36,6 @@ class GlobalVariables {
     ),
   );
 
-  static List<File>? facilityImages = [];
-  static File frontCitizenIdImage = File('');
-  static File backCitizenIdImage = File('');
-  static File frontBankCardImage = File('');
-  static File backBankCardImage = File('');
-  static List<File>? lisenceImages = [];
-  static String facilityName = "";
-  static String managerName = "";
-  static String manageEmail = "";
-  static String managePhoneNumber = "";
-  static String manageCitizenId = "";
-  static String facilityDescription = "";
-  static String facilityPolicy = "";
   static Court court = Court(
     id: '',
     facilityId: '',

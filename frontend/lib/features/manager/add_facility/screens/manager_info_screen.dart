@@ -6,12 +6,15 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class ManagerInfoScreen extends StatefulWidget {
-  const ManagerInfoScreen({Key? key}) : super(key: key);
-  static const String routeName = '/managerInfo';
+  static const String routeName = '/manager/manager-info';
+  const ManagerInfoScreen({super.key});
 
   @override
   State<ManagerInfoScreen> createState() => _ManagerInfoScreenState();
@@ -27,7 +30,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
   File? _backCitizenIdImage;
   File? _frontBankCardImage;
   File? _backBankCardImage;
-  List<File>? _lisenceImages = [];
+  List<File>? _licenseImages = [];
 
   void _navigateToContractScreen() {
     Navigator.of(context).pushNamed(ContractScreen.routeName);
@@ -69,11 +72,11 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
     }
   }
 
-  Future<void> _pickLisenceImages() async {
+  Future<void> _pickLicenseImages() async {
     final List<File> images = await pickMultipleImages();
     if (images.isNotEmpty) {
       setState(() {
-        _lisenceImages!.addAll(images);
+        _licenseImages!.addAll(images);
       });
     }
   }
@@ -102,7 +105,10 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                       size: 36,
                     ),
                   )
-                : Image.file(image, fit: BoxFit.cover),
+                : Image.file(
+                    image,
+                    fit: BoxFit.cover,
+                  ),
           ),
         ),
         if (image != null && onClear != null)
@@ -131,7 +137,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
 
   Widget _buildMultipleImagePickerButton() {
     return GestureDetector(
-      onTap: _pickLisenceImages,
+      onTap: _pickLicenseImages,
       child: Container(
         width: 60,
         height: 60,
@@ -203,8 +209,8 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
           _backCitizenIdImage == null ||
           _frontBankCardImage == null ||
           _backBankCardImage == null ||
-          _lisenceImages == null ||
-          _lisenceImages!.isEmpty) {
+          _licenseImages == null ||
+          _licenseImages!.isEmpty) {
         IconSnackBar.show(
           context,
           label: 'Please add all required images.',
@@ -213,15 +219,30 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
         return;
       }
 
-      GlobalVariables.managerName = _fullNameController.text;
-      GlobalVariables.manageEmail = _emailController.text;
-      GlobalVariables.managePhoneNumber = _phoneNumberController.text;
-      GlobalVariables.manageCitizenId = _citizenIdController.text;
-      GlobalVariables.frontCitizenIdImage = _frontCitizenIdImage!;
-      GlobalVariables.backCitizenIdImage = _backCitizenIdImage!;
-      GlobalVariables.frontBankCardImage = _frontBankCardImage!;
-      GlobalVariables.backBankCardImage = _backBankCardImage!;
-      GlobalVariables.lisenceImages = _lisenceImages!;
+      final newFacilityProvider = Provider.of<NewFacilityProvider>(
+        context,
+        listen: false,
+      );
+
+      newFacilityProvider.setFrontCitizenIdImage(_frontCitizenIdImage!);
+      newFacilityProvider.setBackCitizenIdImage(_backCitizenIdImage!);
+      newFacilityProvider.setFrontBankCardImage(_frontBankCardImage!);
+      newFacilityProvider.setBackBankCardImage(_backBankCardImage!);
+      newFacilityProvider.setLicenseImages(_licenseImages!);
+
+      ManagerInfo managerInfo =
+          newFacilityProvider.newFacility.managerInfo.copyWith(
+        fullName: _fullNameController.text,
+        email: _emailController.text,
+        citizenId: _citizenIdController.text,
+      );
+
+      Facility facility = newFacilityProvider.newFacility.copyWith(
+        managerInfo: managerInfo,
+        phoneNumber: _phoneNumberController.text,
+      );
+
+      newFacilityProvider.setFacility(facility);
 
       _navigateToContractScreen();
     }
@@ -271,7 +292,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Manager full name *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -287,7 +308,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Email *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -303,7 +324,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                     },
                                     isEmail: true,
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Phone number *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -321,7 +342,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Citizen ID *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -339,7 +360,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Photos of citizen identification card (Includes front and back) *",
                                     GlobalVariables.darkGrey,
                                     2,
@@ -370,7 +391,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       ],
                                     ),
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Photos of bank card (Includes front and back) *",
                                     GlobalVariables.darkGrey,
                                     2,
@@ -401,7 +422,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       ],
                                     ),
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Photos of business license (Maximum 10 photos) *",
                                     GlobalVariables.darkGrey,
                                     2,
@@ -410,8 +431,8 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
-                                        if (_lisenceImages != null)
-                                          _buildSelectedImages(_lisenceImages!),
+                                        if (_licenseImages != null)
+                                          _buildSelectedImages(_licenseImages!),
                                         _buildMultipleImagePickerButton(),
                                       ],
                                     ),
@@ -448,7 +469,20 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _phoneNumberController.dispose();
+    _citizenIdController.dispose();
+    super.dispose();
+  }
+
+  Widget _interRegular14(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       padding: EdgeInsets.only(
         bottom: 8,
