@@ -15,7 +15,6 @@ class SingleFacilityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void _navigateToFacilityDetailScreen() {
-      GlobalVariables.facility = facility;
       Navigator.of(context).pushNamed(
         FacilityDetailScreen.routeName,
         arguments: facility,

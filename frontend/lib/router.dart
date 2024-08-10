@@ -84,10 +84,10 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const FacilityInfo(),
       );
-    case ManagerInfo.routeName:
+    case ManagerInfoScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const ManagerInfo(),
+        builder: (_) => const ManagerInfoScreen(),
       );
     case ManagerAccountScreen.routeName:
       return MaterialPageRoute(

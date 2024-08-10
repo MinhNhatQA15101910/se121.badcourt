@@ -3,9 +3,11 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class FacilityItem extends StatefulWidget {
   const FacilityItem({
@@ -25,8 +27,16 @@ class _FacilityItemState extends State<FacilityItem> {
   int _activeIndex = 0;
 
   void _navigateToFacilityManagerBottomBar() {
-    GlobalVariables.facility = widget.facility;
-    Navigator.of(context).pushReplacementNamed(ManagerBottomBar.routeName);
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    currentFacilityProvider.setFacility(widget.facility);
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      ManagerBottomBar.routeName,
+      (route) => false,
+    );
   }
 
   @override
@@ -81,7 +91,7 @@ class _FacilityItemState extends State<FacilityItem> {
                               image: NetworkImage(
                                 widget.facility.imageUrls[index],
                               ),
-                              fit: BoxFit.fill,
+                              fit: BoxFit.contain,
                             ),
                           ),
                         );

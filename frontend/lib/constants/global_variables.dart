@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
 
-String uri = 'http://172.20.21.225:3000';
+String uri = 'http://172.20.35.85:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
@@ -38,39 +37,6 @@ class GlobalVariables {
     ward: '',
     lat: 0.0,
     lng: 0.0,
-  );
-
-  static Facility facility = Facility(
-    id: '',
-    userId: '',
-    name: '',
-    facebookUrl: '',
-    phoneNumber: '',
-    courtsAmount: 0,
-    detailAddress: '',
-    latitude: 0.0,
-    longitude: 0.0,
-    ratingAvg: 0.0,
-    totalRating: 0,
-    activeAt: Active(schedule: {}),
-    registeredAt: 0,
-    imageUrls: [],
-    province: '',
-    description: '',
-    policy: '',
-    maxPrice: 0,
-    minPrice: 0,
-    managerInfo: ManagerInfo(
-      fullName: '',
-      email: '',
-      citizenId: '',
-      citizenImageUrlFront: '',
-      citizenImageUrlBack: '',
-      bankCardUrlFront: '',
-      bankCardUrlBack: '',
-      businessLicenseImageUrls: [],
-      id: '',
-    ),
   );
 
   static Order order = Order(

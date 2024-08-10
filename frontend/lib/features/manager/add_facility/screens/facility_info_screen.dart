@@ -35,7 +35,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
 
   void _navigateToManagerInfoScreen() {
     if (_formKey.currentState!.validate()) {
-      Navigator.of(context).pushNamed(ManagerInfo.routeName);
+      Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
     }
   }
 
@@ -292,7 +292,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Badminton facility Name *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -308,7 +308,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Select a location on the map *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -348,7 +348,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                         ? _isValidateText(true)
                                         : _isValidateText(false),
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Province *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -364,7 +364,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "District *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -380,7 +380,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Ward *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -396,7 +396,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Street/ House number *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -412,7 +412,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Facility description *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -420,6 +420,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   CustomTextfield(
                                     controller: _descriptionController,
                                     hintText: 'Facility description',
+                                    maxLines: 5,
                                     validator: (wardName) {
                                       if (wardName == null ||
                                           wardName.isEmpty) {
@@ -428,13 +429,14 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Facility policy *",
                                     GlobalVariables.darkGrey,
                                     1,
                                   ),
                                   CustomTextfield(
                                     controller: _policyController,
+                                    maxLines: 5,
                                     hintText: 'Facility policy',
                                     validator: (wardName) {
                                       if (wardName == null ||
@@ -495,7 +497,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  Widget _interRegular14(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
         bottom: 8,

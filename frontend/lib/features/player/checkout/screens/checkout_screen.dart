@@ -7,6 +7,7 @@ import 'package:frontend/features/player/checkout/widgets/checkout_item.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_total_price.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
@@ -28,7 +29,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> bookCourt(
-      String id, DateTime startTime, DateTime endTime) async {
+    String id,
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
     try {
       _facilityDetailService.bookCourt(
         context,
@@ -54,6 +58,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -99,7 +105,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               aspectRatio: 2 / 1,
                               child: Image(
                                 image: NetworkImage(
-                                    GlobalVariables.facility.imageUrls.first),
+                                  currentFacilityProvider
+                                      .currentFacility.imageUrls.first,
+                                ),
                                 fit: BoxFit.fill,
                               ),
                             ),
@@ -110,8 +118,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 horizontal: 16,
                                 vertical: 12,
                               ),
-                              child: _InterMedium18(
-                                GlobalVariables.facility.name,
+                              child: _interMedium18(
+                                currentFacilityProvider.currentFacility.name,
                                 GlobalVariables.blackGrey,
                                 2,
                               ),
@@ -122,7 +130,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 left: 16,
                                 right: 16,
                               ),
-                              child: _InterBold16(
+                              child: _interBold16(
                                 'Facility owner',
                                 GlobalVariables.blackGrey,
                                 1,
@@ -156,9 +164,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        _InterRegular14(
-                                          GlobalVariables
-                                              .facility.managerInfo.fullName,
+                                        _interRegular14(
+                                          currentFacilityProvider
+                                              .currentFacility
+                                              .managerInfo
+                                              .fullName,
                                           GlobalVariables.blackGrey,
                                           1,
                                         ),
@@ -170,9 +180,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                                 color: GlobalVariables.darkGrey,
                                                 size: 20,
                                               ),
-                                              _InterRegular12(
-                                                GlobalVariables
-                                                    .facility.province,
+                                              _interRegular12(
+                                                currentFacilityProvider
+                                                    .currentFacility.province,
                                                 GlobalVariables.darkGrey,
                                                 1,
                                               )
@@ -191,7 +201,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 left: 16,
                                 right: 16,
                               ),
-                              child: _InterBold16(
+                              child: _interBold16(
                                 'Detail address',
                                 GlobalVariables.blackGrey,
                                 1,
@@ -212,8 +222,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       width: 8,
                                     ),
                                     Expanded(
-                                      child: _InterBold14(
-                                        GlobalVariables.facility.detailAddress,
+                                      child: _interBold14(
+                                        currentFacilityProvider
+                                            .currentFacility.detailAddress,
                                         GlobalVariables.blackGrey,
                                         4,
                                       ),
@@ -228,7 +239,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 left: 16,
                                 right: 16,
                               ),
-                              child: _InterBold16(
+                              child: _interBold16(
                                 'Booking info',
                                 GlobalVariables.blackGrey,
                                 1,
@@ -238,7 +249,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _InterBold16(
+                                  _interBold16(
                                     dateFormat.format(startDate),
                                     GlobalVariables.blackGrey,
                                     1,
@@ -263,14 +274,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 Container(
                   color: GlobalVariables.white,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: CustomButton(
                     buttonText: 'Checkout',
                     borderColor: GlobalVariables.green,
                     fillColor: GlobalVariables.green,
                     textColor: Colors.white,
                     onTap: () {
-                      bookCourt(court.id, startDate, endDate);
+                      bookCourt(
+                        court.id,
+                        startDate,
+                        endDate,
+                      );
                     },
                   ),
                 ),
@@ -282,7 +300,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _InterMedium18(String text, Color color, int maxLines) {
+  Widget _interMedium18(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       child: Text(
         text,
@@ -298,7 +320,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _InterBold16(String text, Color color, int maxLines) {
+  Widget _interBold16(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       child: Text(
         text,
@@ -314,7 +340,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  Widget _interRegular14(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       child: Text(
         text,
@@ -330,7 +360,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _InterRegular12(String text, Color color, int maxLines) {
+  Widget _interRegular12(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       child: Text(
         text,
@@ -346,7 +380,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _InterBold14(String text, Color color, int maxLines) {
+  Widget _interBold14(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       child: Text(
         text,

@@ -6,7 +6,9 @@ import 'package:frontend/features/manager/court_management/widget/day_picker.dar
 import 'package:frontend/features/manager/court_management/widget/item_court.dart';
 import 'package:frontend/features/manager/court_management/widget/time_slot_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class CourtManagementScreen extends StatefulWidget {
   const CourtManagementScreen({Key? key}) : super(key: key);
@@ -17,14 +19,15 @@ class CourtManagementScreen extends StatefulWidget {
 
 class _CourtManagementScreenState extends State<CourtManagementScreen> {
   final _courtManagementService = CourtManagementService();
-  List<Court> _courts = [];
-  List<int> selectedDays = [];
-  int startHour = 7;
-  int startMinute = 30;
-  int endHour = 19;
-  int endMinute = 30;
 
-  int hourMinuteToMilliseconds(int hour, int minute) {
+  List<Court> _courts = [];
+  List<int> _selectedDays = [];
+  int _startHour = 7;
+  int _startMinute = 30;
+  int _endHour = 19;
+  int _endMinute = 30;
+
+  int _hourMinuteToMilliseconds(int hour, int minute) {
     DateTime baseDate = DateTime(2000, 1, 1);
     DateTime time = baseDate.add(Duration(hours: hour, minutes: minute));
     return time.millisecondsSinceEpoch;
@@ -51,65 +54,82 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     }
   }
 
-  Future<void> updateActiveSchedule() async {
+  Future<void> _updateActiveSchedule() async {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
     Map<String, dynamic> activeSchedule = {};
-    selectedDays.forEach((day) {
+    _selectedDays.forEach((day) {
       String dayName = _getDayName(day); // Helper function to get day name
       activeSchedule[dayName] = {
-        'hour_from': hourMinuteToMilliseconds(startHour, startMinute),
-        'hour_to': hourMinuteToMilliseconds(endHour, endMinute),
+        'hour_from': _hourMinuteToMilliseconds(_startHour, _startMinute),
+        'hour_to': _hourMinuteToMilliseconds(_endHour, _endMinute),
       };
     });
     await _courtManagementService.updateActiveSchedule(
       context,
-      GlobalVariables.facility.id,
+      currentFacilityProvider.currentFacility.id,
       activeSchedule,
     );
   }
 
   void _updateSuccessCallback(bool success) {
     if (success) {
-      fetchCourtByFacilityId();
+      _fetchCourtByFacilityId();
     }
     setState(() {});
   }
 
   void _updateSelectedDays(List<int> days) {
     setState(() {
-      selectedDays = days;
-      updateActiveSchedule();
+      _selectedDays = days;
+      _updateActiveSchedule();
     });
   }
 
   void _updateSelectedTime(
-      int startHour, int startMinute, int endHour, int endMinute) {
+    int startHour,
+    int startMinute,
+    int endHour,
+    int endMinute,
+  ) {
     setState(() {
-      this.startHour = startHour;
-      this.startMinute = startMinute;
-      this.endHour = endHour;
-      this.endMinute = endMinute;
-      updateActiveSchedule();
+      _startHour = startHour;
+      _startMinute = startMinute;
+      _endHour = endHour;
+      _endMinute = endMinute;
+
+      _updateActiveSchedule();
     });
   }
 
-  Future<void> fetchCourtByFacilityId() async {
-    final courts = await _courtManagementService.fetchCourtByFacilityId(
+  Future<void> _fetchCourtByFacilityId() async {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
-      GlobalVariables.facility.id,
+      listen: false,
     );
-    setState(() {
-      _courts = courts;
-    });
+
+    _courts = await _courtManagementService.fetchCourtByFacilityId(
+      context,
+      currentFacilityProvider.currentFacility.id,
+    );
+
+    setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    fetchCourtByFacilityId();
+
+    _fetchCourtByFacilityId();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
@@ -161,7 +181,9 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(
-                            GlobalVariables.facility.imageUrls.first),
+                          currentFacilityProvider
+                              .currentFacility.imageUrls.first,
+                        ),
                         fit: BoxFit.fill,
                       ),
                     ),
@@ -181,7 +203,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _InterRegular18(
-                          GlobalVariables.facility.name,
+                          currentFacilityProvider.currentFacility.name,
                           GlobalVariables.blackGrey,
                           1,
                         ),
@@ -227,7 +249,8 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                             child: _semiBoldSizeText('Time range:'),
                           ),
                           _boldSizeText(
-                              '$startHour:${startMinute.toString().padLeft(2, '0')} to $endHour:${endMinute.toString().padLeft(2, '0')}'),
+                            '$_startHour:${_startMinute.toString().padLeft(2, '0')} to $_endHour:${_endMinute.toString().padLeft(2, '0')}',
+                          ),
                           SizedBox(
                             width: 8,
                           ),

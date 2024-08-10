@@ -3,10 +3,12 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/intro/screens/intro_screen.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -32,6 +34,12 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => CheckoutProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => NewFacilityProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CurrentFacilityProvider(),
         ),
       ],
       child: const MyApp(),

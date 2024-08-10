@@ -9,15 +9,15 @@ import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ManagerInfo extends StatefulWidget {
-  const ManagerInfo({Key? key}) : super(key: key);
+class ManagerInfoScreen extends StatefulWidget {
+  const ManagerInfoScreen({Key? key}) : super(key: key);
   static const String routeName = '/managerInfo';
 
   @override
-  State<ManagerInfo> createState() => _ManagerInfoState();
+  State<ManagerInfoScreen> createState() => _ManagerInfoScreenState();
 }
 
-class _ManagerInfoState extends State<ManagerInfo> {
+class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
