@@ -3,8 +3,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
@@ -38,17 +41,12 @@ class _MapScreenState extends State<MapScreen> {
     lng: 0.0,
   );
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Future<void> _fetchSearchCode() async {
-    final seachCode = await _addFacilityService.fetchAddressRefId(
+    final searchCode = await _addFacilityService.fetchAddressRefId(
         vietmap_api_key, _searchController.text);
-    if (seachCode != null) {
+    if (searchCode != null) {
       setState(() {
-        _searchCode = seachCode;
+        _searchCode = searchCode;
       });
     }
   }
@@ -96,6 +94,37 @@ class _MapScreenState extends State<MapScreen> {
           setState(() {});
         });
       }
+    }
+  }
+
+  void _selectLocation() {
+    if (_detailAddress.lat != 0.0 && _detailAddress.lng != 0.0) {
+      final newFacilityProvider = Provider.of<NewFacilityProvider>(
+        context,
+        listen: false,
+      );
+
+      Facility facility = newFacilityProvider.newFacility.copyWith(
+        detailAddress: _detailAddress.address +
+            ', ' +
+            _detailAddress.ward +
+            ', ' +
+            _detailAddress.district +
+            ', ' +
+            _detailAddress.city,
+        province: _detailAddress.city,
+        latitude: _detailAddress.lat,
+        longitude: _detailAddress.lng,
+      );
+      newFacilityProvider.setFacility(facility);
+
+      Navigator.of(context).pop(_detailAddress);
+    } else {
+      IconSnackBar.show(
+        context,
+        label: 'Please choose your location!',
+        snackBarType: SnackBarType.fail,
+      );
     }
   }
 
@@ -268,19 +297,7 @@ class _MapScreenState extends State<MapScreen> {
                       Expanded(
                         child: Container(
                           child: CustomButton(
-                            onTap: () {
-                              if (_detailAddress.lat != 0.0 &&
-                                  _detailAddress.lng != 0.0) {
-                                GlobalVariables.detailAddress = _detailAddress;
-                                Navigator.of(context).pop(_detailAddress);
-                              } else {
-                                IconSnackBar.show(
-                                  context,
-                                  label: 'Please choose your location!',
-                                  snackBarType: SnackBarType.fail,
-                                );
-                              }
-                            },
+                            onTap: _selectLocation,
                             buttonText: 'Select',
                             borderColor: GlobalVariables.green,
                             fillColor: GlobalVariables.green,

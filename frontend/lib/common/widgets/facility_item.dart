@@ -3,33 +3,47 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class FacilityItem extends StatefulWidget {
   const FacilityItem({
     super.key,
     required this.facility,
+    this.onPrimary = false,
   });
 
   final Facility facility;
+  final bool onPrimary;
 
   @override
-  _FacilityItemState createState() => _FacilityItemState();
+  State<FacilityItem> createState() => _FacilityItemState();
 }
 
 class _FacilityItemState extends State<FacilityItem> {
   int _activeIndex = 0;
-  final CarouselController _controller = CarouselController();
 
   void _navigateToFacilityManagerBottomBar() {
-    GlobalVariables.facility = widget.facility;
-    Navigator.of(context).pushReplacementNamed(ManagerBottomBar.routeName);
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    currentFacilityProvider.setFacility(widget.facility);
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      ManagerBottomBar.routeName,
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final int imageCount = widget.facility.imageUrls.length;
+    final imageCount = widget.facility.imageUrls.length;
+    final minPrice = widget.facility.minPrice;
+    final maxPrice = widget.facility.maxPrice;
 
     return GestureDetector(
       onTap: _navigateToFacilityManagerBottomBar,
@@ -41,7 +55,8 @@ class _FacilityItemState extends State<FacilityItem> {
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: GlobalVariables.white,
+          color:
+              widget.onPrimary ? GlobalVariables.green : GlobalVariables.white,
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -57,10 +72,10 @@ class _FacilityItemState extends State<FacilityItem> {
                 child: Stack(
                   children: [
                     CarouselSlider.builder(
-                      carouselController: _controller,
                       itemCount: imageCount,
                       options: CarouselOptions(
                         viewportFraction: 1.0,
+                        enableInfiniteScroll: imageCount > 1,
                         aspectRatio: 2,
                         onPageChanged: (index, reason) => setState(() {
                           _activeIndex = index;
@@ -74,8 +89,9 @@ class _FacilityItemState extends State<FacilityItem> {
                             ),
                             image: DecorationImage(
                               image: NetworkImage(
-                                  widget.facility.imageUrls[index]),
-                              fit: BoxFit.fill,
+                                widget.facility.imageUrls[index],
+                              ),
+                              fit: BoxFit.contain,
                             ),
                           ),
                         );
@@ -106,16 +122,31 @@ class _FacilityItemState extends State<FacilityItem> {
                   ],
                 ),
               ),
-              _InterRegular16(
+              _interRegular16(
                 widget.facility.name,
-                GlobalVariables.blackGrey,
+                widget.onPrimary
+                    ? GlobalVariables.white
+                    : GlobalVariables.blackGrey,
                 2,
               ),
               Row(
                 children: [
-                  _InterBold14(
-                    '140000đ - 180000đ',
-                    GlobalVariables.blackGrey,
+                  _interBold14(
+                    minPrice == maxPrice
+                        ? NumberFormat.currency(
+                            locale: 'vi_VN',
+                            symbol: 'đ',
+                          ).format(minPrice)
+                        : '${NumberFormat.currency(
+                            locale: 'vi_VN',
+                            symbol: 'đ',
+                          ).format(widget.facility.minPrice)} - ${NumberFormat.currency(
+                            locale: 'vi_VN',
+                            symbol: 'đ',
+                          ).format(widget.facility.maxPrice)}',
+                    widget.onPrimary
+                        ? GlobalVariables.white
+                        : GlobalVariables.blackGrey,
                     1,
                   ),
                 ],
@@ -126,7 +157,7 @@ class _FacilityItemState extends State<FacilityItem> {
                     rating: widget.facility.ratingAvg,
                     itemBuilder: (context, index) => Icon(
                       Icons.star,
-                      color: GlobalVariables.yellow,
+                      color: Colors.yellow,
                     ),
                     itemCount: 5,
                     itemSize: 20.0,
@@ -138,15 +169,19 @@ class _FacilityItemState extends State<FacilityItem> {
                     child: Text(
                       ' (${widget.facility.totalRating})',
                       style: GoogleFonts.inter(
-                        color: GlobalVariables.darkGrey,
+                        color: widget.onPrimary
+                            ? GlobalVariables.white
+                            : GlobalVariables.darkGrey,
                       ),
                     ),
                   ),
                 ],
               ),
-              _InterRegular14(
+              _interRegular14(
                 widget.facility.detailAddress,
-                GlobalVariables.darkGrey,
+                widget.onPrimary
+                    ? GlobalVariables.white
+                    : GlobalVariables.darkGrey,
                 2,
               ),
               SizedBox(
@@ -159,11 +194,9 @@ class _FacilityItemState extends State<FacilityItem> {
     );
   }
 
-  Widget _InterRegular16(String text, Color color, int maxLines) {
+  Widget _interRegular16(String text, Color color, int maxLines) {
     return Container(
-      padding: EdgeInsets.only(
-        top: 12,
-      ),
+      padding: EdgeInsets.only(top: 12),
       child: Text(
         text,
         textAlign: TextAlign.start,
@@ -178,7 +211,7 @@ class _FacilityItemState extends State<FacilityItem> {
     );
   }
 
-  Widget _InterBold14(String text, Color color, int maxLines) {
+  Widget _interBold14(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
         top: 4,
@@ -197,7 +230,7 @@ class _FacilityItemState extends State<FacilityItem> {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  Widget _interRegular14(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
         top: 4,

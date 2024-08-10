@@ -3,17 +3,19 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/court_management/services/court_management_service.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class AddUpdateCourtBottomSheet extends StatefulWidget {
   final String stateText;
   final Function(bool) onUpdateSuccess; // Callback to update parent widget
 
   const AddUpdateCourtBottomSheet({
-    Key? key,
+    super.key,
     required this.stateText,
     required this.onUpdateSuccess,
-  }) : super(key: key);
+  });
 
   @override
   State<AddUpdateCourtBottomSheet> createState() =>
@@ -35,10 +37,15 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
     setState(() {});
 
     try {
+      final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+        context,
+        listen: false,
+      );
+
       if (widget.stateText == 'Add') {
         await _courtManagementService.addCourt(
           context: context,
-          facilityId: GlobalVariables.facility.id,
+          facilityId: currentFacilityProvider.currentFacility.id,
           name: _courtNameController.text,
           description: _courtDescController.text,
           pricePerHour: int.parse(_pricePerHourController.text),

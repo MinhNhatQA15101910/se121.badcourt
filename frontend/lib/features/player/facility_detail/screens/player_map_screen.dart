@@ -3,7 +3,9 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
@@ -19,8 +21,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
   final _searchController = TextEditingController();
   final _addFacilityService = AddFacilityService();
   VietmapController? _mapController;
-  LatLng markerPosition = LatLng(
-      GlobalVariables.facility.latitude, GlobalVariables.facility.longitude);
+  late LatLng markerPosition;
   String _searchCode = "";
   DetailAddress _detailAddress = DetailAddress(
     display: '',
@@ -41,21 +42,38 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
   @override
   void initState() {
     super.initState();
+
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
+    markerPosition = LatLng(
+      currentFacilityProvider.currentFacility.latitude,
+      currentFacilityProvider.currentFacility.longitude,
+    );
   }
 
-  void OnUpdateLocation() {
+  void _onUpdateLocation() {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
     setState(() {
-      markerPosition = LatLng(GlobalVariables.facility.latitude,
-          GlobalVariables.facility.longitude);
+      markerPosition = LatLng(
+        currentFacilityProvider.currentFacility.latitude,
+        currentFacilityProvider.currentFacility.longitude,
+      );
     });
   }
 
   Future<void> _fetchSearchCode() async {
-    final seachCode = await _addFacilityService.fetchAddressRefId(
+    final searchCode = await _addFacilityService.fetchAddressRefId(
         vietmap_api_key, _searchController.text);
-    if (seachCode != null) {
+    if (searchCode != null) {
       setState(() {
-        _searchCode = seachCode;
+        _searchCode = searchCode;
       });
     }
   }
@@ -108,6 +126,8 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
@@ -139,9 +159,12 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
               trackCameraPosition: true,
               styleString: vietmap_string_key,
               initialCameraPosition: CameraPosition(
-                  target: LatLng(GlobalVariables.facility.latitude,
-                      GlobalVariables.facility.longitude),
-                  zoom: 15),
+                target: LatLng(
+                  currentFacilityProvider.currentFacility.latitude,
+                  currentFacilityProvider.currentFacility.longitude,
+                ),
+                zoom: 15,
+              ),
               onMapCreated: (VietmapController controller) {
                 setState(() {
                   _mapController = controller;
@@ -150,8 +173,9 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
             ),
             _mapController == null
                 ? SizedBox.shrink()
-                : MarkerLayer(markers: [
-                    Marker(
+                : MarkerLayer(
+                    markers: [
+                      Marker(
                         alignment: Alignment.bottomCenter,
                         height: 50,
                         width: 50,
@@ -160,8 +184,11 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
                           color: GlobalVariables.red,
                           size: 50,
                         ),
-                        latLng: markerPosition)
-                  ], mapController: _mapController!),
+                        latLng: markerPosition,
+                      )
+                    ],
+                    mapController: _mapController!,
+                  ),
             Column(
               children: [
                 SizedBox(
@@ -276,7 +303,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
                       Expanded(
                         child: Container(
                           child: CustomButton(
-                            onTap: OnUpdateLocation,
+                            onTap: _onUpdateLocation,
                             buttonText: 'Address',
                             borderColor: GlobalVariables.green,
                             fillColor: GlobalVariables.green,

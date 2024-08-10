@@ -2,28 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class FacilityHome extends StatefulWidget {
-  const FacilityHome({
-    super.key,
-  });
+  const FacilityHome({super.key});
 
   @override
-  _FacilityHomeState createState() => _FacilityHomeState();
+  State<FacilityHome> createState() => _FacilityHomeState();
 }
 
 class _FacilityHomeState extends State<FacilityHome> {
   int _activeIndex = 0;
-
   final CarouselController _controller = CarouselController();
+
   void _navigateToFacilityInfo() {
     Navigator.of(context).pushReplacementNamed(IntroManagerScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
-    final imageCount = GlobalVariables.facility.imageUrls.length;
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+
+    final imageCount = currentFacilityProvider.currentFacility.imageUrls.length;
 
     return Container(
       child: Column(
@@ -38,8 +40,11 @@ class _FacilityHomeState extends State<FacilityHome> {
             child: Row(
               children: [
                 Expanded(
-                  child: _InterMedium16(
-                      GlobalVariables.facility.name, GlobalVariables.white, 1),
+                  child: _interMedium16(
+                    currentFacilityProvider.currentFacility.name,
+                    GlobalVariables.white,
+                    1,
+                  ),
                 ),
                 IconButton(
                   onPressed: _navigateToFacilityInfo,
@@ -50,7 +55,7 @@ class _FacilityHomeState extends State<FacilityHome> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => {},
+                  onPressed: () {},
                   iconSize: 24,
                   color: GlobalVariables.white,
                   icon: PopupMenuButton<String>(
@@ -99,7 +104,9 @@ class _FacilityHomeState extends State<FacilityHome> {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(
-                            GlobalVariables.facility.imageUrls[index]),
+                          currentFacilityProvider
+                              .currentFacility.imageUrls[index],
+                        ),
                         fit: BoxFit.fill,
                       ),
                     ),
@@ -142,17 +149,17 @@ class _FacilityHomeState extends State<FacilityHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _InterRegular18(
-                    GlobalVariables.facility.name,
+                  _interRegular18(
+                    currentFacilityProvider.currentFacility.name,
                     GlobalVariables.blackGrey,
                     1,
                   ),
-                  _InterBold16(
+                  _interBold16(
                     '120.000đ - 150.000đ /1h ',
                     GlobalVariables.blackGrey,
                     1,
                   ),
-                  _InterRegular14Underline(
+                  _interRegular14Underline(
                     'activated',
                     GlobalVariables.green,
                     1,
@@ -166,7 +173,7 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _InterRegular18(String text, Color color, int maxLines) {
+  Widget _interRegular18(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
         top: 12,
@@ -185,7 +192,7 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _InterBold16(String text, Color color, int maxLines) {
+  Widget _interBold16(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
         top: 4,
@@ -204,7 +211,7 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _InterRegular14Underline(String text, Color color, int maxLines) {
+  Widget _interRegular14Underline(String text, Color color, int maxLines) {
     return Container(
       child: Text(
         text,
@@ -222,7 +229,7 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _InterMedium16(String text, Color color, int maxLines) {
+  Widget _interMedium16(String text, Color color, int maxLines) {
     return Container(
       padding: EdgeInsets.only(
         bottom: 8,

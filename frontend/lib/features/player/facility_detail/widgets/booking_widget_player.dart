@@ -6,8 +6,10 @@ import 'package:frontend/models/booking.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order_period.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class BookingWidgetPlayer extends StatefulWidget {
   final Court court;
@@ -20,7 +22,7 @@ class BookingWidgetPlayer extends StatefulWidget {
   });
 
   @override
-  _BookingWidgetPlayerState createState() => _BookingWidgetPlayerState();
+  State<BookingWidgetPlayer> createState() => _BookingWidgetPlayerState();
 }
 
 class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
@@ -29,12 +31,19 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   List<OrderPeriod> _orderPeriods = [];
   List<BookingTime> _bookingTimeListDisable = [];
 
-  void getTime() {
+  void _getTime() {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
     String day =
         DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
 
-    if (GlobalVariables.facility.activeAt.schedule.containsKey(day)) {
-      PeriodTime periodTime = GlobalVariables.facility.activeAt.schedule[day]!;
+    if (currentFacilityProvider.currentFacility.activeAt.schedule
+        .containsKey(day)) {
+      PeriodTime periodTime =
+          currentFacilityProvider.currentFacility.activeAt.schedule[day]!;
       int startTime = periodTime.hourFrom;
       int endTime = periodTime.hourTo;
       setState(() {
@@ -44,7 +53,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     }
   }
 
-  void getOrderPeriodsByDate() {
+  void _getOrderPeriodsByDate() {
     _orderPeriods = widget.court.getOrderPeriodsByDate(widget.currentDateTime);
 
     List<BookingTime> bookingTimeListDisable = [];
@@ -74,31 +83,11 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     _bookingTimeListDisable = bookingTimeListDisable;
   }
 
-  List<BookingTime> bookingTimeList = [
-    BookingTime(
-      id: 1,
-      startDate: DateTime(2000, 1, 1, 7, 30),
-      endDate: DateTime(2000, 1, 1, 8, 30),
-      status: 1,
-    ),
-    BookingTime(
-      id: 2,
-      startDate: DateTime(2000, 1, 1, 8, 30),
-      endDate: DateTime(2000, 1, 1, 10, 00),
-      status: 0,
-    ),
-    BookingTime(
-      id: 3,
-      startDate: DateTime(2000, 1, 1, 10, 30),
-      endDate: DateTime(2000, 1, 1, 12, 00),
-      status: 1,
-    ),
-  ];
   @override
   void initState() {
     super.initState();
-    getTime();
-    getOrderPeriodsByDate();
+    _getTime();
+    _getOrderPeriodsByDate();
   }
 
   @override

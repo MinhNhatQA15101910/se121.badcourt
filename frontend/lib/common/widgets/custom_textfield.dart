@@ -11,6 +11,8 @@ class CustomTextfield extends StatefulWidget {
     this.isPassword = false,
     this.isPhoneNumber = false,
     this.isEmail = false,
+    this.maxLines = 1,
+    this.readOnly = false,
   });
 
   final TextEditingController controller;
@@ -19,6 +21,8 @@ class CustomTextfield extends StatefulWidget {
   final bool isPassword;
   final bool isPhoneNumber;
   final bool isEmail;
+  final int maxLines;
+  final bool readOnly;
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();
@@ -37,6 +41,8 @@ class _CustomTextfieldState extends State<CustomTextfield> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
+      maxLines: widget.maxLines,
+      readOnly: widget.readOnly,
       obscureText: widget.isPassword && !_showPassword,
       enableSuggestions: !widget.isPassword,
       keyboardType: widget.isPhoneNumber

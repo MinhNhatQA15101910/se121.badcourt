@@ -247,4 +247,29 @@ class ManagerInfo {
       id: map['_id'] ?? '',
     );
   }
+
+  ManagerInfo copyWith({
+    String? fullName,
+    String? email,
+    String? citizenId,
+    String? citizenImageUrlFront,
+    String? citizenImageUrlBack,
+    String? bankCardUrlFront,
+    String? bankCardUrlBack,
+    List<String>? businessLicenseImageUrls,
+    String? id,
+  }) {
+    return ManagerInfo(
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      citizenId: citizenId ?? this.citizenId,
+      citizenImageUrlFront: citizenImageUrlFront ?? this.citizenImageUrlFront,
+      citizenImageUrlBack: citizenImageUrlBack ?? this.citizenImageUrlBack,
+      bankCardUrlFront: bankCardUrlFront ?? this.bankCardUrlFront,
+      bankCardUrlBack: bankCardUrlBack ?? this.bankCardUrlBack,
+      businessLicenseImageUrls:
+          businessLicenseImageUrls ?? this.businessLicenseImageUrls,
+      id: id ?? this.id,
+    );
+  }
 }

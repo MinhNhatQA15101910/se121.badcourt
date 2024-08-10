@@ -15,59 +15,6 @@ import Order from "../../models/order.js";
 
 const playerCourtRouter = express.Router();
 
-// Check overlap route
-Future<bool> validateOverlap(
-  BuildContext context,
-  String courtId,
-  DateTime startTime,
-  DateTime endTime,
-) async {
-  final userProvider = Provider.of<UserProvider>(
-    context,
-    listen: false,
-  );
-  try {
-    final response = await http.post(
-      Uri.parse('$uri/player/validate-overlap/$courtId'),
-      body: jsonEncode(
-        {
-          "order_periods": [
-            {
-              "hour_from": startTime.millisecondsSinceEpoch,
-              "hour_to": endTime.millisecondsSinceEpoch
-            }
-          ]
-        },
-      ),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'x-auth-token': userProvider.user.token,
-      },
-    );
-
-    httpErrorHandler(
-      response: response,
-      context: context,
-      onSuccess: () {},
-    );
-
-    if (response.statusCode == 200) {
-      final bool hasOverlap = jsonDecode(response.body);
-      return hasOverlap;
-    } else {
-      return false;
-    }
-  } catch (error) {
-    IconSnackBar.show(
-      context,
-      label: error.toString(),
-      snackBarType: SnackBarType.fail,
-    );
-    return false;
-  }
-}
-
-
 // Book court route
 playerCourtRouter.patch(
   "/player/book-court/:court_id",

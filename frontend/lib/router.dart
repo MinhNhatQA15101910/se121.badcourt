@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
+import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
@@ -83,10 +84,15 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const FacilityInfo(),
       );
-    case ManagerInfo.routeName:
+    case ManagerInfoScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const ManagerInfo(),
+        builder: (_) => const ManagerInfoScreen(),
+      );
+    case ManagerAccountScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const ManagerAccountScreen(),
       );
     case ContractScreen.routeName:
       return MaterialPageRoute(

@@ -6,19 +6,19 @@ import 'package:frontend/common/widgets/item_tag.dart';
 import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/account/services/account_service.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ManagerAccountScreen extends StatelessWidget {
+  static const String routeName = '/manager/account';
   const ManagerAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
+    final userProvider = context.watch<UserProvider>();
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
     void logOut(BuildContext context) {
       showDialog(
@@ -175,7 +175,7 @@ class ManagerAccountScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            _InterMedium14('5.0', GlobalVariables.blackGrey, 1),
+                            _interMedium14('5.0', GlobalVariables.blackGrey, 1),
                             SizedBox(
                               width: 8,
                             ),
@@ -196,7 +196,7 @@ class ManagerAccountScreen extends StatelessWidget {
                                 },
                               ),
                             ),
-                            _InterRegular14(
+                            _interRegular14(
                               '(50 Ratings)',
                               GlobalVariables.green,
                               1,
@@ -207,12 +207,12 @@ class ManagerAccountScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _InterMedium14(
+                            _interMedium14(
                               'Response rate (24h recent)',
                               GlobalVariables.blackGrey,
                               1,
                             ),
-                            _InterBold14(
+                            _interBold14(
                               '97%',
                               GlobalVariables.blackGrey,
                               1,
@@ -232,8 +232,9 @@ class ManagerAccountScreen extends StatelessWidget {
                               width: 8,
                             ),
                             Expanded(
-                              child: _InterBold14(
-                                GlobalVariables.facility.detailAddress,
+                              child: _interBold14(
+                                currentFacilityProvider
+                                    .currentFacility.detailAddress,
                                 GlobalVariables.blackGrey,
                                 4,
                               ),
@@ -251,14 +252,14 @@ class ManagerAccountScreen extends StatelessWidget {
                     right: 16,
                     bottom: 8,
                   ),
-                  child: _InterBold16(
+                  child: _interBold16(
                     'Badminton facility list',
                     GlobalVariables.blackGrey,
                     1,
                   ),
                 ),
                 FacilityItem(
-                  facility: GlobalVariables.facility,
+                  facility: currentFacilityProvider.currentFacility,
                 ),
                 CustomContainer(
                   child: ItemTag2(
@@ -293,7 +294,7 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _InterBold16(String text, Color color, int maxLines) {
+  Widget _interBold16(String text, Color color, int maxLines) {
     return Container(
       child: Text(
         text,
@@ -309,7 +310,7 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  Widget _interRegular14(String text, Color color, int maxLines) {
     return Container(
       child: Text(
         text,
@@ -325,7 +326,7 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _InterMedium14(String text, Color color, int maxLines) {
+  Widget _interMedium14(String text, Color color, int maxLines) {
     return Container(
       child: Text(
         text,
@@ -341,7 +342,7 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _InterBold14(String text, Color color, int maxLines) {
+  Widget _interBold14(String text, Color color, int maxLines) {
     return Container(
       child: Text(
         text,

@@ -6,10 +6,11 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class ContractScreen extends StatefulWidget {
-  static const String routeName = '/contracts';
-  const ContractScreen({Key? key}) : super(key: key);
+  static const String routeName = '/manager/contracts';
+  const ContractScreen({super.key});
 
   @override
   State<ContractScreen> createState() => _ContractScreenState();
@@ -25,44 +26,50 @@ class _ContractScreenState extends State<ContractScreen> {
   }
 
   Future<void> _addFacility() async {
-    setState(() {
-      _isLoading = true;
-    });
-    String detail_address = GlobalVariables.detailAddress.street +
-        ', ' +
-        GlobalVariables.detailAddress.ward +
-        ', ' +
-        GlobalVariables.detailAddress.district +
-        ', ' +
-        GlobalVariables.detailAddress.city;
-    try {
-      await _addFacilityService.registerFacility(
-        context: context,
-        facilityName: GlobalVariables.facilityName,
-        latitude: GlobalVariables.detailAddress.lat,
-        longitude: GlobalVariables.detailAddress.lng,
-        detailAddress: detail_address,
-        province: GlobalVariables.detailAddress.city,
-        facilityImageUrls: GlobalVariables.facilityImages!,
-        fullName: GlobalVariables.managerName,
-        email: GlobalVariables.manageEmail,
-        facebookUrl: 'something',
-        phoneNumber: GlobalVariables.managePhoneNumber,
-        citizenId: GlobalVariables.manageCitizenId,
-        citizenImageFront: GlobalVariables.frontCitizenIdImage,
-        citizenImageBack: GlobalVariables.backCitizenIdImage,
-        bankCardFront: GlobalVariables.frontBankCardImage,
-        bankCardBack: GlobalVariables.backBankCardImage,
-        businessLicenseImageUrls: GlobalVariables.lisenceImages!,
-        description: GlobalVariables.facilityDescription,
-        policy: GlobalVariables.facilityPolicy,
-      );
-      _navigateToIntroManagerScreen();
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    // setState(() {
+    //   _isLoading = true;
+    // });
+    // final detailAddressProvider = Provider.of<DetailAddressProvider>(
+    //   context,
+    //   listen: false,
+    // );
+
+    // String detailAddress = detailAddressProvider.detailAddress.street +
+    //     ', ' +
+    //     detailAddressProvider.detailAddress.ward +
+    //     ', ' +
+    //     detailAddressProvider.detailAddress.district +
+    //     ', ' +
+    //     detailAddressProvider.detailAddress.city;
+    // try {
+    //   await _addFacilityService.registerFacility(
+    //     context: context,
+    //     facilityName: GlobalVariables.facilityName,
+    //     latitude: detailAddressProvider.detailAddress.lat,
+    //     longitude: detailAddressProvider.detailAddress.lng,
+    //     detailAddress: detailAddress,
+    //     province: detailAddressProvider.detailAddress.city,
+    //     facilityImageUrls: GlobalVariables.facilityImages!,
+    //     fullName: GlobalVariables.managerName,
+    //     email: GlobalVariables.manageEmail,
+    //     facebookUrl: 'something',
+    //     phoneNumber: GlobalVariables.managePhoneNumber,
+    //     citizenId: GlobalVariables.manageCitizenId,
+    //     citizenImageFront: GlobalVariables.frontCitizenIdImage,
+    //     citizenImageBack: GlobalVariables.backCitizenIdImage,
+    //     bankCardFront: GlobalVariables.frontBankCardImage,
+    //     bankCardBack: GlobalVariables.backBankCardImage,
+    //     businessLicenseImageUrls: GlobalVariables.licenseImages!,
+    //     description: GlobalVariables.facilityDescription,
+    //     policy: GlobalVariables.facilityPolicy,
+    //   );
+      
+    //   _navigateToIntroManagerScreen();
+    // } finally {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    // }
   }
 
   @override

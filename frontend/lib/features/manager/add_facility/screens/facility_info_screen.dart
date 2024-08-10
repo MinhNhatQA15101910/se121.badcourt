@@ -7,13 +7,16 @@ import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class FacilityInfo extends StatefulWidget {
-  static const String routeName = '/facilityInfo';
-  const FacilityInfo({Key? key}) : super(key: key);
+  static const String routeName = 'manager/facility-info';
+  const FacilityInfo({super.key});
 
   @override
   State<FacilityInfo> createState() => _FacilityInfoState();
@@ -35,7 +38,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
 
   void _navigateToManagerInfoScreen() {
     if (_formKey.currentState!.validate()) {
-      Navigator.of(context).pushNamed(ManagerInfo.routeName);
+      Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
     }
   }
 
@@ -74,6 +77,33 @@ class _FacilityInfoState extends State<FacilityInfo> {
         _facilityInfo!.removeAt(index);
       }
     });
+  }
+
+  void _saveFacilityInfo() {
+    if (_formKey.currentState!.validate()) {
+      if (_images == null || _images!.isEmpty) {
+        IconSnackBar.show(
+          context,
+          label: 'Please select you image!',
+          snackBarType: SnackBarType.fail,
+        );
+      } else {
+        final newFacilityProvider = Provider.of<NewFacilityProvider>(
+          context,
+          listen: false,
+        );
+
+        Facility facility = newFacilityProvider.newFacility.copyWith(
+          name: _facilityNameController.text,
+          description: _descriptionController.text,
+          policy: _policyController.text,
+        );
+        newFacilityProvider.setFacility(facility);
+        newFacilityProvider.setFacilityImageUrls(_images!);
+
+        _navigateToManagerInfoScreen();
+      }
+    }
   }
 
   @override
@@ -292,7 +322,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Badminton facility Name *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -308,7 +338,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Select a location on the map *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -348,7 +378,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                         ? _isValidateText(true)
                                         : _isValidateText(false),
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Province *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -356,6 +386,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   CustomTextfield(
                                     controller: _provinceNameController,
                                     hintText: 'Province',
+                                    readOnly: true,
                                     validator: (provinceName) {
                                       if (provinceName == null ||
                                           provinceName.isEmpty) {
@@ -364,7 +395,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "District *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -372,6 +403,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   CustomTextfield(
                                     controller: _districtNameController,
                                     hintText: 'District',
+                                    readOnly: true,
                                     validator: (districtName) {
                                       if (districtName == null ||
                                           districtName.isEmpty) {
@@ -380,7 +412,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Ward *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -388,6 +420,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   CustomTextfield(
                                     controller: _wardNameController,
                                     hintText: 'Ward',
+                                    readOnly: true,
                                     validator: (wardName) {
                                       if (wardName == null ||
                                           wardName.isEmpty) {
@@ -396,14 +429,15 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
-                                    "Street/ House number *",
+                                  _interRegular14(
+                                    "Street / House number *",
                                     GlobalVariables.darkGrey,
                                     1,
                                   ),
                                   CustomTextfield(
                                     controller: _streetNameController,
-                                    hintText: 'Street/ House number',
+                                    hintText: 'Street / House number',
+                                    readOnly: true,
                                     validator: (wardName) {
                                       if (wardName == null ||
                                           wardName.isEmpty) {
@@ -412,7 +446,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Facility description *",
                                     GlobalVariables.darkGrey,
                                     1,
@@ -420,6 +454,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   CustomTextfield(
                                     controller: _descriptionController,
                                     hintText: 'Facility description',
+                                    maxLines: 5,
                                     validator: (wardName) {
                                       if (wardName == null ||
                                           wardName.isEmpty) {
@@ -428,13 +463,14 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                       return null;
                                     },
                                   ),
-                                  _InterRegular14(
+                                  _interRegular14(
                                     "Facility policy *",
                                     GlobalVariables.darkGrey,
                                     1,
                                   ),
                                   CustomTextfield(
                                     controller: _policyController,
+                                    maxLines: 5,
                                     hintText: 'Facility policy',
                                     validator: (wardName) {
                                       if (wardName == null ||
@@ -461,30 +497,12 @@ class _FacilityInfoState extends State<FacilityInfo> {
                       vertical: 12,
                     ),
                     child: CustomButton(
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            if (_images == null || _images!.isEmpty) {
-                              IconSnackBar.show(
-                                context,
-                                label: 'Please select you image!',
-                                snackBarType: SnackBarType.fail,
-                              );
-                            } else {
-                              GlobalVariables.facilityImages = _images;
-                              GlobalVariables.facilityName =
-                                  _facilityNameController.text;
-                              GlobalVariables.facilityDescription =
-                                  _descriptionController.text;
-                              GlobalVariables.facilityPolicy =
-                                  _policyController.text;
-                              _navigateToManagerInfoScreen();
-                            }
-                          }
-                        },
-                        buttonText: 'Next',
-                        borderColor: GlobalVariables.green,
-                        fillColor: GlobalVariables.green,
-                        textColor: Colors.white),
+                      onTap: _saveFacilityInfo,
+                      buttonText: 'Next',
+                      borderColor: GlobalVariables.green,
+                      fillColor: GlobalVariables.green,
+                      textColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -495,7 +513,23 @@ class _FacilityInfoState extends State<FacilityInfo> {
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  @override
+  void dispose() {
+    _facilityNameController.dispose();
+    _streetNameController.dispose();
+    _wardNameController.dispose();
+    _districtNameController.dispose();
+    _provinceNameController.dispose();
+    _descriptionController.dispose();
+    _policyController.dispose();
+    super.dispose();
+  }
+
+  Widget _interRegular14(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       padding: EdgeInsets.only(
         bottom: 8,
