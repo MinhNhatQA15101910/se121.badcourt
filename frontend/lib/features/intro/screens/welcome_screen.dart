@@ -18,7 +18,7 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  final _carouselController = CarouselController();
+  final _carouselController = CarouselSliderController();
 
   var _activeIndex = 0;
 

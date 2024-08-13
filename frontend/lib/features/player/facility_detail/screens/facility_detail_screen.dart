@@ -19,7 +19,7 @@ class FacilityDetailScreen extends StatefulWidget {
 
 class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
   int _activeIndex = 0;
-  final CarouselController _controller = CarouselController();
+  final CarouselSliderController _controller = CarouselSliderController();
 
   void _navigateToCourtDetailScreen() {
     Navigator.of(context).pushNamed(CourtDetailScreen.routeName);

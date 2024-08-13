@@ -7,12 +7,13 @@ class CustomTextfield extends StatefulWidget {
     super.key,
     required this.controller,
     required this.hintText,
-    required this.validator,
+    this.validator,
     this.isPassword = false,
     this.isPhoneNumber = false,
     this.isEmail = false,
     this.maxLines = 1,
     this.readOnly = false,
+    this.text,
   });
 
   final TextEditingController controller;
@@ -23,6 +24,7 @@ class CustomTextfield extends StatefulWidget {
   final bool isEmail;
   final int maxLines;
   final bool readOnly;
+  final String? text;
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();

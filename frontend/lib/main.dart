@@ -3,6 +3,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/intro/screens/intro_screen.dart';
+import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
@@ -40,6 +41,9 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => CurrentFacilityProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AddressProvider(),
         ),
       ],
       child: const MyApp(),

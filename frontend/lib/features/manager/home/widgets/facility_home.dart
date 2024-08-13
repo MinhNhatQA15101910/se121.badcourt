@@ -15,7 +15,7 @@ class FacilityHome extends StatefulWidget {
 
 class _FacilityHomeState extends State<FacilityHome> {
   int _activeIndex = 0;
-  final CarouselController _controller = CarouselController();
+  final CarouselSliderController _controller = CarouselSliderController();
 
   void _navigateToFacilityInfo() {
     Navigator.of(context).pushReplacementNamed(IntroManagerScreen.routeName);
