@@ -13,7 +13,6 @@ class CustomTextfield extends StatefulWidget {
     this.isEmail = false,
     this.maxLines = 1,
     this.readOnly = false,
-    this.text,
   });
 
   final TextEditingController controller;
@@ -24,7 +23,6 @@ class CustomTextfield extends StatefulWidget {
   final bool isEmail;
   final int maxLines;
   final bool readOnly;
-  final String? text;
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();

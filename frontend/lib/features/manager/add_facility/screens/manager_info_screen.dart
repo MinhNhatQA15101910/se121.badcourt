@@ -3,14 +3,26 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
+import 'package:frontend/features/manager/add_facility/widgets/facility_info_form_field.dart';
+import 'package:frontend/features/manager/add_facility/widgets/image_picker_button.dart';
+import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
+import 'package:frontend/features/manager/add_facility/widgets/multiple_image_picker_button.dart';
+import 'package:frontend/features/manager/add_facility/widgets/selected_images.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
+enum ImagePickerOption {
+  frontCitizenId,
+  backCitizenId,
+  frontBankCard,
+  backBankCard,
+  licenses,
+}
 
 class ManagerInfoScreen extends StatefulWidget {
   static const String routeName = '/manager/manager-info';
@@ -36,171 +48,49 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
     Navigator.of(context).pushNamed(ContractScreen.routeName);
   }
 
-  Future<void> _pickFrontCitizenIdImage() async {
+  Future<void> _pickImage(ImagePickerOption option) async {
+    // Add license images
+    if (option == ImagePickerOption.licenses) {
+      final List<File> images = await pickMultipleImages();
+      if (images.isNotEmpty) {
+        setState(() {
+          _licenseImages!.addAll(images);
+        });
+      }
+      return;
+    }
+
     final File? image = await pickOneImage();
     if (image != null) {
-      setState(() {
-        _frontCitizenIdImage = image;
-      });
+      switch (option) {
+        // Add front citizen ID image
+        case ImagePickerOption.frontCitizenId:
+          setState(() {
+            _frontCitizenIdImage = image;
+          });
+          break;
+        // Add back citizen ID image
+        case ImagePickerOption.backCitizenId:
+          setState(() {
+            _backCitizenIdImage = image;
+          });
+          break;
+        // Add front bank card image
+        case ImagePickerOption.frontBankCard:
+          setState(() {
+            _frontBankCardImage = image;
+          });
+          break;
+        // Add back bank card image
+        case ImagePickerOption.backBankCard:
+          setState(() {
+            _backBankCardImage = image;
+          });
+          break;
+        default:
+          break;
+      }
     }
-  }
-
-  Future<void> _pickBackCitizenIdImage() async {
-    final File? image = await pickOneImage();
-    if (image != null) {
-      setState(() {
-        _backCitizenIdImage = image;
-      });
-    }
-  }
-
-  Future<void> _pickFrontBankCardImage() async {
-    final File? image = await pickOneImage();
-    if (image != null) {
-      setState(() {
-        _frontBankCardImage = image;
-      });
-    }
-  }
-
-  Future<void> _pickBackBankCardImage() async {
-    final File? image = await pickOneImage();
-    if (image != null) {
-      setState(() {
-        _backBankCardImage = image;
-      });
-    }
-  }
-
-  Future<void> _pickLicenseImages() async {
-    final List<File> images = await pickMultipleImages();
-    if (images.isNotEmpty) {
-      setState(() {
-        _licenseImages!.addAll(images);
-      });
-    }
-  }
-
-  Widget _buildImagePickerButton({
-    required VoidCallback onTap,
-    File? image,
-    VoidCallback? onClear,
-  }) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: GlobalVariables.lightGrey,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: image == null
-                ? Center(
-                    child: Icon(
-                      Icons.add_photo_alternate_outlined,
-                      color: GlobalVariables.darkGrey,
-                      size: 36,
-                    ),
-                  )
-                : Image.file(
-                    image,
-                    fit: BoxFit.cover,
-                  ),
-          ),
-        ),
-        if (image != null && onClear != null)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: onClear,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.clear,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMultipleImagePickerButton() {
-    return GestureDetector(
-      onTap: _pickLicenseImages,
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: GlobalVariables.lightGrey,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.add_photo_alternate_outlined,
-            color: GlobalVariables.darkGrey,
-            size: 36,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelectedImages(List<File> images) {
-    return Row(
-      children: images
-          .asMap()
-          .entries
-          .map(
-            (entry) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Stack(
-                children: [
-                  Image.file(
-                    entry.value,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          images.removeAt(entry.key);
-                        });
-                      },
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.clear,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
   }
 
   void _handleNextButton() {
@@ -292,13 +182,10 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _interRegular14(
-                                    "Manager full name *",
-                                    GlobalVariables.darkGrey,
-                                    1,
-                                  ),
-                                  CustomTextfield(
+                                  // Manager full name text
+                                  FacilityInfoFormField(
                                     controller: _fullNameController,
+                                    label: 'Manager full name',
                                     hintText: 'Manager full name',
                                     validator: (fullName) {
                                       if (fullName == null ||
@@ -308,13 +195,11 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       return null;
                                     },
                                   ),
-                                  _interRegular14(
-                                    "Email *",
-                                    GlobalVariables.darkGrey,
-                                    1,
-                                  ),
-                                  CustomTextfield(
+
+                                  // Email text
+                                  FacilityInfoFormField(
                                     controller: _emailController,
+                                    label: 'Email',
                                     hintText: 'Email',
                                     validator: (email) {
                                       if (email == null || email.isEmpty) {
@@ -324,14 +209,13 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                     },
                                     isEmail: true,
                                   ),
-                                  _interRegular14(
-                                    "Phone number *",
-                                    GlobalVariables.darkGrey,
-                                    1,
-                                  ),
-                                  CustomTextfield(
+
+                                  // Phone number text
+                                  FacilityInfoFormField(
                                     controller: _phoneNumberController,
-                                    hintText: 'Phone Number',
+                                    label: 'Phone number',
+                                    isPhoneNumber: true,
+                                    hintText: 'Phone number',
                                     validator: (phoneNumber) {
                                       if (phoneNumber == null ||
                                           phoneNumber.isEmpty) {
@@ -342,13 +226,11 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       return null;
                                     },
                                   ),
-                                  _interRegular14(
-                                    "Citizen ID *",
-                                    GlobalVariables.darkGrey,
-                                    1,
-                                  ),
-                                  CustomTextfield(
+
+                                  // Citizen ID text
+                                  FacilityInfoFormField(
                                     controller: _citizenIdController,
+                                    label: 'Citizen ID',
                                     hintText: 'Citizen ID',
                                     validator: (citizenId) {
                                       if (citizenId == null ||
@@ -360,17 +242,20 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       return null;
                                     },
                                   ),
-                                  _interRegular14(
-                                    "Photos of citizen identification card (Includes front and back) *",
-                                    GlobalVariables.darkGrey,
-                                    2,
+
+                                  LabelDisplay(
+                                    label:
+                                        'Photos of citizen identification card (Includes front and back)',
+                                    isRequired: true,
                                   ),
                                   SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
-                                        _buildImagePickerButton(
-                                          onTap: _pickFrontCitizenIdImage,
+                                        ImagePickerButton(
+                                          onTap: () => _pickImage(
+                                            ImagePickerOption.frontCitizenId,
+                                          ),
                                           image: _frontCitizenIdImage,
                                           onClear: () {
                                             setState(() {
@@ -379,30 +264,35 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                           },
                                         ),
                                         SizedBox(width: 8),
-                                        _buildImagePickerButton(
-                                          onTap: _pickBackCitizenIdImage,
+                                        ImagePickerButton(
                                           image: _backCitizenIdImage,
+                                          onTap: () => _pickImage(
+                                            ImagePickerOption.backCitizenId,
+                                          ),
                                           onClear: () {
                                             setState(() {
                                               _backCitizenIdImage = null;
                                             });
                                           },
-                                        ),
+                                        )
                                       ],
                                     ),
                                   ),
-                                  _interRegular14(
-                                    "Photos of bank card (Includes front and back) *",
-                                    GlobalVariables.darkGrey,
-                                    2,
+
+                                  LabelDisplay(
+                                    label:
+                                        'Photos of bank card (Includes front and back)',
+                                    isRequired: true,
                                   ),
                                   SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
-                                        _buildImagePickerButton(
-                                          onTap: _pickFrontBankCardImage,
+                                        ImagePickerButton(
                                           image: _frontBankCardImage,
+                                          onTap: () => _pickImage(
+                                            ImagePickerOption.frontBankCard,
+                                          ),
                                           onClear: () {
                                             setState(() {
                                               _frontBankCardImage = null;
@@ -410,30 +300,38 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                           },
                                         ),
                                         SizedBox(width: 8),
-                                        _buildImagePickerButton(
-                                          onTap: _pickBackBankCardImage,
+                                        ImagePickerButton(
                                           image: _backBankCardImage,
+                                          onTap: () => _pickImage(
+                                            ImagePickerOption.backBankCard,
+                                          ),
                                           onClear: () {
                                             setState(() {
                                               _backBankCardImage = null;
                                             });
                                           },
-                                        ),
+                                        )
                                       ],
                                     ),
                                   ),
-                                  _interRegular14(
-                                    "Photos of business license (Maximum 10 photos) *",
-                                    GlobalVariables.darkGrey,
-                                    2,
+                                  LabelDisplay(
+                                    label:
+                                        'Photos of business license (Maximum 10 photos)',
+                                    isRequired: true,
                                   ),
                                   SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
                                         if (_licenseImages != null)
-                                          _buildSelectedImages(_licenseImages!),
-                                        _buildMultipleImagePickerButton(),
+                                          SelectedImages(
+                                            images: _licenseImages!,
+                                          ),
+                                        MultipleImagePickerButton(
+                                          onTap: () => _pickImage(
+                                            ImagePickerOption.licenses,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -454,50 +352,18 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                       vertical: 12,
                     ),
                     child: CustomButton(
-                        onTap: _handleNextButton,
-                        buttonText: 'Next',
-                        borderColor: GlobalVariables.green,
-                        fillColor: GlobalVariables.green,
-                        textColor: Colors.white),
+                      onTap: _handleNextButton,
+                      buttonText: 'Next',
+                      borderColor: GlobalVariables.green,
+                      fillColor: GlobalVariables.green,
+                      textColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _emailController.dispose();
-    _phoneNumberController.dispose();
-    _citizenIdController.dispose();
-    super.dispose();
-  }
-
-  Widget _interRegular14(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
       ),
     );
   }

@@ -340,7 +340,6 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                     controller: _provinceNameController,
                                     label: 'Province',
                                     hintText: 'Province',
-                                    text: addressProvider.address.city,
                                     readOnly: true,
                                     validator: (provinceName) {
                                       if (provinceName == null ||
@@ -356,7 +355,6 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                     controller: _districtNameController,
                                     label: 'District',
                                     hintText: 'District',
-                                    text: addressProvider.address.district,
                                     readOnly: true,
                                     validator: (districtName) {
                                       if (districtName == null ||
@@ -373,7 +371,6 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                     label: 'Ward',
                                     hintText: 'Ward',
                                     readOnly: true,
-                                    text: addressProvider.address.ward,
                                     validator: (wardName) {
                                       if (wardName == null ||
                                           wardName.isEmpty) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
-import 'package:frontend/constants/global_variables.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
 
 class FacilityInfoFormField extends StatelessWidget {
   const FacilityInfoFormField({
@@ -14,7 +13,8 @@ class FacilityInfoFormField extends StatelessWidget {
     this.validator,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
-    this.text,
+    this.isEmail = false,
+    this.isPhoneNumber = false,
   });
 
   final TextEditingController controller;
@@ -25,38 +25,11 @@ class FacilityInfoFormField extends StatelessWidget {
   final bool readOnly;
   final TextInputType keyboardType;
   final bool obscureText;
-  final String? text;
+  final bool isEmail;
+  final bool isPhoneNumber;
 
   @override
   Widget build(BuildContext context) {
-    Widget labelDisplay = RichText(
-      text: TextSpan(
-        text: label,
-        style: GoogleFonts.inter(
-          fontSize: 14,
-          color: GlobalVariables.darkGrey,
-        ),
-        children: [
-          TextSpan(
-            text: ' (*)',
-            style: TextStyle(
-              color: Colors.red,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (validator == null) {
-      labelDisplay = Text(
-        '$label (optional)',
-        style: GoogleFonts.inter(
-          fontSize: 14,
-          color: GlobalVariables.darkGrey,
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -65,12 +38,16 @@ class FacilityInfoFormField extends StatelessWidget {
             bottom: 8,
             top: 12,
           ),
-          child: labelDisplay,
+          child: LabelDisplay(
+            label: label,
+            isRequired: validator != null,
+          ),
         ),
         CustomTextfield(
-          text: text,
           controller: controller,
           hintText: hintText,
+          isEmail: isEmail,
+          isPhoneNumber: isPhoneNumber,
           maxLines: maxLines,
           readOnly: readOnly,
           validator: validator,
