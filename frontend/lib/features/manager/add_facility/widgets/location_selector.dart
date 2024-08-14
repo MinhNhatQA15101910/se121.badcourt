@@ -3,6 +3,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
+import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -53,28 +54,9 @@ class LocationSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            bottom: 8,
-            top: 12,
-          ),
-          child: RichText(
-            text: TextSpan(
-              text: 'Select a location on the map',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: GlobalVariables.darkGrey,
-              ),
-              children: [
-                TextSpan(
-                  text: ' (*)',
-                  style: TextStyle(
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        LabelDisplay(
+          label: 'Select a location on the map',
+          isRequired: true,
         ),
         Align(
           alignment: Alignment.center,
