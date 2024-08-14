@@ -9,6 +9,7 @@ class CustomTextfield extends StatefulWidget {
     required this.hintText,
     this.validator,
     this.isPassword = false,
+    this.isNumber = false,
     this.isPhoneNumber = false,
     this.isEmail = false,
     this.maxLines = 1,
@@ -19,6 +20,7 @@ class CustomTextfield extends StatefulWidget {
   final String hintText;
   final String? Function(String?)? validator;
   final bool isPassword;
+  final bool isNumber;
   final bool isPhoneNumber;
   final bool isEmail;
   final int maxLines;
@@ -45,11 +47,13 @@ class _CustomTextfieldState extends State<CustomTextfield> {
       readOnly: widget.readOnly,
       obscureText: widget.isPassword && !_showPassword,
       enableSuggestions: !widget.isPassword,
-      keyboardType: widget.isPhoneNumber
-          ? TextInputType.phone
-          : widget.isEmail
-              ? TextInputType.emailAddress
-              : null,
+      keyboardType: widget.isNumber
+          ? TextInputType.number
+          : widget.isPhoneNumber
+              ? TextInputType.phone
+              : widget.isEmail
+                  ? TextInputType.emailAddress
+                  : null,
       autocorrect: !widget.isPassword,
       decoration: InputDecoration(
         hintText: widget.hintText,

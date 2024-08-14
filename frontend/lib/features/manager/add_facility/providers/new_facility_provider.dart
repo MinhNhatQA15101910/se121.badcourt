@@ -9,7 +9,6 @@ class NewFacilityProvider extends ChangeNotifier {
     userId: '',
     name: '',
     facebookUrl: '',
-    phoneNumber: '',
     courtsAmount: 0,
     detailAddress: '',
     province: '',
@@ -27,6 +26,7 @@ class NewFacilityProvider extends ChangeNotifier {
     managerInfo: ManagerInfo(
       fullName: '',
       email: '',
+      phoneNumber: '',
       citizenId: '',
       citizenImageUrlFront: '',
       citizenImageUrlBack: '',

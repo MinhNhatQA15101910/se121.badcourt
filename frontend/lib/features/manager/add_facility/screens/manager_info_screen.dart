@@ -124,12 +124,12 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
           newFacilityProvider.newFacility.managerInfo.copyWith(
         fullName: _fullNameController.text,
         email: _emailController.text,
+        phoneNumber: _phoneNumberController.text,
         citizenId: _citizenIdController.text,
       );
 
       Facility facility = newFacilityProvider.newFacility.copyWith(
         managerInfo: managerInfo,
-        phoneNumber: _phoneNumberController.text,
       );
 
       newFacilityProvider.setFacility(facility);
@@ -232,6 +232,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                     controller: _citizenIdController,
                                     label: 'Citizen ID',
                                     hintText: 'Citizen ID',
+                                    isNumber: true,
                                     validator: (citizenId) {
                                       if (citizenId == null ||
                                           citizenId.isEmpty) {

@@ -78,6 +78,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
 
         Facility facility = newFacilityProvider.newFacility.copyWith(
           name: _facilityNameController.text,
+          facebookUrl: _facebookUrlController.text,
           description: _descriptionController.text,
           policy: _policyController.text,
         );

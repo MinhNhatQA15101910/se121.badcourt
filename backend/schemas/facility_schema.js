@@ -1,4 +1,3 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
 import mongoose from "mongoose";
 
 import activeSchema from "./active_schema.js";
@@ -18,17 +17,6 @@ const facilitySchema = mongoose.Schema({
   facebook_url: {
     type: String,
     trim: true,
-  },
-  phone_number: {
-    required: true,
-    type: String,
-    trim: true,
-    validate: {
-      validator: (phoneNumber) => {
-        return isValidPhoneNumber(phoneNumber, "VN");
-      },
-      message: "Invalid phone number.",
-    },
   },
   description: { type: String, trim: true, required: true },
   policy: { type: String, trim: true, required: true },

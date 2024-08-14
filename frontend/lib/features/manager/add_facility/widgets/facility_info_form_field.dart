@@ -14,6 +14,7 @@ class FacilityInfoFormField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
     this.isEmail = false,
+    this.isNumber = false,
     this.isPhoneNumber = false,
   });
 
@@ -26,6 +27,7 @@ class FacilityInfoFormField extends StatelessWidget {
   final TextInputType keyboardType;
   final bool obscureText;
   final bool isEmail;
+  final bool isNumber;
   final bool isPhoneNumber;
 
   @override
@@ -47,6 +49,7 @@ class FacilityInfoFormField extends StatelessWidget {
           controller: controller,
           hintText: hintText,
           isEmail: isEmail,
+          isNumber: isNumber,
           isPhoneNumber: isPhoneNumber,
           maxLines: maxLines,
           readOnly: readOnly,

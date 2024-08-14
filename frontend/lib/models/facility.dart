@@ -5,7 +5,6 @@ class Facility {
   final String userId;
   final String name;
   final String facebookUrl;
-  final String phoneNumber;
   final int courtsAmount;
   final String detailAddress;
   final String province;
@@ -27,7 +26,6 @@ class Facility {
     required this.userId,
     required this.name,
     required this.facebookUrl,
-    required this.phoneNumber,
     required this.courtsAmount,
     required this.detailAddress,
     required this.province,
@@ -51,7 +49,6 @@ class Facility {
       'user_id': userId,
       'name': name,
       'facebook_url': facebookUrl,
-      'phone_number': phoneNumber,
       'courts_amount': courtsAmount,
       'detail_address': detailAddress,
       'province': province,
@@ -76,7 +73,6 @@ class Facility {
       userId: map['user_id'] ?? '',
       name: map['name'] ?? '',
       facebookUrl: map['facebook_url'] ?? '',
-      phoneNumber: map['phone_number'] ?? '',
       courtsAmount: map['courts_amount'] ?? 0,
       detailAddress: map['detail_address'] ?? '',
       province: map['province'] ?? '',
@@ -105,7 +101,6 @@ class Facility {
     String? userId,
     String? name,
     String? facebookUrl,
-    String? phoneNumber,
     int? courtsAmount,
     String? detailAddress,
     String? province,
@@ -127,7 +122,6 @@ class Facility {
       userId: userId ?? this.userId,
       name: name ?? this.name,
       facebookUrl: facebookUrl ?? this.facebookUrl,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
       courtsAmount: courtsAmount ?? this.courtsAmount,
       detailAddress: detailAddress ?? this.detailAddress,
       province: province ?? this.province,
@@ -199,6 +193,7 @@ class PeriodTime {
 class ManagerInfo {
   final String fullName;
   final String email;
+  final String phoneNumber;
   final String citizenId;
   final String citizenImageUrlFront;
   final String citizenImageUrlBack;
@@ -210,6 +205,7 @@ class ManagerInfo {
   ManagerInfo({
     required this.fullName,
     required this.email,
+    required this.phoneNumber,
     required this.citizenId,
     required this.citizenImageUrlFront,
     required this.citizenImageUrlBack,
@@ -223,6 +219,7 @@ class ManagerInfo {
     return {
       'full_name': fullName,
       'email': email,
+      'phone_number': phoneNumber,
       'citizen_id': citizenId,
       'citizen_image_url_front': citizenImageUrlFront,
       'citizen_image_url_back': citizenImageUrlBack,
@@ -237,6 +234,7 @@ class ManagerInfo {
     return ManagerInfo(
       fullName: map['full_name'] ?? '',
       email: map['email'] ?? '',
+      phoneNumber: map['phone_number'] ?? '',
       citizenId: map['citizen_id'] ?? '',
       citizenImageUrlFront: map['citizen_image_url_front'] ?? '',
       citizenImageUrlBack: map['citizen_image_url_back'] ?? '',
@@ -251,6 +249,7 @@ class ManagerInfo {
   ManagerInfo copyWith({
     String? fullName,
     String? email,
+    String? phoneNumber,
     String? citizenId,
     String? citizenImageUrlFront,
     String? citizenImageUrlBack,
@@ -262,6 +261,7 @@ class ManagerInfo {
     return ManagerInfo(
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       citizenId: citizenId ?? this.citizenId,
       citizenImageUrlFront: citizenImageUrlFront ?? this.citizenImageUrlFront,
       citizenImageUrlBack: citizenImageUrlBack ?? this.citizenImageUrlBack,

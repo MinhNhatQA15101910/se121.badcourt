@@ -22,7 +22,6 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     userId: '',
     name: '',
     facebookUrl: '',
-    phoneNumber: '',
     courtsAmount: 0,
     detailAddress: '',
     latitude: 0.0,
@@ -40,6 +39,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     managerInfo: ManagerInfo(
       fullName: '',
       email: '',
+      phoneNumber: '',
       citizenId: '',
       citizenImageUrlFront: '',
       citizenImageUrlBack: '',
