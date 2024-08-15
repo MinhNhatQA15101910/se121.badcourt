@@ -85,7 +85,6 @@ managerFacilityRouter.post(
         user_id: req.user,
         name: facility_name,
         facebook_url,
-        phone_number,
         detail_address,
         description,
         policy,
@@ -97,6 +96,7 @@ managerFacilityRouter.post(
         manager_info: {
           full_name,
           email,
+          phone_number,
           citizen_id,
           citizen_image_url_front,
           citizen_image_url_back,

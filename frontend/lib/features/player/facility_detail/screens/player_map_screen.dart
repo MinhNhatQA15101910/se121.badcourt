@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -70,7 +71,9 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   Future<void> _fetchSearchCode() async {
     final searchCode = await _addFacilityService.fetchAddressRefId(
-        vietmap_api_key, _searchController.text);
+      dotenv.env['VIETMAP_API_KEY']!,
+      _searchController.text,
+    );
     if (searchCode != null) {
       setState(() {
         _searchCode = searchCode;
@@ -80,7 +83,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   Future<void> _fetchDetailAddress() async {
     final detailAddress = await _addFacilityService.fetchDetailAddress(
-      vietmap_api_key,
+      dotenv.env['VIETMAP_API_KEY']!,
       _searchCode,
     );
 
@@ -158,7 +161,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
             VietmapGL(
               myLocationEnabled: true,
               trackCameraPosition: true,
-              styleString: vietmap_string_key,
+              styleString: dotenv.env['VIETMAP_STRING_KEY']!,
               initialCameraPosition: CameraPosition(
                 target: LatLng(
                   currentFacilityProvider.currentFacility.latitude,

@@ -10,8 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 
 class IntroManagerScreen extends StatefulWidget {
-  static const String routeName = '/manager-intro';
-  const IntroManagerScreen({Key? key});
+  static const String routeName = '/manager/manager-intro';
+  const IntroManagerScreen({super.key});
 
   @override
   State<IntroManagerScreen> createState() => _IntroManagerScreenState();
@@ -30,7 +30,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
     _facilityList = await _introManagerService.fetchFacilitiesByUserId(
       context: context,
     );
-    
+
     if (!mounted) return;
 
     setState(() {});

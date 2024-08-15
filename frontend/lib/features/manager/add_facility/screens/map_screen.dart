@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
@@ -43,7 +44,9 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchSearchCode() async {
     final searchCode = await _addFacilityService.fetchAddressRefId(
-        vietmap_api_key, _searchController.text);
+      dotenv.env['VIETMAP_API_KEY']!,
+      _searchController.text,
+    );
     if (searchCode != null) {
       setState(() {
         _searchCode = searchCode;
@@ -53,7 +56,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchDetailAddress() async {
     final detailAddress = await _addFacilityService.fetchDetailAddress(
-      vietmap_api_key,
+      dotenv.env['VIETMAP_API_KEY']!,
       _searchCode,
     );
 
@@ -160,7 +163,7 @@ class _MapScreenState extends State<MapScreen> {
               myLocationTrackingMode: MyLocationTrackingMode.Tracking,
               myLocationEnabled: true,
               trackCameraPosition: true,
-              styleString: vietmap_string_key,
+              styleString: dotenv.env['VIETMAP_STRING_KEY']!,
               initialCameraPosition: CameraPosition(
                   target: LatLng(10.762317, 106.654551), zoom: 15),
               onMapCreated: (VietmapController controller) {
