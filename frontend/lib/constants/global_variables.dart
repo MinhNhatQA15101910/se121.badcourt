@@ -3,7 +3,7 @@ import 'package:frontend/models/court.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
 
-String uri = 'http://172.20.35.85:3000';
+String uri = 'http://172.19.200.191:3000';
 
 String vietmap_string_key =
     'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
@@ -19,22 +19,6 @@ class GlobalVariables {
     screenWidth = screenSize.width;
     screenHeight = screenSize.height;
   }
-
-  static Order order = Order(
-    id: '',
-    userId: '',
-    courtId: '',
-    orderedAt: DateTime.now(),
-    facilityName: '',
-    address: '',
-    imageUrl: '',
-    price: 0,
-    period: OrderPeriod(
-      hourFrom: DateTime.now(),
-      hourTo: DateTime.now().add(Duration(hours: 1)),
-      userId: '',
-    ),
-  );
 
   static Court court = Court(
     id: '',

@@ -3,7 +3,7 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/player/player_current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
@@ -43,7 +43,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
   void initState() {
     super.initState();
 
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+    final currentFacilityProvider = Provider.of<PlayerCurrentFacilityProvider>(
       context,
       listen: false,
     );
@@ -55,7 +55,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
   }
 
   void _onUpdateLocation() {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+    final currentFacilityProvider = Provider.of<PlayerCurrentFacilityProvider>(
       context,
       listen: false,
     );
@@ -126,7 +126,8 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+    final currentFacilityProvider =
+        context.watch<PlayerCurrentFacilityProvider>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,

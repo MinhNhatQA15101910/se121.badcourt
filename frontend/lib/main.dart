@@ -9,6 +9,8 @@ import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/filter_provider.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/player/player_order_provider.dart';
+import 'package:frontend/providers/player/player_current_facility_provider.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -40,6 +42,13 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => CurrentFacilityProvider(),
+        ),
+        //player provider
+        ChangeNotifierProvider(
+          create: (context) => PlayerCurrentFacilityProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PlayerOrderProvider(),
         ),
       ],
       child: const MyApp(),

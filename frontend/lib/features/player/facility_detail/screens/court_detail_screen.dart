@@ -7,7 +7,7 @@ import 'package:frontend/features/player/facility_detail/widgets/court_expand_pl
 import 'package:frontend/features/player/facility_detail/widgets/date_tag_player.dart';
 import 'package:frontend/features/player/facility_detail/widgets/timepicker_player_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/player/player_current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -44,7 +44,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
       'sunday',
     ];
 
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+    final currentFacilityProvider = Provider.of<PlayerCurrentFacilityProvider>(
       context,
       listen: false,
     );
@@ -60,7 +60,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   }
 
   Future<void> _fetchCourtByFacilityId() async {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+    final currentFacilityProvider = Provider.of<PlayerCurrentFacilityProvider>(
       context,
       listen: false,
     );

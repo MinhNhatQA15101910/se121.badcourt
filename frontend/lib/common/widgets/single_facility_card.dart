@@ -4,6 +4,8 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/player/player_current_facility_provider.dart';
 
 class SingleFacilityCard extends StatelessWidget {
   const SingleFacilityCard({
@@ -15,10 +17,11 @@ class SingleFacilityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void _navigateToFacilityDetailScreen() {
-      Navigator.of(context).pushNamed(
-        FacilityDetailScreen.routeName,
-        arguments: facility,
-      );
+      // Set the current facility in the provider
+      context.read<PlayerCurrentFacilityProvider>().setFacility(facility);
+
+      // Navigate to the FacilityDetailScreen
+      Navigator.of(context).pushNamed(FacilityDetailScreen.routeName);
     }
 
     return GestureDetector(
@@ -31,8 +34,9 @@ class SingleFacilityCard extends StatelessWidget {
               aspectRatio: 1,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: facility.imageUrls.isNotEmpty &&
-                        facility.imageUrls[0].isNotEmpty
+                child: (facility.imageUrls != null &&
+                        facility.imageUrls.isNotEmpty &&
+                        facility.imageUrls[0].isNotEmpty)
                     ? Image.network(
                         facility.imageUrls[0],
                         fit: BoxFit.fill,

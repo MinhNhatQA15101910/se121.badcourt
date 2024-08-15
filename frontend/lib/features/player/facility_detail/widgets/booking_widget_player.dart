@@ -6,7 +6,7 @@ import 'package:frontend/models/booking.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order_period.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/player/player_current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +32,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   List<BookingTime> _bookingTimeListDisable = [];
 
   void _getTime() {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+    final currentFacilityProvider = Provider.of<PlayerCurrentFacilityProvider>(
       context,
       listen: false,
     );

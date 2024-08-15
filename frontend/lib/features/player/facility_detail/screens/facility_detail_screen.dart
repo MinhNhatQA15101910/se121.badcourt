@@ -5,12 +5,12 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/player/player_current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
-  static const String routeName = '/facilityDetail';
+  static const String routeName = '/facility-detail-screen';
   const FacilityDetailScreen({Key? key}) : super(key: key);
 
   @override
@@ -31,7 +31,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+    final currentFacilityProvider =
+        context.watch<PlayerCurrentFacilityProvider>();
 
     return Scaffold(
       appBar: PreferredSize(

@@ -5,8 +5,10 @@ import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/booking_details/widgets/total_price.dart';
+import 'package:frontend/providers/player/player_order_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   static const String routeName = '/booking-detail-screen';
@@ -32,7 +34,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    DateTime playTime = GlobalVariables.order.period.hourFrom;
+    final currentOrderProvider = context.watch<PlayerOrderProvider>();
+    DateTime playTime = currentOrderProvider.currentOrder.period.hourFrom;
     bool isPlayed = now.isAfter(playTime);
 
     return SafeArea(
@@ -76,7 +79,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       vertical: 12,
                     ),
                     child: _InterMedium18(
-                      GlobalVariables.order.facilityName,
+                      currentOrderProvider.currentOrder.facilityName,
                       GlobalVariables.blackGrey,
                       2,
                     ),
@@ -106,8 +109,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                 width: 8,
                               ),
                               Expanded(
-                                child: _InterBold14(GlobalVariables.order.id,
-                                    GlobalVariables.blackGrey, 1),
+                                child: _InterBold14(
+                                    currentOrderProvider.currentOrder.id,
+                                    GlobalVariables.blackGrey,
+                                    1),
                               ),
                             ],
                           ),
@@ -118,7 +123,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               _InterMedium14(
                                   'Booking date', GlobalVariables.blackGrey, 1),
                               _InterBold14(
-                                '${GlobalVariables.order.orderedAt.hour}:${GlobalVariables.order.orderedAt.minute}, ${GlobalVariables.order.orderedAt.day}/${GlobalVariables.order.orderedAt.month}/${GlobalVariables.order.orderedAt.year}',
+                                '${currentOrderProvider.currentOrder.orderedAt.hour}:${currentOrderProvider.currentOrder.orderedAt.minute}, ${currentOrderProvider.currentOrder.orderedAt.day}/${currentOrderProvider.currentOrder.orderedAt.month}/${currentOrderProvider.currentOrder.orderedAt.year}',
                                 GlobalVariables.blackGrey,
                                 1,
                               ),
@@ -236,7 +241,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                           ),
                           Expanded(
                             child: _InterBold14(
-                              GlobalVariables.order.address,
+                              currentOrderProvider.currentOrder.address,
                               GlobalVariables.blackGrey,
                               4,
                             ),
@@ -262,8 +267,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _InterBold16(
-                          DateFormat('EEEE, dd/MM/yyyy')
-                              .format(GlobalVariables.order.period.hourFrom),
+                          DateFormat('EEEE, dd/MM/yyyy').format(
+                              currentOrderProvider
+                                  .currentOrder.period.hourFrom),
                           GlobalVariables.blackGrey,
                           1,
                         ),
@@ -282,17 +288,18 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   _InterRegular14(
-                                    DateFormat('hh:mm').format(GlobalVariables
-                                            .order.period.hourFrom) +
+                                    DateFormat('hh:mm').format(
+                                            currentOrderProvider
+                                                .currentOrder.period.hourFrom) +
                                         ' to ' +
                                         DateFormat('hh:mm').format(
-                                            GlobalVariables
-                                                .order.period.hourTo),
+                                            currentOrderProvider
+                                                .currentOrder.period.hourTo),
                                     GlobalVariables.blackGrey,
                                     1,
                                   ),
                                   _InterSemiBold14(
-                                    GlobalVariables.order.price
+                                    currentOrderProvider.currentOrder.price
                                             .toStringAsFixed(0) +
                                         ' đ',
                                     GlobalVariables.blackGrey,
@@ -309,7 +316,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   ),
                   TotalPrice(
                       promotionPrice: 0,
-                      subTotalPrice: GlobalVariables.order.price),
+                      subTotalPrice: currentOrderProvider.currentOrder.price),
                   SizedBox(
                     height: 12,
                   ),
