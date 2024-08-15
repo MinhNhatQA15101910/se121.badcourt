@@ -3,7 +3,7 @@ import 'package:frontend/models/court.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
 
-String uri = 'http://192.168.1.5:3000';
+String uri = 'http://172.19.200.239:3000';
 
 class GlobalVariables {
   // Define Scales
