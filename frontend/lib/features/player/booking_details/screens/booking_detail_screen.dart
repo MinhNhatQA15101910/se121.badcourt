@@ -5,10 +5,9 @@ import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/booking_details/widgets/total_price.dart';
-import 'package:frontend/providers/player/player_order_provider.dart';
+import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   static const String routeName = '/booking-detail-screen';
@@ -34,8 +33,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    final currentOrderProvider = context.watch<PlayerOrderProvider>();
-    DateTime playTime = currentOrderProvider.currentOrder.period.hourFrom;
+    final order = ModalRoute.of(context)!.settings.arguments as Order;
+    DateTime playTime = order.period.hourFrom;
     bool isPlayed = now.isAfter(playTime);
 
     return SafeArea(
@@ -79,7 +78,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       vertical: 12,
                     ),
                     child: _InterMedium18(
-                      currentOrderProvider.currentOrder.facilityName,
+                      order.facilityName,
                       GlobalVariables.blackGrey,
                       2,
                     ),
@@ -110,9 +109,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               ),
                               Expanded(
                                 child: _InterBold14(
-                                    currentOrderProvider.currentOrder.id,
-                                    GlobalVariables.blackGrey,
-                                    1),
+                                    order.id, GlobalVariables.blackGrey, 1),
                               ),
                             ],
                           ),
@@ -123,7 +120,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               _InterMedium14(
                                   'Booking date', GlobalVariables.blackGrey, 1),
                               _InterBold14(
-                                '${currentOrderProvider.currentOrder.orderedAt.hour}:${currentOrderProvider.currentOrder.orderedAt.minute}, ${currentOrderProvider.currentOrder.orderedAt.day}/${currentOrderProvider.currentOrder.orderedAt.month}/${currentOrderProvider.currentOrder.orderedAt.year}',
+                                '${order.orderedAt.hour}:${order.orderedAt.minute}, ${order.orderedAt.day}/${order.orderedAt.month}/${order.orderedAt.year}',
                                 GlobalVariables.blackGrey,
                                 1,
                               ),
@@ -241,7 +238,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                           ),
                           Expanded(
                             child: _InterBold14(
-                              currentOrderProvider.currentOrder.address,
+                              order.address,
                               GlobalVariables.blackGrey,
                               4,
                             ),
@@ -267,9 +264,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _InterBold16(
-                          DateFormat('EEEE, dd/MM/yyyy').format(
-                              currentOrderProvider
-                                  .currentOrder.period.hourFrom),
+                          DateFormat('EEEE, dd/MM/yyyy')
+                              .format(order.period.hourFrom),
                           GlobalVariables.blackGrey,
                           1,
                         ),
@@ -288,20 +284,16 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   _InterRegular14(
-                                    DateFormat('hh:mm').format(
-                                            currentOrderProvider
-                                                .currentOrder.period.hourFrom) +
+                                    DateFormat('hh:mm')
+                                            .format(order.period.hourFrom) +
                                         ' to ' +
-                                        DateFormat('hh:mm').format(
-                                            currentOrderProvider
-                                                .currentOrder.period.hourTo),
+                                        DateFormat('hh:mm')
+                                            .format(order.period.hourTo),
                                     GlobalVariables.blackGrey,
                                     1,
                                   ),
                                   _InterSemiBold14(
-                                    currentOrderProvider.currentOrder.price
-                                            .toStringAsFixed(0) +
-                                        ' đ',
+                                    order.price.toStringAsFixed(0) + ' đ',
                                     GlobalVariables.blackGrey,
                                     1,
                                   ),
@@ -314,9 +306,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       ],
                     ),
                   ),
-                  TotalPrice(
-                      promotionPrice: 0,
-                      subTotalPrice: currentOrderProvider.currentOrder.price),
+                  TotalPrice(promotionPrice: 0, subTotalPrice: order.price),
                   SizedBox(
                     height: 12,
                   ),
