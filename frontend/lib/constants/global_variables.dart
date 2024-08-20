@@ -1,9 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/checkout_provider.dart';
+import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/sort_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
-String uri = 'http://172.19.200.239:3000';
+String uri = 'http://10.0.184.199:3000';
+
+List<SingleChildWidget> providers = [
+  ChangeNotifierProvider(
+    create: (context) => AuthProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => UserProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => FilterProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => SortProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => CheckoutProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => NewFacilityProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => CurrentFacilityProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => AddressProvider(),
+  ),
+];
 
 class GlobalVariables {
   // Define Scales
