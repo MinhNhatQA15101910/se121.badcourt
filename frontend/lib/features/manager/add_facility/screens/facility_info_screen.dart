@@ -33,6 +33,8 @@ class _FacilityInfoState extends State<FacilityInfo> {
   final _descriptionController = TextEditingController();
   final _policyController = TextEditingController();
 
+  late AddressProvider _addressProvider;
+
   List<File>? _images = [];
   List<String>? _facilityInfo = [];
 
@@ -91,18 +93,27 @@ class _FacilityInfoState extends State<FacilityInfo> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final addressProvider = context.watch<AddressProvider>();
+  void initState() {
+    super.initState();
 
+    _addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     _provinceNameController.text =
-        addressProvider.address == null ? '' : addressProvider.address!.city;
-    _districtNameController.text = addressProvider.address == null
+        _addressProvider.address == null ? '' : _addressProvider.address!.city;
+    _districtNameController.text = _addressProvider.address == null
         ? ''
-        : addressProvider.address!.district;
+        : _addressProvider.address!.district;
     _wardNameController.text =
-        addressProvider.address == null ? '' : addressProvider.address!.ward;
-    _streetNameController.text =
-        addressProvider.address == null ? '' : addressProvider.address!.street;
+        _addressProvider.address == null ? '' : _addressProvider.address!.ward;
+    _streetNameController.text = _addressProvider.address == null
+        ? ''
+        : _addressProvider.address!.street;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -338,7 +349,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
 
                                   // Select a location on the map
                                   LocationSelector(
-                                    selectedAddress: addressProvider.address,
+                                    addressProvider: _addressProvider,
                                   ),
 
                                   // Province text
@@ -477,6 +488,9 @@ class _FacilityInfoState extends State<FacilityInfo> {
     _facebookUrlController.dispose();
     _descriptionController.dispose();
     _policyController.dispose();
+
+    _addressProvider.setAddress(null);
+
     super.dispose();
   }
 }

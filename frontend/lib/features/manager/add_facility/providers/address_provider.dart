@@ -6,8 +6,7 @@ class AddressProvider extends ChangeNotifier {
 
   DetailAddress? get address => _address;
 
-  void setAddress(DetailAddress address) {
+  void setAddress(DetailAddress? address) {
     _address = address;
-    notifyListeners();
   }
 }

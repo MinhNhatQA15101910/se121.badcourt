@@ -13,10 +13,10 @@ import 'package:provider/provider.dart';
 class LocationSelector extends StatefulWidget {
   const LocationSelector({
     super.key,
-    required this.selectedAddress,
+    required this.addressProvider,
   });
 
-  final DetailAddress? selectedAddress;
+  final AddressProvider addressProvider;
 
   @override
   State<LocationSelector> createState() => _LocationSelectorState();
