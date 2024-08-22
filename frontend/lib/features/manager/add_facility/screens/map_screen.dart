@@ -44,8 +44,8 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchSearchCode() async {
     final searchCode = await _addFacilityService.fetchAddressRefId(
-      dotenv.env['VIETMAP_API_KEY']!,
-      _searchController.text,
+      context: context,
+      searchText: _searchController.text,
     );
     if (searchCode != null) {
       setState(() {
@@ -56,8 +56,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchDetailAddress() async {
     final detailAddress = await _addFacilityService.fetchDetailAddress(
-      dotenv.env['VIETMAP_API_KEY']!,
-      _searchCode,
+      refId: _searchCode,
     );
 
     if (detailAddress != null) {
@@ -165,7 +164,9 @@ class _MapScreenState extends State<MapScreen> {
               trackCameraPosition: true,
               styleString: dotenv.env['VIETMAP_STRING_KEY']!,
               initialCameraPosition: CameraPosition(
-                  target: LatLng(10.762317, 106.654551), zoom: 15),
+                target: LatLng(10.762317, 106.654551),
+                zoom: 15,
+              ),
               onMapCreated: (VietmapController controller) {
                 setState(() {
                   _mapController = controller;

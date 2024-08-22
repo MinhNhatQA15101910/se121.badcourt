@@ -36,22 +36,6 @@ class _FacilityInfoState extends State<FacilityInfo> {
   List<File>? _images = [];
   List<String>? _facilityInfo = [];
 
-  void _navigateToManagerInfoScreen() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
-    }
-  }
-
-  void _selectMultipleImages() async {
-    List<File>? res =
-        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
-    setState(() {
-      if (res.isNotEmpty) {
-        _images?.addAll(res); // Assuming _images is List<File>
-      }
-    });
-  }
-
   void _clearImage(int index, bool isFile) {
     setState(() {
       if (isFile) {
@@ -60,6 +44,12 @@ class _FacilityInfoState extends State<FacilityInfo> {
         _facilityInfo!.removeAt(index);
       }
     });
+  }
+
+  void _navigateToManagerInfoScreen() {
+    if (_formKey.currentState!.validate()) {
+      Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
+    }
   }
 
   void _saveFacilityInfo() {
@@ -90,14 +80,29 @@ class _FacilityInfoState extends State<FacilityInfo> {
     }
   }
 
+  void _selectMultipleImages() async {
+    List<File>? res =
+        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
+    setState(() {
+      if (res.isNotEmpty) {
+        _images?.addAll(res); // Assuming _images is List<File>
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final addressProvider = context.watch<AddressProvider>();
 
-    _provinceNameController.text = addressProvider.address.city;
-    _districtNameController.text = addressProvider.address.district;
-    _wardNameController.text = addressProvider.address.ward;
-    _streetNameController.text = addressProvider.address.address;
+    _provinceNameController.text =
+        addressProvider.address == null ? '' : addressProvider.address!.city;
+    _districtNameController.text = addressProvider.address == null
+        ? ''
+        : addressProvider.address!.district;
+    _wardNameController.text =
+        addressProvider.address == null ? '' : addressProvider.address!.ward;
+    _streetNameController.text =
+        addressProvider.address == null ? '' : addressProvider.address!.street;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -331,7 +336,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                     },
                                   ),
 
-                                  // Select a location on the map text
+                                  // Select a location on the map
                                   LocationSelector(
                                     selectedAddress: addressProvider.address,
                                   ),

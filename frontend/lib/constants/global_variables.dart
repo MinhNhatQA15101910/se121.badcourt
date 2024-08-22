@@ -13,7 +13,7 @@ import 'package:frontend/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-String uri = 'http://10.0.184.199:3000';
+String uri = 'http://10.0.129.247:3000';
 
 List<SingleChildWidget> providers = [
   ChangeNotifierProvider(

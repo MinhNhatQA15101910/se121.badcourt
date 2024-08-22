@@ -72,6 +72,9 @@ void getCurrentLocation(BuildContext context) async {
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   LocationData locationData = await location.getLocation();
+  prefs.setBool('has-permission', true);
   prefs.setDouble('latitude', locationData.latitude!);
+  print('Latitude: ${locationData.latitude}');
   prefs.setDouble('longitude', locationData.longitude!);
+  print('Longitude: ${locationData.longitude}');
 }
