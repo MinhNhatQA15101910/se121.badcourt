@@ -5,7 +5,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
-import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/widgets/facility_info_form_field.dart';
@@ -33,10 +33,22 @@ class _FacilityInfoState extends State<FacilityInfo> {
   final _descriptionController = TextEditingController();
   final _policyController = TextEditingController();
 
-  late AddressProvider _addressProvider;
+  DetailAddress? _selectedAddress = null;
 
   List<File>? _images = [];
   List<String>? _facilityInfo = [];
+
+  void _changeAddress(DetailAddress detailAddress) {
+    setState(() {
+      _selectedAddress = detailAddress;
+      _provinceNameController.text = detailAddress.city;
+      _districtNameController.text = detailAddress.district;
+      _wardNameController.text = detailAddress.ward;
+      _streetNameController.text = detailAddress.hsNum.isEmpty
+          ? detailAddress.name
+          : '${detailAddress.hsNum} ${detailAddress.street}';
+    });
+  }
 
   void _clearImage(int index, bool isFile) {
     setState(() {
@@ -73,6 +85,11 @@ class _FacilityInfoState extends State<FacilityInfo> {
           facebookUrl: _facebookUrlController.text,
           description: _descriptionController.text,
           policy: _policyController.text,
+          detailAddress:
+              '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
+          province: _selectedAddress!.city,
+          latitude: _selectedAddress!.lat,
+          longitude: _selectedAddress!.lng,
         );
         newFacilityProvider.setFacility(facility);
         newFacilityProvider.setFacilityImageUrls(_images!);
@@ -93,28 +110,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    _addressProvider = Provider.of<AddressProvider>(
-      context,
-      listen: false,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    _provinceNameController.text =
-        _addressProvider.address == null ? '' : _addressProvider.address!.city;
-    _districtNameController.text = _addressProvider.address == null
-        ? ''
-        : _addressProvider.address!.district;
-    _wardNameController.text =
-        _addressProvider.address == null ? '' : _addressProvider.address!.ward;
-    _streetNameController.text = _addressProvider.address == null
-        ? ''
-        : _addressProvider.address!.street;
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
@@ -349,7 +345,8 @@ class _FacilityInfoState extends State<FacilityInfo> {
 
                                   // Select a location on the map
                                   LocationSelector(
-                                    addressProvider: _addressProvider,
+                                    selectedAddress: _selectedAddress,
+                                    onAddressSelected: _changeAddress,
                                   ),
 
                                   // Province text
@@ -488,8 +485,6 @@ class _FacilityInfoState extends State<FacilityInfo> {
     _facebookUrlController.dispose();
     _descriptionController.dispose();
     _policyController.dispose();
-
-    _addressProvider.setAddress(null);
 
     super.dispose();
   }

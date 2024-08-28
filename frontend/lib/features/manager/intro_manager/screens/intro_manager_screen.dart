@@ -2,14 +2,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/colored_safe_area.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/account/services/account_service.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class IntroManagerScreen extends StatefulWidget {
   static const String routeName = '/manager/manager-intro';
@@ -23,14 +21,6 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
   final _introManagerService = IntroManagerService();
 
   List<Facility> _facilityList = [];
-
-  void _getCurrentLocation() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('request-permission') == null) {
-      getCurrentLocation(context);
-      prefs.setBool('request-permission', true);
-    }
-  }
 
   void _logOut() {
     showDialog(
@@ -80,8 +70,6 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
-
     _fetchFacilitiesByUserId();
   }
 

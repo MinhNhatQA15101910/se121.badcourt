@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
-import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:location/location.dart';
-import 'package:provider/provider.dart';
 
 class LocationSelector extends StatefulWidget {
   const LocationSelector({
     super.key,
-    required this.addressProvider,
+    required this.selectedAddress,
+    required this.onAddressSelected,
   });
 
-  final AddressProvider addressProvider;
+  final DetailAddress? selectedAddress;
+  final void Function(DetailAddress) onAddressSelected;
 
   @override
   State<LocationSelector> createState() => _LocationSelectorState();
@@ -26,20 +27,16 @@ class _LocationSelectorState extends State<LocationSelector> {
   final addFacilityService = AddFacilityService();
 
   var _isGettingLocation = false;
-  String get locationImage {
-    final addressProvider = Provider.of<AddressProvider>(
-      context,
-      listen: false,
-    );
 
-    if (addressProvider.address == null) {
+  String get locationImage {
+    if (widget.selectedAddress == null) {
       return '';
     }
 
-    final lng = addressProvider.address!.lng;
-    final lat = addressProvider.address!.lat;
+    final lng = widget.selectedAddress!.lng;
+    final lat = widget.selectedAddress!.lat;
 
-    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l-a+f00($lng,$lat)/$lng,$lat,14/600x300?access_token=pk.eyJ1IjoiZG9taW5obmhhdDIwMDMiLCJhIjoiY2xydTB2cnVqMGNibTJrcDFiNXRjN3N4ZiJ9.-DHYngV7hjqTT__N7u5Ruw';
+    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l-a+f00($lng,$lat)/$lng,$lat,14/600x300?access_token=${dotenv.env['MAPBOX_ACCESS_TOKEN']}';
   }
 
   void _getCurrentLocation() async {
@@ -73,30 +70,13 @@ class _LocationSelectorState extends State<LocationSelector> {
     final lat = locationData.latitude;
     final lng = locationData.longitude;
 
+    print('Latitude: $lat, Longitude: $lng');
+
     if (lat == null || lng == null) {
       return;
     }
 
     _savePlace(lat, lng);
-  }
-
-  Widget _isValidateText(bool isValidateText) {
-    String text = isValidateText ? 'Verified' : 'Not verified';
-    Color textColor = isValidateText ? Colors.green : Colors.red;
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      style: GoogleFonts.inter(
-        fontSize: 10,
-        color: textColor,
-        decoration: TextDecoration.underline,
-        decorationColor: textColor,
-        textStyle: const TextStyle(
-          overflow: TextOverflow.ellipsis,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
   }
 
   void _navigateToMapScreen() async {
@@ -106,11 +86,7 @@ class _LocationSelectorState extends State<LocationSelector> {
     );
 
     if (selectedAddress != null) {
-      final addressProvider = Provider.of<AddressProvider>(
-        context,
-        listen: false,
-      );
-      addressProvider.setAddress(selectedAddress);
+      widget.onAddressSelected(selectedAddress);
     }
   }
 
@@ -125,11 +101,7 @@ class _LocationSelectorState extends State<LocationSelector> {
       refId: refId!,
     );
 
-    final addressProvider = Provider.of<AddressProvider>(
-      context,
-      listen: false,
-    );
-    addressProvider.setAddress(detailAddress!);
+    widget.onAddressSelected(detailAddress!);
 
     setState(() {
       _isGettingLocation = false;
@@ -138,8 +110,6 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final addressProvider = context.watch<AddressProvider>();
-
     Widget previewContent = Text(
       'No location chosen',
       style: GoogleFonts.inter(
@@ -149,7 +119,7 @@ class _LocationSelectorState extends State<LocationSelector> {
       ),
     );
 
-    if (addressProvider.address != null) {
+    if (widget.selectedAddress != null) {
       previewContent = Image.network(
         locationImage,
         fit: BoxFit.cover,
@@ -210,22 +180,25 @@ class _LocationSelectorState extends State<LocationSelector> {
             ),
             Padding(
               padding: const EdgeInsets.only(right: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.map,
-                    color: GlobalVariables.green,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Select on Map',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
+              child: InkWell(
+                onTap: _navigateToMapScreen,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.map,
                       color: GlobalVariables.green,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      'Select on Map',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: GlobalVariables.green,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
