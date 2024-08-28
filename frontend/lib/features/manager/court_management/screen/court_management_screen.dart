@@ -27,6 +27,31 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   int _endHour = 19;
   int _endMinute = 30;
 
+  void _addCourt() async {
+    Court? newCourt = await showModalBottomSheet<Court>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+          ),
+          child: AddUpdateCourtBottomSheet(),
+        );
+      },
+    );
+
+    if (newCourt != null) {
+      _courts.add(newCourt);
+      setState(() {});
+    }
+  }
+
   int _hourMinuteToMilliseconds(int hour, int minute) {
     DateTime baseDate = DateTime(2000, 1, 1);
     DateTime time = baseDate.add(Duration(hours: hour, minutes: minute));
@@ -54,7 +79,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     }
   }
 
-  Future<void> _updateActiveSchedule() async {
+  void _updateActiveSchedule() async {
     final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
       listen: false,
@@ -105,7 +130,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     });
   }
 
-  Future<void> _fetchCourtByFacilityId() async {
+  void _fetchCourtByFacilityId() async {
     final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
       listen: false,
@@ -122,7 +147,6 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   @override
   void initState() {
     super.initState();
-
     _fetchCourtByFacilityId();
   }
 
@@ -202,7 +226,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _InterRegular18(
+                        _interRegular18(
                           currentFacilityProvider.currentFacility.name,
                           GlobalVariables.blackGrey,
                           1,
@@ -293,25 +317,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     color: GlobalVariables.white,
                     size: 24,
                   ),
-                  onPressed: () {
-                    showModalBottomSheet<dynamic>(
-                      context: context,
-                      useRootNavigator: true,
-                      isScrollControlled: true,
-                      builder: (BuildContext context) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              topRight: Radius.circular(8),
-                            ),
-                          ),
-                          child: AddUpdateCourtBottomSheet(),
-                        );
-                      },
-                    );
-                  },
+                  onPressed: _addCourt,
                 ),
               ),
             ),
@@ -321,7 +327,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     );
   }
 
-  Widget _InterRegular18(String text, Color color, int maxLines) {
+  Widget _interRegular18(String text, Color color, int maxLines) {
     return Container(
       padding: const EdgeInsets.only(
         top: 12,

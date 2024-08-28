@@ -4,9 +4,7 @@ import 'package:frontend/common/widgets/custom_form_field.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/court_management/services/court_management_service.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class AddUpdateCourtBottomSheet extends StatefulWidget {
   const AddUpdateCourtBottomSheet({
@@ -34,8 +32,9 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
       return;
     }
 
+    Court? court = null;
     if (widget.court == null) {
-      await _courtManagementService.addCourt(
+      court = await _courtManagementService.addCourt(
         context: context,
         name: _courtNameController.text,
         description: _courtDescController.text,
@@ -54,7 +53,7 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
     // Notify parent widget of success
     // widget.onUpdateSuccess(true);
 
-    Navigator.pop(context);
+    Navigator.of(context).pop(court);
   }
 
   @override
@@ -124,6 +123,7 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
                       controller: _courtDescController,
                       label: 'Description',
                       hintText: 'Description',
+                      maxLines: 5,
                       validator: (description) {
                         if (description == null || description.isEmpty) {
                           return 'Description is required';
@@ -192,6 +192,14 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _courtNameController.dispose();
+    _courtDescController.dispose();
+    _pricePerHourController.dispose();
+    super.dispose();
   }
 
   Widget _boldSizeText(String text) {

@@ -13,7 +13,7 @@ import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
 class MapScreen extends StatefulWidget {
-  static const String routeName = '/map';
+  static const String routeName = '/manager/map';
   const MapScreen({super.key});
 
   @override

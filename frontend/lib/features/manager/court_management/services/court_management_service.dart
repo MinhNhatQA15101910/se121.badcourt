@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class CourtManagementService {
-  Future<void> addCourt({
+  Future<Court?> addCourt({
     required BuildContext context,
     required String name,
     required String description,
@@ -24,6 +24,8 @@ class CourtManagementService {
       context,
       listen: false,
     );
+
+    Court? court = null;
     try {
       http.Response response = await http.post(
         Uri.parse('$uri/manager/add-court'),
@@ -43,6 +45,9 @@ class CourtManagementService {
         response: response,
         context: context,
         onSuccess: () {
+          court = Court.fromJson(
+            jsonEncode(jsonDecode(response.body)),
+          );
           IconSnackBar.show(
             context,
             label: 'Court added successfully.',
@@ -57,6 +62,8 @@ class CourtManagementService {
         snackBarType: SnackBarType.fail,
       );
     }
+
+    return court;
   }
 
   Future<void> updateCourt({

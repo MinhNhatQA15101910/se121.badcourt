@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
-import 'package:frontend/models/court.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
 import 'package:frontend/providers/auth_provider.dart';
