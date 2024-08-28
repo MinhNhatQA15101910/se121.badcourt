@@ -64,8 +64,8 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   Future<void> _fetchSearchCode() async {
     final searchCode = await _addFacilityService.fetchAddressRefId(
-      dotenv.env['VIETMAP_API_KEY']!,
-      _searchController.text,
+      context: context,
+      searchText: _searchController.text,
     );
     if (searchCode != null) {
       setState(() {
@@ -76,8 +76,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   Future<void> _fetchDetailAddress() async {
     final detailAddress = await _addFacilityService.fetchDetailAddress(
-      dotenv.env['VIETMAP_API_KEY']!,
-      _searchCode,
+      refId: _searchCode,
     );
 
     if (detailAddress != null) {

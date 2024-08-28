@@ -120,7 +120,12 @@ managerFacilityRouter.get(
   managerValidator,
   async (req, res) => {
     try {
-      const facilities = await Facility.find({ user_id: req.user });
+      var facilities = await Facility.find({ user_id: req.user });
+
+      facilities = facilities.sort((f1, f2) => {
+        return f1.registered_at < f2.registered_at ? 1 : -1;
+      });
+
       res.json(facilities);
     } catch (err) {
       res.status(500).json({ error: err.message });

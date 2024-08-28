@@ -4,7 +4,7 @@ import 'package:frontend/features/manager/court_management/widget/item_time_slot
 import 'package:google_fonts/google_fonts.dart';
 
 class CourtManagementDetailScreen extends StatefulWidget {
-  static const String routeName = '/court-management-detail';
+  static const String routeName = '/manager/court-management-detail';
 
   const CourtManagementDetailScreen({super.key});
 

@@ -1,7 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/models/order.dart';
+import 'package:frontend/models/order_period.dart';
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/checkout_provider.dart';
+import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/sort_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
-String uri = 'http://192.168.1.19:3000';
+String uri = 'http://10.0.183.215:3000';
+
+List<SingleChildWidget> providers = [
+  ChangeNotifierProvider(
+    create: (context) => AuthProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => UserProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => FilterProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => SortProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => CheckoutProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => NewFacilityProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => CurrentFacilityProvider(),
+  ),
+];
 
 class GlobalVariables {
   // Define Scales
@@ -13,15 +48,6 @@ class GlobalVariables {
     screenWidth = screenSize.width;
     screenHeight = screenSize.height;
   }
-
-  static Court court = Court(
-    id: '',
-    facilityId: '',
-    name: '',
-    description: '',
-    pricePerHour: 0,
-    orderPeriods: [],
-  );
 
   // Colors
   static const Color black = Color(0xFF000000);

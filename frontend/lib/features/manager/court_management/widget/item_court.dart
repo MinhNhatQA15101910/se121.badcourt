@@ -40,7 +40,6 @@ class _ItemCourtState extends State<ItemCourt> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        GlobalVariables.court = widget.court;
         showModalBottomSheet<dynamic>(
           context: context,
           useRootNavigator: true,
@@ -55,8 +54,7 @@ class _ItemCourtState extends State<ItemCourt> {
                 ),
               ),
               child: AddUpdateCourtBottomSheet(
-                stateText: 'Update',
-                onUpdateSuccess: widget.onUpdateSuccess,
+                court: widget.court,
               ),
             );
           },

@@ -4,6 +4,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -11,7 +12,6 @@ import 'package:provider/provider.dart';
 class CourtManagementService {
   Future<void> addCourt({
     required BuildContext context,
-    required String facilityId,
     required String name,
     required String description,
     required int pricePerHour,
@@ -20,11 +20,15 @@ class CourtManagementService {
       context,
       listen: false,
     );
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
     try {
       http.Response response = await http.post(
         Uri.parse('$uri/manager/add-court'),
         body: jsonEncode({
-          'facility_id': facilityId,
+          'facility_id': currentFacilityProvider.currentFacility.id,
           'name': name,
           'description': description,
           'price_per_hour': pricePerHour,

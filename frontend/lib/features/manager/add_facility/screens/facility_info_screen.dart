@@ -5,10 +5,10 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
-import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
-import 'package:frontend/features/manager/add_facility/widgets/facility_info_form_field.dart';
+import 'package:frontend/common/widgets/custom_form_field.dart';
 import 'package:frontend/features/manager/add_facility/widgets/location_selector.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,22 +33,20 @@ class _FacilityInfoState extends State<FacilityInfo> {
   final _descriptionController = TextEditingController();
   final _policyController = TextEditingController();
 
+  DetailAddress? _selectedAddress = null;
+
   List<File>? _images = [];
   List<String>? _facilityInfo = [];
 
-  void _navigateToManagerInfoScreen() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
-    }
-  }
-
-  void _selectMultipleImages() async {
-    List<File>? res =
-        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
+  void _changeAddress(DetailAddress detailAddress) {
     setState(() {
-      if (res.isNotEmpty) {
-        _images?.addAll(res); // Assuming _images is List<File>
-      }
+      _selectedAddress = detailAddress;
+      _provinceNameController.text = detailAddress.city;
+      _districtNameController.text = detailAddress.district;
+      _wardNameController.text = detailAddress.ward;
+      _streetNameController.text = detailAddress.hsNum.isEmpty
+          ? detailAddress.name
+          : '${detailAddress.hsNum} ${detailAddress.street}';
     });
   }
 
@@ -60,6 +58,12 @@ class _FacilityInfoState extends State<FacilityInfo> {
         _facilityInfo!.removeAt(index);
       }
     });
+  }
+
+  void _navigateToManagerInfoScreen() {
+    if (_formKey.currentState!.validate()) {
+      Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
+    }
   }
 
   void _saveFacilityInfo() {
@@ -81,6 +85,11 @@ class _FacilityInfoState extends State<FacilityInfo> {
           facebookUrl: _facebookUrlController.text,
           description: _descriptionController.text,
           policy: _policyController.text,
+          detailAddress:
+              '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
+          province: _selectedAddress!.city,
+          latitude: _selectedAddress!.lat,
+          longitude: _selectedAddress!.lng,
         );
         newFacilityProvider.setFacility(facility);
         newFacilityProvider.setFacilityImageUrls(_images!);
@@ -90,15 +99,18 @@ class _FacilityInfoState extends State<FacilityInfo> {
     }
   }
 
+  void _selectMultipleImages() async {
+    List<File>? res =
+        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
+    setState(() {
+      if (res.isNotEmpty) {
+        _images?.addAll(res); // Assuming _images is List<File>
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final addressProvider = context.watch<AddressProvider>();
-
-    _provinceNameController.text = addressProvider.address.city;
-    _districtNameController.text = addressProvider.address.district;
-    _wardNameController.text = addressProvider.address.ward;
-    _streetNameController.text = addressProvider.address.address;
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
@@ -318,7 +330,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Badminton facility Name text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _facilityNameController,
                                     label: 'Badminton facility Name',
                                     hintText: 'Facility name',
@@ -331,13 +343,14 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                     },
                                   ),
 
-                                  // Select a location on the map text
+                                  // Select a location on the map
                                   LocationSelector(
-                                    selectedAddress: addressProvider.address,
+                                    selectedAddress: _selectedAddress,
+                                    onAddressSelected: _changeAddress,
                                   ),
 
                                   // Province text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _provinceNameController,
                                     label: 'Province',
                                     hintText: 'Province',
@@ -352,7 +365,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // District text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _districtNameController,
                                     label: 'District',
                                     hintText: 'District',
@@ -367,7 +380,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Ward text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _wardNameController,
                                     label: 'Ward',
                                     hintText: 'Ward',
@@ -382,7 +395,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Street / House number text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _streetNameController,
                                     label: 'Street / House number',
                                     hintText: 'Street / House number',
@@ -396,14 +409,14 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Facebook url
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _facebookUrlController,
                                     label: 'Facebook url',
                                     hintText: 'Facebook url',
                                   ),
 
                                   // Facility description text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _descriptionController,
                                     label: 'Facility description',
                                     hintText: 'Facility description',
@@ -418,7 +431,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Facility policy text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _policyController,
                                     label: 'Facility policy',
                                     hintText: 'Facility policy',
@@ -472,6 +485,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
     _facebookUrlController.dispose();
     _descriptionController.dispose();
     _policyController.dispose();
+
     super.dispose();
   }
 }

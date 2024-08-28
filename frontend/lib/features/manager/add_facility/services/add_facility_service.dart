@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -12,32 +13,52 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class AddFacilityService {
-  Future<String?> fetchAddressRefId(String apiKey, String searchText) async {
-    String apiUrl = 'https://maps.vietmap.vn/api/search/v3';
-    String fullUrl = '$apiUrl?apikey=$apiKey&text=$searchText&layers=ADDRESS';
-
-    try {
-      final response = await http.get(Uri.parse(fullUrl));
-
-      if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-
-        if (data.isNotEmpty) {
-          return data[0]['ref_id'] as String?;
-        }
-      } else {
-        print('HTTP Error ${response.statusCode}: ${response.reasonPhrase}');
-      }
-    } catch (e) {
-      print('Error fetching data: $e');
+  Future<String?> fetchAddressRefId({
+    required BuildContext context,
+    String? searchText,
+    double? lat,
+    double? lng,
+  }) async {
+    String apiUrl = 'https://maps.vietmap.vn/api/';
+    if (searchText != null) {
+      apiUrl +=
+          'search/v3?apikey=${dotenv.env['VIETMAP_API_KEY']!}&text=$searchText';
+    } else if (lat != null && lng != null) {
+      apiUrl +=
+          'reverse/v3?apikey=${dotenv.env['VIETMAP_API_KEY']!}&lat=$lat&lng=$lng';
     }
 
-    return null;
+    String? result = null;
+
+    try {
+      http.Response response = await http.get(Uri.parse(apiUrl));
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          List<dynamic> data = jsonDecode(response.body);
+
+          if (data.isNotEmpty) {
+            result = data[0]['ref_id'] as String?;
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return result;
   }
 
-  Future<DetailAddress?> fetchDetailAddress(String apiKey, String refId) async {
+  Future<DetailAddress?> fetchDetailAddress({required String refId}) async {
     String apiUrl = 'https://maps.vietmap.vn/api/place/v3';
-    String fullUrl = '$apiUrl?apikey=$apiKey&refid=$refId';
+    String fullUrl =
+        '$apiUrl?apikey=${dotenv.env['VIETMAP_API_KEY']!}&refid=$refId';
 
     try {
       final response = await http.get(Uri.parse(fullUrl));
