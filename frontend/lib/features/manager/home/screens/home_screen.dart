@@ -77,15 +77,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               FacilityHome(),
               ItemTag(
-                title: 'View detail infomation',
-                description: 'View your badminton facility detail infomation',
+                title: 'View detail information',
+                description: 'View your badminton facility detail information',
                 imgPath: 'assets/images/img_court.png',
                 onTap: () {},
                 isVisibleArrow: true,
               ),
               ItemTag(
                 title: 'Datetime management',
-                description: 'Update the infomation of your badminton facility',
+                description: 'Update the information of your badminton facility',
                 imgPath: 'assets/images/img_datetime.png',
                 onTap: _navigateToDatetimeManagementScreen,
                 isVisibleArrow: true,

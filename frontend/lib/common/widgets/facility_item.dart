@@ -26,7 +26,7 @@ class FacilityItem extends StatefulWidget {
 class _FacilityItemState extends State<FacilityItem> {
   int _activeIndex = 0;
 
-  void _navigateToFacilityManagerBottomBar() {
+  void _navigateToManagerBottomBar() {
     final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
       listen: false,
@@ -46,7 +46,7 @@ class _FacilityItemState extends State<FacilityItem> {
     final maxPrice = widget.facility.maxPrice;
 
     return GestureDetector(
-      onTap: _navigateToFacilityManagerBottomBar,
+      onTap: _navigateToManagerBottomBar,
       child: Container(
         margin: EdgeInsets.only(
           left: 16,

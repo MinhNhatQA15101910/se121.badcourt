@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class FacilityHome extends StatefulWidget {
@@ -26,6 +27,8 @@ class _FacilityHomeState extends State<FacilityHome> {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
     final imageCount = currentFacilityProvider.currentFacility.imageUrls.length;
+    final minPrice = currentFacilityProvider.currentFacility.minPrice;
+    final maxPrice = currentFacilityProvider.currentFacility.maxPrice;
 
     return Container(
       child: Column(
@@ -145,27 +148,36 @@ class _FacilityHomeState extends State<FacilityHome> {
               right: 16,
             ),
             color: GlobalVariables.white,
-            child: Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _interRegular18(
-                    currentFacilityProvider.currentFacility.name,
-                    GlobalVariables.blackGrey,
-                    1,
-                  ),
-                  _interBold16(
-                    '120.000đ - 150.000đ /1h ',
-                    GlobalVariables.blackGrey,
-                    1,
-                  ),
-                  _interRegular14Underline(
-                    'activated',
-                    GlobalVariables.green,
-                    1,
-                  ),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _interRegular18(
+                  currentFacilityProvider.currentFacility.name,
+                  GlobalVariables.blackGrey,
+                  1,
+                ),
+                _interBold16(
+                  minPrice == maxPrice
+                      ? NumberFormat.currency(
+                          locale: 'vi_VN',
+                          symbol: 'đ',
+                        ).format(minPrice)
+                      : '${NumberFormat.currency(
+                          locale: 'vi_VN',
+                          symbol: 'đ',
+                        ).format(minPrice)} - ${NumberFormat.currency(
+                          locale: 'vi_VN',
+                          symbol: 'đ',
+                        ).format(maxPrice)} / 1h ',
+                  GlobalVariables.blackGrey,
+                  1,
+                ),
+                _interRegular14Underline(
+                  'activated',
+                  GlobalVariables.green,
+                  1,
+                ),
+              ],
             ),
           )
         ],
@@ -173,7 +185,11 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _interRegular18(String text, Color color, int maxLines) {
+  Widget _interRegular18(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       padding: EdgeInsets.only(
         top: 12,
@@ -192,7 +208,11 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _interBold16(String text, Color color, int maxLines) {
+  Widget _interBold16(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       padding: EdgeInsets.only(
         top: 4,
@@ -211,7 +231,11 @@ class _FacilityHomeState extends State<FacilityHome> {
     );
   }
 
-  Widget _interRegular14Underline(String text, Color color, int maxLines) {
+  Widget _interRegular14Underline(
+    String text,
+    Color color,
+    int maxLines,
+  ) {
     return Container(
       child: Text(
         text,
