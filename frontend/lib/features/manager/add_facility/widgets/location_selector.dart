@@ -4,6 +4,7 @@ import 'package:frontend/features/manager/add_facility/models/detail_address.dar
 import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
+import 'package:frontend/features/manager/add_facility/widgets/map_widget.dart'; // Import MapWidget
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -30,25 +31,6 @@ class LocationSelector extends StatelessWidget {
     }
   }
 
-  Widget isValidateText(bool isValidateText) {
-    String text = isValidateText ? 'Verified' : 'Not verified';
-    Color textColor = isValidateText ? Colors.green : Colors.red;
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      style: GoogleFonts.inter(
-        fontSize: 10,
-        color: textColor,
-        decoration: TextDecoration.underline,
-        decorationColor: textColor,
-        textStyle: const TextStyle(
-          overflow: TextOverflow.ellipsis,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -57,6 +39,12 @@ class LocationSelector extends StatelessWidget {
         LabelDisplay(
           label: 'Select a location on the map',
           isRequired: true,
+        ),
+
+        // Add the MapWidget below the buttons
+        Padding(
+          padding: const EdgeInsets.only(top: 16.0),
+          child: MapWidget(detailAddress: selectedAddress),
         ),
         Align(
           alignment: Alignment.center,
@@ -83,12 +71,6 @@ class LocationSelector extends StatelessWidget {
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: 4),
-          child: (selectedAddress.address.isNotEmpty)
-              ? isValidateText(true)
-              : isValidateText(false),
         ),
       ],
     );
