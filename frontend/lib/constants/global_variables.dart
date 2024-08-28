@@ -65,15 +65,6 @@ class GlobalVariables {
     ),
   );
 
-  static Court court = Court(
-    id: '',
-    facilityId: '',
-    name: '',
-    description: '',
-    pricePerHour: 0,
-    orderPeriods: [],
-  );
-
   // Colors
   static const Color black = Color(0xFF000000);
   static const Color blackGrey = Color(0xFF27272A);

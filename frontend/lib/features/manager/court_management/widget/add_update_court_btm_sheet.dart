@@ -30,41 +30,31 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
   final _courtManagementService = CourtManagementService();
 
   void _addUpdateCourt() async {
-    // if (!_formKey.currentState!.validate()) {
-    //   return;
-    // }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-    // try {
-    //   final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-    //     context,
-    //     listen: false,
-    //   );
+    if (widget.court == null) {
+      await _courtManagementService.addCourt(
+        context: context,
+        name: _courtNameController.text,
+        description: _courtDescController.text,
+        pricePerHour: int.parse(_pricePerHourController.text),
+      );
+    } else {
+      // await _courtManagementService.updateCourt(
+      //   context: context,
+      //   courtId: GlobalVariables.court.id,
+      //   name: _courtNameController.text,
+      //   description: _courtDescController.text,
+      //   pricePerHour: int.parse(_pricePerHourController.text),
+      // );
+    }
 
-    //   if (widget.stateText == 'Add') {
-    //     await _courtManagementService.addCourt(
-    //       context: context,
-    //       facilityId: currentFacilityProvider.currentFacility.id,
-    //       name: _courtNameController.text,
-    //       description: _courtDescController.text,
-    //       pricePerHour: int.parse(_pricePerHourController.text),
-    //     );
-    //   } else if (widget.stateText == 'Update') {
-    //     await _courtManagementService.updateCourt(
-    //       context: context,
-    //       courtId: GlobalVariables.court.id,
-    //       name: _courtNameController.text,
-    //       description: _courtDescController.text,
-    //       pricePerHour: int.parse(_pricePerHourController.text),
-    //     );
-    //   }
+    // Notify parent widget of success
+    // widget.onUpdateSuccess(true);
 
-    //   // Notify parent widget of success
-    //   widget.onUpdateSuccess(true);
-
-    //   Navigator.pop(context);
-    // } finally {
-    //   setState(() {});
-    // }
+    Navigator.pop(context);
   }
 
   @override
