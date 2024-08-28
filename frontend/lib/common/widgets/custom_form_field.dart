@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
-import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
+import 'package:frontend/common/widgets/label_display.dart';
 
-class FacilityInfoFormField extends StatelessWidget {
-  const FacilityInfoFormField({
+class CustomFormField extends StatelessWidget {
+  const CustomFormField({
     super.key,
     required this.controller,
     required this.label,

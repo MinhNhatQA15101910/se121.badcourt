@@ -7,9 +7,9 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
-import 'package:frontend/features/manager/add_facility/widgets/facility_info_form_field.dart';
+import 'package:frontend/common/widgets/custom_form_field.dart';
 import 'package:frontend/features/manager/add_facility/widgets/image_picker_button.dart';
-import 'package:frontend/features/manager/add_facility/widgets/label_display.dart';
+import 'package:frontend/common/widgets/label_display.dart';
 import 'package:frontend/features/manager/add_facility/widgets/multiple_image_picker_button.dart';
 import 'package:frontend/features/manager/add_facility/widgets/selected_images.dart';
 import 'package:frontend/models/facility.dart';
@@ -183,7 +183,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Manager full name text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _fullNameController,
                                     label: 'Manager full name',
                                     hintText: 'Manager full name',
@@ -197,7 +197,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                   ),
 
                                   // Email text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _emailController,
                                     label: 'Email',
                                     hintText: 'Email',
@@ -211,7 +211,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                   ),
 
                                   // Phone number text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _phoneNumberController,
                                     label: 'Phone number',
                                     isPhoneNumber: true,
@@ -228,7 +228,7 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                   ),
 
                                   // Citizen ID text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _citizenIdController,
                                     label: 'Citizen ID',
                                     hintText: 'Citizen ID',

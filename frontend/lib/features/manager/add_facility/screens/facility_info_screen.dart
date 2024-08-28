@@ -8,7 +8,7 @@ import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
-import 'package:frontend/features/manager/add_facility/widgets/facility_info_form_field.dart';
+import 'package:frontend/common/widgets/custom_form_field.dart';
 import 'package:frontend/features/manager/add_facility/widgets/location_selector.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -330,7 +330,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Badminton facility Name text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _facilityNameController,
                                     label: 'Badminton facility Name',
                                     hintText: 'Facility name',
@@ -350,7 +350,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Province text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _provinceNameController,
                                     label: 'Province',
                                     hintText: 'Province',
@@ -365,7 +365,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // District text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _districtNameController,
                                     label: 'District',
                                     hintText: 'District',
@@ -380,7 +380,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Ward text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _wardNameController,
                                     label: 'Ward',
                                     hintText: 'Ward',
@@ -395,7 +395,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Street / House number text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _streetNameController,
                                     label: 'Street / House number',
                                     hintText: 'Street / House number',
@@ -409,14 +409,14 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Facebook url
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _facebookUrlController,
                                     label: 'Facebook url',
                                     hintText: 'Facebook url',
                                   ),
 
                                   // Facility description text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _descriptionController,
                                     label: 'Facility description',
                                     hintText: 'Facility description',
@@ -431,7 +431,7 @@ class _FacilityInfoState extends State<FacilityInfo> {
                                   ),
 
                                   // Facility policy text
-                                  FacilityInfoFormField(
+                                  CustomFormField(
                                     controller: _policyController,
                                     label: 'Facility policy',
                                     hintText: 'Facility policy',

@@ -11,7 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class CourtManagementScreen extends StatefulWidget {
-  const CourtManagementScreen({Key? key}) : super(key: key);
+  const CourtManagementScreen({super.key});
 
   @override
   State<CourtManagementScreen> createState() => _CourtManagementScreenState();
@@ -307,10 +307,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                               topRight: Radius.circular(8),
                             ),
                           ),
-                          child: AddUpdateCourtBottomSheet(
-                            stateText: 'Add',
-                            onUpdateSuccess: _updateSuccessCallback,
-                          ),
+                          child: AddUpdateCourtBottomSheet(),
                         );
                       },
                     );

@@ -55,8 +55,7 @@ class _ItemCourtState extends State<ItemCourt> {
                 ),
               ),
               child: AddUpdateCourtBottomSheet(
-                stateText: 'Update',
-                onUpdateSuccess: widget.onUpdateSuccess,
+                court: widget.court,
               ),
             );
           },
