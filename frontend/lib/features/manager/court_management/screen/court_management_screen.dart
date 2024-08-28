@@ -48,6 +48,34 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
 
     if (newCourt != null) {
       _courts.add(newCourt);
+
+      final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+        context,
+        listen: false,
+      );
+      final currentFacility = currentFacilityProvider.currentFacility;
+      if (currentFacilityProvider.currentFacility.courtsAmount == 0) {
+        currentFacilityProvider.setFacility(
+          currentFacility.copyWith(
+            courtsAmount: 1,
+            minPrice: newCourt.pricePerHour,
+            maxPrice: newCourt.pricePerHour,
+          ),
+        );
+      } else {
+        currentFacilityProvider.setFacility(
+          currentFacility.copyWith(
+            courtsAmount: currentFacility.courtsAmount + 1,
+            minPrice: newCourt.pricePerHour < currentFacility.minPrice
+                ? newCourt.pricePerHour
+                : currentFacility.minPrice,
+            maxPrice: newCourt.pricePerHour > currentFacility.maxPrice
+                ? newCourt.pricePerHour
+                : currentFacility.maxPrice,
+          ),
+        );
+      }
+
       setState(() {});
     }
   }
