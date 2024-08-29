@@ -92,7 +92,7 @@ managerCourtRouter.patch(
       let court = await Court.findById(court_id);
 
       // Check if the current user is the facility's owner
-      const facility = await Facility.find({
+      let facility = await Facility.findOne({
         _id: court.facility_id,
         user_id: req.user,
       });

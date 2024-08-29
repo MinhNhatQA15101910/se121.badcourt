@@ -54,14 +54,18 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
-
+  void initState() {
+    super.initState();
     if (widget.court != null) {
       _courtNameController.text = widget.court!.name;
       _courtDescController.text = widget.court!.description;
       _pricePerHourController.text = widget.court!.pricePerHour.toString();
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       padding: EdgeInsets.only(
