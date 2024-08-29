@@ -128,10 +128,25 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     );
   }
 
-  void _updateSuccessCallback(bool success) {
-    if (success) {
-      _fetchCourtByFacilityId();
-    }
+  void _updateCourt(int index, Court court) {
+    _courts[index] = court;
+
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    final currentFacility = currentFacilityProvider.currentFacility;
+    currentFacilityProvider.setFacility(
+      currentFacility.copyWith(
+        minPrice: court.pricePerHour < currentFacility.minPrice
+            ? court.pricePerHour
+            : currentFacility.minPrice,
+        maxPrice: court.pricePerHour > currentFacility.maxPrice
+            ? court.pricePerHour
+            : currentFacility.maxPrice,
+      ),
+    );
+
     setState(() {});
   }
 
@@ -312,16 +327,34 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     ),
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.only(top: 12, left: 16, right: 16),
+                    padding: const EdgeInsets.only(
+                      top: 12,
+                      left: 16,
+                      right: 16,
+                    ),
                     child: _titleText('Number of courts'),
                   ),
-                  ..._courts
-                      .map((court) => ItemCourt(
-                            court: court,
-                            onUpdateSuccess: _updateSuccessCallback,
-                          ))
-                      .toList(),
+                  ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return ItemCourt(
+                        court: _courts[index],
+                        updateCourt: (court) {
+                          _updateCourt(index, court);
+                        },
+                      );
+                    },
+                    itemCount: _courts.length,
+                  ),
+                  // ..._courts
+                  //     .map(
+                  //       (court) => ItemCourt(
+                  //         court: court,
+                  //         onUpdateSuccess: _updateSuccessCallback,
+                  //       ),
+                  //     )
+                  //     .toList(),
                   const SizedBox(
                     height: 12,
                   ),

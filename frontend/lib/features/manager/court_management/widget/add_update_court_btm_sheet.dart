@@ -41,17 +41,14 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
         pricePerHour: int.parse(_pricePerHourController.text),
       );
     } else {
-      // await _courtManagementService.updateCourt(
-      //   context: context,
-      //   courtId: GlobalVariables.court.id,
-      //   name: _courtNameController.text,
-      //   description: _courtDescController.text,
-      //   pricePerHour: int.parse(_pricePerHourController.text),
-      // );
+      court = await _courtManagementService.updateCourt(
+        context: context,
+        courtId: widget.court!.id,
+        name: _courtNameController.text,
+        description: _courtDescController.text,
+        pricePerHour: int.parse(_pricePerHourController.text),
+      );
     }
-
-    // Notify parent widget of success
-    // widget.onUpdateSuccess(true);
 
     Navigator.of(context).pop(court);
   }
@@ -59,6 +56,13 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+
+    if (widget.court != null) {
+      _courtNameController.text = widget.court!.name;
+      _courtDescController.text = widget.court!.description;
+      _pricePerHourController.text = widget.court!.pricePerHour.toString();
+    }
+
     return Container(
       padding: EdgeInsets.only(
         bottom: keyboardSpace,

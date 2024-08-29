@@ -66,7 +66,7 @@ class CourtManagementService {
     return court;
   }
 
-  Future<void> updateCourt({
+  Future<Court?> updateCourt({
     required BuildContext context,
     required String courtId,
     required String name,
@@ -77,6 +77,8 @@ class CourtManagementService {
       context,
       listen: false,
     );
+
+    Court? court = null;
     try {
       http.Response response = await http.patch(
         Uri.parse('$uri/manager/update-court/$courtId'),
@@ -95,6 +97,9 @@ class CourtManagementService {
         response: response,
         context: context,
         onSuccess: () {
+          court = Court.fromJson(
+            jsonEncode(jsonDecode(response.body)),
+          );
           IconSnackBar.show(
             context,
             label: 'Court updated successfully.',
@@ -109,6 +114,8 @@ class CourtManagementService {
         snackBarType: SnackBarType.fail,
       );
     }
+
+    return court;
   }
 
   Future<List<Court>> fetchCourtByFacilityId(
