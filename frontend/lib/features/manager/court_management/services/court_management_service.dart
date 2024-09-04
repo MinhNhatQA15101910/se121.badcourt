@@ -4,6 +4,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
@@ -158,6 +159,47 @@ class CourtManagementService {
     }
 
     return courtList;
+  }
+
+  Future<Facility?> fetchFacilityById({
+    required BuildContext context,
+    required String facilityId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+    Facility? facility = null;
+
+    try {
+      http.Response res = await http.get(
+        Uri.parse('$uri/manager/facilities/$facilityId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': userProvider.user.token,
+        },
+      );
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          facility = Facility.fromJson(
+            jsonEncode(
+              jsonDecode(res.body),
+            ),
+          );
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return facility;
   }
 
   Future<void> deleteCourt(

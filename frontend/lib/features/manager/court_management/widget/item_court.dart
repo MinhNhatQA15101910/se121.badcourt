@@ -10,11 +10,13 @@ import 'package:intl/intl.dart';
 class ItemCourt extends StatefulWidget {
   final Court court;
   final Function(Court) updateCourt;
+  final VoidCallback deleteCourt;
 
   const ItemCourt({
     super.key,
     required this.court,
     required this.updateCourt,
+    required this.deleteCourt,
   });
 
   @override
@@ -22,8 +24,6 @@ class ItemCourt extends StatefulWidget {
 }
 
 class _ItemCourtState extends State<ItemCourt> {
-  final _courtManagementService = CourtManagementService();
-
   void _updateCourt() async {
     Court? updatedCourt = await showModalBottomSheet<Court>(
       context: context,
@@ -51,21 +51,43 @@ class _ItemCourtState extends State<ItemCourt> {
   }
 
   void _deleteCourt() async {
-    // try {
-    //   await _courtManagementService.deleteCourt(
-    //     context,
-    //     widget.court.id,
-    //   );
-    //   // Gọi callback để cập nhật lại danh sách sau khi xóa thành công
-    //   widget.onUpdateSuccess(true);
-    // } catch (e) {
-    //   // Xử lý lỗi nếu cần thiết
-    // }
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Delete court confirm'),
+          content: const Text('Are you sure to delete this court?'),
+          actions: [
+            // The "Yes" button
+            TextButton(
+              onPressed: () async {
+                final courtManagementService = CourtManagementService();
+                courtManagementService.deleteCourt(
+                  context,
+                  widget.court.id,
+                );
+                widget.deleteCourt();
+
+                Navigator.of(context).pop();
+              },
+              child: const Text('Yes'),
+            ),
+            // The "No" button
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            )
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: _updateCourt,
       onLongPress: _deleteCourt,
       child: CustomContainer(

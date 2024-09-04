@@ -128,6 +128,25 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     );
   }
 
+  void _deleteCourt(int index) async {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
+    final currentFacility = await _courtManagementService.fetchFacilityById(
+      context: context,
+      facilityId: currentFacilityProvider.currentFacility.id,
+    );
+
+    if (currentFacility != null) {
+      currentFacilityProvider.setFacility(currentFacility);
+    }
+
+    _courts.removeAt(index);
+    setState(() {});
+  }
+
   void _updateCourt(int index, Court court) {
     _courts[index] = court;
 
@@ -343,18 +362,11 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                         updateCourt: (court) {
                           _updateCourt(index, court);
                         },
+                        deleteCourt: () => _deleteCourt(index),
                       );
                     },
                     itemCount: _courts.length,
                   ),
-                  // ..._courts
-                  //     .map(
-                  //       (court) => ItemCourt(
-                  //         court: court,
-                  //         onUpdateSuccess: _updateSuccessCallback,
-                  //       ),
-                  //     )
-                  //     .toList(),
                   const SizedBox(
                     height: 12,
                   ),

@@ -187,6 +187,8 @@ managerCourtRouter.get(
     try {
       const { facility_id } = req.query;
 
+      console.log(req.user);
+
       // Validate if current user is the facility's owner
       let existingFacility = await Facility.findOne({
         _id: facility_id,
