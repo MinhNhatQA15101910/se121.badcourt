@@ -2,16 +2,25 @@ import { inject, injectable } from "inversify";
 import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
-import { SignupSchema } from "../schemas/users";
+import { LoginSchema, SignupSchema } from "../schemas/users";
 import { BadRequestException } from "../exceptions/badRequestException";
+import { UnauthorizedException } from "../exceptions/unauthorizedException";
+import { IBcryptService } from "../interfaces/IBcryptService";
+import { IJwtService } from "../interfaces/IJwtService";
 
 @injectable()
 export class AuthController {
+  private _bcryptService: IBcryptService;
+  private _jwtService: IJwtService;
   private _userRepository: IUserRepository;
 
   constructor(
+    @inject(INTERFACE_TYPE.BcryptService) bcryptService: IBcryptService,
+    @inject(INTERFACE_TYPE.JwtService) jwtService: IJwtService,
     @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
+    this._bcryptService = bcryptService;
+    this._jwtService = jwtService;
     this._userRepository = userRepository;
   }
 
@@ -33,5 +42,31 @@ export class AuthController {
     });
 
     res.json(user);
+  }
+
+  async loginAsPlayer(req: Request, res: Response) {
+    const validatedData = LoginSchema.parse(req.body);
+
+    const { email, password } = validatedData;
+
+    const user = await this._userRepository.getUserByEmailAndRole(
+      email,
+      "player"
+    );
+    if (!user) {
+      throw new UnauthorizedException("Player with this email does not exist.");
+    }
+
+    const isPasswordMatch = this._bcryptService.comparePassword(
+      password,
+      user.password
+    );
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException("Incorrect password.");
+    }
+
+    const token = this._jwtService.generateToken(user._id);
+
+    res.json({ ...user._doc, token });
   }
 }
