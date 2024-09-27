@@ -69,4 +69,32 @@ export class AuthController {
 
     res.json({ ...user._doc, token });
   }
+
+  async loginAsManager(req: Request, res: Response) {
+    const validatedData = LoginSchema.parse(req.body);
+
+    const { email, password } = validatedData;
+
+    const user = await this._userRepository.getUserByEmailAndRole(
+      email,
+      "manager"
+    );
+    if (!user) {
+      throw new UnauthorizedException(
+        "Manager with this email does not exist."
+      );
+    }
+
+    const isPasswordMatch = this._bcryptService.comparePassword(
+      password,
+      user.password
+    );
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException("Incorrect password.");
+    }
+
+    const token = this._jwtService.generateToken(user._id);
+
+    res.json({ ...user._doc, token });
+  }
 }

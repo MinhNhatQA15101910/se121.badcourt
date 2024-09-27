@@ -37,4 +37,9 @@ authRoutes.post(
   errorHandler(authController.loginAsPlayer.bind(authController))
 );
 
+authRoutes.post(
+  "/login/manager",
+  errorHandler(authController.loginAsManager.bind(authController))
+);
+
 export default authRoutes;
