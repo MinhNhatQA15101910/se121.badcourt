@@ -2,7 +2,11 @@ import { inject, injectable } from "inversify";
 import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
-import { LoginSchema, SignupSchema } from "../schemas/users";
+import {
+  LoginSchema,
+  SignupSchema,
+  ValidateEmailSchema,
+} from "../schemas/users";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { UnauthorizedException } from "../exceptions/unauthorizedException";
 import { IBcryptService } from "../interfaces/IBcryptService";
@@ -25,9 +29,7 @@ export class AuthController {
   }
 
   async signup(req: Request, res: Response) {
-    const validatedData = SignupSchema.parse(req.body);
-
-    const { username, email, password, role } = validatedData;
+    const { username, email, password, role } = SignupSchema.parse(req.body);
 
     let user = await this._userRepository.getUserByEmailAndRole(email, role);
     if (user) {
@@ -45,9 +47,7 @@ export class AuthController {
   }
 
   async loginAsPlayer(req: Request, res: Response) {
-    const validatedData = LoginSchema.parse(req.body);
-
-    const { email, password } = validatedData;
+    const { email, password } = LoginSchema.parse(req.body);
 
     const user = await this._userRepository.getUserByEmailAndRole(
       email,
@@ -71,9 +71,7 @@ export class AuthController {
   }
 
   async loginAsManager(req: Request, res: Response) {
-    const validatedData = LoginSchema.parse(req.body);
-
-    const { email, password } = validatedData;
+    const { email, password } = LoginSchema.parse(req.body);
 
     const user = await this._userRepository.getUserByEmailAndRole(
       email,
@@ -99,9 +97,9 @@ export class AuthController {
   }
 
   async loginWithGoogle(req: Request, res: Response) {
-    const validatedData = SignupSchema.parse(req.body);
-
-    const { username, email, password, imageUrl } = validatedData;
+    const { username, email, password, imageUrl } = SignupSchema.parse(
+      req.body
+    );
 
     const existingUser = await this._userRepository.getUserByEmailAndRole(
       email,
@@ -123,5 +121,16 @@ export class AuthController {
 
     const token = this._jwtService.generateToken(user._id);
     res.json({ ...user._doc, token });
+  }
+
+  async validateEmail(req: Request, res: Response) {
+    const { email } = ValidateEmailSchema.parse(req.body);
+
+    const user = await this._userRepository.getUserByEmail(email);
+    if (user) {
+      return res.json(true);
+    }
+
+    res.json(false);
   }
 }

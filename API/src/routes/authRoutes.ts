@@ -47,4 +47,9 @@ authRoutes.post(
   errorHandler(authController.loginWithGoogle.bind(authController))
 );
 
+authRoutes.post(
+  "/email-exists",
+  errorHandler(authController.validateEmail.bind(authController))
+);
+
 export default authRoutes;
