@@ -52,7 +52,8 @@ export const SignupSchema = z.object({
   username: z.string().min(6),
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(["player", "manager"]),
+  imageUrl: z.string().optional(),
+  role: z.enum(["player", "manager"]).default("player"),
 });
 
 export const LoginSchema = z.object({

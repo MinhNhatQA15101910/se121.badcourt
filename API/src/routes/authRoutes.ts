@@ -42,4 +42,9 @@ authRoutes.post(
   errorHandler(authController.loginAsManager.bind(authController))
 );
 
+authRoutes.post(
+  "/login/google",
+  errorHandler(authController.loginWithGoogle.bind(authController))
+);
+
 export default authRoutes;

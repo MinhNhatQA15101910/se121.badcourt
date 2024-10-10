@@ -10,6 +10,7 @@ export class UserRepository implements IUserRepository {
     let user = new User({
       username: userData.username,
       email: userData.email,
+      imageUrl: userData.imageUrl,
       password: hashSync(userData.password, +SALT_ROUNDS),
       role: userData.role,
     });

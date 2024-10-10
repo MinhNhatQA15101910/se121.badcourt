@@ -97,4 +97,31 @@ export class AuthController {
 
     res.json({ ...user._doc, token });
   }
+
+  async loginWithGoogle(req: Request, res: Response) {
+    const validatedData = SignupSchema.parse(req.body);
+
+    const { username, email, password, imageUrl } = validatedData;
+
+    const existingUser = await this._userRepository.getUserByEmailAndRole(
+      email,
+      "player"
+    );
+
+    if (existingUser) {
+      const token = this._jwtService.generateToken(existingUser._id);
+      return res.json({ ...existingUser._doc, token });
+    }
+
+    const user = await this._userRepository.createUser({
+      username,
+      email,
+      password,
+      imageUrl,
+      role: "player",
+    });
+
+    const token = this._jwtService.generateToken(user._id);
+    res.json({ ...user._doc, token });
+  }
 }
