@@ -60,4 +60,9 @@ authRoutes.post(
   errorHandler(authController.sendVerifyEmail.bind(authController))
 );
 
+authRoutes.post(
+  "/token-is-valid",
+  errorHandler(authController.validateToken.bind(authController))
+);
+
 export default authRoutes;

@@ -7,10 +7,11 @@ import { UnauthorizedException } from "../exceptions/unauthorizedException";
 import { IBcryptService } from "../interfaces/IBcryptService";
 import { IJwtService } from "../interfaces/IJwtService";
 import { IMailService } from "../interfaces/IMailService";
-import { SignupSchema } from "../schemas/auth/signUp";
+import { SignupSchema } from "../schemas/auth/signup";
 import { LoginSchema } from "../schemas/auth/login";
 import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
 import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
+import * as jwt from "jsonwebtoken";
 
 @injectable()
 export class AuthController {
@@ -98,10 +99,10 @@ export class AuthController {
   }
 
   async loginWithGoogle(req: Request, res: Response) {
-    const signUpDto = SignupSchema.parse(req.body);
+    const signupDto = SignupSchema.parse(req.body);
 
     const existingUser = await this._userRepository.getUserByEmailAndRole(
-      signUpDto.email,
+      signupDto.email,
       "player"
     );
 
@@ -110,7 +111,7 @@ export class AuthController {
       return res.json({ ...existingUser._doc, token });
     }
 
-    const user = await this._userRepository.signupUser(signUpDto);
+    const user = await this._userRepository.signupUser(signupDto);
 
     const token = this._jwtService.generateToken(user._id);
     res.json({ ...user._doc, token });
@@ -143,5 +144,32 @@ export class AuthController {
         res.json("Email sent: " + info.response);
       }
     );
+  }
+
+  async validateToken(req: Request, res: Response) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.json(false);
+    }
+
+    let verified: jwt.JwtPayload | string;
+    try {
+      verified = this._jwtService.getVerified(token);
+    } catch {
+      return res.json(false);
+    }
+
+    if (!verified) {
+      return res.json(false);
+    }
+
+    const user = await this._userRepository.getUserById((verified as any).id);
+    if (!user) {
+      return res.json(false);
+    }
+
+    res.json(true);
   }
 }

@@ -3,7 +3,7 @@ import { IUserRepository } from "../interfaces/IUserRepository";
 import { hashSync } from "bcrypt";
 import { SALT_ROUNDS } from "../secrets";
 import User from "../models/user";
-import { SignupDto } from "../schemas/auth/signUp";
+import { SignupDto } from "../schemas/auth/signup";
 
 @injectable()
 export class UserRepository implements IUserRepository {
@@ -14,6 +14,11 @@ export class UserRepository implements IUserRepository {
 
   async getUserByEmailAndRole(email: string, role: string): Promise<any> {
     const user = await User.findOne({ email, role });
+    return user;
+  }
+
+  async getUserById(id: string): Promise<any> {
+    const user = await User.findById(id);
     return user;
   }
 
