@@ -2,17 +2,15 @@ import { inject, injectable } from "inversify";
 import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
-import {
-  LoginSchema,
-  SendVerifyEmailSchema,
-  ValidateEmailSchema,
-} from "../schemas/auth";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { UnauthorizedException } from "../exceptions/unauthorizedException";
 import { IBcryptService } from "../interfaces/IBcryptService";
 import { IJwtService } from "../interfaces/IJwtService";
 import { IMailService } from "../interfaces/IMailService";
 import { SignupSchema } from "../schemas/auth/signUp";
+import { LoginSchema } from "../schemas/auth/login";
+import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
+import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
 
 @injectable()
 export class AuthController {
@@ -50,10 +48,10 @@ export class AuthController {
   }
 
   async loginAsPlayer(req: Request, res: Response) {
-    const { email, password } = LoginSchema.parse(req.body);
+    const loginDto = LoginSchema.parse(req.body);
 
     const user = await this._userRepository.getUserByEmailAndRole(
-      email,
+      loginDto.email,
       "player"
     );
     if (!user) {
@@ -61,7 +59,7 @@ export class AuthController {
     }
 
     const isPasswordMatch = this._bcryptService.comparePassword(
-      password,
+      loginDto.password,
       user.password
     );
     if (!isPasswordMatch) {
@@ -74,10 +72,10 @@ export class AuthController {
   }
 
   async loginAsManager(req: Request, res: Response) {
-    const { email, password } = LoginSchema.parse(req.body);
+    const loginDto = LoginSchema.parse(req.body);
 
     const user = await this._userRepository.getUserByEmailAndRole(
-      email,
+      loginDto.email,
       "manager"
     );
     if (!user) {
@@ -87,7 +85,7 @@ export class AuthController {
     }
 
     const isPasswordMatch = this._bcryptService.comparePassword(
-      password,
+      loginDto.password,
       user.password
     );
     if (!isPasswordMatch) {
@@ -119,9 +117,11 @@ export class AuthController {
   }
 
   async validateEmail(req: Request, res: Response) {
-    const { email } = ValidateEmailSchema.parse(req.body);
+    const validateEmailDto = ValidateEmailSchema.parse(req.body);
 
-    const user = await this._userRepository.getUserByEmail(email);
+    const user = await this._userRepository.getUserByEmail(
+      validateEmailDto.email
+    );
     if (user) {
       return res.json(true);
     }
@@ -130,14 +130,18 @@ export class AuthController {
   }
 
   sendVerifyEmail(req: Request, res: Response) {
-    const { email, pincode } = SendVerifyEmailSchema.parse(req.body);
+    const sendVerifyEmailDto = SendVerifyEmailSchema.parse(req.body);
 
-    this._mailService.sendVerifyEmail(email, pincode, (err, info) => {
-      if (err) {
-        throw new Error(err.message);
+    this._mailService.sendVerifyEmail(
+      sendVerifyEmailDto.email,
+      sendVerifyEmailDto.pincode,
+      (err, info) => {
+        if (err) {
+          throw new Error(err.message);
+        }
+
+        res.json("Email sent: " + info.response);
       }
-
-      res.json("Email sent: " + info.response);
-    });
+    );
   }
 }
