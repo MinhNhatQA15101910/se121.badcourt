@@ -11,7 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class CourtManagementScreen extends StatefulWidget {
-  const CourtManagementScreen({Key? key}) : super(key: key);
+  const CourtManagementScreen({super.key});
 
   @override
   State<CourtManagementScreen> createState() => _CourtManagementScreenState();
@@ -26,6 +26,59 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   int _startMinute = 30;
   int _endHour = 19;
   int _endMinute = 30;
+
+  void _addCourt() async {
+    Court? newCourt = await showModalBottomSheet<Court>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+          ),
+          child: AddUpdateCourtBottomSheet(),
+        );
+      },
+    );
+
+    if (newCourt != null) {
+      _courts.add(newCourt);
+
+      final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+        context,
+        listen: false,
+      );
+      final currentFacility = currentFacilityProvider.currentFacility;
+      if (currentFacilityProvider.currentFacility.courtsAmount == 0) {
+        currentFacilityProvider.setFacility(
+          currentFacility.copyWith(
+            courtsAmount: 1,
+            minPrice: newCourt.pricePerHour,
+            maxPrice: newCourt.pricePerHour,
+          ),
+        );
+      } else {
+        currentFacilityProvider.setFacility(
+          currentFacility.copyWith(
+            courtsAmount: currentFacility.courtsAmount + 1,
+            minPrice: newCourt.pricePerHour < currentFacility.minPrice
+                ? newCourt.pricePerHour
+                : currentFacility.minPrice,
+            maxPrice: newCourt.pricePerHour > currentFacility.maxPrice
+                ? newCourt.pricePerHour
+                : currentFacility.maxPrice,
+          ),
+        );
+      }
+
+      setState(() {});
+    }
+  }
 
   int _hourMinuteToMilliseconds(int hour, int minute) {
     DateTime baseDate = DateTime(2000, 1, 1);
@@ -54,7 +107,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     }
   }
 
-  Future<void> _updateActiveSchedule() async {
+  void _updateActiveSchedule() async {
     final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
       listen: false,
@@ -75,10 +128,44 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     );
   }
 
-  void _updateSuccessCallback(bool success) {
-    if (success) {
-      _fetchCourtByFacilityId();
+  void _deleteCourt(int index) async {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
+    final currentFacility = await _courtManagementService.fetchFacilityById(
+      context: context,
+      facilityId: currentFacilityProvider.currentFacility.id,
+    );
+
+    if (currentFacility != null) {
+      currentFacilityProvider.setFacility(currentFacility);
     }
+
+    _courts.removeAt(index);
+    setState(() {});
+  }
+
+  void _updateCourt(int index, Court court) {
+    _courts[index] = court;
+
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    final currentFacility = currentFacilityProvider.currentFacility;
+    currentFacilityProvider.setFacility(
+      currentFacility.copyWith(
+        minPrice: court.pricePerHour < currentFacility.minPrice
+            ? court.pricePerHour
+            : currentFacility.minPrice,
+        maxPrice: court.pricePerHour > currentFacility.maxPrice
+            ? court.pricePerHour
+            : currentFacility.maxPrice,
+      ),
+    );
+
     setState(() {});
   }
 
@@ -105,7 +192,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     });
   }
 
-  Future<void> _fetchCourtByFacilityId() async {
+  void _fetchCourtByFacilityId() async {
     final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
       listen: false,
@@ -122,7 +209,6 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   @override
   void initState() {
     super.initState();
-
     _fetchCourtByFacilityId();
   }
 
@@ -202,7 +288,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _InterRegular18(
+                        _interRegular18(
                           currentFacilityProvider.currentFacility.name,
                           GlobalVariables.blackGrey,
                           1,
@@ -260,16 +346,27 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     ),
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.only(top: 12, left: 16, right: 16),
+                    padding: const EdgeInsets.only(
+                      top: 12,
+                      left: 16,
+                      right: 16,
+                    ),
                     child: _titleText('Number of courts'),
                   ),
-                  ..._courts
-                      .map((court) => ItemCourt(
-                            court: court,
-                            onUpdateSuccess: _updateSuccessCallback,
-                          ))
-                      .toList(),
+                  ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return ItemCourt(
+                        court: _courts[index],
+                        updateCourt: (court) {
+                          _updateCourt(index, court);
+                        },
+                        deleteCourt: () => _deleteCourt(index),
+                      );
+                    },
+                    itemCount: _courts.length,
+                  ),
                   const SizedBox(
                     height: 12,
                   ),
@@ -293,28 +390,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     color: GlobalVariables.white,
                     size: 24,
                   ),
-                  onPressed: () {
-                    showModalBottomSheet<dynamic>(
-                      context: context,
-                      useRootNavigator: true,
-                      isScrollControlled: true,
-                      builder: (BuildContext context) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              topRight: Radius.circular(8),
-                            ),
-                          ),
-                          child: AddUpdateCourtBottomSheet(
-                            stateText: 'Add',
-                            onUpdateSuccess: _updateSuccessCallback,
-                          ),
-                        );
-                      },
-                    );
-                  },
+                  onPressed: _addCourt,
                 ),
               ),
             ),
@@ -324,7 +400,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     );
   }
 
-  Widget _InterRegular18(String text, Color color, int maxLines) {
+  Widget _interRegular18(String text, Color color, int maxLines) {
     return Container(
       padding: const EdgeInsets.only(
         top: 12,

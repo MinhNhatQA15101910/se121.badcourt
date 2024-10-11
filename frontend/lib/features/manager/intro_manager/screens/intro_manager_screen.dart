@@ -2,16 +2,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/colored_safe_area.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/account/services/account_service.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
-import 'package:frontend/features/manager/manager_drawer.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 
 class IntroManagerScreen extends StatefulWidget {
-  static const String routeName = '/manager-intro';
-  const IntroManagerScreen({Key? key});
+  static const String routeName = '/manager/manager-intro';
+  const IntroManagerScreen({super.key});
 
   @override
   State<IntroManagerScreen> createState() => _IntroManagerScreenState();
@@ -22,6 +22,37 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
 
   List<Facility> _facilityList = [];
 
+  void _logOut() {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Log out confirm'),
+          content: const Text('Are you sure to log out the app?'),
+          actions: [
+            // The "Yes" button
+            TextButton(
+              onPressed: () {
+                final accountService = AccountService();
+                accountService.logOut(context);
+
+                Navigator.of(context).pop();
+              },
+              child: const Text('Yes'),
+            ),
+            // The "No" button
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
   void _navigateToFacilityInfo() {
     Navigator.of(context).pushNamed(FacilityInfo.routeName);
   }
@@ -30,7 +61,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
     _facilityList = await _introManagerService.fetchFacilitiesByUserId(
       context: context,
     );
-    
+
     if (!mounted) return;
 
     setState(() {});
@@ -54,7 +85,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
             width: 240,
             height: 240,
             colorFilter: ColorFilter.mode(
-              GlobalVariables.green,
+              GlobalVariables.white,
               BlendMode.srcIn,
             ),
           ),
@@ -64,7 +95,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
           Text(
             'No badminton',
             style: GoogleFonts.inter(
-              color: GlobalVariables.green,
+              color: GlobalVariables.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -72,7 +103,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
           Text(
             'facility yet',
             style: GoogleFonts.inter(
-              color: GlobalVariables.green,
+              color: GlobalVariables.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -82,7 +113,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
           Text(
             "Let's add a badminton facility",
             style: GoogleFonts.inter(
-              color: GlobalVariables.green,
+              color: GlobalVariables.white,
               fontSize: 16,
             ),
           ),
@@ -96,10 +127,39 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
               onPressed: _navigateToFacilityInfo,
               style: ElevatedButton.styleFrom(
                 elevation: 0,
-                backgroundColor: GlobalVariables.green,
+                backgroundColor: GlobalVariables.white,
               ),
               child: Text(
                 'Add a new facility',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: GlobalVariables.green,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Logout button
+          Container(
+            width: 240,
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: GlobalVariables.white,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: ElevatedButton(
+              onPressed: _logOut,
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+              ),
+              child: Text(
+                'Logout',
                 style: GoogleFonts.inter(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -128,7 +188,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
                   child: Text(
                     'Choose your badminton facility',
                     style: GoogleFonts.inter(
-                      color: GlobalVariables.green,
+                      color: GlobalVariables.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -137,13 +197,12 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 450,
+                height: 480,
                 child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
                   itemCount: _facilityList.length,
                   itemBuilder: (context, index) => FacilityItem(
                     facility: _facilityList[index],
-                    onPrimary: true,
                   ),
                 ),
               ),
@@ -155,51 +214,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
 
     return ColoredSafeArea(
       child: Scaffold(
-        backgroundColor: GlobalVariables.white,
-        drawer: ManagerDrawer(),
-        appBar: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            children: [
-              Text(
-                'BAD',
-                style: GoogleFonts.alfaSlabOne(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w400,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.yellow,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  'COURT',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
+        backgroundColor: GlobalVariables.green,
         body: Column(
           children: [
             content,
@@ -213,10 +228,41 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
                   onPressed: _navigateToFacilityInfo,
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    backgroundColor: GlobalVariables.green,
+                    backgroundColor: GlobalVariables.white,
                   ),
                   child: Text(
                     'Register a facility',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: GlobalVariables.green,
+                    ),
+                  ),
+                ),
+              ),
+
+            if (_facilityList.isNotEmpty) const SizedBox(height: 12),
+
+            // Logout button
+            if (_facilityList.isNotEmpty)
+              Container(
+                width: 240,
+                height: 40,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: GlobalVariables.white,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: ElevatedButton(
+                  onPressed: _logOut,
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                  ),
+                  child: Text(
+                    'Logout',
                     style: GoogleFonts.inter(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -225,6 +271,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
                   ),
                 ),
               ),
+
             const SizedBox(height: 32),
 
             Padding(
@@ -235,14 +282,14 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
                   text: TextSpan(
                     text: 'View ',
                     style: GoogleFonts.inter(
-                      color: GlobalVariables.green,
+                      color: GlobalVariables.white,
                       fontSize: 14,
                     ),
                     children: [
                       TextSpan(
                         text: 'facility registration instructions',
                         style: GoogleFonts.inter(
-                          color: GlobalVariables.green,
+                          color: GlobalVariables.white,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,

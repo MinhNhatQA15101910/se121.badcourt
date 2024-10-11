@@ -4,14 +4,15 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class CourtManagementService {
-  Future<void> addCourt({
+  Future<Court?> addCourt({
     required BuildContext context,
-    required String facilityId,
     required String name,
     required String description,
     required int pricePerHour,
@@ -20,11 +21,17 @@ class CourtManagementService {
       context,
       listen: false,
     );
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+
+    Court? court = null;
     try {
       http.Response response = await http.post(
         Uri.parse('$uri/manager/add-court'),
         body: jsonEncode({
-          'facility_id': facilityId,
+          'facility_id': currentFacilityProvider.currentFacility.id,
           'name': name,
           'description': description,
           'price_per_hour': pricePerHour,
@@ -39,6 +46,9 @@ class CourtManagementService {
         response: response,
         context: context,
         onSuccess: () {
+          court = Court.fromJson(
+            jsonEncode(jsonDecode(response.body)),
+          );
           IconSnackBar.show(
             context,
             label: 'Court added successfully.',
@@ -53,9 +63,11 @@ class CourtManagementService {
         snackBarType: SnackBarType.fail,
       );
     }
+
+    return court;
   }
 
-  Future<void> updateCourt({
+  Future<Court?> updateCourt({
     required BuildContext context,
     required String courtId,
     required String name,
@@ -66,6 +78,8 @@ class CourtManagementService {
       context,
       listen: false,
     );
+
+    Court? court = null;
     try {
       http.Response response = await http.patch(
         Uri.parse('$uri/manager/update-court/$courtId'),
@@ -84,6 +98,9 @@ class CourtManagementService {
         response: response,
         context: context,
         onSuccess: () {
+          court = Court.fromJson(
+            jsonEncode(jsonDecode(response.body)),
+          );
           IconSnackBar.show(
             context,
             label: 'Court updated successfully.',
@@ -98,6 +115,8 @@ class CourtManagementService {
         snackBarType: SnackBarType.fail,
       );
     }
+
+    return court;
   }
 
   Future<List<Court>> fetchCourtByFacilityId(
@@ -140,6 +159,47 @@ class CourtManagementService {
     }
 
     return courtList;
+  }
+
+  Future<Facility?> fetchFacilityById({
+    required BuildContext context,
+    required String facilityId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+    Facility? facility = null;
+
+    try {
+      http.Response res = await http.get(
+        Uri.parse('$uri/manager/facilities/$facilityId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': userProvider.user.token,
+        },
+      );
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          facility = Facility.fromJson(
+            jsonEncode(
+              jsonDecode(res.body),
+            ),
+          );
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return facility;
   }
 
   Future<void> deleteCourt(

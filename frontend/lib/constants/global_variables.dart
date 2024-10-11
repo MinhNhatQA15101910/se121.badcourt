@@ -1,13 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/models/court.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/checkout_provider.dart';
+import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/sort_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
-String uri = 'http://172.20.35.85:3000';
+String uri = 'http://10.0.119.54:3000';
 
-String vietmap_string_key =
-    'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
-String vietmap_api_key = '506862bb03a3d71632bdeb7674a3625328cb7e5a9b011841';
+List<SingleChildWidget> providers = [
+  ChangeNotifierProvider(
+    create: (context) => AuthProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => UserProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => FilterProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => SortProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => CheckoutProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => NewFacilityProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => CurrentFacilityProvider(),
+  ),
+];
 
 class GlobalVariables {
   // Define Scales
@@ -34,15 +62,6 @@ class GlobalVariables {
       hourTo: DateTime.now().add(Duration(hours: 1)),
       userId: '',
     ),
-  );
-
-  static Court court = Court(
-    id: '',
-    facilityId: '',
-    name: '',
-    description: '',
-    pricePerHour: 0,
-    orderPeriods: [],
   );
 
   // Colors

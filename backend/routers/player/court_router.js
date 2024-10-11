@@ -87,15 +87,44 @@ playerCourtRouter.get("/player/courts", playerValidator, async (req, res) => {
   }
 });
 
-function isCollapse(timePeriod1, timePeriod2) {
+// Validate overlap route
+playerCourtRouter.post(
+  "/player/validate-overlap",
+  playerValidator,
+  courtIdValidator,
+  orderPeriodsValidator,
+  async (req, res) => {
+    try {
+      const { court_id } = req.params;
+      const { order_periods } = req.body;
+
+      let court = await Court.findById(court_id);
+
+      // Check for collapse
+      for (let i = 0; i < order_periods.length; i++) {
+        for (let j = 0; j < court.order_periods.length; j++) {
+          if (isOverlap(order_periods[i], court.order_periods[j])) {
+            return res.json(true);
+          }
+        }
+      }
+
+      res.json(false);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+function isOverlap(timePeriod1, timePeriod2) {
   console.log(timePeriod1);
   console.log(timePeriod2);
 
   return (
-    (timePeriod1.hour_to >= timePeriod2.hour_from &&
-      timePeriod1.hour_to <= timePeriod2.hour_to) ||
-    (timePeriod2.hour_to >= timePeriod1.hour_from &&
-      timePeriod2.hour_to <= timePeriod1.hour_to)
+    (timePeriod1.hour_to > timePeriod2.hour_from &&
+      timePeriod1.hour_to < timePeriod2.hour_to) ||
+    (timePeriod2.hour_to > timePeriod1.hour_from &&
+      timePeriod2.hour_to < timePeriod1.hour_to)
   );
 }
 

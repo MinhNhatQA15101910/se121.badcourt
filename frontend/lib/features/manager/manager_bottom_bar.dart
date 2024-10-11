@@ -7,7 +7,7 @@ import 'package:frontend/features/manager/home/screens/home_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class ManagerBottomBar extends StatefulWidget {
-  static const String routeName = '/manageBottomBar';
+  static const String routeName = '/manager/bottom-bar';
   const ManagerBottomBar({super.key});
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
@@ -12,7 +13,7 @@ import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
 
 class MapScreen extends StatefulWidget {
-  static const String routeName = '/map';
+  static const String routeName = '/manager/map';
   const MapScreen({super.key});
 
   @override
@@ -43,7 +44,9 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchSearchCode() async {
     final searchCode = await _addFacilityService.fetchAddressRefId(
-        vietmap_api_key, _searchController.text);
+      context: context,
+      searchText: _searchController.text,
+    );
     if (searchCode != null) {
       setState(() {
         _searchCode = searchCode;
@@ -53,8 +56,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchDetailAddress() async {
     final detailAddress = await _addFacilityService.fetchDetailAddress(
-      vietmap_api_key,
-      _searchCode,
+      refId: _searchCode,
     );
 
     if (detailAddress != null) {
@@ -160,9 +162,11 @@ class _MapScreenState extends State<MapScreen> {
               myLocationTrackingMode: MyLocationTrackingMode.Tracking,
               myLocationEnabled: true,
               trackCameraPosition: true,
-              styleString: vietmap_string_key,
+              styleString: dotenv.env['VIETMAP_STRING_KEY']!,
               initialCameraPosition: CameraPosition(
-                  target: LatLng(10.762317, 106.654551), zoom: 15),
+                target: LatLng(10.762317, 106.654551),
+                zoom: 15,
+              ),
               onMapCreated: (VietmapController controller) {
                 setState(() {
                   _mapController = controller;

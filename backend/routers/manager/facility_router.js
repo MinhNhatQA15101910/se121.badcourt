@@ -85,7 +85,6 @@ managerFacilityRouter.post(
         user_id: req.user,
         name: facility_name,
         facebook_url,
-        phone_number,
         detail_address,
         description,
         policy,
@@ -97,6 +96,7 @@ managerFacilityRouter.post(
         manager_info: {
           full_name,
           email,
+          phone_number,
           citizen_id,
           citizen_image_url_front,
           citizen_image_url_back,
@@ -120,7 +120,12 @@ managerFacilityRouter.get(
   managerValidator,
   async (req, res) => {
     try {
-      const facilities = await Facility.find({ user_id: req.user });
+      var facilities = await Facility.find({ user_id: req.user });
+
+      facilities = facilities.sort((f1, f2) => {
+        return f1.registered_at < f2.registered_at ? 1 : -1;
+      });
+
       res.json(facilities);
     } catch (err) {
       res.status(500).json({ error: err.message });

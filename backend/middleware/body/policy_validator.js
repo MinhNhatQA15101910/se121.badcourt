@@ -1,7 +1,7 @@
 // Validate policy
 const policyValidator = (req, res, next) => {
   console.log("Policy validator middleware:");
-  console.log("- Policy: " + req.body.detail_address);
+  console.log("- Policy: " + req.body.policy);
 
   try {
     const policy = req.body.policy;
