@@ -5,7 +5,6 @@ import { Request, Response } from "express";
 import {
   LoginSchema,
   SendVerifyEmailSchema,
-  SignupSchema,
   ValidateEmailSchema,
 } from "../schemas/auth";
 import { BadRequestException } from "../exceptions/badRequestException";
@@ -13,6 +12,7 @@ import { UnauthorizedException } from "../exceptions/unauthorizedException";
 import { IBcryptService } from "../interfaces/IBcryptService";
 import { IJwtService } from "../interfaces/IJwtService";
 import { IMailService } from "../interfaces/IMailService";
+import { SignupSchema } from "../schemas/auth/signUp";
 
 @injectable()
 export class AuthController {
@@ -34,19 +34,17 @@ export class AuthController {
   }
 
   async signup(req: Request, res: Response) {
-    const { username, email, password, role } = SignupSchema.parse(req.body);
+    const signupDto = SignupSchema.parse(req.body);
 
-    let user = await this._userRepository.getUserByEmailAndRole(email, role);
+    let user = await this._userRepository.getUserByEmailAndRole(
+      signupDto.email,
+      signupDto.role
+    );
     if (user) {
       throw new BadRequestException("User already exists!");
     }
 
-    user = await this._userRepository.createUser({
-      username,
-      email,
-      password,
-      role,
-    });
+    user = await this._userRepository.signupUser(signupDto);
 
     res.json(user);
   }
@@ -102,12 +100,10 @@ export class AuthController {
   }
 
   async loginWithGoogle(req: Request, res: Response) {
-    const { username, email, password, imageUrl } = SignupSchema.parse(
-      req.body
-    );
+    const signUpDto = SignupSchema.parse(req.body);
 
     const existingUser = await this._userRepository.getUserByEmailAndRole(
-      email,
+      signUpDto.email,
       "player"
     );
 
@@ -116,13 +112,7 @@ export class AuthController {
       return res.json({ ...existingUser._doc, token });
     }
 
-    const user = await this._userRepository.createUser({
-      username,
-      email,
-      password,
-      imageUrl,
-      role: "player",
-    });
+    const user = await this._userRepository.signupUser(signUpDto);
 
     const token = this._jwtService.generateToken(user._id);
     res.json({ ...user._doc, token });
