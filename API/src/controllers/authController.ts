@@ -48,40 +48,18 @@ export class AuthController {
     res.json(user);
   }
 
-  async loginAsPlayer(req: Request, res: Response) {
+  async login(req: Request, res: Response) {
     const loginDto = LoginSchema.parse(req.body);
 
     const user = await this._userRepository.getUserByEmailAndRole(
       loginDto.email,
-      "player"
-    );
-    if (!user) {
-      throw new UnauthorizedException("Player with this email does not exist.");
-    }
-
-    const isPasswordMatch = this._bcryptService.comparePassword(
-      loginDto.password,
-      user.password
-    );
-    if (!isPasswordMatch) {
-      throw new UnauthorizedException("Incorrect password.");
-    }
-
-    const token = this._jwtService.generateToken(user._id);
-
-    res.json({ ...user._doc, token });
-  }
-
-  async loginAsManager(req: Request, res: Response) {
-    const loginDto = LoginSchema.parse(req.body);
-
-    const user = await this._userRepository.getUserByEmailAndRole(
-      loginDto.email,
-      "manager"
+      loginDto.role
     );
     if (!user) {
       throw new UnauthorizedException(
-        "Manager with this email does not exist."
+        `${
+          loginDto.role == "player" ? "Player" : "Manager"
+        } with this email does not exist.`
       );
     }
 

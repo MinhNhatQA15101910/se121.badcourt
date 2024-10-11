@@ -36,13 +36,8 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  "/login/player",
-  errorHandler(authController.loginAsPlayer.bind(authController))
-);
-
-authRoutes.post(
-  "/login/manager",
-  errorHandler(authController.loginAsManager.bind(authController))
+  "/login",
+  errorHandler(authController.login.bind(authController))
 );
 
 authRoutes.post(
