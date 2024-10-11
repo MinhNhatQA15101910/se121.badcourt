@@ -12,6 +12,7 @@ import { LoginSchema } from "../schemas/auth/login";
 import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
 import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
 import * as jwt from "jsonwebtoken";
+import { ChangePasswordSchema } from "../schemas/auth/changePassword";
 
 @injectable()
 export class AuthController {
@@ -149,5 +150,24 @@ export class AuthController {
     }
 
     res.json(true);
+  }
+
+  async changePassword(req: Request, res: Response) {
+    const changePasswordDto = ChangePasswordSchema.parse(req.body);
+
+    const user = await this._userRepository.getUserByEmailAndRole(
+      changePasswordDto.email,
+      changePasswordDto.role
+    );
+    if (!user) {
+      throw new BadRequestException("User with this email does not exist.");
+    }
+
+    user.password = this._bcryptService.hashPassword(
+      changePasswordDto.newPassword
+    );
+    await user.save();
+
+    res.status(204).send();
   }
 }

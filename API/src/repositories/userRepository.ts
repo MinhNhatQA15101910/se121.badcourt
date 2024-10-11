@@ -1,12 +1,20 @@
-import { injectable } from "inversify";
+import { inject, injectable } from "inversify";
 import { IUserRepository } from "../interfaces/IUserRepository";
-import { hashSync } from "bcrypt";
-import { SALT_ROUNDS } from "../secrets";
 import User from "../models/user";
 import { SignupDto } from "../schemas/auth/signup";
+import { IBcryptService } from "../interfaces/IBcryptService";
+import { INTERFACE_TYPE } from "../utils/appConsts";
 
 @injectable()
 export class UserRepository implements IUserRepository {
+  private _bcryptService: IBcryptService;
+
+  constructor(
+    @inject(INTERFACE_TYPE.BcryptService) bcryptService: IBcryptService
+  ) {
+    this._bcryptService = bcryptService;
+  }
+
   async getUserByEmail(email: string): Promise<any> {
     const user = await User.findOne({ email });
     return user;
@@ -23,11 +31,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async signupUser(signupDto: SignupDto): Promise<any> {
-    let user = new User({
+    let user = await User.create({
       username: signupDto.username,
       email: signupDto.email,
       imageUrl: signupDto.imageUrl,
-      password: hashSync(signupDto.password, +SALT_ROUNDS),
+      password: this._bcryptService.hashPassword(signupDto.password),
       role: signupDto.role,
     });
     user = await user.save();
