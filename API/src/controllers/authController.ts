@@ -4,27 +4,32 @@ import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
 import {
   LoginSchema,
+  SendVerifyEmailSchema,
   SignupSchema,
   ValidateEmailSchema,
-} from "../schemas/users";
+} from "../schemas/auth";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { UnauthorizedException } from "../exceptions/unauthorizedException";
 import { IBcryptService } from "../interfaces/IBcryptService";
 import { IJwtService } from "../interfaces/IJwtService";
+import { IMailService } from "../interfaces/IMailService";
 
 @injectable()
 export class AuthController {
   private _bcryptService: IBcryptService;
   private _jwtService: IJwtService;
+  private _mailService: IMailService;
   private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.BcryptService) bcryptService: IBcryptService,
     @inject(INTERFACE_TYPE.JwtService) jwtService: IJwtService,
+    @inject(INTERFACE_TYPE.MailService) mailService: IMailService,
     @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._bcryptService = bcryptService;
     this._jwtService = jwtService;
+    this._mailService = mailService;
     this._userRepository = userRepository;
   }
 
@@ -132,5 +137,17 @@ export class AuthController {
     }
 
     res.json(false);
+  }
+
+  sendVerifyEmail(req: Request, res: Response) {
+    const { email, pincode } = SendVerifyEmailSchema.parse(req.body);
+
+    this._mailService.sendVerifyEmail(email, pincode, (err, info) => {
+      if (err) {
+        throw new Error(err.message);
+      }
+
+      res.json("Email sent: " + info.response);
+    });
   }
 }
