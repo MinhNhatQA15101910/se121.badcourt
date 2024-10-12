@@ -11,7 +11,6 @@ import { SignupSchema } from "../schemas/auth/signup";
 import { LoginSchema } from "../schemas/auth/login";
 import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
 import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
-import * as jwt from "jsonwebtoken";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword";
 
 @injectable()
@@ -125,33 +124,6 @@ export class AuthController {
     );
   }
 
-  async validateToken(req: Request, res: Response) {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if (!token) {
-      return res.json(false);
-    }
-
-    let verified: jwt.JwtPayload | string;
-    try {
-      verified = this._jwtService.getVerified(token);
-    } catch {
-      return res.json(false);
-    }
-
-    if (!verified) {
-      return res.json(false);
-    }
-
-    const user = await this._userRepository.getUserById((verified as any).id);
-    if (!user) {
-      return res.json(false);
-    }
-
-    res.json(true);
-  }
-
   async changePassword(req: Request, res: Response) {
     const changePasswordDto = ChangePasswordSchema.parse(req.body);
 
@@ -169,5 +141,30 @@ export class AuthController {
     await user.save();
 
     res.status(204).send();
+  }
+
+  async validateToken(req: Request, res: Response) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.json(false);
+    }
+
+    try {
+      const verified = this._jwtService.getVerified(token);
+      if (!verified) {
+        return res.json(false);
+      }
+
+      const user = await this._userRepository.getUserById((verified as any).id);
+      if (!user) {
+        return res.json(false);
+      }
+
+      res.json(true);
+    } catch {
+      return res.json(false);
+    }
   }
 }
