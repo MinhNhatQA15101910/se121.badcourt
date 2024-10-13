@@ -1,4 +1,4 @@
-import { SignupDto } from "../schemas/auth/signup";
+import { SignupDto } from "../../schemas/auth/signup";
 
 export interface IUserRepository {
   getUserByEmail(email: string): Promise<any>;

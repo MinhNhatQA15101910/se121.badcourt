@@ -1,9 +1,9 @@
 import { inject, injectable } from "inversify";
-import { IUserRepository } from "../interfaces/IUserRepository";
-import User from "../models/user";
 import { SignupDto } from "../schemas/auth/signup";
-import { IBcryptService } from "../interfaces/IBcryptService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { INTERFACE_TYPE } from "../utils/appConsts";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import User from "../models/user";
 
 @injectable()
 export class UserRepository implements IUserRepository {

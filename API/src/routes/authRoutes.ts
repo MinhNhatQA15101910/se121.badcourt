@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { Container } from "inversify";
-import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { UserRepository } from "../repositories/userRepository";
 import { AuthController } from "../controllers/authController";
 import { errorHandler } from "../errorHandler";
-import { IBcryptService } from "../interfaces/IBcryptService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { BcryptService } from "../services/bcryptService";
-import { IJwtService } from "../interfaces/IJwtService";
+import { IJwtService } from "../interfaces/services/IJwtService";
 import { JwtService } from "../services/jwtService";
-import { IMailService } from "../interfaces/IMailService";
+import { IMailService } from "../interfaces/services/IMailService";
 import { MailService } from "../services/mailService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 const container = new Container();
 

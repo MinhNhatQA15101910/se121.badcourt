@@ -1,17 +1,17 @@
 import { inject, injectable } from "inversify";
-import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { UnauthorizedException } from "../exceptions/unauthorizedException";
-import { IBcryptService } from "../interfaces/IBcryptService";
-import { IJwtService } from "../interfaces/IJwtService";
-import { IMailService } from "../interfaces/IMailService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
+import { IJwtService } from "../interfaces/services/IJwtService";
+import { IMailService } from "../interfaces/services/IMailService";
 import { SignupSchema } from "../schemas/auth/signup";
 import { LoginSchema } from "../schemas/auth/login";
 import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
 import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 @injectable()
 export class AuthController {

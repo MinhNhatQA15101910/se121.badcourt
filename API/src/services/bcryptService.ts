@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IBcryptService } from "../interfaces/IBcryptService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { compareSync, hashSync } from "bcrypt";
 import { SALT_ROUNDS } from "../secrets";
 

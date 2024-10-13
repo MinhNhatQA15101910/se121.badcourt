@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { Container } from "inversify";
-import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { UserRepository } from "../repositories/userRepository";
 import { UserController } from "../controllers/userController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { errorHandler } from "../errorHandler";
 import { JwtService } from "../services/jwtService";
-import { IJwtService } from "../interfaces/IJwtService";
-import { IBcryptService } from "../interfaces/IBcryptService";
+import { IJwtService } from "../interfaces/services/IJwtService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { BcryptService } from "../services/bcryptService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 const container = new Container();
 

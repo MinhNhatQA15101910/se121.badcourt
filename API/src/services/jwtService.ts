@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IJwtService } from "../interfaces/IJwtService";
+import { IJwtService } from "../interfaces/services/IJwtService";
 import * as jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../secrets";
 

@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-export type SignupDto = {
+export interface SignupDto {
   username: string;
   email: string;
   password: string;
   role: "player" | "manager";
   imageUrl?: string | undefined;
-};
+}
 
 export const SignupSchema = z.object({
   username: z.string().min(6),
