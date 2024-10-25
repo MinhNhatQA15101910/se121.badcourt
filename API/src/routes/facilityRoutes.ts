@@ -35,4 +35,10 @@ facilityRoutes.post(
   errorHandler(facilityController.uploadFile.bind(facilityController))
 );
 
+facilityRoutes.delete(
+  "/delete-file",
+  [authMiddleware],
+  errorHandler(facilityController.deleteFile.bind(facilityController))
+);
+
 export default facilityRoutes;

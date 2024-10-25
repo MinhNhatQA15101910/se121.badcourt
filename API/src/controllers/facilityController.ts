@@ -44,23 +44,17 @@ export class FacilityController {
 
   async uploadFile(req: Request, res: Response) {
     const result = await cloudinary.uploader.upload(req.file?.path!, {
-      folder: "BadCourt/me",
+      folder: "BadCourt",
     });
 
     res.status(200).json(result);
   }
 
   async deleteFile(req: Request, res: Response) {
-    cloudinary.uploader.destroy(
-      req.body.public_id as string,
-      (error, result) => {
-        if (error) {
-          console.log(error);
-          return res.status(500).send();
-        }
-
-        res.status(200).json(result);
-      }
+    const result = await cloudinary.uploader.destroy(
+      req.body.public_id as string
     );
+
+    res.status(200).json(result);
   }
 }
