@@ -4,9 +4,7 @@ import 'package:frontend/common/widgets/custom_form_field.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/court_management/services/court_management_service.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class AddUpdateCourtBottomSheet extends StatefulWidget {
   const AddUpdateCourtBottomSheet({
@@ -34,32 +32,41 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
       return;
     }
 
+    Court? court = null;
     if (widget.court == null) {
-      await _courtManagementService.addCourt(
+      court = await _courtManagementService.addCourt(
         context: context,
         name: _courtNameController.text,
         description: _courtDescController.text,
         pricePerHour: int.parse(_pricePerHourController.text),
       );
     } else {
-      // await _courtManagementService.updateCourt(
-      //   context: context,
-      //   courtId: GlobalVariables.court.id,
-      //   name: _courtNameController.text,
-      //   description: _courtDescController.text,
-      //   pricePerHour: int.parse(_pricePerHourController.text),
-      // );
+      court = await _courtManagementService.updateCourt(
+        context: context,
+        courtId: widget.court!.id,
+        name: _courtNameController.text,
+        description: _courtDescController.text,
+        pricePerHour: int.parse(_pricePerHourController.text),
+      );
     }
 
-    // Notify parent widget of success
-    // widget.onUpdateSuccess(true);
+    Navigator.of(context).pop(court);
+  }
 
-    Navigator.pop(context);
+  @override
+  void initState() {
+    super.initState();
+    if (widget.court != null) {
+      _courtNameController.text = widget.court!.name;
+      _courtDescController.text = widget.court!.description;
+      _pricePerHourController.text = widget.court!.pricePerHour.toString();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+
     return Container(
       padding: EdgeInsets.only(
         bottom: keyboardSpace,
@@ -124,6 +131,7 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
                       controller: _courtDescController,
                       label: 'Description',
                       hintText: 'Description',
+                      maxLines: 5,
                       validator: (description) {
                         if (description == null || description.isEmpty) {
                           return 'Description is required';
@@ -192,6 +200,14 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _courtNameController.dispose();
+    _courtDescController.dispose();
+    _pricePerHourController.dispose();
+    super.dispose();
   }
 
   Widget _boldSizeText(String text) {

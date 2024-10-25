@@ -5,62 +5,91 @@ import 'package:frontend/features/manager/court_management/services/court_manage
 import 'package:frontend/features/manager/court_management/widget/add_update_court_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class ItemCourt extends StatefulWidget {
   final Court court;
-  final Function(bool) onUpdateSuccess;
+  final Function(Court) updateCourt;
+  final VoidCallback deleteCourt;
 
   const ItemCourt({
-    Key? key,
+    super.key,
     required this.court,
-    required this.onUpdateSuccess,
-  }) : super(key: key);
+    required this.updateCourt,
+    required this.deleteCourt,
+  });
 
   @override
-  _ItemCourtState createState() => _ItemCourtState();
+  State<ItemCourt> createState() => _ItemCourtState();
 }
 
 class _ItemCourtState extends State<ItemCourt> {
-  final _courtManagementService = CourtManagementService();
+  void _updateCourt() async {
+    Court? updatedCourt = await showModalBottomSheet<Court>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+          ),
+          child: AddUpdateCourtBottomSheet(
+            court: widget.court,
+          ),
+        );
+      },
+    );
 
-  Future<void> deleteCourt() async {
-    try {
-      await _courtManagementService.deleteCourt(
-        context,
-        widget.court.id,
-      );
-      // Gọi callback để cập nhật lại danh sách sau khi xóa thành công
-      widget.onUpdateSuccess(true);
-    } catch (e) {
-      // Xử lý lỗi nếu cần thiết
+    if (updatedCourt != null) {
+      widget.updateCourt(updatedCourt);
     }
+  }
+
+  void _deleteCourt() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Delete court confirm'),
+          content: const Text('Are you sure to delete this court?'),
+          actions: [
+            // The "Yes" button
+            TextButton(
+              onPressed: () async {
+                final courtManagementService = CourtManagementService();
+                courtManagementService.deleteCourt(
+                  context,
+                  widget.court.id,
+                );
+                widget.deleteCourt();
+
+                Navigator.of(context).pop();
+              },
+              child: const Text('Yes'),
+            ),
+            // The "No" button
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            )
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        showModalBottomSheet<dynamic>(
-          context: context,
-          useRootNavigator: true,
-          isScrollControlled: true,
-          builder: (BuildContext context) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-              ),
-              child: AddUpdateCourtBottomSheet(
-                court: widget.court,
-              ),
-            );
-          },
-        );
-      },
-      onLongPress: deleteCourt,
+    return InkWell(
+      onTap: _updateCourt,
+      onLongPress: _deleteCourt,
       child: CustomContainer(
         child: Row(
           children: [
@@ -77,7 +106,12 @@ class _ItemCourtState extends State<ItemCourt> {
             SizedBox(
               width: 8,
             ),
-            _boldSizeText(widget.court.pricePerHour.toString() + ' đ/h'),
+            _boldSizeText(
+              '${NumberFormat.currency(
+                locale: 'vi_VN',
+                symbol: 'đ',
+              ).format(widget.court.pricePerHour)}/h',
+            ),
           ],
         ),
       ),

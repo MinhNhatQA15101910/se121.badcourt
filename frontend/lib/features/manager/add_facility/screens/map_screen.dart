@@ -11,7 +11,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 
 class MapScreen extends StatefulWidget {
-  static const String routeName = '/map';
+  static const String routeName = '/manager/map';
   const MapScreen({super.key});
 
   @override
