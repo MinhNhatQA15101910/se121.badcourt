@@ -112,20 +112,15 @@ export const AppFacilitySchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  latitude: {
-    type: Number,
-    required: true,
-    validate: {
-      validator: (latitude: number) => latitude >= -90 && latitude <= 90,
-      message: "Invalid latitude. It must be between -90 and 90.",
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
     },
-  },
-  longitude: {
-    type: Number,
-    required: true,
-    validate: {
-      validator: (longitude: number) => longitude >= -180 && longitude <= 180,
-      message: "Invalid longitude. It must be between -180 and 180.",
+    coordinates: {
+      type: [Number],
+      required: true,
     },
   },
   rating_avg: {
@@ -150,3 +145,4 @@ export const AppFacilitySchema = new mongoose.Schema({
   ],
   manager_info: ManagerInfoSchema,
 });
+AppFacilitySchema.index({ location: "2dsphere" });

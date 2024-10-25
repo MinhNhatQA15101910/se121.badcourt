@@ -6,6 +6,7 @@ import { FacilityController } from "../controllers/facilityController";
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { errorHandler } from "../errorHandler";
+import { upload } from "../middlewares/multerMiddleware";
 
 const container = new Container();
 
@@ -15,16 +16,23 @@ container
 
 container.bind(INTERFACE_TYPE.FacilityController).to(FacilityController);
 
-const userRoutes: Router = Router();
+const facilityRoutes: Router = Router();
 
 const facilityController = container.get<FacilityController>(
   INTERFACE_TYPE.FacilityController
 );
 
-userRoutes.get(
-  "/",
+// userRoutes.get(
+//   "/",
+//   [authMiddleware],
+//   errorHandler(facilityController.getFacilities.bind(facilityController))
+// );
+
+facilityRoutes.post(
+  "/upload-file",
   [authMiddleware],
-  errorHandler(facilityController.getFacilities.bind(facilityController))
+  upload.single("file"),
+  errorHandler(facilityController.uploadFile.bind(facilityController))
 );
 
-export default userRoutes;
+export default facilityRoutes;

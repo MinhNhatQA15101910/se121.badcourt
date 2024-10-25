@@ -14,9 +14,31 @@ export class FacilityRepository implements IFacilityRepository {
       query = query.where("province", facilityParams.province);
     }
 
-    // query = query.sort({
-    //   [facilityParams.sortBy]: facilityParams.order === "asc" ? 1 : -1,
-    // });
+    if (facilityParams.sortBy === "location") {
+      if (facilityParams.order === "asc") {
+        try {
+          query = query
+            .find({
+              location: {
+                $near: {
+                  $geometry: {
+                    type: "Point",
+                    coordinates: [facilityParams.lon, facilityParams.lat],
+                  },
+                },
+              },
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      // } else {
+      //   query = query.near({
+      //     type: "Point",
+      //     coordinates: [facilityParams.lon, facilityParams.lat],
+      //   });
+      // }
+    }
 
     // console.log("4. ok");
 
