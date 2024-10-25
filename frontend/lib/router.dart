@@ -21,6 +21,7 @@ import 'package:frontend/features/player/facility_detail/screens/player_map_scre
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
+import 'package:frontend/features/post/screens/post_screen.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
   switch (routeSettings.name) {
@@ -128,6 +129,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const PlayerMapScreen(),
+      );
+    case PostScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const PostScreen(),
       );
     default:
       return MaterialPageRoute(

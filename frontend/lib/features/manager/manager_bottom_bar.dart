@@ -4,6 +4,7 @@ import 'package:frontend/features/manager/account/screen/manager_account_screen.
 import 'package:frontend/features/manager/booking_management_manager/screens/booking_management_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
 import 'package:frontend/features/manager/home/screens/home_screen.dart';
+import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class ManagerBottomBar extends StatefulWidget {
@@ -20,7 +21,7 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const CourtManagementScreen(),
-    const BookingManagementManagerScreen(),
+    const PostScreen(),
     const ManagerAccountScreen(),
   ];
 
@@ -54,8 +55,8 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
                 text: 'Courts',
               ),
               GButton(
-                icon: Icons.calendar_month,
-                text: 'Booking',
+                icon: Icons.view_quilt,
+                text: 'Post',
               ),
               GButton(
                 icon: Icons.account_circle,

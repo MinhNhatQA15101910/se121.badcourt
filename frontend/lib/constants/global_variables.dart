@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
+import 'package:frontend/models/court.dart';
 import 'package:frontend/models/order.dart';
 import 'package:frontend/models/order_period.dart';
 import 'package:frontend/providers/auth_provider.dart';
@@ -11,7 +12,7 @@ import 'package:frontend/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-String uri = 'http://10.0.119.54:3000';
+String uri = 'http://192.168.244.69:3000';
 
 List<SingleChildWidget> providers = [
   ChangeNotifierProvider(

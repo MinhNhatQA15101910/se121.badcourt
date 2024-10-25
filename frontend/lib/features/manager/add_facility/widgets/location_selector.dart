@@ -139,12 +139,13 @@ class _LocationSelectorState extends State<LocationSelector> {
           label: 'Select a location on the map',
           isRequired: true,
         ),
+        Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-              width: 2,
-              color: GlobalVariables.lightGreen,
-            ),
+            border: Border.all(width: 2, color: GlobalVariables.lightGreen),
           ),
+          width: double.infinity,
+          height: 150,
           child: previewContent,
         ),
         const SizedBox(height: 8),
