@@ -4,6 +4,7 @@ import { injectable } from "inversify";
 import { FacilityParams } from "../schemas/facility/facilityParams";
 import { Query } from "mongoose";
 import Facility from "../models/facility";
+import { RegisterFacilityDto } from "../schemas/facility/registerFacility";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
@@ -17,17 +18,16 @@ export class FacilityRepository implements IFacilityRepository {
     if (facilityParams.sortBy === "location") {
       if (facilityParams.order === "asc") {
         try {
-          query = query
-            .find({
-              location: {
-                $near: {
-                  $geometry: {
-                    type: "Point",
-                    coordinates: [facilityParams.lon, facilityParams.lat],
-                  },
+          query = query.find({
+            location: {
+              $near: {
+                $geometry: {
+                  type: "Point",
+                  coordinates: [facilityParams.lon, facilityParams.lat],
                 },
               },
-            });
+            },
+          });
         } catch (err) {
           console.log(err);
         }
@@ -47,5 +47,39 @@ export class FacilityRepository implements IFacilityRepository {
       facilityParams.pageNumber,
       facilityParams.pageSize
     );
+  }
+
+  async getFacilityByName(facilityName: string): Promise<any> {
+    return await Facility.findOne({ name: facilityName });
+  }
+
+  async registerFacility(registerFacilityDto: RegisterFacilityDto): Promise<any> {
+    let facility = new Facility({
+      userId: registerFacilityDto.userId,
+      name: registerFacilityDto.facilityName,
+      facebookUrl: registerFacilityDto.facebookUrl,
+      description: registerFacilityDto.description,
+      policy: registerFacilityDto.policy,
+      detailAddress: registerFacilityDto.detailAddress,
+      province: registerFacilityDto.province,
+      location: {
+        type: "Point",
+        coordinates: [registerFacilityDto.lon, registerFacilityDto.lat],
+      },
+      facilityImages: registerFacilityDto.facilityImages,
+      managerInfo: {
+        fullName: registerFacilityDto.fullName,
+        email: registerFacilityDto.email,
+        phoneNumber: registerFacilityDto.phoneNumber,
+        citizenId: registerFacilityDto.citizenId,
+        citizenImageFront: registerFacilityDto.citizenImageFront,
+        citizenImageBack: registerFacilityDto.citizenImageBack,
+        bankCardFront: registerFacilityDto.bankCardFront,
+        bankCardBack: registerFacilityDto.bankCardBack,
+        businessLicenseImages: registerFacilityDto.businessLicenseImages,
+      },
+    });
+    facility = await facility.save();
+    return facility;
   }
 }

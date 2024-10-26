@@ -1,9 +1,10 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import mongoose from "mongoose";
-import activeSchema from "../active/appActive";
+import { FileSchema } from "../file/fileSchema";
+import ActiveSchema from "../active/appActive";
 
 const ManagerInfoSchema = new mongoose.Schema({
-  full_name: {
+  fullName: {
     required: true,
     type: String,
     trim: true,
@@ -21,7 +22,7 @@ const ManagerInfoSchema = new mongoose.Schema({
       message: "Invalid email address.",
     },
   },
-  phone_number: {
+  phoneNumber: {
     required: true,
     type: String,
     trim: true,
@@ -32,7 +33,7 @@ const ManagerInfoSchema = new mongoose.Schema({
       message: "Invalid phone number.",
     },
   },
-  citizen_id: {
+  citizenId: {
     required: true,
     type: String,
     trim: true,
@@ -44,37 +45,15 @@ const ManagerInfoSchema = new mongoose.Schema({
       message: "Invalid citizen id.",
     },
   },
-  citizen_image_url_front: {
-    required: true,
-    type: String,
-    trim: true,
-  },
-  citizen_image_url_back: {
-    required: true,
-    type: String,
-    trim: true,
-  },
-  bank_card_url_front: {
-    required: true,
-    type: String,
-    trim: true,
-  },
-  bank_card_url_back: {
-    required: true,
-    type: String,
-    trim: true,
-  },
-  business_license_image_urls: [
-    {
-      required: true,
-      type: String,
-      trim: true,
-    },
-  ],
+  citizenImageFront: FileSchema,
+  citizenImageBack: FileSchema,
+  bankCardFront: FileSchema,
+  bankCardBack: FileSchema,
+  businessLicenseImages: [FileSchema],
 });
 
-export const AppFacilitySchema = new mongoose.Schema({
-  user_id: {
+const AppFacilitySchema = new mongoose.Schema({
+  userId: {
     required: true,
     type: String,
     trim: true,
@@ -84,25 +63,25 @@ export const AppFacilitySchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  facebook_url: {
+  facebookUrl: {
     type: String,
     trim: true,
   },
   description: { type: String, trim: true, required: true },
   policy: { type: String, trim: true, required: true },
-  courts_amount: {
+  courtsAmount: {
     type: Number,
     default: 0,
   },
-  min_price: {
+  minPrice: {
     type: Number,
     default: 0,
   },
-  max_price: {
+  maxPrice: {
     type: Number,
     default: 0,
   },
-  detail_address: {
+  detailAddress: {
     required: true,
     type: String,
     trim: true,
@@ -123,26 +102,27 @@ export const AppFacilitySchema = new mongoose.Schema({
       required: true,
     },
   },
-  rating_avg: {
+  ratingAvg: {
     type: Number,
     default: 0,
   },
-  total_rating: {
+  totalRating: {
     type: Number,
     default: 0,
   },
-  active_at: activeSchema,
-  registered_at: {
+  activeAt: ActiveSchema,
+  registeredAt: {
     type: Number,
     required: true,
+    default: new Date(),
   },
-  image_urls: [
-    {
-      required: true,
-      type: String,
-      trim: true,
-    },
-  ],
-  manager_info: ManagerInfoSchema,
+  facilityImages: [FileSchema],
+  managerInfo: ManagerInfoSchema,
+  isApproved: {
+    type: Boolean,
+    default: false,
+  },
 });
 AppFacilitySchema.index({ location: "2dsphere" });
+
+export default AppFacilitySchema;

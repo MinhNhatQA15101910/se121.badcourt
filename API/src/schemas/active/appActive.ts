@@ -1,17 +1,19 @@
 import mongoose from "mongoose";
 
 const TimePeriodSchema = new mongoose.Schema({
-  user_id: {
+  userId: {
     type: String,
     trim: true,
   },
-  hour_from: {
+  hourFrom: {
     type: Number,
     required: true,
+    default: 0,
   },
-  hour_to: {
+  hourTo: {
     type: Number,
     required: true,
+    default: 0,
   },
 });
 
