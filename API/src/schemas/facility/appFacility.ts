@@ -92,15 +92,8 @@ const AppFacilitySchema = new mongoose.Schema({
     trim: true,
   },
   location: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
+    type: { type: String, enum: ["Point"], required: true },
+    coordinates: { type: [Number], required: true },
   },
   ratingAvg: {
     type: Number,
@@ -114,13 +107,18 @@ const AppFacilitySchema = new mongoose.Schema({
   registeredAt: {
     type: Number,
     required: true,
-    default: new Date(),
+    default: Date.now(),
   },
   facilityImages: [FileSchema],
   managerInfo: ManagerInfoSchema,
   isApproved: {
     type: Boolean,
     default: false,
+  },
+  approvedAt: {
+    type: Number,
+    required: true,
+    default: Date.now(),
   },
 });
 AppFacilitySchema.index({ location: "2dsphere" });

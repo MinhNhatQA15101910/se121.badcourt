@@ -2,48 +2,59 @@ import { IFacilityRepository } from "../interfaces/repositories/IFacilityReposit
 import { PagedList } from "../helper/pagedList";
 import { injectable } from "inversify";
 import { FacilityParams } from "../schemas/facility/facilityParams";
-import { Query } from "mongoose";
+import { Aggregate } from "mongoose";
 import Facility from "../models/facility";
 import { RegisterFacilityDto } from "../schemas/facility/registerFacility";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
   async getFacilities(facilityParams: FacilityParams): Promise<PagedList<any>> {
-    let query: Query<any[], any> = Facility.find();
+    let aggregate: Aggregate<any[]> = Facility.aggregate([]);
+
+    switch (facilityParams.sortBy) {
+      case "location":
+        aggregate = aggregate
+          .near({
+            near: [facilityParams.lon, facilityParams.lat],
+            distanceField: "distance",
+            spherical: true,
+          })
+          .sort({ distance: facilityParams.order === "asc" ? 1 : -1 });
+        break;
+      case "registeredAt":
+        aggregate = aggregate.sort({
+          registeredAt: facilityParams.order === "asc" ? 1 : -1,
+        });
+        break;
+      case "price":
+        aggregate = aggregate
+          .addFields({
+            avgPrice: { $avg: ["$minPrice", "$maxPrice"] },
+          })
+          .sort({ avgPrice: facilityParams.order === "asc" ? 1 : -1 });
+    }
 
     if (facilityParams.province) {
-      query = query.where("province", facilityParams.province);
+      aggregate = aggregate.match({ province: facilityParams.province });
     }
 
-    if (facilityParams.sortBy === "location") {
-      if (facilityParams.order === "asc") {
-        try {
-          query = query.find({
-            location: {
-              $near: {
-                $geometry: {
-                  type: "Point",
-                  coordinates: [facilityParams.lon, facilityParams.lat],
-                },
-              },
-            },
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      }
-      // } else {
-      //   query = query.near({
-      //     type: "Point",
-      //     coordinates: [facilityParams.lon, facilityParams.lat],
-      //   });
-      // }
-    }
+    console.log(facilityParams.minPrice);
+    console.log(facilityParams.maxPrice);
+    aggregate = aggregate.match({
+      minPrice: {
+        $gte: facilityParams.minPrice,
+      },
+      maxPrice: {
+        $lte: facilityParams.maxPrice,
+      },
+    });
 
-    // console.log("4. ok");
+    const pipeline = aggregate.pipeline();
+    let countAggregate = Facility.aggregate([...pipeline, { $count: "count" }]);
 
     return await PagedList.create<any>(
-      query,
+      aggregate,
+      countAggregate,
       facilityParams.pageNumber,
       facilityParams.pageSize
     );
@@ -53,7 +64,9 @@ export class FacilityRepository implements IFacilityRepository {
     return await Facility.findOne({ name: facilityName });
   }
 
-  async registerFacility(registerFacilityDto: RegisterFacilityDto): Promise<any> {
+  async registerFacility(
+    registerFacilityDto: RegisterFacilityDto
+  ): Promise<any> {
     let facility = new Facility({
       userId: registerFacilityDto.userId,
       name: registerFacilityDto.facilityName,

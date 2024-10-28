@@ -9,6 +9,7 @@ import {
 } from "../schemas/facility/registerFacility";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { IFileService } from "../interfaces/services/IFileSerivce";
+import { FacilityParamsSchema } from "../schemas/facility/facilityParams";
 
 @injectable()
 export class FacilityController {
@@ -22,6 +23,16 @@ export class FacilityController {
   ) {
     this._fileService = fileService;
     this._facilityRepository = facilityRepository;
+  }
+
+  async getFacilities(req: Request, res: Response) {
+    const facilityParams = FacilityParamsSchema.parse(req.query);
+    
+    const facilities = await this._facilityRepository.getFacilities(
+      facilityParams
+    );
+
+    res.json(facilities);
   }
 
   async registerFacility(req: Request, res: Response) {

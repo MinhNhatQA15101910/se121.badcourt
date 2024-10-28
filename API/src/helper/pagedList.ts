@@ -1,4 +1,4 @@
-import { Query } from "mongoose";
+import { Aggregate, Query } from "mongoose";
 
 export class PagedList<T> extends Array<T> {
   currentPage: number;
@@ -15,14 +15,14 @@ export class PagedList<T> extends Array<T> {
   }
 
   static async create<T>(
-    query: Query<any[], any>,
+    aggregate: Aggregate<any[]>,
+    countAggregate: Aggregate<any[]>,
     pageNumber: number,
     pageSize: number
   ): Promise<PagedList<T>> {
-    const cloneQuery = query.clone();
-    const count = await cloneQuery.countDocuments();
+    const count = (await countAggregate.exec())[0]?.count || 0;
 
-    const items = await query
+    const items = await aggregate
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .exec();

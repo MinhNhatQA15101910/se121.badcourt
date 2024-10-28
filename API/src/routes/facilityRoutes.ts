@@ -27,11 +27,11 @@ const facilityController = container.get<FacilityController>(
   INTERFACE_TYPE.FacilityController
 );
 
-// userRoutes.get(
-//   "/",
-//   [authMiddleware],
-//   errorHandler(facilityController.getFacilities.bind(facilityController))
-// );
+facilityRoutes.get(
+  "/",
+  [authMiddleware],
+  errorHandler(facilityController.getFacilities.bind(facilityController))
+);
 
 facilityRoutes.post(
   "/",
