@@ -1,18 +1,17 @@
 import { inject, injectable } from "inversify";
-import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
-import {
-  LoginSchema,
-  SendVerifyEmailSchema,
-  SignupSchema,
-  ValidateEmailSchema,
-} from "../schemas/auth";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { UnauthorizedException } from "../exceptions/unauthorizedException";
-import { IBcryptService } from "../interfaces/IBcryptService";
-import { IJwtService } from "../interfaces/IJwtService";
-import { IMailService } from "../interfaces/IMailService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
+import { IJwtService } from "../interfaces/services/IJwtService";
+import { IMailService } from "../interfaces/services/IMailService";
+import { SignupSchema } from "../schemas/auth/signup";
+import { LoginSchema } from "../schemas/auth/login";
+import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
+import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
+import { ChangePasswordSchema } from "../schemas/auth/changePassword";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 @injectable()
 export class AuthController {
@@ -34,62 +33,38 @@ export class AuthController {
   }
 
   async signup(req: Request, res: Response) {
-    const { username, email, password, role } = SignupSchema.parse(req.body);
+    const signupDto = SignupSchema.parse(req.body);
 
-    let user = await this._userRepository.getUserByEmailAndRole(email, role);
+    let user = await this._userRepository.getUserByEmailAndRole(
+      signupDto.email,
+      signupDto.role
+    );
     if (user) {
       throw new BadRequestException("User already exists!");
     }
 
-    user = await this._userRepository.createUser({
-      username,
-      email,
-      password,
-      role,
-    });
+    user = await this._userRepository.signupUser(signupDto);
 
     res.json(user);
   }
 
-  async loginAsPlayer(req: Request, res: Response) {
-    const { email, password } = LoginSchema.parse(req.body);
+  async login(req: Request, res: Response) {
+    const loginDto = LoginSchema.parse(req.body);
 
     const user = await this._userRepository.getUserByEmailAndRole(
-      email,
-      "player"
-    );
-    if (!user) {
-      throw new UnauthorizedException("Player with this email does not exist.");
-    }
-
-    const isPasswordMatch = this._bcryptService.comparePassword(
-      password,
-      user.password
-    );
-    if (!isPasswordMatch) {
-      throw new UnauthorizedException("Incorrect password.");
-    }
-
-    const token = this._jwtService.generateToken(user._id);
-
-    res.json({ ...user._doc, token });
-  }
-
-  async loginAsManager(req: Request, res: Response) {
-    const { email, password } = LoginSchema.parse(req.body);
-
-    const user = await this._userRepository.getUserByEmailAndRole(
-      email,
-      "manager"
+      loginDto.email,
+      loginDto.role
     );
     if (!user) {
       throw new UnauthorizedException(
-        "Manager with this email does not exist."
+        `${
+          loginDto.role == "player" ? "Player" : "Manager"
+        } with this email does not exist.`
       );
     }
 
     const isPasswordMatch = this._bcryptService.comparePassword(
-      password,
+      loginDto.password,
       user.password
     );
     if (!isPasswordMatch) {
@@ -102,12 +77,10 @@ export class AuthController {
   }
 
   async loginWithGoogle(req: Request, res: Response) {
-    const { username, email, password, imageUrl } = SignupSchema.parse(
-      req.body
-    );
+    const signupDto = SignupSchema.parse(req.body);
 
     const existingUser = await this._userRepository.getUserByEmailAndRole(
-      email,
+      signupDto.email,
       "player"
     );
 
@@ -116,22 +89,18 @@ export class AuthController {
       return res.json({ ...existingUser._doc, token });
     }
 
-    const user = await this._userRepository.createUser({
-      username,
-      email,
-      password,
-      imageUrl,
-      role: "player",
-    });
+    const user = await this._userRepository.signupUser(signupDto);
 
     const token = this._jwtService.generateToken(user._id);
     res.json({ ...user._doc, token });
   }
 
   async validateEmail(req: Request, res: Response) {
-    const { email } = ValidateEmailSchema.parse(req.body);
+    const validateEmailDto = ValidateEmailSchema.parse(req.body);
 
-    const user = await this._userRepository.getUserByEmail(email);
+    const user = await this._userRepository.getUserByEmail(
+      validateEmailDto.email
+    );
     if (user) {
       return res.json(true);
     }
@@ -140,14 +109,62 @@ export class AuthController {
   }
 
   sendVerifyEmail(req: Request, res: Response) {
-    const { email, pincode } = SendVerifyEmailSchema.parse(req.body);
+    const sendVerifyEmailDto = SendVerifyEmailSchema.parse(req.body);
 
-    this._mailService.sendVerifyEmail(email, pincode, (err, info) => {
-      if (err) {
-        throw new Error(err.message);
+    this._mailService.sendVerifyEmail(
+      sendVerifyEmailDto.email,
+      sendVerifyEmailDto.pincode,
+      (err, info) => {
+        if (err) {
+          throw new Error(err.message);
+        }
+
+        res.json("Email sent: " + info.response);
+      }
+    );
+  }
+
+  async changePassword(req: Request, res: Response) {
+    const changePasswordDto = ChangePasswordSchema.parse(req.body);
+
+    const user = await this._userRepository.getUserByEmailAndRole(
+      changePasswordDto.email,
+      changePasswordDto.role
+    );
+    if (!user) {
+      throw new BadRequestException("User with this email does not exist.");
+    }
+
+    user.password = this._bcryptService.hashPassword(
+      changePasswordDto.newPassword
+    );
+    await user.save();
+
+    res.status(204).send();
+  }
+
+  async validateToken(req: Request, res: Response) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.json(false);
+    }
+
+    try {
+      const verified = this._jwtService.getVerified(token);
+      if (!verified) {
+        return res.json(false);
       }
 
-      res.json("Email sent: " + info.response);
-    });
+      const user = await this._userRepository.getUserById((verified as any).id);
+      if (!user) {
+        return res.json(false);
+      }
+
+      res.json(true);
+    } catch {
+      return res.json(false);
+    }
   }
 }

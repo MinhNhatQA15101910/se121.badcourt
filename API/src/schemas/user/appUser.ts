@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
-import { z } from "zod";
 
-export const UserSchema = new mongoose.Schema({
+export const AppUserSchema = new mongoose.Schema({
   username: {
     required: true,
     type: String,

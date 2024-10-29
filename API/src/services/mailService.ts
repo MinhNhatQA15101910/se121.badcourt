@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { IMailService } from "../interfaces/IMailService";
+import { IMailService } from "../interfaces/services/IMailService";
 import nodemailer, { Transporter } from "nodemailer";
 import {
   BADCOURT_DISPLAY_NAME,
