@@ -1,4 +1,4 @@
-import { Aggregate, Query } from "mongoose";
+import { Aggregate } from "mongoose";
 
 export class PagedList<T> extends Array<T> {
   currentPage: number;

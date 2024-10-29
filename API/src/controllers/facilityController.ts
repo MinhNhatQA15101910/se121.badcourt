@@ -27,7 +27,7 @@ export class FacilityController {
 
   async getFacilities(req: Request, res: Response) {
     const facilityParams = FacilityParamsSchema.parse(req.query);
-    
+
     const facilities = await this._facilityRepository.getFacilities(
       facilityParams
     );

@@ -38,8 +38,6 @@ export class FacilityRepository implements IFacilityRepository {
       aggregate = aggregate.match({ province: facilityParams.province });
     }
 
-    console.log(facilityParams.minPrice);
-    console.log(facilityParams.maxPrice);
     aggregate = aggregate.match({
       minPrice: {
         $gte: facilityParams.minPrice,
