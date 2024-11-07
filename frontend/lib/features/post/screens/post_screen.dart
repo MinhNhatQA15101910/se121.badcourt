@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/widgets/post_form.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 class PostScreen extends StatefulWidget {
   static const String routeName = '/post';
@@ -13,8 +16,25 @@ class PostScreen extends StatefulWidget {
 }
 
 class _PostScreenState extends State<PostScreen> {
+  final ImagePicker _picker = ImagePicker();
+  List<XFile>? _imageFiles = [];
+
+  Future<void> _pickImages() async {
+    final List<XFile>? selectedImages = await _picker.pickMultiImage();
+    if (selectedImages != null) {
+      setState(() {
+        // Calculate remaining slots available
+        int remainingSlots = 10 - _imageFiles!.length;
+
+        // Add only the remaining number of images if exceeding limit
+        if (remainingSlots > 0) {
+          _imageFiles?.addAll(selectedImages.take(remainingSlots));
+        }
+      });
+    }
+  }
+
   final TextEditingController _textController = TextEditingController();
-  bool _showPostButton = false;
 
   @override
   void initState() {
@@ -23,9 +43,7 @@ class _PostScreenState extends State<PostScreen> {
   }
 
   void _onTextChanged() {
-    setState(() {
-      _showPostButton = _textController.text.isNotEmpty;
-    });
+    setState(() {});
   }
 
   @override
@@ -81,7 +99,7 @@ class _PostScreenState extends State<PostScreen> {
             children: [
               CustomContainer(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,21 +162,73 @@ class _PostScreenState extends State<PostScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    if (_imageFiles!.isNotEmpty) SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _imageFiles!.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          XFile image = entry.value;
+
+                          return Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(image.path),
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _imageFiles?.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: GlobalVariables.darkGrey,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 12,
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: _pickImages,
                           icon: Icon(
                             Icons.add_photo_alternate,
                             size: 20,
                           ),
                           label: _customText(
                             'Add media',
-                            12,
+                            14,
                             FontWeight.w500,
-                            GlobalVariables.green,
+                            Colors
+                                .green, // Replace with GlobalVariables.green if defined
                           ),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
@@ -167,53 +237,37 @@ class _PostScreenState extends State<PostScreen> {
                           ),
                         ),
                         SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: Icon(
-                            Icons.category,
-                            size: 20,
-                          ),
-                          label: _customText(
-                            'Add category',
-                            12,
-                            FontWeight.w500,
-                            GlobalVariables.green,
-                          ),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Post action logic here
+                          },
                           style: ElevatedButton.styleFrom(
+                            backgroundColor: GlobalVariables.green,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(100),
                             ),
                           ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _customText(
+                                'Post',
+                                14,
+                                FontWeight.w500,
+                                GlobalVariables.white,
+                              ),
+                              SizedBox(
+                                  width: 8), // Spacing between text and icon
+                              Icon(
+                                Icons.send,
+                                size: 20,
+                                color: GlobalVariables.white,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    if (_showPostButton) ...[
-                      SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Post action logic here
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlobalVariables.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _customText('Post', 14, FontWeight.w600,
-                                GlobalVariables.white),
-                            SizedBox(width: 8), // Spacing between text and icon
-                            Icon(
-                              Icons.send,
-                              size: 20,
-                              color: GlobalVariables.white,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),

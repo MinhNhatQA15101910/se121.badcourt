@@ -81,7 +81,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -110,7 +110,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                                       .green // Change color when liked
                                   : GlobalVariables
                                       .darkGrey, // Default color when not liked
-                              size: 24, // Icon size
+                              size: 20, // Icon size
                             ),
                             const SizedBox(width: 4),
                             _customText('$_likeCount', 14, FontWeight.w500,
@@ -126,7 +126,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                     children: [
                       Icon(
                         Icons.comment_outlined,
-                        size: 24,
+                        size: 20,
                         color: GlobalVariables.darkGrey,
                       ),
                       SizedBox(width: 4),

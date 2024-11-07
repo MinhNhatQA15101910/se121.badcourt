@@ -57,6 +57,7 @@ dependencies:
   location: ^6.0.2
   pay: ^2.0.0
   flutter_dotenv: ^5.1.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
