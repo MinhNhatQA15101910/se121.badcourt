@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { Container } from "inversify";
-import { IUserRepository } from "../interfaces/IUserRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { UserRepository } from "../repositories/userRepository";
 import { AuthController } from "../controllers/authController";
 import { errorHandler } from "../errorHandler";
-import { IBcryptService } from "../interfaces/IBcryptService";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { BcryptService } from "../services/bcryptService";
-import { IJwtService } from "../interfaces/IJwtService";
+import { IJwtService } from "../interfaces/services/IJwtService";
 import { JwtService } from "../services/jwtService";
-import { IMailService } from "../interfaces/IMailService";
+import { IMailService } from "../interfaces/services/IMailService";
 import { MailService } from "../services/mailService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 const container = new Container();
 
@@ -36,13 +36,8 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  "/login/player",
-  errorHandler(authController.loginAsPlayer.bind(authController))
-);
-
-authRoutes.post(
-  "/login/manager",
-  errorHandler(authController.loginAsManager.bind(authController))
+  "/login",
+  errorHandler(authController.login.bind(authController))
 );
 
 authRoutes.post(
@@ -58,6 +53,16 @@ authRoutes.post(
 authRoutes.post(
   "/send-verify-email",
   errorHandler(authController.sendVerifyEmail.bind(authController))
+);
+
+authRoutes.patch(
+  "/change-password",
+  errorHandler(authController.changePassword.bind(authController))
+);
+
+authRoutes.post(
+  "/token-is-valid",
+  errorHandler(authController.validateToken.bind(authController))
 );
 
 export default authRoutes;
