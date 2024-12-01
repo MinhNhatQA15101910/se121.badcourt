@@ -1,15 +1,12 @@
 import { Component } from '@angular/core';
-import { HeaderComponent } from './header/header.component';
-import { SideNavComponent } from './side-nav/side-nav.component';
-import { MainComponent } from './main/main.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [HeaderComponent, SideNavComponent, MainComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'dashboard';
+  title = 'admin_client';
 }
