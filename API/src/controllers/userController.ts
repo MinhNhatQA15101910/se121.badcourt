@@ -8,6 +8,7 @@ import { IFileService } from "../interfaces/services/IFileService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { PORT } from "../secrets";
+import { FileDto } from "../dtos/fileDto";
 
 @injectable()
 export class UserController {
@@ -24,8 +25,13 @@ export class UserController {
 
   getCurrentUser(req: Request, res: Response) {
     const user = (req as any).user;
+
     const userDto = new UserDto();
+    const fileDto = new FileDto();
     _.assign(userDto, _.pick(user, _.keys(userDto)));
+    _.assign(fileDto, _.pick(user.image, _.keys(fileDto)));
+
+    userDto.image = fileDto;
 
     res.json(userDto);
   }
