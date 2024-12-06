@@ -79,8 +79,6 @@ export class AuthController {
     _.assign(userDto, _.pick(user, _.keys(userDto)));
     userDto.token = token;
 
-    console.log(userDto);
-
     res.json(userDto);
   }
 
