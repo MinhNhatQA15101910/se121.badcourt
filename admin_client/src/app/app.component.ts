@@ -1,15 +1,13 @@
 import { Component } from '@angular/core';
-import { HeaderComponent } from './header/header.component';
-import { SideNavComponent } from './side-nav/side-nav.component';
-import { MainComponent } from './main/main.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [HeaderComponent, SideNavComponent, MainComponent],
+  imports: [MatButtonModule, MatDividerModule, MatIconModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrl: './app.component.scss',
 })
-export class AppComponent {
-  title = 'dashboard';
-}
+export class AppComponent {}
