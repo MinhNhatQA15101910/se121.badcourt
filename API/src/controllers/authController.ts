@@ -12,6 +12,8 @@ import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
 import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { UserDto } from "../dtos/userDto";
+import _ from "lodash";
 
 @injectable()
 export class AuthController {
@@ -73,7 +75,13 @@ export class AuthController {
 
     const token = this._jwtService.generateToken(user._id);
 
-    res.json({ ...user._doc, token });
+    const userDto = new UserDto();
+    _.assign(userDto, _.pick(user, _.keys(userDto)));
+    userDto.token = token;
+
+    console.log(userDto);
+
+    res.json(userDto);
   }
 
   async loginWithGoogle(req: Request, res: Response) {
