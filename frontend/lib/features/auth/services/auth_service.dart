@@ -95,12 +95,13 @@ class AuthService {
     try {
       http.Response response = await http.post(
         Uri.parse(
-          '$uri/${authProvider.isPlayer ? 'login-as-player' : 'login-as-manager'}',
+          '$uri/api/auth/login',
         ),
         body: jsonEncode(
           {
             'email': email,
             'password': password,
+            if (!authProvider.isPlayer) 'role': 'manager',
           },
         ),
         headers: <String, String>{
