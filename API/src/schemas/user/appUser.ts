@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { FileSchema } from "../file/fileSchema";
 
 export const AppUserSchema = new mongoose.Schema({
   username: {
@@ -36,10 +37,7 @@ export const AppUserSchema = new mongoose.Schema({
       message: "Password must be at least 8 characters long.",
     },
   },
-  imageUrl: {
-    type: String,
-    trim: true,
-  },
+  image: FileSchema,
   role: {
     type: String,
     trim: true,
