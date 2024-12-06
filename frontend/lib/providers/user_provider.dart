@@ -6,7 +6,6 @@ class UserProvider extends ChangeNotifier {
     id: '',
     username: '',
     email: '',
-    password: '',
     imageUrl: '',
     role: '',
     token: '',

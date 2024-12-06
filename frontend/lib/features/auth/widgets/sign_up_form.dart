@@ -89,7 +89,6 @@ class _SignUpFormState extends State<SignUpForm> {
               id: '',
               username: _usernameController.text.trim(),
               email: _emailController.text.trim(),
-              password: _passwordController.text.trim(),
               imageUrl: '',
               role: '',
               token: '',

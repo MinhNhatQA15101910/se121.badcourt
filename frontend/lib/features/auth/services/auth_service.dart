@@ -35,7 +35,6 @@ class AuthService {
         id: '',
         username: username,
         email: email,
-        password: password,
         imageUrl: '',
         role: authProvider.isPlayer ? 'player' : 'manager',
         token: '',
@@ -344,19 +343,10 @@ class AuthService {
         response: response,
         context: context,
         onSuccess: () {
-          final userProvider = Provider.of<UserProvider>(
-            context,
-            listen: false,
-          );
           final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
-
-          User user = userProvider.user.copyWith(
-            password: jsonDecode(response.body)['password'],
-          );
-          userProvider.setUserFromModel(user);
 
           IconSnackBar.show(
             context,

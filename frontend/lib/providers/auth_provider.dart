@@ -7,11 +7,11 @@ class AuthProvider extends ChangeNotifier {
   Widget? _previousForm = LoginForm();
   bool _isPlayer = false;
   String _resentEmail = "";
+  String _password = "";
   User _signUpUser = User(
     id: '',
     username: '',
     email: '',
-    password: '',
     imageUrl: '',
     role: '',
     token: '',
@@ -20,6 +20,7 @@ class AuthProvider extends ChangeNotifier {
   Widget get authForm => _authForm;
   Widget? get previousForm => _previousForm;
   String get resentEmail => _resentEmail;
+  String get password => _password;
   User get signUpUser => _signUpUser;
   bool get isPlayer => _isPlayer;
 
@@ -30,6 +31,11 @@ class AuthProvider extends ChangeNotifier {
 
   void setResentEmail(String resentEmail) {
     _resentEmail = resentEmail;
+    notifyListeners();
+  }
+
+  void setPassword(String password) {
+    _password = password;
     notifyListeners();
   }
 

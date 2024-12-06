@@ -202,12 +202,16 @@ class _PinputFormState extends State<PinputForm> {
         context,
         listen: false,
       ).signUpUser;
+      String password = Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      ).password;
 
       bool isSuccessful = await _authService.signUpUser(
         context: context,
         username: signUpUser.username,
         email: signUpUser.email,
-        password: signUpUser.password,
+        password: password,
       );
 
       if (isSuccessful) {
