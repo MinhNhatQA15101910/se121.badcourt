@@ -26,7 +26,7 @@ export class UserRepository implements IUserRepository {
       return undefined;
     }
 
-    user.image = fileDto;
+    user.imageUrl = fileDto.url;
     user = await user.save();
 
     return fileDto;

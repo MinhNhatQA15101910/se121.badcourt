@@ -9,6 +9,7 @@ import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { PORT } from "../secrets";
 import { FileDto } from "../dtos/fileDto";
+import { url } from "inspector";
 
 @injectable()
 export class UserController {
@@ -27,11 +28,7 @@ export class UserController {
     const user = (req as any).user;
 
     const userDto = new UserDto();
-    const fileDto = new FileDto();
     _.assign(userDto, _.pick(user, _.keys(userDto)));
-    _.assign(fileDto, _.pick(user.image, _.keys(fileDto)));
-
-    userDto.image = fileDto;
 
     res.json(userDto);
   }
@@ -53,6 +50,6 @@ export class UserController {
     res
       .status(201)
       .location(`https://localhost:${PORT}/api/users/me}`)
-      .json(photo);
+      .json({ url: photo.url });
   }
 }
