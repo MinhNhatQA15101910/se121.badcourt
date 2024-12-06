@@ -5,7 +5,7 @@ import {
   CLOUDINARY_CLOUD_NAME,
 } from "../secrets";
 import { injectable } from "inversify";
-import { IFileService } from "../interfaces/services/IFileSerivce";
+import { IFileService } from "../interfaces/services/IFileService";
 
 cloudinary.config({
   cloud_name: CLOUDINARY_CLOUD_NAME,

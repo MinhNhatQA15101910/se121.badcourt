@@ -2,14 +2,12 @@ import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
 import { IFacilityRepository } from "../interfaces/repositories/IFacilityRepository";
-import {
-  FileDto,
-  RegisterFacilityDto,
-  RegisterFacilitySchema,
-} from "../schemas/facility/registerFacility";
+import { RegisterFacilitySchema } from "../schemas/facility/registerFacility";
 import { BadRequestException } from "../exceptions/badRequestException";
-import { IFileService } from "../interfaces/services/IFileSerivce";
+import { IFileService } from "../interfaces/services/IFileService";
 import { FacilityParamsSchema } from "../schemas/facility/facilityParams";
+import { RegisterFacilityDto } from "../dtos/registerFacilityDto";
+import { FileDto } from "../dtos/fileDto";
 
 @injectable()
 export class FacilityController {

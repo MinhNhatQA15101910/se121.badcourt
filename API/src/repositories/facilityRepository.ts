@@ -4,7 +4,7 @@ import { injectable } from "inversify";
 import { FacilityParams } from "../schemas/facility/facilityParams";
 import { Aggregate } from "mongoose";
 import Facility from "../models/facility";
-import { RegisterFacilityDto } from "../schemas/facility/registerFacility";
+import { RegisterFacilityDto } from "../dtos/registerFacilityDto";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
