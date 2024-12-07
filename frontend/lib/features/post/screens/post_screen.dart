@@ -5,7 +5,9 @@ import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
 import 'package:frontend/features/post/widgets/post_form.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class PostScreen extends StatefulWidget {
   static const String routeName = '/post';
@@ -30,6 +32,8 @@ class _PostScreenState extends State<PostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
@@ -94,7 +98,7 @@ class _PostScreenState extends State<PostScreen> {
                             ),
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(
-                                'https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                                userProvider.user.imageUrl,
                               ),
                               radius: 25,
                             ),

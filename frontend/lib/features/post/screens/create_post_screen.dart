@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class CreatePostScreen extends StatefulWidget {
   static const String routeName = '/createPostScreen';
@@ -53,6 +55,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -103,7 +107,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ),
                       child: CircleAvatar(
                         backgroundImage: NetworkImage(
-                          'https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                          userProvider.user.imageUrl,
                         ),
                         radius: 25,
                       ),
@@ -111,7 +115,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     const SizedBox(width: 12), // Space between avatar and name
                     // Name in the same row as avatar
                     _customText(
-                      'Albert Flores',
+                      userProvider.user.username,
                       16,
                       FontWeight.w700,
                       GlobalVariables.black,

@@ -60,34 +60,30 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'BadCourt',
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
-        colorScheme: const ColorScheme.light(
-          primary: GlobalVariables.green,
-        ),
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          color: GlobalVariables.green,
-          iconTheme: IconThemeData(
-            color: Colors.white,
+        debugShowCheckedModeBanner: false,
+        title: 'BadCourt',
+        theme: ThemeData(
+          scaffoldBackgroundColor: Colors.white,
+          colorScheme: const ColorScheme.light(
+            primary: GlobalVariables.green,
+          ),
+          appBarTheme: const AppBarTheme(
+            elevation: 0,
+            color: GlobalVariables.green,
+            iconTheme: IconThemeData(
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
-      onGenerateRoute: (routeSettings) => generateRoute(routeSettings),
-      home: _isFirstLaunch
-          ? IntroScreen()
-          : Provider.of<UserProvider>(context).user.token.isNotEmpty
-              ? PostScreen()
-              : AuthOptionsScreen(),
-      // home: _isFirstLaunch
-      //     ? IntroScreen()
-      //     : Provider.of<UserProvider>(context).user.token.isNotEmpty
-      //         ? Provider.of<UserProvider>(context).user.role == 'manager'
-      //             ? IntroManagerScreen()
-      //             : PlayerBottomBar()
-      //         : AuthOptionsScreen(),
-    );
+        onGenerateRoute: (routeSettings) => generateRoute(routeSettings),
+        home: AuthOptionsScreen()
+        // home: _isFirstLaunch
+        //     ? IntroScreen()
+        //     : Provider.of<UserProvider>(context).user.token.isNotEmpty
+        //         ? Provider.of<UserProvider>(context).user.role == 'manager'
+        //             ? IntroManagerScreen()
+        //             : PlayerBottomBar()
+        //         : AuthOptionsScreen(),
+        );
   }
 }
