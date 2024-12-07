@@ -8,8 +8,6 @@ import { IFileService } from "../interfaces/services/IFileService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { PORT } from "../secrets";
-import { FileDto } from "../dtos/fileDto";
-import { url } from "inspector";
 
 @injectable()
 export class UserController {
