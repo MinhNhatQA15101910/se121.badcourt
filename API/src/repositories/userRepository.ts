@@ -26,7 +26,7 @@ export class UserRepository implements IUserRepository {
       return undefined;
     }
 
-    user.imageUrl = fileDto.url;
+    user.image = fileDto;
     user = await user.save();
 
     return fileDto;
@@ -43,9 +43,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserById(id: string): Promise<any> {
-    const user = await User.findById(id);
-
-    return user;
+    return await User.findById(id);
   }
 
   async signupUser(signupDto: SignupDto): Promise<any> {

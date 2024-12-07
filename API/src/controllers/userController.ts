@@ -8,8 +8,6 @@ import { IFileService } from "../interfaces/services/IFileService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { BadRequestException } from "../exceptions/badRequestException";
 import { PORT } from "../secrets";
-import { FileDto } from "../dtos/fileDto";
-import { url } from "inspector";
 
 @injectable()
 export class UserController {
@@ -29,12 +27,18 @@ export class UserController {
 
     const userDto = new UserDto();
     _.assign(userDto, _.pick(user, _.keys(userDto)));
+    if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
   }
 
   async addPhoto(req: Request, res: Response) {
     const user = (req as any).user;
+
+    // Delete old image (if exists)
+    if (user.image) {
+      await this._fileService.deleteFile(user.image.publicId);
+    }
 
     // Upload photo
     const photos = await uploadImages(
