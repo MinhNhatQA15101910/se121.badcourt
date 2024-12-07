@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,8 +18,34 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
+  final TextEditingController _textController = TextEditingController();
+  final _postService = PostService();
   final ImagePicker _picker = ImagePicker();
-  List<XFile>? _imageFiles = [];
+  List<File>? _imageFiles = [];
+  bool _isLoading = false;
+
+  Future<void> _createPost() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _postService.createPost(
+        context,
+        _imageFiles!,
+        _textController.text,
+        _textController.text,
+        'dd',
+      );
+
+      // Navigate back to the previous screen
+      Navigator.pop(context);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _pickImages() async {
     final List<XFile>? selectedImages = await _picker.pickMultiImage();
@@ -27,15 +54,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         // Calculate remaining slots available
         int remainingSlots = 10 - _imageFiles!.length;
 
-        // Add only the remaining number of images if exceeding limit
+        // Convert XFile to File and add only the remaining number of images if exceeding limit
         if (remainingSlots > 0) {
-          _imageFiles?.addAll(selectedImages.take(remainingSlots));
+          _imageFiles?.addAll(
+            selectedImages
+                .take(remainingSlots)
+                .map((xfile) => File(xfile.path))
+                .toList(),
+          );
         }
       });
     }
   }
-
-  final TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
@@ -76,7 +106,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               Container(
                 width: 80,
                 child: CustomButton(
-                  onTap: () {},
+                  onTap: _createPost,
                   buttonText: 'Post',
                   borderColor: GlobalVariables.white,
                   fillColor: GlobalVariables.white,
@@ -202,7 +232,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: Image.file(
-                              File(image.path),
+                              image,
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
