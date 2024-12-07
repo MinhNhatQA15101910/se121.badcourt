@@ -6,6 +6,8 @@ import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/intro/screens/intro_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
+import 'package:frontend/features/post/screens/create_post_screen.dart';
+import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
 import 'package:provider/provider.dart';
@@ -77,10 +79,15 @@ class _MyAppState extends State<MyApp> {
       home: _isFirstLaunch
           ? IntroScreen()
           : Provider.of<UserProvider>(context).user.token.isNotEmpty
-              ? Provider.of<UserProvider>(context).user.role == 'manager'
-                  ? IntroManagerScreen()
-                  : PlayerBottomBar()
+              ? PostScreen()
               : AuthOptionsScreen(),
+      // home: _isFirstLaunch
+      //     ? IntroScreen()
+      //     : Provider.of<UserProvider>(context).user.token.isNotEmpty
+      //         ? Provider.of<UserProvider>(context).user.role == 'manager'
+      //             ? IntroManagerScreen()
+      //             : PlayerBottomBar()
+      //         : AuthOptionsScreen(),
     );
   }
 }

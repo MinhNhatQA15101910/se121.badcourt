@@ -33,6 +33,10 @@ class _FacilityItemState extends State<FacilityItem> {
     );
     currentFacilityProvider.setFacility(widget.facility);
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('')),
+    );
+
     Navigator.of(context).pushNamedAndRemoveUntil(
       ManagerBottomBar.routeName,
       (route) => false,
