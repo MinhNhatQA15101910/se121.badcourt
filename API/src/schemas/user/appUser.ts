@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { FileSchema } from "../file/fileSchema";
 
 export const AppUserSchema = new mongoose.Schema({
   username: {

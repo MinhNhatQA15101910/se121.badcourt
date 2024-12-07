@@ -8,7 +8,7 @@ import { IFileService } from "../interfaces/services/IFileService";
 import { FacilityParamsSchema } from "../schemas/facility/facilityParams";
 import { RegisterFacilityDto } from "../dtos/registerFacilityDto";
 import { FileDto } from "../dtos/fileDto";
-import { uploadImages } from "../utils/helpers";
+import { uploadImages } from "../helper/helpers";
 
 @injectable()
 export class FacilityController {

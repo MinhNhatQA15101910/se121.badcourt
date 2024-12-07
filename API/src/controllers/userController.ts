@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { UserDto } from "../dtos/userDto";
 import _ from "lodash";
-import { uploadImages } from "../utils/helpers";
+import { uploadImages } from "../helper/helpers";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IFileService } from "../interfaces/services/IFileService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
