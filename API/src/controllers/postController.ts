@@ -10,19 +10,24 @@ import _ from "lodash";
 import { PostDto } from "../dtos/postDto";
 import { FileDto } from "../dtos/fileDto";
 import { PORT } from "../secrets";
+import { NotFoundException } from "../exceptions/notFoundException";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 @injectable()
 export class PostController {
   private _fileService: IFileService;
   private _postRepository: IPostRepository;
+  private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
     @inject(INTERFACE_TYPE.PostRepository)
-    postRepository: IPostRepository
+    postRepository: IPostRepository,
+    @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._fileService = fileService;
     this._postRepository = postRepository;
+    this._userRepository = userRepository;
   }
 
   async addPost(req: Request, res: Response) {
@@ -56,5 +61,28 @@ export class PostController {
       .status(201)
       .location(`https://localhost:${PORT}/api/posts/${post._id})}`)
       .json(postDto);
+  }
+
+  async getPost(req: Request, res: Response) {
+    const postId = req.params.id;
+
+    // Get post by id
+    const post = await this._postRepository.getPostById(postId);
+    if (!post) {
+      throw new NotFoundException("Post not found!");
+    }
+
+    // Map to postDto
+    const postDto = new PostDto();
+    _.assign(postDto, _.pick(post, _.keys(postDto)));
+    postDto.resources = post.resources.map((r: FileDto) => r.url);
+    postDto.publisherId = post.userId;
+
+    const user = await this._userRepository.getUserById(post.userId);
+    if (user.imageUrl) {
+      postDto.publisherImageUrl = user.imageUrl;
+    }
+
+    res.json(postDto);
   }
 }

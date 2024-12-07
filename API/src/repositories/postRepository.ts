@@ -10,4 +10,8 @@ export class PostRepository implements IPostRepository {
     post = await post.save();
     return post;
   }
+
+  async getPostById(id: string): Promise<any> {
+    return await Post.findById(id);
+  }
 }

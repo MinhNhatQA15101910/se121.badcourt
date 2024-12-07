@@ -9,14 +9,22 @@ import { FileService } from "../services/fileService";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 import { PostRepository } from "../repositories/postRepository";
 import { PostController } from "../controllers/postController";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { UserRepository } from "../repositories/userRepository";
+import { IBcryptService } from "../interfaces/services/IBcryptService";
+import { BcryptService } from "../services/bcryptService";
 
 const container = new Container();
 
+container.bind<IBcryptService>(INTERFACE_TYPE.BcryptService).to(BcryptService);
 container.bind<IFileService>(INTERFACE_TYPE.FileService).to(FileService);
 
 container
   .bind<IPostRepository>(INTERFACE_TYPE.PostRepository)
   .to(PostRepository);
+container
+  .bind<IUserRepository>(INTERFACE_TYPE.UserRepository)
+  .to(UserRepository);
 
 container.bind(INTERFACE_TYPE.PostController).to(PostController);
 
@@ -31,6 +39,11 @@ postRoutes.post(
   [authMiddleware],
   upload.array("resources", 100),
   errorHandler(postController.addPost.bind(postController))
+);
+
+postRoutes.get(
+  "/:id",
+  errorHandler(postController.getPost.bind(postController))
 );
 
 export default postRoutes;
