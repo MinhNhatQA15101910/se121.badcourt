@@ -27,12 +27,18 @@ export class UserController {
 
     const userDto = new UserDto();
     _.assign(userDto, _.pick(user, _.keys(userDto)));
+    if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
   }
 
   async addPhoto(req: Request, res: Response) {
     const user = (req as any).user;
+
+    // Delete old image (if exists)
+    if (user.image) {
+      await this._fileService.deleteFile(user.image.publicId);
+    }
 
     // Upload photo
     const photos = await uploadImages(

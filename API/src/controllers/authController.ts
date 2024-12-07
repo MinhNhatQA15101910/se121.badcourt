@@ -78,6 +78,7 @@ export class AuthController {
     const userDto = new UserDto();
     _.assign(userDto, _.pick(user, _.keys(userDto)));
     userDto.token = token;
+    if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
   }
