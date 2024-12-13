@@ -1,11 +1,11 @@
 import { PaginationParams } from "./paginationParams";
 
-export interface FacilityParams extends PaginationParams {
-  minPrice: number;
-  maxPrice: number;
-  lat: number;
-  lon: number;
-  sortBy: string;
-  order: string;
+export class FacilityParams extends PaginationParams {
+  minPrice: number = 0;
+  maxPrice: number = 1000000;
+  lat: number = 0;
+  lon: number = 0;
+  sortBy: string = "location";
+  order: string = "asc";
   province?: string | undefined;
 }

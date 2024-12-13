@@ -46,4 +46,6 @@ postRoutes.get(
   errorHandler(postController.getPost.bind(postController))
 );
 
+postRoutes.get("/", errorHandler(postController.getPosts.bind(postController)));
+
 export default postRoutes;

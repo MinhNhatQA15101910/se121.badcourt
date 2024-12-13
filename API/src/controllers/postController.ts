@@ -5,13 +5,15 @@ import { AddPostSchema } from "../schemas/post/addPostSchema";
 import { IFileService } from "../interfaces/services/IFileService";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
-import { uploadImages } from "../helper/helpers";
+import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import _ from "lodash";
 import { PostDto } from "../dtos/postDto";
 import { FileDto } from "../dtos/fileDto";
 import { PORT } from "../secrets";
 import { NotFoundException } from "../exceptions/notFoundException";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { PostParamsSchema } from "../schemas/post/postParamsSchema";
+import { PostParams } from "../params/postParams";
 
 @injectable()
 export class PostController {
@@ -84,5 +86,15 @@ export class PostController {
     }
 
     res.json(postDto);
+  }
+
+  async getPosts(req: Request, res: Response) {
+    const postParams: PostParams = PostParamsSchema.parse(req.query);
+
+    const posts = await this._postRepository.getPosts(postParams);
+
+    addPaginationHeader(res, posts);
+
+    res.json(posts);
   }
 }

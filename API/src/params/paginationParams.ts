@@ -1,4 +1,4 @@
-export type PaginationParams = {
-  pageNumber: number;
-  pageSize: number;
-};
+export class PaginationParams {
+  pageNumber: number = 10;
+  pageSize: number = 1;
+}

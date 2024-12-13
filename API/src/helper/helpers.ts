@@ -1,5 +1,8 @@
 import { FileDto } from "../dtos/fileDto";
 import { IFileService } from "../interfaces/services/IFileService";
+import { Response } from "express";
+import { PagedList } from "./pagedList";
+import { PaginationHeader } from "./paginationHeader";
 
 export const uploadImages = async (
   fileService: IFileService,
@@ -23,4 +26,19 @@ export const uploadImages = async (
   }
 
   return images;
+};
+
+export const addPaginationHeader = function <T>(
+  res: Response,
+  data: PagedList<T>
+) {
+  const paginationHeader = new PaginationHeader(
+    data.currentPage,
+    data.pageSize,
+    data.totalCount,
+    data.totalPages
+  );
+
+  res.setHeader("Pagination", JSON.stringify(paginationHeader));
+  res.setHeader("Access-Control-Expose-Headers", "Pagination");
 };
