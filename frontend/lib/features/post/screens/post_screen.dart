@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
-import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/post_form.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
