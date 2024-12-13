@@ -6,12 +6,14 @@ import { UnauthorizedException } from "../exceptions/unauthorizedException";
 import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { IJwtService } from "../interfaces/services/IJwtService";
 import { IMailService } from "../interfaces/services/IMailService";
-import { SignupSchema } from "../schemas/auth/signup";
-import { LoginSchema } from "../schemas/auth/login";
-import { ValidateEmailSchema } from "../schemas/auth/validateEmail";
-import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail";
-import { ChangePasswordSchema } from "../schemas/auth/changePassword";
+import { SignupSchema } from "../schemas/auth/signupSchema";
+import { LoginSchema } from "../schemas/auth/loginSchema";
+import { ValidateEmailSchema } from "../schemas/auth/validateEmailSchema";
+import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmailSchema";
+import { ChangePasswordSchema } from "../schemas/auth/changePasswordSchema";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { UserDto } from "../dtos/userDto";
+import _ from "lodash";
 
 @injectable()
 export class AuthController {
@@ -73,7 +75,12 @@ export class AuthController {
 
     const token = this._jwtService.generateToken(user._id);
 
-    res.json({ ...user._doc, token });
+    const userDto = new UserDto();
+    _.assign(userDto, _.pick(user, _.keys(userDto)));
+    userDto.token = token;
+    if (user.image) userDto.imageUrl = user.image.url;
+
+    res.json(userDto);
   }
 
   async loginWithGoogle(req: Request, res: Response) {

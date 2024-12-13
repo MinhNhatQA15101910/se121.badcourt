@@ -1,6 +1,6 @@
+import { RegisterFacilityDto } from "../../dtos/registerFacilityDto";
 import { PagedList } from "../../helper/pagedList";
-import { FacilityParams } from "../../schemas/facility/facilityParams";
-import { RegisterFacilityDto } from "../../schemas/facility/registerFacility";
+import { FacilityParams } from "../../params/facilityParams";
 
 export interface IFacilityRepository {
   getFacilities(facilityParams: FacilityParams): Promise<PagedList<any>>;

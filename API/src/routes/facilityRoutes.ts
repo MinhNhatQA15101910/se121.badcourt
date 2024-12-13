@@ -8,7 +8,7 @@ import { authMiddleware } from "../middlewares/authMiddleware";
 import { errorHandler } from "../errorHandler";
 import { upload } from "../middlewares/multerMiddleware";
 import { managerMiddleware } from "../middlewares/managerMiddleware";
-import { IFileService } from "../interfaces/services/IFileSerivce";
+import { IFileService } from "../interfaces/services/IFileService";
 import { FileService } from "../services/fileService";
 
 const container = new Container();

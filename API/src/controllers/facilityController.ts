@@ -2,14 +2,13 @@ import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
 import { IFacilityRepository } from "../interfaces/repositories/IFacilityRepository";
-import {
-  FileDto,
-  RegisterFacilityDto,
-  RegisterFacilitySchema,
-} from "../schemas/facility/registerFacility";
+import { RegisterFacilitySchema } from "../schemas/facility/registerFacilitySchema";
 import { BadRequestException } from "../exceptions/badRequestException";
-import { IFileService } from "../interfaces/services/IFileSerivce";
-import { FacilityParamsSchema } from "../schemas/facility/facilityParams";
+import { IFileService } from "../interfaces/services/IFileService";
+import { FacilityParamsSchema } from "../schemas/facility/facilityParamsSchema";
+import { RegisterFacilityDto } from "../dtos/registerFacilityDto";
+import { FileDto } from "../dtos/fileDto";
+import { uploadImages } from "../helper/helpers";
 
 @injectable()
 export class FacilityController {
@@ -51,7 +50,8 @@ export class FacilityController {
     registerFacilityDto.userId = user._id;
 
     // Upload facility images
-    const facilityImages = await this.uploadImages(
+    const facilityImages = await uploadImages(
+      this._fileService,
       (req.files as any).facilityImages,
       `${user.username}/${registerFacilityDto.facilityName}/facility_images`
     );
@@ -59,7 +59,8 @@ export class FacilityController {
 
     // Upload citizen image front
     const citizenImageFront = (
-      await this.uploadImages(
+      await uploadImages(
+        this._fileService,
         (req.files as any).citizenImageFront,
         `${user.username}/${registerFacilityDto.facilityName}/citizen_images`
       )
@@ -68,7 +69,8 @@ export class FacilityController {
 
     // Upload citizen image front
     const citizenImageBack = (
-      await this.uploadImages(
+      await uploadImages(
+        this._fileService,
         (req.files as any).citizenImageBack,
         `${user.username}/${registerFacilityDto.facilityName}/citizen_images`
       )
@@ -77,7 +79,8 @@ export class FacilityController {
 
     // Upload bank card image front
     const bankCardFront = (
-      await this.uploadImages(
+      await uploadImages(
+        this._fileService,
         (req.files as any).bankCardFront,
         `${user.username}/${registerFacilityDto.facilityName}/bank_card_images`
       )
@@ -86,7 +89,8 @@ export class FacilityController {
 
     // Upload bank card image back
     const bankCardBack = (
-      await this.uploadImages(
+      await uploadImages(
+        this._fileService,
         (req.files as any).bankCardBack,
         `${user.username}/${registerFacilityDto.facilityName}/bank_card_images`
       )
@@ -94,7 +98,8 @@ export class FacilityController {
     registerFacilityDto.bankCardBack = bankCardBack;
 
     // Upload business licenses
-    const businessLicenseImages = await this.uploadImages(
+    const businessLicenseImages = await uploadImages(
+      this._fileService,
       (req.files as any).businessLicenseImages,
       `${user.username}/${registerFacilityDto.facilityName}/business_license_images`
     );
@@ -105,28 +110,5 @@ export class FacilityController {
     );
 
     res.json(facility);
-  }
-
-  private async uploadImages(
-    files: any,
-    folderName: string
-  ): Promise<FileDto[]> {
-    const images = [];
-    let isMain = true;
-    for (const file of files) {
-      const result = await this._fileService.addPhoto(
-        file.path,
-        `BadCourt/${folderName}`
-      );
-      images.push({
-        url: result.url,
-        publicId: result.public_id,
-        isMain,
-      });
-
-      isMain = false;
-    }
-
-    return images;
   }
 }

@@ -1,15 +1,4 @@
 import { z } from "zod";
-import { PaginationParams } from "../paginationParams";
-
-export interface FacilityParams extends PaginationParams {
-  minPrice: number;
-  maxPrice: number;
-  lat: number;
-  lon: number;
-  sortBy: string;
-  order: string;
-  province?: string | undefined;
-}
 
 export const FacilityParamsSchema = z.object({
   lat: z.preprocess(

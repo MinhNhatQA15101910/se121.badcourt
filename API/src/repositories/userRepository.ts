@@ -1,9 +1,10 @@
 import { inject, injectable } from "inversify";
-import { SignupDto } from "../schemas/auth/signup";
+import { SignupDto } from "../schemas/auth/signupSchema";
 import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import User from "../models/user";
+import { FileDto } from "../dtos/fileDto";
 
 @injectable()
 export class UserRepository implements IUserRepository {
@@ -13,6 +14,22 @@ export class UserRepository implements IUserRepository {
     @inject(INTERFACE_TYPE.BcryptService) bcryptService: IBcryptService
   ) {
     this._bcryptService = bcryptService;
+  }
+
+  async addPhoto(
+    userId: string,
+    fileDto: FileDto
+  ): Promise<FileDto | undefined> {
+    let user = await User.findById(userId);
+
+    if (!user) {
+      return undefined;
+    }
+
+    user.image = fileDto;
+    user = await user.save();
+
+    return fileDto;
   }
 
   async getUserByEmail(email: string): Promise<any> {
@@ -26,8 +43,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUserById(id: string): Promise<any> {
-    const user = await User.findById(id);
-    return user;
+    return await User.findById(id);
   }
 
   async signupUser(signupDto: SignupDto): Promise<any> {
