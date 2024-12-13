@@ -1,5 +1,5 @@
 import { FileDto } from "../../dtos/fileDto";
-import { SignupDto } from "../../schemas/auth/signup";
+import { SignupDto } from "../../schemas/auth/signupSchema";
 
 export interface IUserRepository {
   addPhoto(userId: string, fileDto: FileDto): Promise<FileDto | undefined>;

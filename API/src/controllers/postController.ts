@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { NewPostDto } from "../dtos/newPostDto";
-import { AddPostSchema } from "../schemas/post/addPost";
+import { AddPostSchema } from "../schemas/post/addPostSchema";
 import { IFileService } from "../interfaces/services/IFileService";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 import { INTERFACE_TYPE } from "../utils/appConsts";

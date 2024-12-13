@@ -1,10 +1,10 @@
 import { IFacilityRepository } from "../interfaces/repositories/IFacilityRepository";
 import { PagedList } from "../helper/pagedList";
 import { injectable } from "inversify";
-import { FacilityParams } from "../schemas/facility/facilityParams";
 import { Aggregate } from "mongoose";
 import Facility from "../models/facility";
 import { RegisterFacilityDto } from "../dtos/registerFacilityDto";
+import { FacilityParams } from "../params/facilityParams";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {

@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { SignupDto } from "../schemas/auth/signup";
+import { SignupDto } from "../schemas/auth/signupSchema";
 import { IBcryptService } from "../interfaces/services/IBcryptService";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
