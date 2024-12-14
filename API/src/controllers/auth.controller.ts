@@ -13,7 +13,6 @@ import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail.schema";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { UserDto } from "../dtos/user.dto";
-import _ from "lodash";
 
 @injectable()
 export class AuthController {
@@ -75,8 +74,7 @@ export class AuthController {
 
     const token = this._jwtService.generateToken(user._id);
 
-    const userDto = new UserDto();
-    _.assign(userDto, _.pick(user, _.keys(userDto)));
+    const userDto = UserDto.mapFrom(user);
     userDto.token = token;
     if (user.image) userDto.imageUrl = user.image.url;
 
@@ -94,10 +92,8 @@ export class AuthController {
     if (existingUser) {
       const token = this._jwtService.generateToken(existingUser._id);
 
-      const userDto = new UserDto();
-      _.assign(userDto, _.pick(existingUser, _.keys(userDto)));
+      const userDto = UserDto.mapFrom(existingUser);
       userDto.token = token;
-      if (existingUser.image) userDto.imageUrl = existingUser.image.url;
 
       res.json(userDto);
     }
@@ -105,10 +101,8 @@ export class AuthController {
     const user = await this._userRepository.signupUser(signupDto);
     const token = this._jwtService.generateToken(existingUser._id);
 
-    const userDto = new UserDto();
-    _.assign(userDto, _.pick(user, _.keys(userDto)));
+    const userDto = UserDto.mapFrom(user);
     userDto.token = token;
-    if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
   }

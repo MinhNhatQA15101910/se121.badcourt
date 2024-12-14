@@ -1,7 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { UserDto } from "../dtos/user.dto";
-import _ from "lodash";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IFileService } from "../interfaces/services/IFile.service";
@@ -32,9 +31,7 @@ export class UserController {
   getCurrentUser(req: Request, res: Response) {
     const user = req.user;
 
-    const userDto = new UserDto();
-    _.assign(userDto, _.pick(user, _.keys(userDto)));
-    if (user.image) userDto.imageUrl = user.image.url;
+    const userDto = UserDto.mapFrom(user);
 
     res.json(userDto);
   }
@@ -50,7 +47,7 @@ export class UserController {
 
     const postDtos: PostDto[] = [];
     for (let post of posts) {
-      const postDto = new PostDto(post);
+      const postDto = PostDto.mapFrom(post);
 
       const user = await this._userRepository.getUserById(post.userId);
       postDto.publisherUsername = user.username;

@@ -10,7 +10,11 @@ export class PostDto {
   category: "advertise" | "findPlayer" = "advertise";
   resources: string[] = [];
 
-  constructor(post?: any) {
+  public static mapFrom(post: any): PostDto {
+    return new PostDto(post);
+  }
+
+  private constructor(post?: any) {
     this._id = post === null ? "" : post._id;
     this.publisherId = post === null ? "" : post.userId;
     this.title = post === null ? "" : post.title;
