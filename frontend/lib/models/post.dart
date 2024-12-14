@@ -1,45 +1,52 @@
 import 'dart:convert';
 
+import 'package:frontend/models/resource.dart';
+
 class Post {
   final String id;
-  final String publisherId;
-  final String publisherImageUrl;
+  final String userId;
   final String title;
   final String description;
   final String category;
-  final List<String> resources;
+  final List<Resource> resources;
+  final int createdAt;
+  final int updatedAt;
 
   const Post({
     required this.id,
-    required this.publisherId,
-    required this.publisherImageUrl,
+    required this.userId,
     required this.title,
     required this.description,
     required this.category,
     required this.resources,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
       '_id': id,
-      'publisherId': publisherId,
-      'publisherImageUrl': publisherImageUrl,
+      'userId': userId,
       'title': title,
       'description': description,
       'category': category,
-      'resources': resources,
+      'resources': resources.map((resource) => resource.toMap()).toList(),
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 
   factory Post.fromMap(Map<String, dynamic> map) {
     return Post(
       id: map['_id'] ?? '',
-      publisherId: map['publisherId'] ?? '',
-      publisherImageUrl: map['publisherImageUrl'] ?? '',
+      userId: map['userId'] ?? '',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       category: map['category'] ?? '',
-      resources: List<String>.from(map['resources'] ?? []),
+      resources: List<Resource>.from(
+          map['resources']?.map((x) => Resource.fromMap(x)) ?? []),
+      createdAt: map['createdAt'] ?? 0,
+      updatedAt: map['updatedAt'] ?? 0,
     );
   }
 

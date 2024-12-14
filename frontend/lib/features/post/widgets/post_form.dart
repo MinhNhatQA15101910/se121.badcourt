@@ -1,22 +1,30 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/post/widgets/comment.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
-import 'package:google_fonts/google_fonts.dart'; // Assuming this is custom
+import 'package:frontend/models/post.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart'; // Assuming this is custom
 
 class PostFormWidget extends StatefulWidget {
+  final Post currentPost;
   const PostFormWidget({
-    super.key,
-  });
+    Key? key,
+    required this.currentPost,
+  }) : super(key: key);
 
   @override
   State<PostFormWidget> createState() => _PostFormWidgetState();
 }
 
 class _PostFormWidgetState extends State<PostFormWidget> {
-  bool _isLiked = false; // Tracks whether the post is liked or not
-  int _likeCount = 5; // Initial like count, you can adjust this dynamically
+  int _activeIndex = 0;
+  bool _isLiked = false;
+  int _likeCount = 5;
+
 
   void _toggleLike() {
     setState(() {
@@ -25,17 +33,18 @@ class _PostFormWidgetState extends State<PostFormWidget> {
       } else {
         _likeCount++;
       }
-      _isLiked = !_isLiked; // Toggle the liked state
+      _isLiked = !_isLiked;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final imageCount = widget.currentPost.resources.length;
+
     return CustomContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User profile info (avatar + name in a single row)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -46,10 +55,9 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                   'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Replace with actual profile image URL
                 ),
               ),
-              const SizedBox(width: 12), // Space between avatar and name
-              // Name in the same row as avatar
+              const SizedBox(width: 12),
               Text(
-                'Albert Flores', // Replace with dynamic username
+                'Albert Flores',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -57,27 +65,105 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               ),
             ],
           ),
-          const SizedBox(height: 12), // Space between row and post text
+          const SizedBox(height: 12),
 
-          // Post text
-          Text(
-            'In mauris porttitor tincidunt mauris massa sit lorem sed scelerisque. Fringilla pharetra vel massa enim sollicitudin cras.',
-            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+          _customText(
+            widget.currentPost.title,
+            15,
+            FontWeight.w700,
+            GlobalVariables.blackGrey,
+            10,
           ),
 
-          const SizedBox(height: 12), // Space between text and image
+          const SizedBox(height: 12),
 
+          _customText(
+            widget.currentPost.description,
+            14,
+            FontWeight.w400,
+            GlobalVariables.blackGrey,
+            10,
+          ),
+
+          const SizedBox(height: 12),
           // Post image
           Container(
-            height: 200, // Height of the image
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: NetworkImage(
-                  'https://images.unsplash.com/photo-1617696618050-b0fef0c666af?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Replace with post image URL
+            child: Stack(
+              children: [
+                CarouselSlider.builder(
+                  itemCount: imageCount,
+                  options: CarouselOptions(
+                    viewportFraction: 1.0,
+                    enableInfiniteScroll: imageCount > 1,
+                    aspectRatio: 4 / 3,
+                    onPageChanged: (index, reason) => setState(() {
+                      _activeIndex = index;
+                    }),
+                  ),
+                  itemBuilder: (context, index, realIndex) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          FullScreenImageView.routeName,
+                          arguments: {
+                            'imageUrls': widget.currentPost.resources
+                                .map((resource) => resource.url)
+                                .toList(),
+                            'initialIndex': index,
+                          },
+                        );
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              widget.currentPost.resources[index].url,
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                fit: BoxFit.cover,
-              ),
+                Positioned(
+                  bottom: 8,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      imageCount,
+                      (index) {
+                        return Container(
+                          margin: EdgeInsets.symmetric(horizontal: 4),
+                          width: 8, // Kích thước hình tròn
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _activeIndex == index
+                                ? GlobalVariables.green
+                                : GlobalVariables.grey,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    Colors.black.withOpacity(0.3), // Màu shadow
+                                blurRadius: 4, // Độ mờ
+                                offset: Offset(0, 2), // Vị trí của shadow
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -85,12 +171,14 @@ class _PostFormWidgetState extends State<PostFormWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Aug 19, 2021', // Replace with dynamic date
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
+              _customText(
+                DateFormat('MMM dd, yyyy').format(
+                    DateTime.fromMillisecondsSinceEpoch(
+                        widget.currentPost.createdAt)),
+                12,
+                FontWeight.w400,
+                GlobalVariables.darkGrey,
+                1,
               ),
               Row(
                 children: [
@@ -114,7 +202,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                             ),
                             const SizedBox(width: 4),
                             _customText('$_likeCount', 14, FontWeight.w500,
-                                GlobalVariables.darkGrey),
+                                GlobalVariables.darkGrey, 1),
                           ],
                         ),
                       ),
@@ -131,7 +219,12 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                       ),
                       SizedBox(width: 4),
                       _customText(
-                          '4', 14, FontWeight.w500, GlobalVariables.darkGrey),
+                        '4',
+                        14,
+                        FontWeight.w500,
+                        GlobalVariables.darkGrey,
+                        1,
+                      ),
                     ],
                   ),
                 ],
@@ -142,6 +235,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
             height: 16,
           ),
           InputCommentWidget(),
+
           CommentWidget(
               profileImageUrl:
                   'https://images.unsplash.com/photo-1701615004837-40d8573b6652?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -156,11 +250,12 @@ class _PostFormWidgetState extends State<PostFormWidget> {
     );
   }
 
-  Widget _customText(String text, double size, FontWeight weight, Color color) {
+  Widget _customText(
+      String text, double size, FontWeight weight, Color color, int maxLine) {
     return Text(
       text,
       textAlign: TextAlign.start,
-      maxLines: 2,
+      maxLines: maxLine,
       overflow: TextOverflow.ellipsis,
       style: GoogleFonts.inter(
         color: color,

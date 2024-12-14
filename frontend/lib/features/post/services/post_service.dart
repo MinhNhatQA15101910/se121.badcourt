@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/post.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -61,5 +63,57 @@ class PostService {
         snackBarType: SnackBarType.fail,
       );
     }
+  }
+
+  Future<Map<String, dynamic>> fetchAllPosts({
+    required BuildContext context,
+    required int pageNumber,
+    int pageSize = 10,
+  }) async {
+    List<Post> postList = [];
+    int totalPages = 0; // Biến để lưu tổng số trang
+
+    try {
+      final Uri uriWithParams = Uri.parse(
+              '$uri/api/posts') /*.replace(queryParameters: {
+      'pageNumber': pageNumber.toString(),
+      'pageSize': pageSize.toString(),
+    })*/
+          ;
+
+      http.Response res = await http.get(uriWithParams);
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          for (var object in jsonDecode(res.body)) {
+            postList.add(
+              Post.fromJson(
+                jsonEncode(object),
+              ),
+            );
+          }
+
+          final paginationHeader = res.headers['pagination'];
+          if (paginationHeader != null) {
+            final paginationData = jsonDecode(paginationHeader);
+            totalPages = paginationData['totalPages'];
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      
+    }
+
+    return {
+      'posts': postList,
+      'totalPages': totalPages,
+    };
   }
 }

@@ -173,17 +173,4 @@ class _CommentWidgetState extends State<CommentWidget> {
     );
   }
 
-  Widget _customText(String text, double size, FontWeight weight, Color color) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: size,
-        fontWeight: weight,
-      ),
-    );
-  }
 }

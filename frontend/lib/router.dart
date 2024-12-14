@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
@@ -141,6 +142,16 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const CreatePostScreen(),
       );
+    case FullScreenImageView.routeName:
+      final args = routeSettings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => FullScreenImageView(
+          imageUrls: args['imageUrls'] as List<String>,
+          initialIndex: args['initialIndex'] as int,
+        ),
+      );
+
     default:
       return MaterialPageRoute(
         settings: routeSettings,

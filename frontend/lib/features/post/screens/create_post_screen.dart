@@ -41,7 +41,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
 
       // Navigate back to the previous screen
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } finally {
       setState(() {
         _isLoading = false;

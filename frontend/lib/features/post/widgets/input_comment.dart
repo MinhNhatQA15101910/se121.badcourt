@@ -13,16 +13,6 @@ class _InputCommentWidgetState extends State<InputCommentWidget> {
   final TextEditingController _commentController = TextEditingController();
 
   // Method to handle comment submission
-  void _submitComment() {
-    String comment = _commentController.text.trim();
-    if (comment.isNotEmpty) {
-      // Handle the comment submission logic (e.g., send to backend or update UI)
-      print('Comment submitted: $comment');
-
-      // Clear the input after submission
-      _commentController.clear();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
