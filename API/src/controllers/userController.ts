@@ -23,7 +23,7 @@ export class UserController {
   }
 
   getCurrentUser(req: Request, res: Response) {
-    const user = (req as any).user;
+    const user = req.user;
 
     const userDto = new UserDto();
     _.assign(userDto, _.pick(user, _.keys(userDto)));
@@ -33,7 +33,7 @@ export class UserController {
   }
 
   async addPhoto(req: Request, res: Response) {
-    const user = (req as any).user;
+    const user = req.user;
 
     // Delete old image (if exists)
     if (user.image) {

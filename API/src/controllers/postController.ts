@@ -36,7 +36,7 @@ export class PostController {
     const newPostDto: NewPostDto = AddPostSchema.parse(req.body);
 
     // Attach userId to newPostDto
-    const user = (req as any).user;
+    const user = req.user;
     newPostDto.userId = user._id;
 
     // Upload resources

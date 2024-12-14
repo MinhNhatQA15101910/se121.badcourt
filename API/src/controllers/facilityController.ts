@@ -46,7 +46,7 @@ export class FacilityController {
       throw new BadRequestException("Facility name already exists!");
     }
 
-    const user = (req as any).user;
+    const user = req.user;
     registerFacilityDto.userId = user._id;
 
     // Upload facility images
