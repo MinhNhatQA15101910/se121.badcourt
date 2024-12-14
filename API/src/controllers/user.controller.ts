@@ -11,6 +11,8 @@ import { PostParams } from "../params/post.params";
 import { PostParamsSchema } from "../schemas/post/postParams.schema";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { PostDto } from "../dtos/post.dto";
+import { UserParams } from "../params/user.params";
+import { UserParamsSchema } from "../schemas/user/userParams.schema";
 
 @injectable()
 export class UserController {
@@ -26,6 +28,31 @@ export class UserController {
     this._fileService = fileService;
     this._postRepository = postRepository;
     this._userRepository = userRepository;
+  }
+
+  async addPhoto(req: Request, res: Response) {
+    const user = req.user;
+
+    // Delete old image (if exists)
+    if (user.image) {
+      await this._fileService.deleteFile(user.image.publicId);
+    }
+
+    // Upload photo
+    const photos = await uploadImages(
+      this._fileService,
+      [req.file!],
+      `users/${user.username}`
+    );
+
+    const photo = await this._userRepository.addPhoto(user._id, photos[0]);
+
+    if (!photo) throw new BadRequestException("Problem adding photo.");
+
+    res
+      .status(201)
+      .location(`https://localhost:${PORT}/api/users/me}`)
+      .json({ url: photo.url });
   }
 
   getCurrentUser(req: Request, res: Response) {
@@ -61,28 +88,22 @@ export class UserController {
     res.json(postDtos);
   }
 
-  async addPhoto(req: Request, res: Response) {
-    const user = req.user;
+  async getUsers(req: Request, res: Response) {
+    const userParams: UserParams = UserParamsSchema.parse(req.query);
+    userParams.currentUserId = req.user._id;
 
-    // Delete old image (if exists)
-    if (user.image) {
-      await this._fileService.deleteFile(user.image.publicId);
+    console.log(userParams);
+
+    const users = await this._userRepository.getUsers(userParams);
+    const userDtos: UserDto[] = [];
+    for (let user of users) {
+      const userDto = UserDto.mapFrom(user);
+
+      userDtos.push(userDto);
     }
 
-    // Upload photo
-    const photos = await uploadImages(
-      this._fileService,
-      [req.file!],
-      `users/${user.username}`
-    );
+    addPaginationHeader(res, users);
 
-    const photo = await this._userRepository.addPhoto(user._id, photos[0]);
-
-    if (!photo) throw new BadRequestException("Problem adding photo.");
-
-    res
-      .status(201)
-      .location(`https://localhost:${PORT}/api/users/me}`)
-      .json({ url: photo.url });
+    res.json(userDtos);
   }
 }

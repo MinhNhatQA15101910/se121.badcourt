@@ -15,6 +15,7 @@ import { IFileService } from "../interfaces/services/IFile.service";
 import { FileService } from "../services/file.service";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { PostRepository } from "../repositories/post.repository";
+import { adminMiddleware } from "../middlewares/admin.middleware";
 
 const container = new Container();
 
@@ -35,6 +36,12 @@ const userRoutes: Router = Router();
 
 const userController = container.get<UserController>(
   INTERFACE_TYPE.UserController
+);
+
+userRoutes.get(
+  "/",
+  [authMiddleware, adminMiddleware],
+  errorHandler(userController.getUsers.bind(userController))
 );
 
 userRoutes.get(

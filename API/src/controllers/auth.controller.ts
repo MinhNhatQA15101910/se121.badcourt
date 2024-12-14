@@ -56,10 +56,15 @@ export class AuthController {
       loginDto.email,
       loginDto.role
     );
+
     if (!user) {
       throw new UnauthorizedException(
         `${
-          loginDto.role == "player" ? "Player" : "Manager"
+          loginDto.role == "player"
+            ? "Player"
+            : loginDto.role === "manager"
+            ? "Manager"
+            : "Admin"
         } with this email does not exist.`
       );
     }

@@ -16,8 +16,9 @@ export class UserDto {
     this._id = user === null ? "" : user._id;
     this.username = user === null ? "" : user.username;
     this.email = user === null ? "" : user.email;
-    this.imageUrl =
-      user === null ? "" : user.image === null ? "" : user.image.url;
+    if (user != null && user.image) {
+      this.imageUrl = user.image.url;
+    }
     this.role = user === null ? "" : user.role;
   }
 }
