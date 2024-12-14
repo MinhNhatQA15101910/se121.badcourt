@@ -88,6 +88,7 @@ export class PostController {
 
   async getPosts(req: Request, res: Response) {
     const postParams: PostParams = PostParamsSchema.parse(req.query);
+    console.log(postParams);
 
     const posts = await this._postRepository.getPosts(postParams);
 

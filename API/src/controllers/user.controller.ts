@@ -2,23 +2,30 @@ import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { UserDto } from "../dtos/user.dto";
 import _ from "lodash";
-import { uploadImages } from "../helper/helpers";
+import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { PORT } from "../secrets";
+import { PostParams } from "../params/post.params";
+import { PostParamsSchema } from "../schemas/post/postParams.schema";
+import { IPostRepository } from "../interfaces/repositories/IPost.repository";
+import { PostDto } from "../dtos/post.dto";
 
 @injectable()
 export class UserController {
   private _fileService: IFileService;
+  private _postRepository: IPostRepository;
   private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
+    @inject(INTERFACE_TYPE.PostRepository) postRepository: IPostRepository,
     @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._fileService = fileService;
+    this._postRepository = postRepository;
     this._userRepository = userRepository;
   }
 
@@ -30,6 +37,31 @@ export class UserController {
     if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
+  }
+
+  async getCurrentUserPosts(req: Request, res: Response) {
+    const postParams: PostParams = PostParamsSchema.parse(req.query);
+    postParams.userId = req.user._id;
+    console.log(postParams);
+
+    const posts = await this._postRepository.getPosts(postParams);
+
+    addPaginationHeader(res, posts);
+
+    const postDtos: PostDto[] = [];
+    for (let post of posts) {
+      const postDto = new PostDto(post);
+
+      const user = await this._userRepository.getUserById(post.userId);
+      postDto.publisherUsername = user.username;
+      if (user.imageUrl) {
+        postDto.publisherImageUrl = user.imageUrl;
+      }
+
+      postDtos.push(postDto);
+    }
+
+    res.json(postDtos);
   }
 
   async addPhoto(req: Request, res: Response) {
