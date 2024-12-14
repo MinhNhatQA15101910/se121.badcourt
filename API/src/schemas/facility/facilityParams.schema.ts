@@ -9,8 +9,12 @@ export const FacilityParamsSchema = z.object({
     (l) => parseFloat(z.string().parse(l)),
     z.number().min(-180).max(180)
   ),
-  pageNumber: z.number().int().min(1).default(1),
-  pageSize: z.number().int().min(1).default(10),
+  pageNumber: z
+    .preprocess((n) => parseFloat(z.string().parse(n)), z.number().min(0))
+    .default("1"),
+  pageSize: z
+    .preprocess((n) => parseFloat(z.string().parse(n)), z.number().min(0))
+    .default("10"),
   province: z.string().optional(),
   minPrice: z
     .preprocess(
