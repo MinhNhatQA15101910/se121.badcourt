@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import AppFacilitySchema from "../schemas/facility/appFacilitySchema";
+import AppFacilitySchema from "../schemas/facility/appFacility.schema";
 
 const Facility = mongoose.model("Facility", AppFacilitySchema);
 

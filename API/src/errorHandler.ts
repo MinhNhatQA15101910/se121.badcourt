@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { HttpException } from "./exceptions/httpException";
-import { InternalException } from "./exceptions/internalException";
+import { HttpException } from "./exceptions/http.exception";
 import { ZodError } from "zod";
-import { UnprocessableEntityException } from "./exceptions/unprocessableEntityException";
+import { UnprocessableEntityException } from "./exceptions/unprocessableEntity.exception";
+import { InternalServerException } from "./exceptions/internalServer.exception";
 
 export const errorHandler = (method: Function) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -20,7 +20,10 @@ export const errorHandler = (method: Function) => {
             error
           );
         } else {
-          exception = new InternalException("Something went wrong!", error);
+          exception = new InternalServerException(
+            "Something went wrong!",
+            error
+          );
         }
       }
 
