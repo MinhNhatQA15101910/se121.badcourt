@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { HttpException } from "./exceptions/httpException";
-import { InternalException } from "./exceptions/internalException";
+import { HttpException } from "./exceptions/http.exception";
+import { InternalException } from "./exceptions/internalServer.exception";
 import { ZodError } from "zod";
-import { UnprocessableEntityException } from "./exceptions/unprocessableEntityException";
+import { UnprocessableEntityException } from "./exceptions/unprocessableEntity.exception";
 
 export const errorHandler = (method: Function) => {
   return async (req: Request, res: Response, next: NextFunction) => {
