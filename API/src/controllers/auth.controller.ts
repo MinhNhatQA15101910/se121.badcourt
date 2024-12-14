@@ -93,13 +93,24 @@ export class AuthController {
 
     if (existingUser) {
       const token = this._jwtService.generateToken(existingUser._id);
-      return res.json({ ...existingUser._doc, token });
+
+      const userDto = new UserDto();
+      _.assign(userDto, _.pick(existingUser, _.keys(userDto)));
+      userDto.token = token;
+      if (existingUser.image) userDto.imageUrl = existingUser.image.url;
+
+      res.json(userDto);
     }
 
     const user = await this._userRepository.signupUser(signupDto);
+    const token = this._jwtService.generateToken(existingUser._id);
 
-    const token = this._jwtService.generateToken(user._id);
-    res.json({ ...user._doc, token });
+    const userDto = new UserDto();
+    _.assign(userDto, _.pick(user, _.keys(userDto)));
+    userDto.token = token;
+    if (user.image) userDto.imageUrl = user.image.url;
+
+    res.json(userDto);
   }
 
   async validateEmail(req: Request, res: Response) {

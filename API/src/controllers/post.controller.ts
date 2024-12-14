@@ -54,6 +54,7 @@ export class PostController {
     const postDto = new PostDto();
     _.assign(postDto, _.pick(post, _.keys(postDto)));
     postDto.publisherId = post.userId;
+    postDto.publisherUsername = user.username;
     if (user.imageUrl) {
       postDto.publisherImageUrl = user.imageUrl;
     }
@@ -81,6 +82,7 @@ export class PostController {
     postDto.publisherId = post.userId;
 
     const user = await this._userRepository.getUserById(post.userId);
+    postDto.publisherUsername = user.username;
     if (user.imageUrl) {
       postDto.publisherImageUrl = user.imageUrl;
     }
