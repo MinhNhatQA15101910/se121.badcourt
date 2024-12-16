@@ -1,6 +1,6 @@
 import * as jwt from "jsonwebtoken";
 
 export interface IJwtService {
-  generateToken(userId: any): string;
+  generateToken(payload: jwt.JwtPayload): string;
   getVerified(token: string): jwt.JwtPayload | string;
 }

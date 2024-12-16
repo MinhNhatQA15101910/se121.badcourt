@@ -91,7 +91,7 @@ export class AuthController {
       throw new UnauthorizedException("Incorrect password.");
     }
 
-    const token = this._jwtService.generateToken(user._id);
+    const token = this._jwtService.generateToken({ id: user._id });
 
     const userDto = UserDto.mapFrom(user);
     userDto.token = token;
@@ -108,7 +108,7 @@ export class AuthController {
     );
 
     if (existingUser) {
-      const token = this._jwtService.generateToken(existingUser._id);
+      const token = this._jwtService.generateToken({ id: existingUser._id });
 
       const userDto = UserDto.mapFrom(existingUser);
       userDto.token = token;
@@ -117,7 +117,7 @@ export class AuthController {
     }
 
     const user = await this._userRepository.signupUser(signupDto);
-    const token = this._jwtService.generateToken(existingUser._id);
+    const token = this._jwtService.generateToken({ id: existingUser._id });
 
     const userDto = UserDto.mapFrom(user);
     userDto.token = token;
@@ -128,11 +128,17 @@ export class AuthController {
   async validateEmail(req: Request, res: Response) {
     const validateEmailDto = ValidateEmailSchema.parse(req.body);
 
-    const user = await this._userRepository.getUserByEmail(
-      validateEmailDto.email
+    const user = await this._userRepository.getUserByEmailAndRole(
+      validateEmailDto.email,
+      validateEmailDto.role
     );
     if (user) {
-      return res.json(true);
+      return res.json({
+        token: this._jwtService.generateToken({
+          email: validateEmailDto.email,
+          role: validateEmailDto.role,
+        }),
+      });
     }
 
     res.json(false);
