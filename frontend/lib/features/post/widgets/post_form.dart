@@ -7,7 +7,7 @@ import 'package:frontend/features/post/widgets/comment.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
 import 'package:frontend/models/post.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart'; // Assuming this is custom
+// Assuming this is custom
 
 class PostFormWidget extends StatefulWidget {
   final Post currentPost;
@@ -24,7 +24,6 @@ class _PostFormWidgetState extends State<PostFormWidget> {
   int _activeIndex = 0;
   bool _isLiked = false;
   int _likeCount = 5;
-
 
   void _toggleLike() {
     setState(() {
@@ -52,12 +51,12 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               CircleAvatar(
                 radius: 20,
                 backgroundImage: NetworkImage(
-                  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Replace with actual profile image URL
+                  widget.currentPost.publisherImageUrl,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
-                'Albert Flores',
+                widget.currentPost.publisherUsername,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -106,9 +105,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                         Navigator.of(context).pushNamed(
                           FullScreenImageView.routeName,
                           arguments: {
-                            'imageUrls': widget.currentPost.resources
-                                .map((resource) => resource.url)
-                                .toList(),
+                            'imageUrls': widget.currentPost.resources,
                             'initialIndex': index,
                           },
                         );
@@ -122,7 +119,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                           ),
                           image: DecorationImage(
                             image: NetworkImage(
-                              widget.currentPost.resources[index].url,
+                              widget.currentPost.resources[index],
                             ),
                             fit: BoxFit.cover,
                           ),
@@ -172,9 +169,10 @@ class _PostFormWidgetState extends State<PostFormWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _customText(
-                DateFormat('MMM dd, yyyy').format(
+                /*DateFormat('MMM dd, yyyy').format(
                     DateTime.fromMillisecondsSinceEpoch(
-                        widget.currentPost.createdAt)),
+                        widget.currentPost.createdAt)),*/
+                '12 Aug, 2024',
                 12,
                 FontWeight.w400,
                 GlobalVariables.darkGrey,

@@ -71,7 +71,7 @@ class PostService {
     int pageSize = 10,
   }) async {
     List<Post> postList = [];
-    int totalPages = 0; // Biến để lưu tổng số trang
+    int totalPages = 0;
 
     try {
       final Uri uriWithParams =
@@ -88,9 +88,7 @@ class PostService {
         onSuccess: () {
           for (var object in jsonDecode(res.body)) {
             postList.add(
-              Post.fromJson(
-                jsonEncode(object),
-              ),
+              Post.fromMap(object), // Use fromMap here
             );
           }
 

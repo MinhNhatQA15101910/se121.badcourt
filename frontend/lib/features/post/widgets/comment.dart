@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/widgets/comment_child.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class CommentWidget extends StatefulWidget {
   final String profileImageUrl;

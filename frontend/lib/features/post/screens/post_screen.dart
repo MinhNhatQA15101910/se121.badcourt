@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
 import 'package:frontend/features/post/services/post_service.dart';
@@ -49,7 +50,7 @@ class _PostScreenState extends State<PostScreen> {
     super.dispose();
   }
 
-  void _fetchAllPost() async {
+  Future<void> _fetchAllPost() async {
     if (_isLoading || _currentPage > _totalPages) return;
 
     setState(() {
@@ -66,7 +67,7 @@ class _PostScreenState extends State<PostScreen> {
       final int totalPages = result['totalPages'];
 
       setState(() {
-        _postList.addAll(newPosts); // Thêm bài viết mới vào danh sách
+        _postList.addAll(newPosts);
         _totalPages = totalPages;
         _currentPage++;
       });
@@ -81,6 +82,14 @@ class _PostScreenState extends State<PostScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _refreshPosts() async {
+    setState(() {
+      _postList.clear();
+      _currentPage = 1;
+    });
+    await _fetchAllPost();
   }
 
   Future<void> _navigateToCreatePostScreen() async {
@@ -137,103 +146,102 @@ class _PostScreenState extends State<PostScreen> {
       ),
       body: Container(
         color: GlobalVariables.defaultColor,
-        child: SingleChildScrollView(
-          controller: _scrollController, // Gắn ScrollController
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: _navigateToCreatePostScreen,
-                child: CustomContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.green,
-                                width: 2.0,
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                userProvider.user.imageUrl,
-                              ),
-                              radius: 25,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
+        child: RefreshIndicator(
+          onRefresh: _refreshPosts,
+          child: SingleChildScrollView(
+            controller: _scrollController, // Gắn ScrollController
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: _navigateToCreatePostScreen,
+                  child: CustomContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
                               decoration: BoxDecoration(
+                                shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: GlobalVariables.green,
-                                  width: 1.5,
+                                  color: Colors.green,
+                                  width: 2.0,
                                 ),
-                                borderRadius: BorderRadius.circular(100),
                               ),
-                              child: _customText('Start a post', 14,
-                                  FontWeight.w500, GlobalVariables.darkGrey),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: GlobalVariables.green,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: const Icon(
-                                Icons.image_outlined,
-                                size: 32,
-                                color: Colors.white,
+                              child: CircleAvatar(
+                                backgroundImage: NetworkImage(
+                                  userProvider.user.imageUrl,
+                                ),
+                                radius: 25,
                               ),
                             ),
-                          )
-                        ],
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: GlobalVariables.green,
+                                    width: 1.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                child: _customText('Start a post', 14,
+                                    FontWeight.w500, GlobalVariables.darkGrey),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: GlobalVariables.green,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: const Icon(
+                                  Icons.image_outlined,
+                                  size: 32,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                CustomContainer(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _customText('Latest', 16, FontWeight.w700,
+                          GlobalVariables.blackGrey),
+                      Icon(
+                        Icons.expand_more,
+                        color: GlobalVariables.blackGrey,
                       ),
                     ],
                   ),
                 ),
-              ),
-              CustomContainer(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _customText('Latest', 16, FontWeight.w700,
-                        GlobalVariables.blackGrey),
-                    Icon(
-                      Icons.expand_more,
-                      color: GlobalVariables.blackGrey,
-                    ),
-                  ],
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: _postList.length,
+                  itemBuilder: (context, index) {
+                    return PostFormWidget(currentPost: _postList[index]);
+                  },
                 ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _postList.length,
-                itemBuilder: (context, index) {
-                  return PostFormWidget(currentPost: _postList[index]);
-                },
-              ),
-              if (_isLoading)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(),
-                ),
-            ],
+                if (_isLoading) Loader(),
+              ],
+            ),
           ),
         ),
       ),
