@@ -49,6 +49,20 @@ export class AuthController {
     res.json(user);
   }
 
+  async validateSignup(req: Request, res: Response) {
+    const signupDto = SignupSchema.parse(req.body);
+
+    let user = await this._userRepository.getUserByEmailAndRole(
+      signupDto.email,
+      signupDto.role
+    );
+    if (user) {
+      throw new BadRequestException("User already exists!");
+    }
+
+    res.json(true);
+  }
+
   async login(req: Request, res: Response) {
     const loginDto = LoginSchema.parse(req.body);
 
@@ -81,7 +95,6 @@ export class AuthController {
 
     const userDto = UserDto.mapFrom(user);
     userDto.token = token;
-    if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
   }
