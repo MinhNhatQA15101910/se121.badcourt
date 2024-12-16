@@ -74,12 +74,11 @@ class PostService {
     int totalPages = 0; // Biến để lưu tổng số trang
 
     try {
-      final Uri uriWithParams = Uri.parse(
-              '$uri/api/posts') /*.replace(queryParameters: {
-      'pageNumber': pageNumber.toString(),
-      'pageSize': pageSize.toString(),
-    })*/
-          ;
+      final Uri uriWithParams =
+          Uri.parse('$uri/api/posts').replace(queryParameters: {
+        'pageNumber': pageNumber.toString(),
+        'pageSize': pageSize.toString(),
+      });
 
       http.Response res = await http.get(uriWithParams);
 
@@ -108,7 +107,6 @@ class PostService {
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
-      
     }
 
     return {
