@@ -13,6 +13,9 @@ import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { upload } from "../middlewares/multer.middleware";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { FileService } from "../services/file.service";
+import { IPostRepository } from "../interfaces/repositories/IPost.repository";
+import { PostRepository } from "../repositories/post.repository";
+import { adminMiddleware } from "../middlewares/admin.middleware";
 
 const container = new Container();
 
@@ -20,6 +23,9 @@ container.bind<IJwtService>(INTERFACE_TYPE.JwtService).to(JwtService);
 container.bind<IBcryptService>(INTERFACE_TYPE.BcryptService).to(BcryptService);
 container.bind<IFileService>(INTERFACE_TYPE.FileService).to(FileService);
 
+container
+  .bind<IPostRepository>(INTERFACE_TYPE.PostRepository)
+  .to(PostRepository);
 container
   .bind<IUserRepository>(INTERFACE_TYPE.UserRepository)
   .to(UserRepository);
@@ -33,9 +39,21 @@ const userController = container.get<UserController>(
 );
 
 userRoutes.get(
+  "/",
+  [authMiddleware, adminMiddleware],
+  errorHandler(userController.getUsers.bind(userController))
+);
+
+userRoutes.get(
   "/me",
   [authMiddleware],
   errorHandler(userController.getCurrentUser.bind(userController))
+);
+
+userRoutes.get(
+  "/me/posts",
+  [authMiddleware],
+  errorHandler(userController.getCurrentUserPosts.bind(userController))
 );
 
 userRoutes.post(

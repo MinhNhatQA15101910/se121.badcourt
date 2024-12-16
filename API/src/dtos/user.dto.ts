@@ -7,4 +7,18 @@ export class UserDto {
   imageUrl?: string = "";
   role: string = "";
   token?: string;
+
+  public static mapFrom(user: any): UserDto {
+    return new UserDto(user);
+  }
+
+  private constructor(user?: any) {
+    this._id = user === null ? "" : user._id;
+    this.username = user === null ? "" : user.username;
+    this.email = user === null ? "" : user.email;
+    if (user != null && user.image) {
+      this.imageUrl = user.image.url;
+    }
+    this.role = user === null ? "" : user.role;
+  }
 }

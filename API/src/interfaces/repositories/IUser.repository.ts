@@ -1,4 +1,6 @@
 import { FileDto } from "../../dtos/file.dto";
+import { PagedList } from "../../helper/pagedList";
+import { UserParams } from "../../params/user.params";
 import { SignupDto } from "../../schemas/auth/signup.schema";
 
 export interface IUserRepository {
@@ -6,5 +8,6 @@ export interface IUserRepository {
   getUserByEmail(email: string): Promise<any>;
   getUserByEmailAndRole(email: string, role: string): Promise<any>;
   getUserById(id: string): Promise<any>;
+  getUsers(userParams: UserParams): Promise<PagedList<any>>;
   signupUser(signupDto: SignupDto): Promise<any>;
 }

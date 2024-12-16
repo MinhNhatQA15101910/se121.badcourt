@@ -5,8 +5,8 @@ import { JWT_SECRET } from "../secrets";
 
 @injectable()
 export class JwtService implements IJwtService {
-  generateToken(userId: any): string {
-    return jwt.sign({ id: userId }, JWT_SECRET);
+  generateToken(payload: jwt.JwtPayload): string {
+    return jwt.sign(payload, JWT_SECRET);
   }
 
   getVerified(token: string): jwt.JwtPayload | string {

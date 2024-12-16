@@ -31,6 +31,11 @@ const authController = container.get<AuthController>(
 );
 
 authRoutes.post(
+  "/validate-signup",
+  errorHandler(authController.validateSignup.bind(authController))
+);
+
+authRoutes.post(
   "/signup",
   errorHandler(authController.signup.bind(authController))
 );

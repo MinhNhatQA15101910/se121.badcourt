@@ -5,6 +5,9 @@ import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import User from "../models/user";
 import { FileDto } from "../dtos/file.dto";
+import { PagedList } from "../helper/pagedList";
+import { UserParams } from "../params/user.params";
+import { Aggregate } from "mongoose";
 
 @injectable()
 export class UserRepository implements IUserRepository {
@@ -44,6 +47,56 @@ export class UserRepository implements IUserRepository {
 
   async getUserById(id: string): Promise<any> {
     return await User.findById(id);
+  }
+
+  async getUsers(userParams: UserParams): Promise<PagedList<any>> {
+    let aggregate: Aggregate<any[]> = User.aggregate([]);
+
+    aggregate = aggregate.match({ _id: { $ne: userParams.currentUserId } });
+
+    if (userParams.username) {
+      aggregate = aggregate.match({
+        username: { $regex: userParams.username, $options: "i" },
+      });
+    }
+
+    if (userParams.email) {
+      aggregate = aggregate.match({ email: userParams.email });
+    }
+
+    if (userParams.role) {
+      aggregate = aggregate.match({ role: userParams.role });
+    }
+
+    switch (userParams.sortBy) {
+      case "email":
+        aggregate = aggregate.sort({
+          email: userParams.order === "asc" ? 1 : -1,
+        });
+      case "role":
+        aggregate = aggregate.sort({
+          role: userParams.order === "asc" ? 1 : -1,
+        });
+      case "createdAt":
+        aggregate = aggregate.sort({
+          createdAt: userParams.order === "asc" ? 1 : -1,
+        });
+      case "username":
+      default:
+        aggregate = aggregate.sort({
+          username: userParams.order === "asc" ? 1 : -1,
+        });
+    }
+
+    const pipeline = aggregate.pipeline();
+    let countAggregate = User.aggregate([...pipeline, { $count: "count" }]);
+
+    return await PagedList.create<any>(
+      aggregate,
+      countAggregate,
+      userParams.pageNumber,
+      userParams.pageSize
+    );
   }
 
   async signupUser(signupDto: SignupDto): Promise<any> {

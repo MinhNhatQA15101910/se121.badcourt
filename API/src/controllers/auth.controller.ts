@@ -13,7 +13,6 @@ import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail.schema";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { UserDto } from "../dtos/user.dto";
-import _ from "lodash";
 
 @injectable()
 export class AuthController {
@@ -50,6 +49,20 @@ export class AuthController {
     res.json(user);
   }
 
+  async validateSignup(req: Request, res: Response) {
+    const signupDto = SignupSchema.parse(req.body);
+
+    let user = await this._userRepository.getUserByEmailAndRole(
+      signupDto.email,
+      signupDto.role
+    );
+    if (user) {
+      throw new BadRequestException("User already exists!");
+    }
+
+    res.json(true);
+  }
+
   async login(req: Request, res: Response) {
     const loginDto = LoginSchema.parse(req.body);
 
@@ -57,10 +70,15 @@ export class AuthController {
       loginDto.email,
       loginDto.role
     );
+
     if (!user) {
       throw new UnauthorizedException(
         `${
-          loginDto.role == "player" ? "Player" : "Manager"
+          loginDto.role == "player"
+            ? "Player"
+            : loginDto.role === "manager"
+            ? "Manager"
+            : "Admin"
         } with this email does not exist.`
       );
     }
@@ -73,12 +91,10 @@ export class AuthController {
       throw new UnauthorizedException("Incorrect password.");
     }
 
-    const token = this._jwtService.generateToken(user._id);
+    const token = this._jwtService.generateToken({ id: user._id });
 
-    const userDto = new UserDto();
-    _.assign(userDto, _.pick(user, _.keys(userDto)));
+    const userDto = UserDto.mapFrom(user);
     userDto.token = token;
-    if (user.image) userDto.imageUrl = user.image.url;
 
     res.json(userDto);
   }
@@ -92,24 +108,37 @@ export class AuthController {
     );
 
     if (existingUser) {
-      const token = this._jwtService.generateToken(existingUser._id);
-      return res.json({ ...existingUser._doc, token });
+      const token = this._jwtService.generateToken({ id: existingUser._id });
+
+      const userDto = UserDto.mapFrom(existingUser);
+      userDto.token = token;
+
+      res.json(userDto);
     }
 
     const user = await this._userRepository.signupUser(signupDto);
+    const token = this._jwtService.generateToken({ id: existingUser._id });
 
-    const token = this._jwtService.generateToken(user._id);
-    res.json({ ...user._doc, token });
+    const userDto = UserDto.mapFrom(user);
+    userDto.token = token;
+
+    res.json(userDto);
   }
 
   async validateEmail(req: Request, res: Response) {
     const validateEmailDto = ValidateEmailSchema.parse(req.body);
 
-    const user = await this._userRepository.getUserByEmail(
-      validateEmailDto.email
+    const user = await this._userRepository.getUserByEmailAndRole(
+      validateEmailDto.email,
+      validateEmailDto.role
     );
     if (user) {
-      return res.json(true);
+      return res.json({
+        token: this._jwtService.generateToken({
+          email: validateEmailDto.email,
+          role: validateEmailDto.role,
+        }),
+      });
     }
 
     res.json(false);

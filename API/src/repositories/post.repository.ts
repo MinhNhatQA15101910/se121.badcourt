@@ -21,6 +21,10 @@ export class PostRepository implements IPostRepository {
   async getPosts(postParams: PostParams): Promise<PagedList<any>> {
     let aggregate: Aggregate<any[]> = Post.aggregate([]);
 
+    if (postParams.userId) {
+      aggregate = aggregate.match({ userId: postParams.userId });
+    }
+
     if (postParams.category) {
       aggregate = aggregate.match({ category: postParams.category });
     }

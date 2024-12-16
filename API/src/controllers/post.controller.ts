@@ -6,7 +6,6 @@ import { IFileService } from "../interfaces/services/IFile.service";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
-import _ from "lodash";
 import { PostDto } from "../dtos/post.dto";
 import { FileDto } from "../dtos/file.dto";
 import { PORT } from "../secrets";
@@ -51,9 +50,8 @@ export class PostController {
     const post = await this._postRepository.addPost(newPostDto);
 
     // Map to postDto
-    const postDto = new PostDto();
-    _.assign(postDto, _.pick(post, _.keys(postDto)));
-    postDto.publisherId = post.userId;
+    const postDto = new PostDto(post);
+    postDto.publisherUsername = user.username;
     if (user.imageUrl) {
       postDto.publisherImageUrl = user.imageUrl;
     }
@@ -75,12 +73,12 @@ export class PostController {
     }
 
     // Map to postDto
-    const postDto = new PostDto();
-    _.assign(postDto, _.pick(post, _.keys(postDto)));
+    const postDto = new PostDto(post);
     postDto.resources = post.resources.map((r: FileDto) => r.url);
     postDto.publisherId = post.userId;
 
     const user = await this._userRepository.getUserById(post.userId);
+    postDto.publisherUsername = user.username;
     if (user.imageUrl) {
       postDto.publisherImageUrl = user.imageUrl;
     }
@@ -90,11 +88,25 @@ export class PostController {
 
   async getPosts(req: Request, res: Response) {
     const postParams: PostParams = PostParamsSchema.parse(req.query);
+    console.log(postParams);
 
     const posts = await this._postRepository.getPosts(postParams);
 
     addPaginationHeader(res, posts);
 
-    res.json(posts);
+    const postDtos: PostDto[] = [];
+    for (let post of posts) {
+      const postDto = new PostDto(post);
+
+      const user = await this._userRepository.getUserById(post.userId);
+      postDto.publisherUsername = user.username;
+      if (user.imageUrl) {
+        postDto.publisherImageUrl = user.imageUrl;
+      }
+
+      postDtos.push(postDto);
+    }
+
+    res.json(postDtos);
   }
 }
