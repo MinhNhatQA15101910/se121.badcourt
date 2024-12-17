@@ -11,6 +11,7 @@ import { JwtService } from "../services/jwt.service";
 import { IMailService } from "../interfaces/services/IMail.service";
 import { MailService } from "../services/mail.service";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
+import { userEmailMiddleware } from "../middlewares/userEmail.middleware";
 
 const container = new Container();
 
@@ -57,6 +58,7 @@ authRoutes.post(
 
 authRoutes.post(
   "/send-verify-email",
+  [userEmailMiddleware],
   errorHandler(authController.sendVerifyEmail.bind(authController))
 );
 

@@ -9,10 +9,15 @@ import { IMailService } from "../interfaces/services/IMail.service";
 import { SignupSchema } from "../schemas/auth/signup.schema";
 import { LoginSchema } from "../schemas/auth/login.schema";
 import { ValidateEmailSchema } from "../schemas/auth/validateEmail.schema";
-import { SendVerifyEmailSchema } from "../schemas/auth/sendVerifyEmail.schema";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { UserDto } from "../dtos/user.dto";
+
+const pincodeMap = new Map();
+
+function generatePincode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 @injectable()
 export class AuthController {
@@ -145,19 +150,21 @@ export class AuthController {
   }
 
   sendVerifyEmail(req: Request, res: Response) {
-    const sendVerifyEmailDto = SendVerifyEmailSchema.parse(req.body);
+    const user = req.user;
+    console.log(user);
 
-    this._mailService.sendVerifyEmail(
-      sendVerifyEmailDto.email,
-      sendVerifyEmailDto.pincode,
-      (err, info) => {
-        if (err) {
-          throw new Error(err.message);
-        }
+    const pincode = generatePincode();
+    pincodeMap.set([req.user.email, req.user.role], pincode);
 
-        res.json("Email sent: " + info.response);
+    console.log(req.user.email, req.user.role, pincode);
+
+    this._mailService.sendVerifyEmail(req.user.email, pincode, (err, info) => {
+      if (err) {
+        throw new Error(err.message);
       }
-    );
+
+      res.json("Email sent: " + info.response);
+    });
   }
 
   async changePassword(req: Request, res: Response) {
