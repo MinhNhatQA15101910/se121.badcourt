@@ -50,12 +50,11 @@ export class PostController {
     const post = await this._postRepository.addPost(newPostDto);
 
     // Map to postDto
-    const postDto = new PostDto(post);
+    const postDto = PostDto.mapFrom(post);
     postDto.publisherUsername = user.username;
     if (user.imageUrl) {
       postDto.publisherImageUrl = user.imageUrl;
     }
-    postDto.resources = post.resources.map((r: FileDto) => r.url);
 
     res
       .status(201)
@@ -73,9 +72,8 @@ export class PostController {
     }
 
     // Map to postDto
-    const postDto = new PostDto(post);
+    const postDto = PostDto.mapFrom(post);
     postDto.resources = post.resources.map((r: FileDto) => r.url);
-    postDto.publisherId = post.userId;
 
     const user = await this._userRepository.getUserById(post.userId);
     postDto.publisherUsername = user.username;
@@ -96,7 +94,7 @@ export class PostController {
 
     const postDtos: PostDto[] = [];
     for (let post of posts) {
-      const postDto = new PostDto(post);
+      const postDto = PostDto.mapFrom(post);
 
       const user = await this._userRepository.getUserById(post.userId);
       postDto.publisherUsername = user.username;

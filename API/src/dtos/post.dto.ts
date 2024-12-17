@@ -9,6 +9,7 @@ export class PostDto {
   description: string = "";
   category: "advertise" | "findPlayer" = "advertise";
   resources: string[] = [];
+  createdAt: number = 0;
 
   public static mapFrom(post: any): PostDto {
     return new PostDto(post);
@@ -22,5 +23,6 @@ export class PostDto {
     this.category = post === null ? "" : post.category;
     this.resources =
       post === null ? [] : post.resources.map((r: FileDto) => r.url);
+    this.createdAt = post === null ? 0 : post.createdAt;
   }
 }
