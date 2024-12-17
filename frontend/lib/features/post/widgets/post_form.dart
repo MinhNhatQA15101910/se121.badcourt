@@ -7,6 +7,7 @@ import 'package:frontend/features/post/widgets/comment.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
 import 'package:frontend/models/post.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 // Assuming this is custom
 
 class PostFormWidget extends StatefulWidget {
@@ -86,93 +87,93 @@ class _PostFormWidgetState extends State<PostFormWidget> {
 
           const SizedBox(height: 12),
           // Post image
-          Container(
-            child: Stack(
-              children: [
-                CarouselSlider.builder(
-                  itemCount: imageCount,
-                  options: CarouselOptions(
-                    viewportFraction: 1.0,
-                    enableInfiniteScroll: imageCount > 1,
-                    aspectRatio: 4 / 3,
-                    onPageChanged: (index, reason) => setState(() {
-                      _activeIndex = index;
-                    }),
-                  ),
-                  itemBuilder: (context, index, realIndex) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          FullScreenImageView.routeName,
-                          arguments: {
-                            'imageUrls': widget.currentPost.resources,
-                            'initialIndex': index,
-                          },
-                        );
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                          image: DecorationImage(
-                            image: NetworkImage(
-                              widget.currentPost.resources[index],
+          if (widget.currentPost.resources.isNotEmpty)
+            Container(
+              child: Stack(
+                children: [
+                  CarouselSlider.builder(
+                    itemCount: imageCount,
+                    options: CarouselOptions(
+                      viewportFraction: 1.0,
+                      enableInfiniteScroll: imageCount > 1,
+                      aspectRatio: 4 / 3,
+                      onPageChanged: (index, reason) => setState(() {
+                        _activeIndex = index;
+                      }),
+                    ),
+                    itemBuilder: (context, index, realIndex) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            FullScreenImageView.routeName,
+                            arguments: {
+                              'imageUrls': widget.currentPost.resources,
+                              'initialIndex': index,
+                            },
+                          );
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
                             ),
-                            fit: BoxFit.cover,
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                widget.currentPost.resources[index],
+                              ),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
+                      );
+                    },
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        imageCount,
+                        (index) {
+                          return Container(
+                            margin: EdgeInsets.symmetric(horizontal: 4),
+                            width: 8, // Kích thước hình tròn
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _activeIndex == index
+                                  ? GlobalVariables.green
+                                  : GlobalVariables.grey,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black
+                                      .withOpacity(0.3), // Màu shadow
+                                  blurRadius: 4, // Độ mờ
+                                  offset: Offset(0, 2), // Vị trí của shadow
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      imageCount,
-                      (index) {
-                        return Container(
-                          margin: EdgeInsets.symmetric(horizontal: 4),
-                          width: 8, // Kích thước hình tròn
-                          height: 8,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _activeIndex == index
-                                ? GlobalVariables.green
-                                : GlobalVariables.grey,
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    Colors.black.withOpacity(0.3), // Màu shadow
-                                blurRadius: 4, // Độ mờ
-                                offset: Offset(0, 2), // Vị trí của shadow
-                              ),
-                            ],
-                          ),
-                        );
-                      },
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _customText(
-                /*DateFormat('MMM dd, yyyy').format(
+                DateFormat('MMM dd, yyyy').format(
                     DateTime.fromMillisecondsSinceEpoch(
-                        widget.currentPost.createdAt)),*/
-                '12 Aug, 2024',
+                        widget.currentPost.createdAt)),
                 12,
                 FontWeight.w400,
                 GlobalVariables.darkGrey,
@@ -232,8 +233,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
           SizedBox(
             height: 16,
           ),
-          InputCommentWidget(),
-
+          InputCommentWidget(postId: widget.currentPost.id),
           CommentWidget(
               profileImageUrl:
                   'https://images.unsplash.com/photo-1701615004837-40d8573b6652?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',

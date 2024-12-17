@@ -8,7 +8,8 @@ class Post {
   final String title;
   final String description;
   final String category;
-  final List<String> resources; // Changed to List<String>
+  final List<String> resources;
+  final int createdAt;
 
   const Post({
     required this.id,
@@ -19,6 +20,7 @@ class Post {
     required this.description,
     required this.category,
     required this.resources,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,7 +32,8 @@ class Post {
       'title': title,
       'description': description,
       'category': category,
-      'resources': resources, // Directly map the list of strings
+      'resources': resources,
+      'createdAt': createdAt,
     };
   }
 
@@ -43,8 +46,8 @@ class Post {
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       category: map['category'] ?? '',
-      resources:
-          List<String>.from(map['resources'] ?? []), // Parse as List<String>
+      resources: List<String>.from(map['resources'] ?? []),
+      createdAt: map['createdAt'] ?? 0,
     );
   }
 

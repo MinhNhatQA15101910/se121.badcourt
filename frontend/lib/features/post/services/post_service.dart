@@ -88,7 +88,7 @@ class PostService {
         onSuccess: () {
           for (var object in jsonDecode(res.body)) {
             postList.add(
-              Post.fromMap(object), // Use fromMap here
+              Post.fromMap(object),
             );
           }
 
@@ -111,5 +111,48 @@ class PostService {
       'posts': postList,
       'totalPages': totalPages,
     };
+  }
+
+  Future<void> createComment(
+    BuildContext context,
+    String postId,
+    String content,
+  ) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      var response = await http.post(
+        Uri.parse('$uri/api/comments'),
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'postId': postId,
+          'content': content,
+        }),
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          IconSnackBar.show(
+            context,
+            label: 'Comment added successfully',
+            snackBarType: SnackBarType.success,
+          );
+        },
+      );
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+    }
   }
 }
