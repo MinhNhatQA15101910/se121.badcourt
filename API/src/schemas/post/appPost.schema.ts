@@ -11,6 +11,9 @@ export const AppPostSchema = new mongoose.Schema({
   description: { type: String, trim: true, required: true },
   category: { type: String, trim: true, default: "advertise" },
   resources: [FileSchema],
+  likesCount: { type: Number, default: 0 },
+  likedUsers: [{ type: String }],
+  commentsCount: { type: Number, default: 0 },
   createdAt: {
     type: Number,
     require: true,

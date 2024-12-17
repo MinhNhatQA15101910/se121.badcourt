@@ -139,4 +139,36 @@ export class PostController {
 
     res.json(postDtos);
   }
+
+  async toggleLike(req: Request, res: Response) {
+    const user = req.user;
+
+    const postId = req.params.id;
+
+    const post = await this._postRepository.getPostById(postId);
+    if (!post) {
+      throw new NotFoundException("Post not found!");
+    }
+
+    const likedUsers = post.likedUsers;
+    if (likedUsers.includes(user._id)) {
+      console.log("Unliking");
+      const updatedPost = await this._postRepository.removeLikedUser(
+        post,
+        user._id
+      );
+      const updatedUser = await this._userRepository.unlikePost(user, post._id);
+      console.log(updatedPost, updatedUser);
+    } else {
+      console.log("Liking");
+      const updatedPost = await this._postRepository.addLikedUser(
+        post,
+        user._id
+      );
+      const updatedUser = await this._userRepository.likePost(user, post._id);
+      console.log(updatedPost, updatedUser);
+    }
+
+    res.json();
+  }
 }

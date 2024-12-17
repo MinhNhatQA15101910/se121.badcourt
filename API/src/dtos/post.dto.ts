@@ -12,6 +12,9 @@ export class PostDto {
   resources: string[] = [];
   createdAt: number = 0;
   comments: CommentDto[] = [];
+  commentsCount: number = 0;
+  likedUsers: string[] = [];
+  likesCount: number = 0;
 
   public static mapFrom(post: any): PostDto {
     return new PostDto(post);

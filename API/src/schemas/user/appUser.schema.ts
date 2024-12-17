@@ -43,4 +43,15 @@ export const AppUserSchema = new mongoose.Schema({
     trim: true,
     default: "player",
   },
+  likedPosts: [{ type: String }],
+  createdAt: {
+    type: Number,
+    require: true,
+    default: Date.now(),
+  },
+  updatedAt: {
+    type: Number,
+    require: true,
+    default: Date.now(),
+  },
 });

@@ -53,4 +53,10 @@ postRoutes.get(
 
 postRoutes.get("/", errorHandler(postController.getPosts.bind(postController)));
 
+postRoutes.patch(
+  "/toggle-like/:id",
+  [authMiddleware],
+  errorHandler(postController.toggleLike.bind(postController))
+);
+
 export default postRoutes;
