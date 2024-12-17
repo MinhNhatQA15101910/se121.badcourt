@@ -14,6 +14,17 @@ export class CommentRepository implements ICommentRepository {
     return comment;
   }
 
+  async addLikedUser(comment: any, userId: string): Promise<any> {
+    comment.likedUsers.push(userId);
+    comment.likesCount++;
+    comment.updatedAt = new Date();
+    return await comment.save();
+  }
+
+  async getCommentById(commentId: string): Promise<any> {
+    return await Comment.findById(commentId);
+  }
+
   async getComments(commentParams: CommentParams): Promise<PagedList<any>> {
     let aggregate: Aggregate<any[]> = Comment.aggregate([]);
 
@@ -49,5 +60,13 @@ export class CommentRepository implements ICommentRepository {
       .sort({ updated: -1 })
       .limit(3);
     return comments;
+  }
+
+  async removeLikedUser(comment: any, userId: string): Promise<any> {
+    const index = comment.likedUsers.indexOf(userId);
+    comment.likedUsers.splice(index, 1);
+    comment.likesCount--;
+    comment.updatedAt = new Date();
+    return await comment.save();
   }
 }

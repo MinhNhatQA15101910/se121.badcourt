@@ -76,4 +76,42 @@ export class CommentController {
 
     res.json(commentDtos);
   }
+
+  async toggleLike(req: Request, res: Response) {
+    const user = req.user;
+
+    const commentId = req.params.id;
+
+    const comment = await this._commentRepository.getCommentById(commentId);
+    if (!comment) {
+      throw new NotFoundException("Comment not found!");
+    }
+
+    const likedUsers = comment.likedUsers;
+    if (likedUsers.includes(user._id)) {
+      console.log("Unliking");
+      const updatedComment = await this._commentRepository.removeLikedUser(
+        comment,
+        user._id
+      );
+      const updatedUser = await this._userRepository.unlikeComment(
+        user,
+        comment._id
+      );
+      console.log(updatedComment, updatedUser);
+    } else {
+      console.log("Liking");
+      const updatedComment = await this._commentRepository.addLikedUser(
+        comment,
+        user._id
+      );
+      const updatedUser = await this._userRepository.likeComment(
+        user,
+        comment._id
+      );
+      console.log(updatedComment, updatedUser);
+    }
+
+    res.json();
+  }
 }

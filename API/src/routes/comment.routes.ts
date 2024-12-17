@@ -46,4 +46,10 @@ commentRoutes.get(
   errorHandler(commentController.getComments.bind(commentController))
 );
 
+commentRoutes.patch(
+  "/toggle-like/:id",
+  [authMiddleware],
+  errorHandler(commentController.toggleLike.bind(commentController))
+);
+
 export default commentRoutes;
