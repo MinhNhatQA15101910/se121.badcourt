@@ -151,12 +151,9 @@ export class AuthController {
 
   sendVerifyEmail(req: Request, res: Response) {
     const user = req.user;
-    console.log(user);
 
     const pincode = generatePincode();
     pincodeMap.set([req.user.email, req.user.role], pincode);
-
-    console.log(req.user.email, req.user.role, pincode);
 
     this._mailService.sendVerifyEmail(req.user.email, pincode, (err, info) => {
       if (err) {

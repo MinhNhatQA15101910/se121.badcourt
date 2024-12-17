@@ -66,7 +66,6 @@ export class UserController {
   async getCurrentUserPosts(req: Request, res: Response) {
     const postParams: PostParams = PostParamsSchema.parse(req.query);
     postParams.userId = req.user._id;
-    console.log(postParams);
 
     const posts = await this._postRepository.getPosts(postParams);
 
@@ -91,8 +90,6 @@ export class UserController {
   async getUsers(req: Request, res: Response) {
     const userParams: UserParams = UserParamsSchema.parse(req.query);
     userParams.currentUserId = req.user._id;
-
-    console.log(userParams);
 
     const users = await this._userRepository.getUsers(userParams);
     const userDtos: UserDto[] = [];
