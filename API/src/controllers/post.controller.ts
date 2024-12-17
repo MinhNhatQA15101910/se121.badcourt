@@ -7,7 +7,6 @@ import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { PostDto } from "../dtos/post.dto";
-import { FileDto } from "../dtos/file.dto";
 import { PORT } from "../secrets";
 import { NotFoundException } from "../exceptions/notFound.exception";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
@@ -15,6 +14,7 @@ import { PostParamsSchema } from "../schemas/post/postParams.schema";
 import { PostParams } from "../params/post.params";
 import { ICommentRepository } from "../interfaces/repositories/IComment.repository";
 import { CommentDto } from "../dtos/comment.dto";
+import { UserDto } from "../dtos/user.dto";
 
 @injectable()
 export class PostController {
@@ -58,9 +58,7 @@ export class PostController {
     // Map to postDto
     const postDto = PostDto.mapFrom(post);
     postDto.publisherUsername = user.username;
-    if (user.imageUrl) {
-      postDto.publisherImageUrl = user.imageUrl;
-    }
+    postDto.publisherImageUrl = user.image === undefined ? "" : user.image.url;
 
     res
       .status(201)
@@ -79,14 +77,13 @@ export class PostController {
 
     // Map to postDto
     const postDto = PostDto.mapFrom(post);
-    postDto.resources = post.resources.map((r: FileDto) => r.url);
 
+    // Add user info to postDto
     const user = await this._userRepository.getUserById(post.userId);
     postDto.publisherUsername = user.username;
-    if (user.imageUrl) {
-      postDto.publisherImageUrl = user.imageUrl;
-    }
+    postDto.publisherImageUrl = user.image === undefined ? "" : user.image.url;
 
+    // Add comments to postDto
     const comments = await this._commentRepository.getTop3CommentsForPost(
       postId
     );
@@ -99,6 +96,16 @@ export class PostController {
         user.image === undefined ? "" : user.image.url;
 
       postDto.comments.push(commentDto);
+    }
+    postDto.commentsCount = await this._commentRepository.getCommentsCount(
+      postId
+    );
+
+    // Add liked users to postDto
+    for (let userId of post.likedUsers) {
+      const user = await this._userRepository.getUserById(userId);
+      const userDto = UserDto.mapFrom(user);
+      postDto.likedUsers.push(userDto);
     }
 
     res.json(postDto);
@@ -115,11 +122,13 @@ export class PostController {
     for (let post of posts) {
       const postDto = PostDto.mapFrom(post);
 
+      // Add user info to postDto
       const user = await this._userRepository.getUserById(post.userId);
       postDto.publisherUsername = user.username;
       postDto.publisherImageUrl =
         user.image === undefined ? "" : user.image.url;
 
+      // Add comments to postDto
       const comments = await this._commentRepository.getTop3CommentsForPost(
         post._id
       );
@@ -132,6 +141,16 @@ export class PostController {
           user.image === undefined ? "" : user.image.url;
 
         postDto.comments.push(commentDto);
+      }
+      postDto.commentsCount = await this._commentRepository.getCommentsCount(
+        post._id
+      );
+
+      // Add liked users to postDto
+      for (let userId of post.likedUsers) {
+        const user = await this._userRepository.getUserById(userId);
+        const userDto = UserDto.mapFrom(user);
+        postDto.likedUsers.push(userDto);
       }
 
       postDtos.push(postDto);

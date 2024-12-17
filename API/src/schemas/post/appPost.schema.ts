@@ -13,7 +13,6 @@ export const AppPostSchema = new mongoose.Schema({
   resources: [FileSchema],
   likesCount: { type: Number, default: 0 },
   likedUsers: [{ type: String }],
-  commentsCount: { type: Number, default: 0 },
   createdAt: {
     type: Number,
     require: true,
