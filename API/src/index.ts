@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import express, { Express } from "express";
 import { DB_URL, PORT } from "./secrets";
-import rootRouter from "./routes/rootRouter";
-import { errorMiddleware } from "./middlewares/errorMiddleware";
+import rootRouter from "./routes/root.routes";
+import { errorMiddleware } from "./middlewares/error.middleware";
 import mongoose from "mongoose";
 
 const app: Express = express();

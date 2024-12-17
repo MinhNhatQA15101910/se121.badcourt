@@ -1,5 +1,5 @@
-import { FileDto } from "../dtos/fileDto";
-import { IFileService } from "../interfaces/services/IFileService";
+import { FileDto } from "../dtos/file.dto";
+import { IFileService } from "../interfaces/services/IFile.service";
 import { Response } from "express";
 import { PagedList } from "./pagedList";
 import { PaginationHeader } from "./paginationHeader";
