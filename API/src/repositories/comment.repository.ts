@@ -10,4 +10,11 @@ export class CommentRepository implements ICommentRepository {
     comment = await comment.save();
     return comment;
   }
+
+  async getTop3CommentsForPost(postId: string): Promise<any[]> {
+    const comments = await Comment.find({ postId })
+      .sort({ updated: -1 })
+      .limit(3);
+    return comments;
+  }
 }

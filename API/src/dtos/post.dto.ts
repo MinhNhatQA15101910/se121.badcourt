@@ -1,3 +1,4 @@
+import { CommentDto } from "./comment.dto";
 import { FileDto } from "./file.dto";
 
 export class PostDto {
@@ -10,6 +11,10 @@ export class PostDto {
   category: "advertise" | "findPlayer" = "advertise";
   resources: string[] = [];
   createdAt: number = 0;
+  comments: CommentDto[] = [];
+  commentsCount: number = 0;
+  likedUsers: string[] = [];
+  likesCount: number = 0;
 
   public static mapFrom(post: any): PostDto {
     return new PostDto(post);

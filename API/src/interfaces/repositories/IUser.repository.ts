@@ -9,5 +9,7 @@ export interface IUserRepository {
   getUserByEmailAndRole(email: string, role: string): Promise<any>;
   getUserById(id: string): Promise<any>;
   getUsers(userParams: UserParams): Promise<PagedList<any>>;
+  likePost(user: any, postId: string): Promise<any>;
   signupUser(signupDto: SignupDto): Promise<any>;
+  unlikePost(user: any, postId: string): Promise<any>;
 }

@@ -8,6 +8,13 @@ import { Aggregate } from "mongoose";
 
 @injectable()
 export class PostRepository implements IPostRepository {
+  async addLikedUser(post: any, userId: string): Promise<any> {
+    post.likedUsers.push(userId);
+    post.likesCount++;
+    post.updatedAt = new Date();
+    return await post.save();
+  }
+
   async addPost(newPostDto: NewPostDto): Promise<any> {
     let post = new Post(newPostDto);
     post = await post.save();
@@ -49,5 +56,13 @@ export class PostRepository implements IPostRepository {
       postParams.pageNumber,
       postParams.pageSize
     );
+  }
+
+  async removeLikedUser(post: any, userId: string): Promise<any> {
+    const index = post.likedUsers.indexOf(userId);
+    post.likedUsers.splice(index, 1);
+    post.likesCount--;
+    post.updatedAt = new Date();
+    return await post.save();
   }
 }

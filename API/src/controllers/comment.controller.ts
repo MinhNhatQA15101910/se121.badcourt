@@ -31,13 +31,15 @@ export class CommentController {
 
     const post = await this._postRepository.getPostById(newCommentDto.postId);
     if (post === null || post === undefined) {
-        throw new NotFoundException("Post not found.");
+      throw new NotFoundException("Post not found.");
     }
 
     const comment = await this._commentRepository.addComment(newCommentDto);
 
     const commentDto = CommentDto.mapFrom(comment);
     commentDto.publisherUsername = user.username;
+    commentDto.publisherImageUrl =
+      user.image === undefined ? "" : user.image.url;
 
     res
       .status(201)

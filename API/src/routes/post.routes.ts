@@ -13,12 +13,17 @@ import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { UserRepository } from "../repositories/user.repository";
 import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 import { BcryptService } from "../services/bcrypt.service";
+import { ICommentRepository } from "../interfaces/repositories/IComment.repository";
+import { CommentRepository } from "../repositories/comment.repository";
 
 const container = new Container();
 
 container.bind<IBcryptService>(INTERFACE_TYPE.BcryptService).to(BcryptService);
 container.bind<IFileService>(INTERFACE_TYPE.FileService).to(FileService);
 
+container
+  .bind<ICommentRepository>(INTERFACE_TYPE.CommentRepository)
+  .to(CommentRepository);
 container
   .bind<IPostRepository>(INTERFACE_TYPE.PostRepository)
   .to(PostRepository);
@@ -47,5 +52,11 @@ postRoutes.get(
 );
 
 postRoutes.get("/", errorHandler(postController.getPosts.bind(postController)));
+
+postRoutes.patch(
+  "/toggle-like/:id",
+  [authMiddleware],
+  errorHandler(postController.toggleLike.bind(postController))
+);
 
 export default postRoutes;

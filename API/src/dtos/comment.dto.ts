@@ -2,6 +2,7 @@ export class CommentDto {
   _id: string = "";
   publisherId: string = "";
   publisherUsername: string = "";
+  publisherImageUrl?: string = "";
   content: string = "";
   createdAt: number = 0;
 
