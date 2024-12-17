@@ -11,6 +11,10 @@ export class CommentRepository implements ICommentRepository {
     return comment;
   }
 
+  async getCommentsCount(postId: string): Promise<number> {
+    return await Comment.countDocuments({ postId });
+  }
+
   async getTop3CommentsForPost(postId: string): Promise<any[]> {
     const comments = await Comment.find({ postId })
       .sort({ updated: -1 })

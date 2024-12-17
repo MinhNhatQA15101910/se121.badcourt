@@ -6,6 +6,7 @@ export class UserDto {
   email: string = "";
   imageUrl?: string = "";
   role: string = "";
+  createAt: Number = 0;
   token?: string;
 
   public static mapFrom(user: any): UserDto {
@@ -20,5 +21,6 @@ export class UserDto {
       this.imageUrl = user.image.url;
     }
     this.role = user === null ? "" : user.role;
+    this.createAt = user === null ? 0 : user.createAt;
   }
 }
