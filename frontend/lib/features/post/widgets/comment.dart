@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/post/widgets/comment_child.dart';
 
 class CommentWidget extends StatefulWidget {
   final String profileImageUrl;
@@ -49,7 +48,7 @@ class _CommentWidgetState extends State<CommentWidget> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(
-        top: 16,
+        top: 12,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,10 +59,10 @@ class _CommentWidgetState extends State<CommentWidget> {
             children: [
               // Avatar
               CircleAvatar(
-                radius: 20,
+                radius: 16,
                 backgroundImage: NetworkImage(widget.profileImageUrl),
               ),
-              const SizedBox(width: 12), // Space between avatar and name
+              const SizedBox(width: 8), // Space between avatar and name
 
               // Name and date in a column
               Expanded(
@@ -88,9 +87,12 @@ class _CommentWidgetState extends State<CommentWidget> {
           // Comment text
           Container(
             margin: EdgeInsets.only(
-              left: 44,
+              left: 40,
             ),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
             decoration: BoxDecoration(
               color: GlobalVariables.lightGreen, // Light green background
               borderRadius: BorderRadius.circular(8),
@@ -107,69 +109,50 @@ class _CommentWidgetState extends State<CommentWidget> {
           const SizedBox(height: 8), // Space between comment text and metadata
 
           // Post metadata (likes, comments)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: _toggleLike,
-                    child: Row(
+          Padding(
+            padding: const EdgeInsets.only(left: 40),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _toggleLike,
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isLiked
+                                ? Icons.thumb_up_alt
+                                : Icons.thumb_up_alt_outlined,
+                            size: 16,
+                            color: _isLiked
+                                ? GlobalVariables.green
+                                : GlobalVariables.darkGrey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text('$_likesCount'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Row(
                       children: [
-                        Icon(
-                          _isLiked
-                              ? Icons.thumb_up_alt
-                              : Icons.thumb_up_alt_outlined,
+                        const Icon(
+                          Icons.comment_outlined,
                           size: 16,
-                          color: _isLiked
-                              ? GlobalVariables.green
-                              : GlobalVariables.darkGrey,
+                          color: GlobalVariables.darkGrey,
                         ),
                         const SizedBox(width: 4),
-                        Text('$_likesCount'),
+                        Text('${widget.commentsCount}'),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.comment_outlined,
-                        size: 16,
-                        color: GlobalVariables.darkGrey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text('${widget.commentsCount}'),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-          CommentChild(
-              profileImageUrl:
-                  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-              username: 'Albert Flores',
-              commentText:
-                  'Take the multiple-choice quiz following each text, and youll get the results immediately.',
-              date: 'Aug 19, 2021'),
-          CommentChild(
-              profileImageUrl:
-                  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-              username: 'Albert Flores',
-              commentText:
-                  'Take the multiple-choice quiz following each text, and youll get the results immediately.',
-              date: 'Aug 19, 2021'),
-          CommentChild(
-              profileImageUrl:
-                  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-              username: 'Albert Flores',
-              commentText:
-                  'Take the multiple-choice quiz following each text, and youll get the results immediately.',
-              date: 'Aug 19, 2021'),
         ],
       ),
     );
   }
-
 }

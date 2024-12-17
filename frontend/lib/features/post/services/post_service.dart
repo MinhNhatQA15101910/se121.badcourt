@@ -155,4 +155,45 @@ class PostService {
       );
     }
   }
+
+  Future<bool> toggleLike({
+    required BuildContext context,
+    required String postId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      http.Response response = await http.patch(
+        Uri.parse('$uri/api/posts/toggle-like/$postId'),
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          IconSnackBar.show(
+            context,
+            label: 'Successfully',
+            snackBarType: SnackBarType.success,
+          );
+        },
+      );
+      return true;
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+
+      return false;
+    }
+  }
 }

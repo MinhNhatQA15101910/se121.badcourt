@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
+import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/comment.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
 import 'package:frontend/models/post.dart';
@@ -22,19 +23,31 @@ class PostFormWidget extends StatefulWidget {
 }
 
 class _PostFormWidgetState extends State<PostFormWidget> {
+  final _postService = PostService();
   int _activeIndex = 0;
   bool _isLiked = false;
   int _likeCount = 5;
 
-  void _toggleLike() {
-    setState(() {
-      if (_isLiked) {
-        _likeCount--;
-      } else {
-        _likeCount++;
-      }
-      _isLiked = !_isLiked;
-    });
+  Future<void> _toggleLike() async {
+    try {
+      await _postService.toggleLike(
+        context: context,
+        postId: widget.currentPost.id,
+      );
+
+      setState(() {
+        if (_isLiked) {
+          _likeCount--;
+        } else {
+          _likeCount++;
+        }
+        _isLiked = !_isLiked;
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to toggle like. Please try again.')),
+      );
+    }
   }
 
   @override
@@ -233,16 +246,26 @@ class _PostFormWidgetState extends State<PostFormWidget> {
           SizedBox(
             height: 16,
           ),
-          InputCommentWidget(postId: widget.currentPost.id),
-          CommentWidget(
-              profileImageUrl:
-                  'https://images.unsplash.com/photo-1701615004837-40d8573b6652?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-              username: 'Mai Ling',
-              commentText:
-                  'Prepared by experienced English teachers, the texts, articles and conversations are brief and appropriate to your level of proficiency.',
-              date: 'Aug 19, 2021',
-              initialLikesCount: 6,
-              commentsCount: 3),
+          InputCommentWidget(
+            postId: widget.currentPost.id,
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: widget.currentPost.comments.length,
+            itemBuilder: (context, index) {
+              final comment = widget.currentPost.comments[index];
+              return CommentWidget(
+                profileImageUrl: comment.publisherImageUrl,
+                username: comment.publisherUsername,
+                commentText: comment.content,
+                date: DateFormat('MMM dd, yyyy').format(
+                    DateTime.fromMillisecondsSinceEpoch(comment.createdAt)),
+                initialLikesCount: 0,
+                commentsCount: 0,
+              );
+            },
+          ),
         ],
       ),
     );

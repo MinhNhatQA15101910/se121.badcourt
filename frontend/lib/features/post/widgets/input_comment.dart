@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 
@@ -38,6 +37,7 @@ class _InputCommentWidgetState extends State<InputCommentWidget> {
     } finally {
       setState(() {
         _isLoading = false;
+        _commentController.clear();
       });
     }
   }
@@ -46,27 +46,10 @@ class _InputCommentWidgetState extends State<InputCommentWidget> {
   Widget build(BuildContext context) {
     return Container(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.green,
-                width: 1.0,
-              ),
-            ),
-            child: const CircleAvatar(
-              backgroundImage: NetworkImage(
-                'https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-              ),
-              radius: 25,
-            ),
-          ),
-          const SizedBox(width: 8), // Spacing between avatar and input
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _commentController,
@@ -98,32 +81,17 @@ class _InputCommentWidgetState extends State<InputCommentWidget> {
                     width: 1,
                   ),
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: _createComment,
-            child: Container(
-              margin: const EdgeInsets.only(top: 4),
-              child: GestureDetector(
-                onTap: _createComment,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100),
-                    color: GlobalVariables.green,
-                  ),
-                  child: Icon(
-                    Icons.send_rounded,
-                    color: GlobalVariables.white,
-                    size: 20,
-                  ),
-                ),
-              ),
+            child: Icon(
+              Icons.send_rounded,
+              color: GlobalVariables.green,
+              size: 32,
             ),
           ),
         ],
