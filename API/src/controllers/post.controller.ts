@@ -13,20 +13,26 @@ import { NotFoundException } from "../exceptions/notFound.exception";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { PostParamsSchema } from "../schemas/post/postParams.schema";
 import { PostParams } from "../params/post.params";
+import { ICommentRepository } from "../interfaces/repositories/IComment.repository";
+import { CommentDto } from "../dtos/comment.dto";
 
 @injectable()
 export class PostController {
   private _fileService: IFileService;
+  private _commentRepository: ICommentRepository;
   private _postRepository: IPostRepository;
   private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
+    @inject(INTERFACE_TYPE.CommentRepository)
+    commentRepository: ICommentRepository,
     @inject(INTERFACE_TYPE.PostRepository)
     postRepository: IPostRepository,
     @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._fileService = fileService;
+    this._commentRepository = commentRepository;
     this._postRepository = postRepository;
     this._userRepository = userRepository;
   }
@@ -81,6 +87,20 @@ export class PostController {
       postDto.publisherImageUrl = user.imageUrl;
     }
 
+    const comments = await this._commentRepository.getTop3CommentsForPost(
+      postId
+    );
+    for (let comment of comments) {
+      const commentDto = CommentDto.mapFrom(comment);
+
+      const user = await this._userRepository.getUserById(comment.userId);
+      commentDto.publisherUsername = user.username;
+      commentDto.publisherImageUrl =
+        user.image === undefined ? "" : user.image.url;
+
+      postDto.comments.push(commentDto);
+    }
+
     res.json(postDto);
   }
 
@@ -97,8 +117,21 @@ export class PostController {
 
       const user = await this._userRepository.getUserById(post.userId);
       postDto.publisherUsername = user.username;
-      if (user.imageUrl) {
-        postDto.publisherImageUrl = user.imageUrl;
+      postDto.publisherImageUrl =
+        user.image === undefined ? "" : user.image.url;
+
+      const comments = await this._commentRepository.getTop3CommentsForPost(
+        post._id
+      );
+      for (let comment of comments) {
+        const commentDto = CommentDto.mapFrom(comment);
+
+        const user = await this._userRepository.getUserById(comment.userId);
+        commentDto.publisherUsername = user.username;
+        commentDto.publisherImageUrl =
+          user.image === undefined ? "" : user.image.url;
+
+        postDto.comments.push(commentDto);
       }
 
       postDtos.push(postDto);
