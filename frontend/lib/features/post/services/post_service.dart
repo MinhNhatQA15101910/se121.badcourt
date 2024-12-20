@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
@@ -154,6 +155,56 @@ class PostService {
         snackBarType: SnackBarType.fail,
       );
     }
+  }
+
+  Future<Map<String, dynamic>> fetchCommentsByPostId({
+    required BuildContext context,
+    required String postId,
+    required int pageNumber,
+    int pageSize = 3,
+  }) async {
+    List<Comment> commentList = [];
+    int totalPages = 0;
+
+    try {
+      final Uri uriWithParams =
+          Uri.parse('$uri/api/comments').replace(queryParameters: {
+        'postId': postId,
+        'pageNumber': pageNumber.toString(),
+        'pageSize': pageSize.toString(),
+      });
+
+      http.Response res = await http.get(uriWithParams);
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          for (var object in jsonDecode(res.body)) {
+            commentList.add(
+              Comment.fromMap(object),
+            );
+          }
+
+          final paginationHeader = res.headers['pagination'];
+          if (paginationHeader != null) {
+            final paginationData = jsonDecode(paginationHeader);
+            totalPages = paginationData['totalPages'];
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return {
+      'comments': commentList,
+      'totalPages': totalPages,
+    };
   }
 
   Future<bool> toggleLike({

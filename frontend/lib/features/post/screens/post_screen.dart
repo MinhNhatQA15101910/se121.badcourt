@@ -97,8 +97,7 @@ class _PostScreenState extends State<PostScreen> {
         await Navigator.of(context).pushNamed(CreatePostScreen.routeName);
 
     if (result == true) {
-      _postList = [];
-      _fetchAllPost();
+      await _refreshPosts();
     }
   }
 

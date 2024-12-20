@@ -157,7 +157,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                     SizedBox(height: 12),
                     TextField(
-                      controller: _descriptionController,
+                      controller: _titleController,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -193,7 +193,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     SizedBox(height: 12),
                     Container(
                       child: TextFormField(
-                        controller: _titleController,
+                        controller: _descriptionController,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,

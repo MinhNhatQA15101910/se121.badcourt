@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 
 class InputCommentWidget extends StatefulWidget {
   final String postId;
+  final VoidCallback onCommentCreated;
 
   const InputCommentWidget({
     Key? key,
     required this.postId,
+    required this.onCommentCreated,
   }) : super(key: key);
 
   @override
@@ -34,6 +37,9 @@ class _InputCommentWidgetState extends State<InputCommentWidget> {
         widget.postId,
         _commentController.text,
       );
+
+      // Notify parent widget to update the comment list
+      widget.onCommentCreated();
     } finally {
       setState(() {
         _isLoading = false;
@@ -86,14 +92,16 @@ class _InputCommentWidgetState extends State<InputCommentWidget> {
             ),
           ),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: _createComment,
-            child: Icon(
-              Icons.send_rounded,
-              color: GlobalVariables.green,
-              size: 32,
-            ),
-          ),
+          _isLoading
+              ? Loader()
+              : GestureDetector(
+                  onTap: _createComment,
+                  child: Icon(
+                    Icons.send_rounded,
+                    color: GlobalVariables.green,
+                    size: 32,
+                  ),
+                ),
         ],
       ),
     );

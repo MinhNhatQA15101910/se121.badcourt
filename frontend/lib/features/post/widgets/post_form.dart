@@ -1,11 +1,14 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
+import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/comment.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
+import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +29,55 @@ class _PostFormWidgetState extends State<PostFormWidget> {
   final _postService = PostService();
   int _activeIndex = 0;
   bool _isLiked = false;
-  int _likeCount = 5;
+  bool _isLoading = false;
+  int _likeCount = 0;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  List<Comment> _commentList = [];
+
+  Future<void> _fetchCommentByPostId() async {
+    if (_isLoading || (_currentPage > _totalPages)) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final result = await _postService.fetchCommentsByPostId(
+        context: context,
+        postId: widget.currentPost.id,
+        pageNumber: _currentPage,
+      );
+
+      final List<Comment> newComments = result['comments'] ?? [];
+      final int totalPages = result['totalPages'] ?? 0;
+
+      setState(() {
+        _commentList.addAll(newComments);
+        _totalPages = totalPages;
+        _currentPage++;
+      });
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _refreshComments() async {
+    setState(() {
+      _commentList.clear();
+      _currentPage = 1;
+      _totalPages = 1;
+    });
+    await _fetchCommentByPostId();
+  }
 
   Future<void> _toggleLike() async {
     try {
@@ -48,6 +99,25 @@ class _PostFormWidgetState extends State<PostFormWidget> {
         SnackBar(content: Text('Failed to toggle like. Please try again.')),
       );
     }
+  }
+
+  String formatDate(int createdAt) {
+    DateTime commentDate = DateTime.fromMillisecondsSinceEpoch(createdAt);
+    Duration difference = DateTime.now().difference(commentDate);
+
+    if (difference.inDays < 1) {
+      int hours = difference.inHours;
+      return '$hours hours ago';
+    } else {
+      return DateFormat('MMM dd, yyyy').format(commentDate);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCommentByPostId();
+    _likeCount = widget.currentPost.likesCount;
   }
 
   @override
@@ -184,9 +254,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _customText(
-                DateFormat('MMM dd, yyyy').format(
-                    DateTime.fromMillisecondsSinceEpoch(
-                        widget.currentPost.createdAt)),
+                formatDate(widget.currentPost.createdAt),
                 12,
                 FontWeight.w400,
                 GlobalVariables.darkGrey,
@@ -210,7 +278,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                                       .green // Change color when liked
                                   : GlobalVariables
                                       .darkGrey, // Default color when not liked
-                              size: 20, // Icon size
+                              size: 18, // Icon size
                             ),
                             const SizedBox(width: 4),
                             _customText('$_likeCount', 14, FontWeight.w500,
@@ -226,12 +294,12 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                     children: [
                       Icon(
                         Icons.comment_outlined,
-                        size: 20,
+                        size: 18,
                         color: GlobalVariables.darkGrey,
                       ),
                       SizedBox(width: 4),
                       _customText(
-                        '4',
+                        widget.currentPost.commentsCount.toString(),
                         14,
                         FontWeight.w500,
                         GlobalVariables.darkGrey,
@@ -247,25 +315,37 @@ class _PostFormWidgetState extends State<PostFormWidget> {
             height: 16,
           ),
           InputCommentWidget(
-            postId: widget.currentPost.id,
-          ),
+              postId: widget.currentPost.id,
+              onCommentCreated: _refreshComments),
           ListView.builder(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
-            itemCount: widget.currentPost.comments.length,
+            itemCount: _commentList.length,
             itemBuilder: (context, index) {
-              final comment = widget.currentPost.comments[index];
+              final comment = _commentList[index];
               return CommentWidget(
                 profileImageUrl: comment.publisherImageUrl,
                 username: comment.publisherUsername,
                 commentText: comment.content,
-                date: DateFormat('MMM dd, yyyy').format(
-                    DateTime.fromMillisecondsSinceEpoch(comment.createdAt)),
+                date: formatDate(comment.createdAt),
                 initialLikesCount: 0,
                 commentsCount: 0,
               );
             },
           ),
+          if (_currentPage <= _totalPages)
+            _isLoading
+                ? const Loader()
+                : GestureDetector(
+                    onTap: _fetchCommentByPostId,
+                    child: _customText(
+                      "View more",
+                      14,
+                      FontWeight.w500,
+                      GlobalVariables.green,
+                      1,
+                    ),
+                  ),
         ],
       ),
     );

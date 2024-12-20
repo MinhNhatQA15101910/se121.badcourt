@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:frontend/models/comment.dart';
 
 class Post {
@@ -13,6 +12,8 @@ class Post {
   final List<String> resources;
   final int createdAt;
   final List<Comment> comments; // New field
+  final int commentsCount; // New field for comment count
+  final int likesCount; // New field for likes count
 
   const Post({
     required this.id,
@@ -25,6 +26,8 @@ class Post {
     required this.resources,
     required this.createdAt,
     required this.comments,
+    required this.commentsCount,
+    required this.likesCount,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,6 +44,8 @@ class Post {
       'comments': comments
           .map((comment) => comment.toMap())
           .toList(), // Convert each comment to a map
+      'commentsCount': commentsCount, // Add comments count to map
+      'likesCount': likesCount, // Add likes count to map
     };
   }
 
@@ -61,6 +66,8 @@ class Post {
                   .map((comment) => Comment.fromMap(comment)),
             )
           : [],
+      commentsCount: map['commentsCount'] != null ? map['commentsCount'] : 0,
+      likesCount: map['likesCount'] != null ? map['likesCount'] : 0,
     );
   }
 
