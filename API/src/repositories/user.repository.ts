@@ -99,6 +99,12 @@ export class UserRepository implements IUserRepository {
     );
   }
 
+  async likeComment(user: any, commentId: string): Promise<any> {
+    user.likedComments.push(commentId);
+    user.updatedAt = new Date();
+    return await user.save();
+  }
+
   async likePost(user: any, postId: string): Promise<any> {
     user.likedPosts.push(postId);
     user.updatedAt = new Date();
@@ -115,6 +121,13 @@ export class UserRepository implements IUserRepository {
     });
     user = await user.save();
     return user;
+  }
+
+  async unlikeComment(user: any, commentId: string): Promise<any> {
+    const index = user.likedComments.indexOf(commentId);
+    user.likedComments.splice(index, 1);
+    user.updatedAt = new Date();
+    return await user.save();
   }
 
   async unlikePost(user: any, postId: string): Promise<any> {

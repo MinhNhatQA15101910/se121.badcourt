@@ -44,6 +44,7 @@ export const AppUserSchema = new mongoose.Schema({
     default: "player",
   },
   likedPosts: [{ type: String }],
+  likedComments: [{ type: String }],
   createdAt: {
     type: Number,
     require: true,
