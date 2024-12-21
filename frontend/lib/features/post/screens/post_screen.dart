@@ -3,6 +3,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/post_form.dart';
@@ -101,6 +102,10 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
+  void _navigateToMessageScreen() {
+    Navigator.of(context).pushNamed(MessageScreen.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
@@ -132,7 +137,7 @@ class _PostScreenState extends State<PostScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: _navigateToMessageScreen,
                 iconSize: 24,
                 icon: const Icon(
                   Icons.message_outlined,

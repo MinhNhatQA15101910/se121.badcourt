@@ -103,14 +103,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
 
   String formatDate(int createdAt) {
     DateTime commentDate = DateTime.fromMillisecondsSinceEpoch(createdAt);
-    Duration difference = DateTime.now().difference(commentDate);
-
-    if (difference.inDays < 1) {
-      int hours = difference.inHours;
-      return '$hours hours ago';
-    } else {
-      return DateFormat('MMM dd, yyyy').format(commentDate);
-    }
+    return DateFormat('MMM dd, yyyy').format(commentDate);
   }
 
   @override

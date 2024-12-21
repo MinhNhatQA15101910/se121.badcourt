@@ -13,6 +13,8 @@ import 'package:frontend/features/manager/court_management/screen/court_manageme
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
 import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
@@ -151,7 +153,16 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
           initialIndex: args['initialIndex'] as int,
         ),
       );
-
+    case MessageScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const MessageScreen(),
+      );
+    case MessageDetailScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const MessageDetailScreen(),
+      );
     default:
       return MaterialPageRoute(
         settings: routeSettings,
