@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { FileSchema } from "../file/file.schema";
+import { FileSchema } from "../files/file.schema";
 import ActiveSchema from "../active/active.schema";
 import ManagerInfoSchema from "./managerInfo.schema";
 

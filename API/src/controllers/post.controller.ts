@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import { NewPostDto } from "../dtos/newPost.dto";
-import { AddPostSchema } from "../schemas/post/addPost.schema";
+import { AddPostSchema } from "../schemas/posts/addPost.schema";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
@@ -10,7 +10,7 @@ import { PostDto } from "../dtos/post.dto";
 import { PORT } from "../secrets";
 import { NotFoundException } from "../exceptions/notFound.exception";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
-import { PostParamsSchema } from "../schemas/post/postParams.schema";
+import { PostParamsSchema } from "../schemas/posts/postParams.schema";
 import { PostParams } from "../params/post.params";
 import { ICommentRepository } from "../interfaces/repositories/IComment.repository";
 import { CommentDto } from "../dtos/comment.dto";

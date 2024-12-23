@@ -4,6 +4,8 @@ import { DB_URL, PORT } from "./secrets";
 import rootRouter from "./routes/root.routes";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import mongoose from "mongoose";
+import { Server } from "socket.io";
+import { socketHandler } from "./websockets/handler";
 
 const app: Express = express();
 
@@ -24,6 +26,14 @@ mongoose
     console.log(err);
   });
 
-app.listen(PORT, () => {
+const expressServer = app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}`);
 });
+
+const io = new Server(expressServer, {
+  cors: {
+    origin: "*", // Allow all origins
+  },
+});
+
+socketHandler(io);

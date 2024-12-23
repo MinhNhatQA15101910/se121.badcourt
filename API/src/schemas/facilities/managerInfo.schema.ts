@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { FileSchema } from "../file/file.schema";
+import { FileSchema } from "../files/file.schema";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
 const ManagerInfoSchema = new mongoose.Schema({
