@@ -9,7 +9,6 @@ import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
-import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -31,18 +30,16 @@ class AuthService {
     );
 
     try {
-      User user = User(
-        id: '',
-        username: username,
-        email: email,
-        imageUrl: '',
-        role: authProvider.isPlayer ? 'player' : 'manager',
-        token: '',
-      );
-
       http.Response response = await http.post(
         Uri.parse('$uri/sign-up'),
-        body: user.toJson(),
+        body: jsonEncode(
+          {
+            'username': username,
+            'email': email,
+            'password': password,
+            if (!authProvider.isPlayer) 'role': 'manager'
+          },
+        ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

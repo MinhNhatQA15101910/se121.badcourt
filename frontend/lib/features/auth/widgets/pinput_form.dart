@@ -145,20 +145,6 @@ class _PinputFormState extends State<PinputForm> {
     authProvider.setForm(LoginForm());
   }
 
-  void _sendVerifyEmail() async {
-    _pincode = _generateRandomNumberString();
-    var email = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    ).resentEmail;
-
-    await _authService.sendVerifyEmail(
-      context: context,
-      email: email,
-      pincode: _pincode!,
-    );
-  }
-
   void _startTimer() {
     const duration = Duration(seconds: 1);
     _timer = Timer.periodic(
@@ -223,9 +209,6 @@ class _PinputFormState extends State<PinputForm> {
   @override
   void initState() {
     super.initState();
-    if (!widget.isMoveBack) {
-      _sendVerifyEmail();
-    }
     _startTimer();
   }
 
@@ -406,8 +389,7 @@ class _PinputFormState extends State<PinputForm> {
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = _sendVerifyEmail,
+                        recognizer: TapGestureRecognizer()..onTap = () {},
                       )
                     ],
                   ),

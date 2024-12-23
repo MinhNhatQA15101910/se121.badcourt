@@ -6,11 +6,10 @@ import 'package:frontend/providers/filter_provider.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-String uri = 'http://192.168.1.67:3000';
+String uri = 'http://192.168.1.65:3000';
 
 List<SingleChildWidget> providers = [
   ChangeNotifierProvider(
