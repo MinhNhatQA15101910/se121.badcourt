@@ -12,8 +12,10 @@ import { ValidateEmailSchema } from "../schemas/auth/validateEmail.schema";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { UserDto } from "../dtos/user.dto";
+import { VerifyPincodeSchema } from "../schemas/auth/verifyPincode.schema";
 
 const pincodeMap = new Map();
+const validateUserMap = new Map();
 
 function generatePincode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -38,22 +40,6 @@ export class AuthController {
     this._userRepository = userRepository;
   }
 
-  async signup(req: Request, res: Response) {
-    const signupDto = SignupSchema.parse(req.body);
-
-    let user = await this._userRepository.getUserByEmailAndRole(
-      signupDto.email,
-      signupDto.role
-    );
-    if (user) {
-      throw new BadRequestException("User already exists!");
-    }
-
-    user = await this._userRepository.signupUser(signupDto);
-
-    res.json(user);
-  }
-
   async validateSignup(req: Request, res: Response) {
     const signupDto = SignupSchema.parse(req.body);
 
@@ -65,7 +51,26 @@ export class AuthController {
       throw new BadRequestException("User already exists!");
     }
 
-    return res.json({
+    const pincode = generatePincode();
+    let pincodeSubMap = new Map();
+    pincodeSubMap.set(signupDto.role, pincode);
+    pincodeMap.set(signupDto.email, pincodeSubMap);
+    console.log("Pincode Map: ", pincodeMap);
+
+    let userSubMap = new Map();
+    userSubMap.set(signupDto.role, signupDto);
+    validateUserMap.set(signupDto.email, userSubMap);
+    console.log("Validate User Map: ", validateUserMap);
+
+    this._mailService.sendVerifyEmail(signupDto.email, pincode, (err, info) => {
+      if (err) {
+        throw new Error(err.message);
+      }
+
+      console.log("Email sent: " + info.response);
+    });
+
+    res.json({
       token: this._jwtService.generateToken({
         email: signupDto.email,
         role: signupDto.role,
@@ -144,6 +149,23 @@ export class AuthController {
       validateEmailDto.role
     );
     if (user) {
+      const pincode = generatePincode();
+      let pincodeSubMap = new Map();
+      pincodeSubMap.set(validateEmailDto.role, pincode);
+      pincodeMap.set(validateEmailDto.email, pincodeSubMap);
+
+      this._mailService.sendVerifyEmail(
+        validateEmailDto.email,
+        pincode,
+        (err, info) => {
+          if (err) {
+            throw new Error(err.message);
+          }
+
+          console.log("Email sent: " + info.response);
+        }
+      );
+
       return res.json({
         token: this._jwtService.generateToken({
           email: validateEmailDto.email,
@@ -156,45 +178,27 @@ export class AuthController {
     res.json(false);
   }
 
-  sendVerifyEmail(req: Request, res: Response) {
+  async verifyPincode(req: Request, res: Response) {
+    const verifyPincodeSchema = VerifyPincodeSchema.parse(req.body);
+    const pincode = (pincodeMap.get(req.email) as Map<string, string>).get(
+      req.role!
+    );
+
+    if (pincode !== verifyPincodeSchema.pincode) {
+      throw new BadRequestException("Invalid pincode.");
+    }
+
+    pincodeMap.delete(req.email);
+
     const action = req.action;
-
-    if (action === "verifyEmail") {
-      const user = req.user;
-      if (!user) {
-        throw new BadRequestException("User does not exist!");
-      }
-
-      const pincode = generatePincode();
-      pincodeMap.set([user.email, user.role], pincode);
-
-      this._mailService.sendVerifyEmail(
-        req.user.email,
-        pincode,
-        (err, info) => {
-          if (err) {
-            throw new Error(err.message);
-          }
-
-          res.json("Email sent: " + info.response);
-        }
+    if (action === "signup") {
+      const user = await this._userRepository.signupUser(
+        validateUserMap.get(req.email).get(req.role!)
       );
-    } else if (action === "signup") {
-      const user = req.user;
-      if (user) {
-        throw new BadRequestException("User already exists!");
-      }
 
-      const pincode = generatePincode();
-      pincodeMap.set([req.email, req.role], pincode);
-
-      this._mailService.sendVerifyEmail(req.email!, pincode, (err, info) => {
-        if (err) {
-          throw new Error(err.message);
-        }
-
-        res.json("Email sent: " + info.response);
-      });
+      res.json(user);
+    } else if (action === "verifyEmail") {
+      res.json(true);
     }
   }
 

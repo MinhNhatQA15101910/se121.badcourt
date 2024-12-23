@@ -37,11 +37,6 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  "/signup",
-  errorHandler(authController.signup.bind(authController))
-);
-
-authRoutes.post(
   "/login",
   errorHandler(authController.login.bind(authController))
 );
@@ -57,9 +52,9 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  "/send-verify-email",
+  "/verify-pincode",
   [userEmailMiddleware],
-  errorHandler(authController.sendVerifyEmail.bind(authController))
+  errorHandler(authController.verifyPincode.bind(authController))
 );
 
 authRoutes.patch(
