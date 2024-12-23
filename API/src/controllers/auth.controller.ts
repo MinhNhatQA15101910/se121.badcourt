@@ -65,7 +65,13 @@ export class AuthController {
       throw new BadRequestException("User already exists!");
     }
 
-    res.json(true);
+    return res.json({
+      token: this._jwtService.generateToken({
+        email: signupDto.email,
+        role: signupDto.role,
+        action: "signup",
+      }),
+    });
   }
 
   async login(req: Request, res: Response) {
@@ -142,6 +148,7 @@ export class AuthController {
         token: this._jwtService.generateToken({
           email: validateEmailDto.email,
           role: validateEmailDto.role,
+          action: "verifyEmail",
         }),
       });
     }
@@ -150,18 +157,45 @@ export class AuthController {
   }
 
   sendVerifyEmail(req: Request, res: Response) {
-    const user = req.user;
+    const action = req.action;
 
-    const pincode = generatePincode();
-    pincodeMap.set([req.user.email, req.user.role], pincode);
-
-    this._mailService.sendVerifyEmail(req.user.email, pincode, (err, info) => {
-      if (err) {
-        throw new Error(err.message);
+    if (action === "verifyEmail") {
+      const user = req.user;
+      if (!user) {
+        throw new BadRequestException("User does not exist!");
       }
 
-      res.json("Email sent: " + info.response);
-    });
+      const pincode = generatePincode();
+      pincodeMap.set([user.email, user.role], pincode);
+
+      this._mailService.sendVerifyEmail(
+        req.user.email,
+        pincode,
+        (err, info) => {
+          if (err) {
+            throw new Error(err.message);
+          }
+
+          res.json("Email sent: " + info.response);
+        }
+      );
+    } else if (action === "signup") {
+      const user = req.user;
+      if (user) {
+        throw new BadRequestException("User already exists!");
+      }
+
+      const pincode = generatePincode();
+      pincodeMap.set([req.email, req.role], pincode);
+
+      this._mailService.sendVerifyEmail(req.email!, pincode, (err, info) => {
+        if (err) {
+          throw new Error(err.message);
+        }
+
+        res.json("Email sent: " + info.response);
+      });
+    }
   }
 
   async changePassword(req: Request, res: Response) {
