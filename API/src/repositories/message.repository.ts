@@ -26,4 +26,8 @@ export class MessageRepository implements IMessageRepository {
     messageRoom = await messageRoom.save();
     return messageRoom;
   }
+
+  getPersonalMessageRoom(user1Id: string, user2Id: string): Promise<any> {
+    return MessageRoom.findOne({ users: [user1Id, user2Id], type: "personal" });
+  }
 }

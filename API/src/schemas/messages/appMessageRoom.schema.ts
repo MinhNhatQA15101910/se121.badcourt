@@ -7,6 +7,11 @@ export const AppMessageRoomSchema = new mongoose.Schema({
     trim: true,
   },
   roomImage: FileSchema,
+  type: {
+    type: String,
+    trim: true,
+    default: "personal",
+  },
   users: [{ type: String }],
   messages: [{ type: String }],
   createdAt: {

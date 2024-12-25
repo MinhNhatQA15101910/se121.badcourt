@@ -4,6 +4,7 @@ export class MessageDto {
   senderImageUrl: string = "";
   content: string = "";
   resources: string[] = [];
+  createdAt: number = Date.now();
 
   public static mapFrom(message: any): MessageDto {
     return new MessageDto(message);
@@ -15,5 +16,6 @@ export class MessageDto {
     this.content = message === null ? "" : message.content;
     this.resources =
       message === null ? [] : message.resources.map((r: any) => r.url);
+    this.createdAt = message === null ? Date.now() : message.updatedAt;
   }
 }

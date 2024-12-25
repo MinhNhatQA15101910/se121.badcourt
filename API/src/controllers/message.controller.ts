@@ -29,8 +29,6 @@ export class MessageController {
   }
 
   async sendMessageFromFacilityToUser(req: Request, res: Response) {
-    console.log("Request", req);
-
     const facility = req.facility;
 
     // Get message from body
@@ -48,13 +46,23 @@ export class MessageController {
       throw new BadRequestException("Cannot send message to yourself");
     }
 
-    // Create message room
-    const messageRoom = await this._messageRepository.createMessageRoom(
-      new NewMessageRoomDto()
+    // Check if the personal message room already exists
+    let messageRoom = await this._messageRepository.getPersonalMessageRoom(
+      facility._id,
+      recipient._id
     );
+    let existed = false;
+    if (messageRoom !== null) {
+      newMessageDto.roomId = messageRoom._id;
+      existed = true;
+    } else {
+      messageRoom = await this._messageRepository.createMessageRoom(
+        new NewMessageRoomDto()
+      );
+      newMessageDto.roomId = messageRoom._id;
+    }
 
     // Create message
-    newMessageDto.roomId = messageRoom._id;
     newMessageDto.senderId = facility._id;
     const message = await this._messageRepository.createMessage(newMessageDto);
 
@@ -67,15 +75,20 @@ export class MessageController {
 
     // Update message with resources
     message.resources = resources;
+    
+    message.updatedAt = Date.now();
     await message.save();
 
     // Update message room with message
     messageRoom.messages.push(message._id);
 
     // Update message room with users
-    messageRoom.users.push(facility._id);
-    messageRoom.users.push(recipient._id);
+    if (!existed) {
+      messageRoom.users.push(facility._id);
+      messageRoom.users.push(recipient._id);
+    }
 
+    messageRoom.updatedAt = Date.now();
     await messageRoom.save();
 
     // Map to MessageDto
