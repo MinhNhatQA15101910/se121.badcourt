@@ -10,10 +10,13 @@ import { upload } from "../middlewares/multer.middleware";
 import { managerMiddleware } from "../middlewares/manager.middleware";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { FileService } from "../services/file.service";
+import { IJwtService } from "../interfaces/services/IJwt.service";
+import { JwtService } from "../services/jwt.service";
 
 const container = new Container();
 
 container.bind<IFileService>(INTERFACE_TYPE.FileService).to(FileService);
+container.bind<IJwtService>(INTERFACE_TYPE.JwtService).to(JwtService);
 
 container
   .bind<IFacilityRepository>(INTERFACE_TYPE.FacilityRepository)
@@ -46,6 +49,13 @@ facilityRoutes.post(
     { name: "businessLicenseImages", maxCount: 10 },
   ]),
   errorHandler(facilityController.registerFacility.bind(facilityController))
+);
+
+facilityRoutes.post(
+  "/request-token/:facilityId",
+  [authMiddleware],
+  [managerMiddleware],
+  errorHandler(facilityController.requestFacilityToken.bind(facilityController))
 );
 
 export default facilityRoutes;
