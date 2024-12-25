@@ -1,3 +1,7 @@
+import { NewMessageDto } from "../../dtos/newMessage.dto";
+import { NewMessageRoomDto } from "../../dtos/newMessageRoom.dto";
+
 export interface IMessageRepository {
-  createMessageRoom(messageRoomDto: MessageRoomDto): Promise<any>;
+  createMessage(newMessageDto: NewMessageDto): Promise<any>;
+  createMessageRoom(newMessageRoomDto: NewMessageRoomDto): Promise<any>;
 }

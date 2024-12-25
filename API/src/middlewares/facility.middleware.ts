@@ -5,7 +5,7 @@ import { JWT_SECRET } from "../secrets";
 import User from "../models/user";
 import Facility from "../models/facility";
 
-export const authMiddleware = async (
+export const facilityMiddleware = async (
   req: Request,
   _res: Response,
   next: NextFunction
