@@ -8,6 +8,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isPlayer = false;
   String _resentEmail = "";
   String _password = "";
+  String _authToken = "";
   User _signUpUser = User(
     id: '',
     username: '',
@@ -17,13 +18,16 @@ class AuthProvider extends ChangeNotifier {
     token: '',
   );
 
+  // Getters
   Widget get authForm => _authForm;
   Widget? get previousForm => _previousForm;
   String get resentEmail => _resentEmail;
   String get password => _password;
+  String get authToken => _authToken;
   User get signUpUser => _signUpUser;
   bool get isPlayer => _isPlayer;
 
+  // Setters
   void setForm(Widget authForm) {
     _authForm = authForm;
     notifyListeners();
@@ -50,5 +54,10 @@ class AuthProvider extends ChangeNotifier {
 
   void setIsPlayer(bool isPlayer) {
     _isPlayer = isPlayer;
+  }
+
+  void setAuthToken(String token) {
+    _authToken = token;
+    notifyListeners();
   }
 }

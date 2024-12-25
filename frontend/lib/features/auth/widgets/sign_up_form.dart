@@ -2,6 +2,7 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
 import 'package:frontend/common/widgets/loader.dart';
@@ -76,30 +77,45 @@ class _SignUpFormState extends State<SignUpForm> {
 
       Future.delayed(
         Duration(seconds: 2),
-        () {
+        () async {
           final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
 
-          authProvider.setResentEmail(_emailController.text.trim());
-          authProvider.setPreviousForm(SignUpForm());
-          authProvider.setSignUpUser(
-            User(
-              id: '',
-              username: _usernameController.text.trim(),
-              email: _emailController.text.trim(),
-              imageUrl: '',
-              role: '',
-              token: '',
-            ),
+          final isSignUpValid = await _authService.validateSignUp(
+            context: context,
+            username: _usernameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
           );
-          authProvider.setForm(
-            PinputForm(
-              isMoveBack: false,
-              isValidateSignUpEmail: true,
-            ),
-          );
+
+          if (isSignUpValid) {
+            authProvider.setResentEmail(_emailController.text.trim());
+            authProvider.setPreviousForm(SignUpForm());
+            authProvider.setSignUpUser(
+              User(
+                id: '',
+                username: _usernameController.text.trim(),
+                email: _emailController.text.trim(),
+                imageUrl: '',
+                role: '',
+                token: '',
+              ),
+            );
+            authProvider.setForm(
+              PinputForm(
+                isMoveBack: false,
+                isValidateSignUpEmail: true,
+              ),
+            );
+          } else {
+            IconSnackBar.show(
+              context,
+              label: 'Fail to sign up!',
+              snackBarType: SnackBarType.fail,
+            );
+          }
 
           setState(() {
             _isMoveToPinputFormLoading = false;
