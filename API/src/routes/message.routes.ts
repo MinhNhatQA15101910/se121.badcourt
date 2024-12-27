@@ -48,4 +48,10 @@ messageRoutes.post(
   errorHandler(messageController.sendMessageToRoom.bind(messageController))
 );
 
+messageRoutes.get(
+  "",
+  [authMiddleware],
+  errorHandler(messageController.getMessagesInRoom.bind(messageController))
+);
+
 export default messageRoutes;

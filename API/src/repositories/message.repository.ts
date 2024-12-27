@@ -7,6 +7,7 @@ import { PagedList } from "../helper/pagedList";
 import { MessageRoomParams } from "../params/messageRoom.params";
 import { Aggregate } from "mongoose";
 import { NewMessageDto } from "../dtos/newMessage.dto";
+import { MessageParams } from "../params/message.params";
 
 @injectable()
 export class MessageRepository implements IMessageRepository {
@@ -56,6 +57,28 @@ export class MessageRepository implements IMessageRepository {
       countAggregate,
       messageRoomParams.pageNumber,
       messageRoomParams.pageSize
+    );
+  }
+
+  async getMessagesInRoom(
+    messageParams: MessageParams
+  ): Promise<PagedList<any>> {
+    let aggregate: Aggregate<any[]> = Message.aggregate([]);
+
+    if (messageParams.roomId) {
+      aggregate = aggregate.match({ roomId: messageParams.roomId });
+    }
+
+    aggregate = aggregate.sort({ createdAt: -1 });
+
+    const pipeline = aggregate.pipeline();
+    let countAggregate = Message.aggregate([...pipeline, { $count: "count" }]);
+
+    return await PagedList.create<any>(
+      aggregate,
+      countAggregate,
+      messageParams.pageNumber,
+      messageParams.pageSize
     );
   }
 

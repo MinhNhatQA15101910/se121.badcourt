@@ -6,11 +6,13 @@ import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
 import { MessageDto } from "../dtos/message.dto";
-import { uploadImages } from "../helper/helpers";
+import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { NewMessageToRoomSchema } from "../schemas/messages/newMessageToRoom.schema";
 import { NewMessageToUserSchema } from "../schemas/messages/newMessageToUser.schema";
 import { NewMessageDto } from "../dtos/newMessage.dto";
 import { NewMessageRoomDto } from "../dtos/newMessageRoom.dto";
+import { MessageParams } from "../params/message.params";
+import { MessageParamsSchema } from "../schemas/messages/messageParams.schema";
 
 @injectable()
 export class MessageController {
@@ -64,6 +66,7 @@ export class MessageController {
     }
 
     // Create message
+    newMessageDto.senderId = user._id;
     const message = await this._messageRepository.createMessage(newMessageDto);
 
     // Upload resources
@@ -76,6 +79,7 @@ export class MessageController {
     // Update message with resources
     message.resources = resources;
 
+    message.createdAt = Date.now();
     message.updatedAt = Date.now();
     await message.save();
 
@@ -88,17 +92,23 @@ export class MessageController {
       messageRoom.users.push(recipient._id);
     }
 
+    messageRoom.createdAt = Date.now();
     messageRoom.updatedAt = Date.now();
     await messageRoom.save();
 
     // Update user chat rooms
-    await this._userRepository.addChatRoom(user, messageRoom._id);
+    if (!existed) {
+      await this._userRepository.addChatRoom(user, messageRoom._id.toString());
+      await this._userRepository.addChatRoom(
+        recipient,
+        messageRoom._id.toString()
+      );
+    }
 
     // Map to MessageDto
     const messageDto = MessageDto.mapFrom(message);
 
     // Add sender info
-    messageDto.senderId = user._id;
     messageDto.senderImageUrl = user.image ? user.image.url : "";
 
     return res.status(201).json(messageDto);
@@ -137,11 +147,13 @@ export class MessageController {
     // Update message with resources
     message.resources = resources;
 
+    message.createdAt = Date.now();
     message.updatedAt = Date.now();
     await message.save();
 
     // Update message room with message
     room.messages.push(message._id);
+    room.createdAt = Date.now();
     room.updatedAt = Date.now();
     await room.save();
 
@@ -152,5 +164,43 @@ export class MessageController {
     messageDto.senderImageUrl = user.image ? user.image.url : "";
 
     return res.status(201).json(messageDto);
+  }
+
+  async getMessagesInRoom(req: Request, res: Response) {
+    const user = req.user;
+
+    // Get pagination params
+    const messageParams: MessageParams = MessageParamsSchema.parse(req.query);
+
+    // Get room
+    const room = await this._messageRepository.getMessageRoomById(
+      messageParams.roomId
+    );
+    if (!room) {
+      throw new BadRequestException("Room not found");
+    }
+
+    // Check if user is in the room
+    if (!room.users.includes(user._id)) {
+      throw new BadRequestException("User is not in the room");
+    }
+
+    // Get messages
+    const messages = await this._messageRepository.getMessagesInRoom(
+      messageParams
+    );
+
+    // Add pagination header
+    addPaginationHeader(res, messages);
+
+    // Map to MessageDto
+    const messageDtos = [];
+    for (let message of messages) {
+      const messageDto = MessageDto.mapFrom(message);
+      messageDto.senderImageUrl = user.image ? user.image.url : "";
+      messageDtos.push(messageDto);
+    }
+
+    res.json(messageDtos);
   }
 }
