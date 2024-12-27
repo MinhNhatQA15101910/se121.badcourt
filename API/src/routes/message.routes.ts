@@ -38,9 +38,14 @@ messageRoutes.post(
   "/send-to-user",
   [authMiddleware],
   upload.array("resources", 100),
-  errorHandler(
-    messageController.sendMessageToUser.bind(messageController)
-  )
+  errorHandler(messageController.sendMessageToUser.bind(messageController))
+);
+
+messageRoutes.post(
+  "/send-to-room",
+  [authMiddleware],
+  upload.array("resources", 100),
+  errorHandler(messageController.sendMessageToRoom.bind(messageController))
 );
 
 export default messageRoutes;

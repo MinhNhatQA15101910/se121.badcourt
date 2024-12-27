@@ -2,11 +2,11 @@ import { injectable } from "inversify";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
 import { NewMessageRoomDto } from "../dtos/newMessageRoom.dto";
 import MessageRoom from "../models/messageRoom";
-import { NewMessageDto } from "../dtos/newMessage.dto";
 import Message from "../models/message";
 import { PagedList } from "../helper/pagedList";
 import { MessageRoomParams } from "../params/messageRoom.params";
 import { Aggregate } from "mongoose";
+import { NewMessageDto } from "../dtos/newMessage.dto";
 
 @injectable()
 export class MessageRepository implements IMessageRepository {
@@ -28,6 +28,10 @@ export class MessageRepository implements IMessageRepository {
     });
     messageRoom = await messageRoom.save();
     return messageRoom;
+  }
+
+  async getMessageRoomById(roomId: string): Promise<any> {
+    return await MessageRoom.findById(roomId);
   }
 
   async getMessageRooms(
