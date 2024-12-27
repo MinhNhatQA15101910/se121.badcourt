@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { FileSchema } from "../file/file.schema";
+import { FileSchema } from "../files/file.schema";
 
 export const AppPostSchema = new mongoose.Schema({
   userId: {

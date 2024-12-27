@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/widgets/booking_widget_player.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/models/facility.dart';
 
 class CourtExpandPlayer extends StatefulWidget {
+  final Facility facility;
   final Court court;
   final DateTime currentDateTime;
   final Function(Court)? onExpansionChanged;
 
   const CourtExpandPlayer({
     Key? key,
+    required this.facility,
     required this.court,
     required this.currentDateTime,
     this.onExpansionChanged,
@@ -77,6 +80,7 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             onExpansionChanged: _handleExpansion,
             children: [
               BookingWidgetPlayer(
+                facility: widget.facility,
                 court: widget.court,
                 currentDateTime: widget.currentDateTime,
               ),

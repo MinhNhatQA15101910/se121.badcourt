@@ -4,7 +4,6 @@ class User {
   final String id;
   final String username;
   final String email;
-  final String password;
   final String imageUrl;
   final String role;
   final String token;
@@ -13,7 +12,6 @@ class User {
     required this.id,
     required this.username,
     required this.email,
-    required this.password,
     required this.imageUrl,
     required this.role,
     required this.token,
@@ -24,7 +22,6 @@ class User {
       'id': id,
       'username': username,
       'email': email,
-      'password': password,
       'imageUrl': imageUrl,
       'role': role,
       'token': token,
@@ -36,7 +33,6 @@ class User {
       id: map['_id'] ?? '',
       username: map['username'] ?? '',
       email: map['email'] ?? '',
-      password: map['password'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       role: map['role'] ?? '',
       token: map['token'] ?? '',
@@ -51,7 +47,6 @@ class User {
     String? id,
     String? username,
     String? email,
-    String? password,
     String? imageUrl,
     String? role,
     String? token,
@@ -60,7 +55,6 @@ class User {
       id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,
-      password: password ?? this.password,
       imageUrl: imageUrl ?? this.imageUrl,
       role: role ?? this.role,
       token: token ?? this.token,

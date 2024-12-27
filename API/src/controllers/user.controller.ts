@@ -8,11 +8,11 @@ import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { PORT } from "../secrets";
 import { PostParams } from "../params/post.params";
-import { PostParamsSchema } from "../schemas/post/postParams.schema";
+import { PostParamsSchema } from "../schemas/posts/postParams.schema";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { PostDto } from "../dtos/post.dto";
 import { UserParams } from "../params/user.params";
-import { UserParamsSchema } from "../schemas/user/userParams.schema";
+import { UserParamsSchema } from "../schemas/users/userParams.schema";
 
 @injectable()
 export class UserController {

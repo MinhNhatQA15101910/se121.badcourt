@@ -6,17 +6,17 @@ import 'package:frontend/models/booking.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order_period.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class BookingWidgetPlayer extends StatefulWidget {
+  final Facility facility;
   final Court court;
   final DateTime currentDateTime;
 
   const BookingWidgetPlayer({
     super.key,
+    required this.facility,
     required this.court,
     required this.currentDateTime,
   });
@@ -32,18 +32,11 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   List<BookingTime> _bookingTimeListDisable = [];
 
   void _getTime() {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
-
     String day =
         DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
 
-    if (currentFacilityProvider.currentFacility.activeAt.schedule
-        .containsKey(day)) {
-      PeriodTime periodTime =
-          currentFacilityProvider.currentFacility.activeAt.schedule[day]!;
+    if (widget.facility.activeAt.schedule.containsKey(day)) {
+      PeriodTime periodTime = widget.facility.activeAt.schedule[day]!;
       int startTime = periodTime.hourFrom;
       int endTime = periodTime.hourTo;
       setState(() {

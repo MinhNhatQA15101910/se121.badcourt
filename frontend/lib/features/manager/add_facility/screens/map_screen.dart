@@ -1,16 +1,15 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
-import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
-import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
-import 'package:frontend/models/facility.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
+import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
+import 'package:frontend/constants/global_variables.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:frontend/common/widgets/custom_button.dart';
 
 class MapScreen extends StatefulWidget {
   static const String routeName = '/manager/map';
@@ -65,8 +64,7 @@ class _MapScreenState extends State<MapScreen> {
         markerPosition = LatLng(_detailAddress.lat, _detailAddress.lng);
       });
 
-      // Animate the map camera to the new marker position
-      _mapController!.animateCamera(
+      _mapController?.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(target: markerPosition, zoom: 15),
         ),
@@ -76,7 +74,6 @@ class _MapScreenState extends State<MapScreen> {
 
   void _pingMarker() async {
     if (_mapController != null) {
-      // Get the current location
       LatLng? currentLocation = await _mapController?.requestMyLocationLatLng();
 
       if (currentLocation != null) {
@@ -101,24 +98,12 @@ class _MapScreenState extends State<MapScreen> {
 
   void _selectLocation() {
     if (_detailAddress.lat != 0.0 && _detailAddress.lng != 0.0) {
-      final newFacilityProvider = Provider.of<NewFacilityProvider>(
+      final addressProvider = Provider.of<AddressProvider>(
         context,
         listen: false,
       );
 
-      Facility facility = newFacilityProvider.newFacility.copyWith(
-        detailAddress: _detailAddress.address +
-            ', ' +
-            _detailAddress.ward +
-            ', ' +
-            _detailAddress.district +
-            ', ' +
-            _detailAddress.city,
-        province: _detailAddress.city,
-        latitude: _detailAddress.lat,
-        longitude: _detailAddress.lng,
-      );
-      newFacilityProvider.setFacility(facility);
+      addressProvider.setAddress(_detailAddress);
 
       Navigator.of(context).pop(_detailAddress);
     } else {
@@ -138,184 +123,160 @@ class _MapScreenState extends State<MapScreen> {
         preferredSize: const Size.fromHeight(56),
         child: AppBar(
           backgroundColor: GlobalVariables.green,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          title: Text(
+            'Select a location',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              decoration: TextDecoration.none,
+              color: GlobalVariables.white,
+            ),
+          ),
+        ),
+      ),
+      body: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          VietmapGL(
+            myLocationTrackingMode: MyLocationTrackingMode.Tracking,
+            myLocationEnabled: true,
+            trackCameraPosition: true,
+            styleString: dotenv.env['VIETMAP_STRING_KEY']!,
+            initialCameraPosition:
+                CameraPosition(target: LatLng(10.762317, 106.654551), zoom: 15),
+            onMapCreated: (VietmapController controller) {
+              setState(() {
+                _mapController = controller;
+              });
+            },
+          ),
+          _mapController == null
+              ? SizedBox.shrink()
+              : MarkerLayer(
+                  markers: [
+                    Marker(
+                      alignment: Alignment.bottomCenter,
+                      height: 50,
+                      width: 50,
+                      child: const Icon(
+                        Icons.location_on_outlined,
+                        color: GlobalVariables.red,
+                        size: 50,
+                      ),
+                      latLng: markerPosition,
+                    )
+                  ],
+                  mapController: _mapController!,
+                ),
+          Column(
             children: [
-              Text(
-                'Select a location',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.white,
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Find badminton facilities',
+                          hintStyle: GoogleFonts.inter(
+                            color: GlobalVariables.darkGrey,
+                            fontSize: 16,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: GlobalVariables.lightGreen,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: GlobalVariables.lightGreen,
+                            ),
+                          ),
+                          fillColor: GlobalVariables.white,
+                          filled: true,
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: GlobalVariables.darkGrey,
+                          ),
+                        ),
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                        ),
+                        validator: (facilityName) {
+                          if (facilityName == null || facilityName.isEmpty) {
+                            return 'Please enter your facility name.';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: _pingMarker,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: GlobalVariables.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: SvgPicture.asset(
+                            'assets/vectors/vector_reality_location.svg',
+                            width: 32,
+                            height: 32,
+                            color: GlobalVariables.green,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(child: Container()),
+              Container(
+                color: GlobalVariables.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        onTap: () {
+                          _fetchSearchCode();
+                          _fetchDetailAddress();
+                        },
+                        buttonText: 'Search',
+                        borderColor: GlobalVariables.green,
+                        fillColor: Colors.white,
+                        textColor: GlobalVariables.green,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: CustomButton(
+                        onTap: _selectLocation,
+                        buttonText: 'Select',
+                        borderColor: GlobalVariables.green,
+                        fillColor: GlobalVariables.green,
+                        textColor: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-      ),
-      body: Container(
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            VietmapGL(
-              myLocationTrackingMode: MyLocationTrackingMode.Tracking,
-              myLocationEnabled: true,
-              trackCameraPosition: true,
-              styleString: dotenv.env['VIETMAP_STRING_KEY']!,
-              initialCameraPosition: CameraPosition(
-                target: LatLng(10.762317, 106.654551),
-                zoom: 15,
-              ),
-              onMapCreated: (VietmapController controller) {
-                setState(() {
-                  _mapController = controller;
-                });
-              },
-            ),
-            _mapController == null
-                ? SizedBox.shrink()
-                : MarkerLayer(markers: [
-                    Marker(
-                        alignment: Alignment.bottomCenter,
-                        height: 50,
-                        width: 50,
-                        child: const Icon(
-                          Icons.location_on_outlined,
-                          color: GlobalVariables.red,
-                          size: 50,
-                        ),
-                        latLng: markerPosition)
-                  ], mapController: _mapController!),
-            Column(
-              children: [
-                SizedBox(
-                  height: 12,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        child: Expanded(
-                          child: TextFormField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Find badminton facilities',
-                              hintStyle: GoogleFonts.inter(
-                                color: GlobalVariables.darkGrey,
-                                fontSize: 16,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: GlobalVariables.lightGreen,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: GlobalVariables.lightGreen,
-                                ),
-                              ),
-                              fillColor: GlobalVariables.white,
-                              filled: true,
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: GlobalVariables.darkGrey,
-                              ),
-                            ),
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                            ),
-                            validator: (facilityName) {
-                              if (facilityName == null ||
-                                  facilityName.isEmpty) {
-                                return 'Please enter your facility name.';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      GestureDetector(
-                        onTap: _pingMarker,
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(
-                              color: GlobalVariables.grey,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                              'assets/vectors/vector_reality_location.svg',
-                              width: 32,
-                              height: 32,
-                              // ignore: deprecated_member_use
-                              color: GlobalVariables.green,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Container(),
-                ),
-                Container(
-                  color: GlobalVariables.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          child: CustomButton(
-                            onTap: () {
-                              _fetchSearchCode();
-                              _fetchDetailAddress();
-                            },
-                            buttonText: 'Search',
-                            borderColor: GlobalVariables.green,
-                            fillColor: Colors.white,
-                            textColor: GlobalVariables.green,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          child: CustomButton(
-                            onTap: _selectLocation,
-                            buttonText: 'Select',
-                            borderColor: GlobalVariables.green,
-                            fillColor: GlobalVariables.green,
-                            textColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
+        ],
       ),
     );
   }

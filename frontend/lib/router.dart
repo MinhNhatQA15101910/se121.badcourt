@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
@@ -12,6 +13,8 @@ import 'package:frontend/features/manager/court_management/screen/court_manageme
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
 import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
@@ -21,6 +24,8 @@ import 'package:frontend/features/player/facility_detail/screens/player_map_scre
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
+import 'package:frontend/features/post/screens/create_post_screen.dart';
+import 'package:frontend/features/post/screens/post_screen.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
   switch (routeSettings.name) {
@@ -128,6 +133,35 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const PlayerMapScreen(),
+      );
+    case PostScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const PostScreen(),
+      );
+    case CreatePostScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const CreatePostScreen(),
+      );
+    case FullScreenImageView.routeName:
+      final args = routeSettings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => FullScreenImageView(
+          imageUrls: args['imageUrls'] as List<String>,
+          initialIndex: args['initialIndex'] as int,
+        ),
+      );
+    case MessageScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const MessageScreen(),
+      );
+    case MessageDetailScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const MessageDetailScreen(),
       );
     default:
       return MaterialPageRoute(

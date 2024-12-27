@@ -1,5 +1,4 @@
 import { inject, injectable } from "inversify";
-import { SignupDto } from "../schemas/auth/signup.schema";
 import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
@@ -8,6 +7,7 @@ import { FileDto } from "../dtos/file.dto";
 import { PagedList } from "../helper/pagedList";
 import { UserParams } from "../params/user.params";
 import { Aggregate } from "mongoose";
+import { SignupDto } from "../dtos/signup.dto";
 
 @injectable()
 export class UserRepository implements IUserRepository {
@@ -99,6 +99,12 @@ export class UserRepository implements IUserRepository {
     );
   }
 
+  async likeComment(user: any, commentId: string): Promise<any> {
+    user.likedComments.push(commentId);
+    user.updatedAt = new Date();
+    return await user.save();
+  }
+
   async likePost(user: any, postId: string): Promise<any> {
     user.likedPosts.push(postId);
     user.updatedAt = new Date();
@@ -115,6 +121,13 @@ export class UserRepository implements IUserRepository {
     });
     user = await user.save();
     return user;
+  }
+
+  async unlikeComment(user: any, commentId: string): Promise<any> {
+    const index = user.likedComments.indexOf(commentId);
+    user.likedComments.splice(index, 1);
+    user.updatedAt = new Date();
+    return await user.save();
   }
 
   async unlikePost(user: any, postId: string): Promise<any> {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { FileSchema } from "../file/file.schema";
+import { FileSchema } from "../files/file.schema";
 import ActiveSchema from "../active/active.schema";
 import ManagerInfoSchema from "./managerInfo.schema";
 
@@ -71,6 +71,7 @@ const AppFacilitySchema = new mongoose.Schema({
     required: true,
     default: Date.now(),
   },
+  chatRooms: [{ type: String }],
 });
 AppFacilitySchema.index({ location: "2dsphere" });
 

@@ -20,6 +20,7 @@ const AppCommentSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  likedUsers: [{ type: String }],
   createdAt: {
     type: Number,
     required: true,

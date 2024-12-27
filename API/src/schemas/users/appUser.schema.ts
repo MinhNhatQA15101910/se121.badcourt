@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { FileSchema } from "../file/file.schema";
+import { FileSchema } from "../files/file.schema";
 
 export const AppUserSchema = new mongoose.Schema({
   username: {
@@ -44,6 +44,7 @@ export const AppUserSchema = new mongoose.Schema({
     default: "player",
   },
   likedPosts: [{ type: String }],
+  likedComments: [{ type: String }],
   createdAt: {
     type: Number,
     require: true,

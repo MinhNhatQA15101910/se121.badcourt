@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/reset_password_form.dart';
-import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
@@ -38,7 +36,6 @@ class _PinputFormState extends State<PinputForm> {
   Timer? _timer;
   var _remainingSeconds = 60;
 
-  String? _pincode;
   final _pinController = TextEditingController();
 
   final _defaultPinTheme = PinTheme(
@@ -57,31 +54,8 @@ class _PinputFormState extends State<PinputForm> {
     ),
   );
 
-  String _generateRandomNumberString() {
-    Random random = Random();
-
-    String randomNumberString = '';
-    for (int i = 0; i < 6; i++) {
-      int randomNumber = random.nextInt(10);
-      randomNumberString += randomNumber.toString();
-    }
-
-    return randomNumberString;
-  }
-
   void _verifyPincode(String pin) {
-    if (pin.isEmpty) {
-      return;
-    }
-
-    if (pin != _pincode) {
-      IconSnackBar.show(
-        context,
-        label: 'Incorrect pincode.',
-        snackBarType: SnackBarType.fail,
-      );
-      return;
-    }
+    if (pin.isEmpty) return;
 
     _timer!.cancel();
 
@@ -91,7 +65,7 @@ class _PinputFormState extends State<PinputForm> {
 
     Future.delayed(Duration(seconds: 2), () async {
       if (widget.isValidateSignUpEmail) {
-        _signUpUser();
+        _signUpUser(pin);
       } else {
         final authProvider = Provider.of<AuthProvider>(
           context,
@@ -145,20 +119,6 @@ class _PinputFormState extends State<PinputForm> {
     authProvider.setForm(LoginForm());
   }
 
-  void _sendVerifyEmail() async {
-    _pincode = _generateRandomNumberString();
-    var email = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    ).resentEmail;
-
-    await _authService.sendVerifyEmail(
-      context: context,
-      email: email,
-      pincode: _pincode!,
-    );
-  }
-
   void _startTimer() {
     const duration = Duration(seconds: 1);
     _timer = Timer.periodic(
@@ -196,22 +156,22 @@ class _PinputFormState extends State<PinputForm> {
     );
   }
 
-  void _signUpUser() {
+  void _signUpUser(String pin) {
     Future.delayed(Duration(seconds: 2), () async {
-      User signUpUser = Provider.of<AuthProvider>(
-        context,
-        listen: false,
-      ).signUpUser;
-
-      bool isSuccessful = await _authService.signUpUser(
+      bool isSuccessful = await _authService.verifyCode(
         context: context,
-        username: signUpUser.username,
-        email: signUpUser.email,
-        password: signUpUser.password,
+        isSignUp: PinputForm.isUserChangePassword ? false : true,
+        pincode: pin,
       );
 
       if (isSuccessful) {
         _moveToLoginForm();
+      } else {
+        IconSnackBar.show(
+          context,
+          label: 'Pincode was wrong',
+          snackBarType: SnackBarType.fail,
+        );
       }
     });
   }
@@ -219,9 +179,6 @@ class _PinputFormState extends State<PinputForm> {
   @override
   void initState() {
     super.initState();
-    if (!widget.isMoveBack) {
-      _sendVerifyEmail();
-    }
     _startTimer();
   }
 
@@ -402,8 +359,7 @@ class _PinputFormState extends State<PinputForm> {
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = _sendVerifyEmail,
+                        recognizer: TapGestureRecognizer()..onTap = () {},
                       )
                     ],
                   ),

@@ -2,25 +2,29 @@ import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { Request, Response } from "express";
 import { IFacilityRepository } from "../interfaces/repositories/IFacility.repository";
-import { RegisterFacilitySchema } from "../schemas/facility/registerFacility.schema";
+import { RegisterFacilitySchema } from "../schemas/facilities/registerFacility.schema";
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { IFileService } from "../interfaces/services/IFile.service";
-import { FacilityParamsSchema } from "../schemas/facility/facilityParams.schema";
+import { FacilityParamsSchema } from "../schemas/facilities/facilityParams.schema";
 import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
-import { FileDto } from "../dtos/file.dto";
 import { uploadImages } from "../helper/helpers";
+import { NotFoundException } from "../exceptions/notFound.exception";
+import { IJwtService } from "../interfaces/services/IJwt.service";
 
 @injectable()
 export class FacilityController {
   private _fileService: IFileService;
+  private _jwtService: IJwtService;
   private _facilityRepository: IFacilityRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
+    @inject(INTERFACE_TYPE.JwtService) jwtService: IJwtService,
     @inject(INTERFACE_TYPE.FacilityRepository)
     facilityRepository: IFacilityRepository
   ) {
     this._fileService = fileService;
+    this._jwtService = jwtService;
     this._facilityRepository = facilityRepository;
   }
 
@@ -110,5 +114,26 @@ export class FacilityController {
     );
 
     res.json(facility);
+  }
+
+  async requestFacilityToken(req: Request, res: Response) {
+    const user = req.user;
+    const facilityId = req.params.facilityId;
+
+    const facility = await this._facilityRepository.getFacilityById(facilityId);
+    if (!facility) {
+      throw new NotFoundException("Facility not found!");
+    }
+
+    if (facility.userId.toString() !== user._id.toString()) {
+      throw new BadRequestException("You are not the owner of this facility!");
+    }
+
+    const token = this._jwtService.generateToken({
+      userId: user._id,
+      facilityId: facilityId,
+    });
+
+    res.json({ token });
   }
 }

@@ -26,11 +26,11 @@ export const userEmailMiddleware = async (
       email: (verified as any).email,
       role: (verified as any).role,
     });
-    if (!user) {
-      next(new UnauthorizedException("Unauthorized"));
-    }
 
     req.user = user;
+    req.email = (verified as any).email;
+    req.role = (verified as any).role;
+    req.action = (verified as any).action;
 
     next();
   } catch (error) {

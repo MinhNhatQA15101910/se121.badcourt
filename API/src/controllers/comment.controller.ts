@@ -8,19 +8,26 @@ import { CommentDto } from "../dtos/comment.dto";
 import { PORT } from "../secrets";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { NotFoundException } from "../exceptions/notFound.exception";
+import { CommentParamsSchema } from "../schemas/comments/commentParams.schema";
+import { CommentParams } from "../params/comment.params";
+import { addPaginationHeader } from "../helper/helpers";
+import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 
 @injectable()
 export class CommentController {
   private _commentRepository: ICommentRepository;
   private _postRepository: IPostRepository;
+  private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.CommentRepository)
     commentRepository: ICommentRepository,
-    @inject(INTERFACE_TYPE.PostRepository) postRepository: IPostRepository
+    @inject(INTERFACE_TYPE.PostRepository) postRepository: IPostRepository,
+    @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._commentRepository = commentRepository;
     this._postRepository = postRepository;
+    this._userRepository = userRepository;
   }
 
   async addComment(req: Request, res: Response) {
@@ -45,5 +52,66 @@ export class CommentController {
       .status(201)
       .location(`https://localhost:${PORT}/api/posts/${newCommentDto.postId}`)
       .json(commentDto);
+  }
+
+  async getComments(req: Request, res: Response) {
+    const commentParams: CommentParams = CommentParamsSchema.parse(req.query);
+
+    const comments = await this._commentRepository.getComments(commentParams);
+
+    addPaginationHeader(res, comments);
+
+    const commentDtos: CommentDto[] = [];
+    for (let comment of comments) {
+      const commentDto = CommentDto.mapFrom(comment);
+
+      // Add user info to commentDto
+      const user = await this._userRepository.getUserById(comment.userId);
+      commentDto.publisherUsername = user.username;
+      commentDto.publisherImageUrl =
+        user.image === undefined ? "" : user.image.url;
+
+      commentDtos.push(commentDto);
+    }
+
+    res.json(commentDtos);
+  }
+
+  async toggleLike(req: Request, res: Response) {
+    const user = req.user;
+
+    const commentId = req.params.id;
+
+    const comment = await this._commentRepository.getCommentById(commentId);
+    if (!comment) {
+      throw new NotFoundException("Comment not found!");
+    }
+
+    const likedUsers = comment.likedUsers;
+    if (likedUsers.includes(user._id)) {
+      console.log("Unliking");
+      const updatedComment = await this._commentRepository.removeLikedUser(
+        comment,
+        user._id
+      );
+      const updatedUser = await this._userRepository.unlikeComment(
+        user,
+        comment._id
+      );
+      console.log(updatedComment, updatedUser);
+    } else {
+      console.log("Liking");
+      const updatedComment = await this._commentRepository.addLikedUser(
+        comment,
+        user._id
+      );
+      const updatedUser = await this._userRepository.likeComment(
+        user,
+        comment._id
+      );
+      console.log(updatedComment, updatedUser);
+    }
+
+    res.json();
   }
 }
