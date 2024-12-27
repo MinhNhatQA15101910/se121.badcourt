@@ -49,6 +49,12 @@ userRoutes.get(
   errorHandler(userController.getUsers.bind(userController))
 );
 
+userRoutes.patch(
+  "/change-password",
+  [authMiddleware],
+  errorHandler(userController.changePassword.bind(userController))
+);
+
 userRoutes.get(
   "/me",
   [authMiddleware],

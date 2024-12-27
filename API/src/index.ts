@@ -30,7 +30,7 @@ const expressServer = app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}`);
 });
 
-const io = new Server(expressServer, {
+export const io = new Server(expressServer, {
   cors: {
     origin: "*", // Allow all origins
   },

@@ -13,6 +13,7 @@ import { NewMessageDto } from "../dtos/newMessage.dto";
 import { NewMessageRoomDto } from "../dtos/newMessageRoom.dto";
 import { MessageParams } from "../params/message.params";
 import { MessageParamsSchema } from "../schemas/messages/messageParams.schema";
+import { PORT } from "../secrets";
 
 @injectable()
 export class MessageController {
@@ -111,7 +112,12 @@ export class MessageController {
     // Add sender info
     messageDto.senderImageUrl = user.image ? user.image.url : "";
 
-    return res.status(201).json(messageDto);
+    return res
+      .status(201)
+      .location(
+        `https://localhost:${PORT}/api/messages?roomId=${messageRoom._id.toString()})}`
+      )
+      .json(messageDto);
   }
 
   async sendMessageToRoom(req: Request, res: Response) {
@@ -163,7 +169,12 @@ export class MessageController {
     // Add sender info
     messageDto.senderImageUrl = user.image ? user.image.url : "";
 
-    return res.status(201).json(messageDto);
+    return res
+      .status(201)
+      .location(
+        `https://localhost:${PORT}/api/messages?roomId=${room._id.toString()})}`
+      )
+      .json(messageDto);
   }
 
   async getMessagesInRoom(req: Request, res: Response) {
