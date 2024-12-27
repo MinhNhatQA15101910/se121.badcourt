@@ -13,19 +13,28 @@ import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { PostDto } from "../dtos/post.dto";
 import { UserParams } from "../params/user.params";
 import { UserParamsSchema } from "../schemas/users/userParams.schema";
+import { MessageRoomParams } from "../params/messageRoom.params";
+import { MessageRoomParamsSchema } from "../schemas/messages/messageRoomParams.schema";
+import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
+import { MessageRoomDto } from "../dtos/messageRoom.dto";
+import MessageRoom from "../models/messageRoom";
 
 @injectable()
 export class UserController {
   private _fileService: IFileService;
+  private _messageRepository: IMessageRepository;
   private _postRepository: IPostRepository;
   private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
+    @inject(INTERFACE_TYPE.MessageRepository)
+    messageRepository: IMessageRepository,
     @inject(INTERFACE_TYPE.PostRepository) postRepository: IPostRepository,
     @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._fileService = fileService;
+    this._messageRepository = messageRepository;
     this._postRepository = postRepository;
     this._userRepository = userRepository;
   }
@@ -102,5 +111,27 @@ export class UserController {
     addPaginationHeader(res, users);
 
     res.json(userDtos);
+  }
+
+  async getCurrentUserMessageRooms(req: Request, res: Response) {
+    const user = req.user;
+
+    const messageRoomParams = new MessageRoomParams();
+    messageRoomParams.userId = user._id.toString();
+
+    const messageRooms = await this._messageRepository.getMessageRooms(
+      messageRoomParams
+    );
+
+    addPaginationHeader(res, messageRooms);
+
+    const messageRoomDtos: MessageRoomDto[] = [];
+    for (let messageRoom of messageRooms) {
+      const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+
+      messageRoomDtos.push(messageRoomDto);
+    }
+
+    res.json(messageRoomDtos);
   }
 }

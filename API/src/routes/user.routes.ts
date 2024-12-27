@@ -16,6 +16,8 @@ import { FileService } from "../services/file.service";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { PostRepository } from "../repositories/post.repository";
 import { adminMiddleware } from "../middlewares/admin.middleware";
+import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
+import { MessageRepository } from "../repositories/message.repository";
 
 const container = new Container();
 
@@ -23,6 +25,9 @@ container.bind<IJwtService>(INTERFACE_TYPE.JwtService).to(JwtService);
 container.bind<IBcryptService>(INTERFACE_TYPE.BcryptService).to(BcryptService);
 container.bind<IFileService>(INTERFACE_TYPE.FileService).to(FileService);
 
+container
+  .bind<IMessageRepository>(INTERFACE_TYPE.MessageRepository)
+  .to(MessageRepository);
 container
   .bind<IPostRepository>(INTERFACE_TYPE.PostRepository)
   .to(PostRepository);
@@ -54,6 +59,12 @@ userRoutes.get(
   "/me/posts",
   [authMiddleware],
   errorHandler(userController.getCurrentUserPosts.bind(userController))
+);
+
+userRoutes.get(
+  "/me/message-rooms",
+  [authMiddleware],
+  errorHandler(userController.getCurrentUserMessageRooms.bind(userController))
 );
 
 userRoutes.post(
