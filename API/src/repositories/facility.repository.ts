@@ -8,6 +8,10 @@ import { FacilityParams } from "../params/facility.params";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
+  async getFacilityById(facilityId: string): Promise<any> {
+    return await Facility.findById(facilityId);
+  }
+
   async getFacilities(facilityParams: FacilityParams): Promise<PagedList<any>> {
     let aggregate: Aggregate<any[]> = Facility.aggregate([]);
 

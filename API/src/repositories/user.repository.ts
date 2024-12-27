@@ -1,5 +1,4 @@
 import { inject, injectable } from "inversify";
-import { SignupDto } from "../schemas/auth/signup.schema";
 import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
@@ -8,6 +7,7 @@ import { FileDto } from "../dtos/file.dto";
 import { PagedList } from "../helper/pagedList";
 import { UserParams } from "../params/user.params";
 import { Aggregate } from "mongoose";
+import { SignupDto } from "../dtos/signup.dto";
 
 @injectable()
 export class UserRepository implements IUserRepository {

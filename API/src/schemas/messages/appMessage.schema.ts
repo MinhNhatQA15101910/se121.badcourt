@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 import { FileSchema } from "../files/file.schema";
 
 export const AppMessageSchema = new mongoose.Schema({
-  message: {
+  content: {
     required: true,
     type: String,
     trim: true,
   },
   resources: [FileSchema],
-  userId: {
+  senderId: {
     required: true,
     type: String,
     trim: true,

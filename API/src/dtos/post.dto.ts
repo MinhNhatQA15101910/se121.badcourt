@@ -1,5 +1,3 @@
-import { IUserRepository } from "../interfaces/repositories/IUser.repository";
-import { CommentRepository } from "../repositories/comment.repository";
 import { CommentDto } from "./comment.dto";
 import { FileDto } from "./file.dto";
 import { UserDto } from "./user.dto";
