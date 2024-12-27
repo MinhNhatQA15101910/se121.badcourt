@@ -28,8 +28,8 @@ export class MessageController {
     this._fileService = fileService;
   }
 
-  async sendMessageFromFacilityToUser(req: Request, res: Response) {
-    const facility = req.facility;
+  async sendMessageToUser(req: Request, res: Response) {
+    const user = req.user;
 
     // Get message from body
     const newMessageDto: NewMessageDto = NewMessageSchema.parse(req.body);
@@ -42,13 +42,13 @@ export class MessageController {
       throw new BadRequestException("Recipient user not found");
     }
 
-    if (recipient._id.toString() === facility.userId.toString()) {
+    if (recipient._id.toString() === user._id.toString()) {
       throw new BadRequestException("Cannot send message to yourself");
     }
 
     // Check if the personal message room already exists
     let messageRoom = await this._messageRepository.getPersonalMessageRoom(
-      facility._id,
+      user._id,
       recipient._id
     );
     let existed = false;
@@ -63,7 +63,7 @@ export class MessageController {
     }
 
     // Create message
-    newMessageDto.senderId = facility._id;
+    newMessageDto.senderId = user._id;
     const message = await this._messageRepository.createMessage(newMessageDto);
 
     // Upload resources
@@ -75,7 +75,7 @@ export class MessageController {
 
     // Update message with resources
     message.resources = resources;
-    
+
     message.updatedAt = Date.now();
     await message.save();
 
@@ -84,19 +84,22 @@ export class MessageController {
 
     // Update message room with users
     if (!existed) {
-      messageRoom.users.push(facility._id);
+      messageRoom.users.push(user._id);
       messageRoom.users.push(recipient._id);
     }
 
     messageRoom.updatedAt = Date.now();
     await messageRoom.save();
 
+    // Update user chat rooms
+    await this._userRepository.addChatRoom(user, messageRoom._id);
+
     // Map to MessageDto
     const messageDto = MessageDto.mapFrom(message);
 
     // Add sender info
-    messageDto.senderId = facility._id;
-    messageDto.senderImageUrl = facility.facilityImages[0].url;
+    messageDto.senderId = user._id;
+    messageDto.senderImageUrl = user.image ? user.image.url : "";
 
     return res.status(201).json(messageDto);
   }

@@ -71,7 +71,6 @@ const AppFacilitySchema = new mongoose.Schema({
     required: true,
     default: Date.now(),
   },
-  chatRooms: [{ type: String }],
 });
 AppFacilitySchema.index({ location: "2dsphere" });
 

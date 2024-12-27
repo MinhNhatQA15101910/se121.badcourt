@@ -51,11 +51,4 @@ facilityRoutes.post(
   errorHandler(facilityController.registerFacility.bind(facilityController))
 );
 
-facilityRoutes.post(
-  "/request-token/:facilityId",
-  [authMiddleware],
-  [managerMiddleware],
-  errorHandler(facilityController.requestFacilityToken.bind(facilityController))
-);
-
 export default facilityRoutes;

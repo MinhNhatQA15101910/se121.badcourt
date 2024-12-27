@@ -9,10 +9,10 @@ import { FileService } from "../services/file.service";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
 import { MessageRepository } from "../repositories/message.repository";
 import { MessageController } from "../controllers/message.controller";
-import { facilityMiddleware } from "../middlewares/facility.middleware";
 import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 import { BcryptService } from "../services/bcrypt.service";
 import { upload } from "../middlewares/multer.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 const container = new Container();
 
@@ -35,11 +35,11 @@ const messageController = container.get<MessageController>(
 );
 
 messageRoutes.post(
-  "/facility/send-to-user",
-  [facilityMiddleware],
+  "/send-to-user",
+  [authMiddleware],
   upload.array("resources", 100),
   errorHandler(
-    messageController.sendMessageFromFacilityToUser.bind(messageController)
+    messageController.sendMessageToUser.bind(messageController)
   )
 );
 

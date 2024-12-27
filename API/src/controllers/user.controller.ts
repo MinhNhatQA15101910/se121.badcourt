@@ -14,10 +14,8 @@ import { PostDto } from "../dtos/post.dto";
 import { UserParams } from "../params/user.params";
 import { UserParamsSchema } from "../schemas/users/userParams.schema";
 import { MessageRoomParams } from "../params/messageRoom.params";
-import { MessageRoomParamsSchema } from "../schemas/messages/messageRoomParams.schema";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
 import { MessageRoomDto } from "../dtos/messageRoom.dto";
-import MessageRoom from "../models/messageRoom";
 
 @injectable()
 export class UserController {
