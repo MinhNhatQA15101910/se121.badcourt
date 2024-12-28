@@ -23,12 +23,15 @@ export class MessageRepository implements IMessageRepository {
   }
 
   async createMessageRoom(newMessageRoomDto: NewMessageRoomDto): Promise<any> {
-    let messageRoom = new MessageRoom({
+    const messageRoom = new MessageRoom({
       roomName: newMessageRoomDto.roomName,
       roomImage: newMessageRoomDto.roomImage,
+      type: newMessageRoomDto.type,
+      users: newMessageRoomDto.users,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
-    messageRoom = await messageRoom.save();
-    return messageRoom;
+    return await messageRoom.save();
   }
 
   async getMessageRoomById(roomId: string): Promise<any> {

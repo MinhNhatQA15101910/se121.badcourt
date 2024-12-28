@@ -14,6 +14,8 @@ import { NewMessageRoomDto } from "../dtos/newMessageRoom.dto";
 import { MessageParams } from "../params/message.params";
 import { MessageParamsSchema } from "../schemas/messages/messageParams.schema";
 import { PORT } from "../secrets";
+import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema";
+import { MessageRoomDto } from "../dtos/messageRoom.dto";
 
 @injectable()
 export class MessageController {
@@ -213,5 +215,62 @@ export class MessageController {
     }
 
     res.json(messageDtos);
+  }
+
+  async createMessageRoom(req: Request, res: Response) {
+    const currUser = req.user;
+
+    // Get message room from body
+    const newMessageRoomDto: NewMessageRoomDto = NewMessageRoomSchema.parse(
+      req.body
+    );
+    newMessageRoomDto.type = "group";
+
+    // Check existence of users
+    for (let userId of newMessageRoomDto.users) {
+      const user = await this._userRepository.getUserById(userId);
+      if (!user) {
+        throw new BadRequestException("User not found");
+      }
+    }
+
+    // Add current user to the room
+    if (!newMessageRoomDto.users.includes(currUser._id)) {
+      newMessageRoomDto.users.push(currUser._id);
+    }
+
+    // Check amount of users
+    if (newMessageRoomDto.users.length < 3) {
+      throw new BadRequestException("At least 3 users are required");
+    }
+
+    // Create room
+    const messageRoom = await this._messageRepository.createMessageRoom(
+      newMessageRoomDto
+    );
+
+    // Upload room image
+    const roomImage = await uploadImages(
+      this._fileService,
+      [(req as any).file],
+      `message_rooms/${messageRoom._id}`
+    );
+
+    // Update room with image
+    messageRoom.roomImage = roomImage[0];
+    messageRoom.updatedAt = Date.now();
+    await messageRoom.save();
+
+    // Update user chat rooms
+    for (let userId of newMessageRoomDto.users) {
+      const user = await this._userRepository.getUserById(userId);
+
+      await this._userRepository.addChatRoom(user, messageRoom._id.toString());
+    }
+
+    // Map to MessageRoomDto
+    const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+
+    res.status(201).json(messageRoomDto);
   }
 }

@@ -54,4 +54,11 @@ messageRoutes.get(
   errorHandler(messageController.getMessagesInRoom.bind(messageController))
 );
 
+messageRoutes.post(
+  "/create-room",
+  [authMiddleware],
+  upload.single("roomImage"),
+  errorHandler(messageController.createMessageRoom.bind(messageController))
+);
+
 export default messageRoutes;

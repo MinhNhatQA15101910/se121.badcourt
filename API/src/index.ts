@@ -6,9 +6,11 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 import mongoose from "mongoose";
 import { Server } from "socket.io";
 import { socketHandler } from "./websockets/handler";
+import cors from "cors";
 
 const app: Express = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
