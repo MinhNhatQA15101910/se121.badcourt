@@ -81,7 +81,6 @@ export class AuthController {
 
   async login(req: Request, res: Response) {
     const loginDto = LoginSchema.parse(req.body);
-    console.log(loginDto);
 
     const user = await this._userRepository.getUserByEmailAndRole(
       loginDto.email,
