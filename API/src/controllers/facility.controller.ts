@@ -8,7 +8,6 @@ import { IFileService } from "../interfaces/services/IFile.service";
 import { FacilityParamsSchema } from "../schemas/facilities/facilityParams.schema";
 import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
 import { uploadImages } from "../helper/helpers";
-import { NotFoundException } from "../exceptions/notFound.exception";
 import { IJwtService } from "../interfaces/services/IJwt.service";
 
 @injectable()
@@ -114,26 +113,5 @@ export class FacilityController {
     );
 
     res.json(facility);
-  }
-
-  async requestFacilityToken(req: Request, res: Response) {
-    const user = req.user;
-    const facilityId = req.params.facilityId;
-
-    const facility = await this._facilityRepository.getFacilityById(facilityId);
-    if (!facility) {
-      throw new NotFoundException("Facility not found!");
-    }
-
-    if (facility.userId.toString() !== user._id.toString()) {
-      throw new BadRequestException("You are not the owner of this facility!");
-    }
-
-    const token = this._jwtService.generateToken({
-      userId: user._id,
-      facilityId: facilityId,
-    });
-
-    res.json({ token });
   }
 }

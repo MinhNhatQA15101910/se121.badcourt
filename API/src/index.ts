@@ -6,12 +6,14 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 import mongoose from "mongoose";
 import { Server } from "socket.io";
 import { socketHandler } from "./websockets/handler";
+import cors from "cors";
 
 const app: Express = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(cors());
 
 app.use("/api", rootRouter);
 
@@ -30,7 +32,7 @@ const expressServer = app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}`);
 });
 
-const io = new Server(expressServer, {
+export const io = new Server(expressServer, {
   cors: {
     origin: "*", // Allow all origins
   },

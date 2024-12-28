@@ -57,11 +57,6 @@ authRoutes.post(
   errorHandler(authController.verifyPincode.bind(authController))
 );
 
-authRoutes.patch(
-  "/change-password",
-  errorHandler(authController.changePassword.bind(authController))
-);
-
 authRoutes.post(
   "/token-is-valid",
   errorHandler(authController.validateToken.bind(authController))
