@@ -85,7 +85,10 @@ export class MessageRepository implements IMessageRepository {
     );
   }
 
-  getPersonalMessageRoom(user1Id: string, user2Id: string): Promise<any> {
-    return MessageRoom.findOne({ users: [user1Id, user2Id], type: "personal" });
+  async getPersonalMessageRoom(user1Id: string, user2Id: string): Promise<any> {
+    return await MessageRoom.findOne({
+      users: { $all: [user1Id, user2Id] },
+      type: "personal",
+    });
   }
 }

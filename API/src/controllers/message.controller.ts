@@ -16,6 +16,7 @@ import { MessageParamsSchema } from "../schemas/messages/messageParams.schema";
 import { PORT } from "../secrets";
 import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema";
 import { MessageRoomDto } from "../dtos/messageRoom.dto";
+import { NotFoundException } from "../exceptions/notFound.exception";
 
 @injectable()
 export class MessageController {
@@ -218,13 +219,16 @@ export class MessageController {
   }
 
   async createMessageRoom(req: Request, res: Response) {
+    if (typeof req.body.users === "string") {
+      req.body.users = [req.body.users];
+    }
+
     const currUser = req.user;
 
     // Get message room from body
     const newMessageRoomDto: NewMessageRoomDto = NewMessageRoomSchema.parse(
       req.body
     );
-    newMessageRoomDto.type = "group";
 
     // Check existence of users
     for (let userId of newMessageRoomDto.users) {
@@ -235,31 +239,44 @@ export class MessageController {
     }
 
     // Add current user to the room
-    if (!newMessageRoomDto.users.includes(currUser._id)) {
-      newMessageRoomDto.users.push(currUser._id);
+    if (!newMessageRoomDto.users.includes(currUser._id.toString())) {
+      newMessageRoomDto.users.push(currUser._id.toString());
     }
 
     // Check amount of users
-    if (newMessageRoomDto.users.length < 3) {
-      throw new BadRequestException("At least 3 users are required");
+    if (newMessageRoomDto.users.length === 2) {
+      const existingRoom = await this._messageRepository.getPersonalMessageRoom(
+        newMessageRoomDto.users[0],
+        newMessageRoomDto.users[1]
+      );
+      if (existingRoom) {
+        throw new BadRequestException("Personal room already exists");
+      }
+
+      newMessageRoomDto.type = "personal";
+    } else {
+      newMessageRoomDto.type = "group";
     }
 
     // Create room
-    const messageRoom = await this._messageRepository.createMessageRoom(
+    let messageRoom = await this._messageRepository.createMessageRoom(
       newMessageRoomDto
     );
 
     // Upload room image
-    const roomImage = await uploadImages(
-      this._fileService,
-      [(req as any).file],
-      `message_rooms/${messageRoom._id}`
-    );
+    if ((req as any).file) {
+      const roomImage = await uploadImages(
+        this._fileService,
+        [(req as any).file],
+        `message_rooms/${messageRoom._id}`
+      );
 
-    // Update room with image
-    messageRoom.roomImage = roomImage[0];
+      messageRoom.roomImage = roomImage[0];
+    }
+
+    // Update room
     messageRoom.updatedAt = Date.now();
-    await messageRoom.save();
+    messageRoom = await messageRoom.save();
 
     // Update user chat rooms
     for (let userId of newMessageRoomDto.users) {
@@ -271,6 +288,37 @@ export class MessageController {
     // Map to MessageRoomDto
     const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
 
-    res.status(201).json(messageRoomDto);
+    return res
+      .status(201)
+      .location(
+        `https://localhost:${PORT}/api/messages?roomId=${messageRoom._id.toString()}`
+      )
+      .json(messageRoomDto);
+  }
+
+  async getPersonalMessageRoom(req: Request, res: Response) {
+    const user = req.user;
+    const userId = req.params.userId;
+
+    // Check existence of user
+    const recipient = await this._userRepository.getUserById(userId);
+    if (!recipient) {
+      throw new NotFoundException("User not found");
+    }
+
+    // Get personal message room
+    const messageRoom = await this._messageRepository.getPersonalMessageRoom(
+      user._id.toString(),
+      userId
+    );
+    console.log(messageRoom);
+    if (!messageRoom) {
+      throw new NotFoundException("Personal message room not found");
+    }
+
+    // Map to MessageRoomDto
+    const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+
+    res.json(messageRoomDto);
   }
 }
