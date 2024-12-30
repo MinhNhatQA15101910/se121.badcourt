@@ -16,6 +16,7 @@ import { MessageParamsSchema } from "../schemas/messages/messageParams.schema";
 import { PORT } from "../secrets";
 import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema";
 import { MessageRoomDto } from "../dtos/messageRoom.dto";
+import { NotFoundException } from "../exceptions/notFound.exception";
 
 @injectable()
 export class MessageController {
@@ -293,5 +294,31 @@ export class MessageController {
         `https://localhost:${PORT}/api/messages?roomId=${messageRoom._id.toString()}`
       )
       .json(messageRoomDto);
+  }
+
+  async getPersonalMessageRoom(req: Request, res: Response) {
+    const user = req.user;
+    const userId = req.params.userId;
+
+    // Check existence of user
+    const recipient = await this._userRepository.getUserById(userId);
+    if (!recipient) {
+      throw new NotFoundException("User not found");
+    }
+
+    // Get personal message room
+    const messageRoom = await this._messageRepository.getPersonalMessageRoom(
+      user._id.toString(),
+      userId
+    );
+    console.log(messageRoom);
+    if (!messageRoom) {
+      throw new NotFoundException("Personal message room not found");
+    }
+
+    // Map to MessageRoomDto
+    const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+
+    res.json(messageRoomDto);
   }
 }

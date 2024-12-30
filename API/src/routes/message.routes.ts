@@ -61,4 +61,10 @@ messageRoutes.post(
   errorHandler(messageController.createMessageRoom.bind(messageController))
 );
 
+messageRoutes.get(
+  "/room/:userId",
+  [authMiddleware],
+  errorHandler(messageController.getPersonalMessageRoom.bind(messageController))
+);
+
 export default messageRoutes;
