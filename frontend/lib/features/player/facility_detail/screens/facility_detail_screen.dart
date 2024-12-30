@@ -5,12 +5,11 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
-  static const String routeName = '/facilityDetail';
+  static const String routeName = '/facility-detail-screen';
   const FacilityDetailScreen({Key? key}) : super(key: key);
 
   @override
@@ -21,17 +20,23 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
   int _activeIndex = 0;
   final CarouselSliderController _controller = CarouselSliderController();
 
-  void _navigateToCourtDetailScreen() {
-    Navigator.of(context).pushNamed(CourtDetailScreen.routeName);
+  void _navigateToCourtDetailScreen(Facility facility) {
+    Navigator.of(context).pushNamed(
+      CourtDetailScreen.routeName,
+      arguments: facility,
+    );
   }
 
-  void _navigateToPlayerMapScreen() {
-    Navigator.of(context).pushNamed(PlayerMapScreen.routeName);
+  void _navigateToPlayerMapScreen(Facility facility) {
+    Navigator.of(context).pushNamed(
+      PlayerMapScreen.routeName,
+      arguments: facility,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -81,8 +86,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 children: [
                   CarouselSlider.builder(
                     carouselController: _controller,
-                    itemCount: currentFacilityProvider
-                        .currentFacility.imageUrls.length, // Số lượng hình ảnh
+                    itemCount: facility.imageUrls.length, // Số lượng hình ảnh
                     options: CarouselOptions(
                       viewportFraction: 1.0,
                       aspectRatio: 3 / 2,
@@ -95,8 +99,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         decoration: BoxDecoration(
                           image: DecorationImage(
                             image: NetworkImage(
-                              currentFacilityProvider
-                                  .currentFacility.imageUrls[index],
+                              facility.imageUrls[index],
                             ), // Sử dụng NetworkImage
                             fit: BoxFit.fill,
                           ),
@@ -111,8 +114,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        currentFacilityProvider.currentFacility.imageUrls
-                            .length, // Số lượng hình ảnh
+                        facility.imageUrls.length, // Số lượng hình ảnh
                         (index) {
                           return Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),
@@ -155,7 +157,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
-                        currentFacilityProvider.currentFacility.name,
+                        facility.name,
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
@@ -191,7 +193,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         height: 4,
                       ),
                       Text(
-                        '${currentFacilityProvider.currentFacility.minPrice}đ - ${currentFacilityProvider.currentFacility.maxPrice}đ / h',
+                        '${facility.minPrice}đ - ${facility.maxPrice}đ / h',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -241,8 +243,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _InterRegular14(
-                            currentFacilityProvider
-                                .currentFacility.managerInfo.fullName,
+                            facility.managerInfo.fullName,
                             GlobalVariables.blackGrey,
                             1,
                           ),
@@ -255,8 +256,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                                   size: 20,
                                 ),
                                 _InterRegular12(
-                                  currentFacilityProvider
-                                      .currentFacility.province,
+                                  facility.province,
                                   GlobalVariables.darkGrey,
                                   1,
                                 )
@@ -326,7 +326,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       height: 8,
                     ),
                     GestureDetector(
-                      onTap: _navigateToPlayerMapScreen,
+                      onTap: () {
+                        _navigateToPlayerMapScreen(facility);
+                      },
                       child: Container(
                         padding:
                             EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -353,8 +355,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    currentFacilityProvider
-                                        .currentFacility.detailAddress,
+                                    facility.detailAddress,
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -403,12 +404,11 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     SizedBox(height: 12),
                     _buildProductDetail(
                       'Number of courts',
-                      currentFacilityProvider.currentFacility.courtsAmount
-                          .toString(),
+                      facility.courtsAmount.toString(),
                     ),
                     SizedBox(height: 12),
                     Text(
-                      currentFacilityProvider.currentFacility.description,
+                      facility.description,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -439,7 +439,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      currentFacilityProvider.currentFacility.policy,
+                      facility.policy,
                       style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -468,7 +468,9 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           borderColor: GlobalVariables.green,
           fillColor: GlobalVariables.green,
           textColor: Colors.white,
-          onTap: _navigateToCourtDetailScreen,
+          onTap: () {
+            _navigateToCourtDetailScreen(facility);
+          },
         ),
       ),
     );

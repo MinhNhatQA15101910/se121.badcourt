@@ -25,8 +25,10 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
     bool isPlayed = now.isAfter(playTime);
 
     void _navigateToBookingDetailScreen() {
-      GlobalVariables.order = widget.order;
-      Navigator.of(context).pushNamed(BookingDetailScreen.routeName);
+      Navigator.of(context).pushNamed(
+        BookingDetailScreen.routeName,
+        arguments: widget.order,
+      );
     }
 
     return GestureDetector(

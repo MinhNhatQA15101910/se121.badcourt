@@ -7,9 +7,8 @@ import 'package:frontend/features/player/facility_detail/widgets/court_expand_pl
 import 'package:frontend/features/player/facility_detail/widgets/date_tag_player.dart';
 import 'package:frontend/features/player/facility_detail/widgets/timepicker_player_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class CourtDetailScreen extends StatefulWidget {
   static const String routeName = '/courtDetail';
@@ -33,7 +32,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
       pricePerHour: 0,
       orderPeriods: []);
 
-  void _removeInactiveDays() {
+  void _removeInactiveDays(Facility facility) {
     const List<String> daysOfWeek = [
       'monday',
       'tuesday',
@@ -44,13 +43,8 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
       'sunday',
     ];
 
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
-
     for (int i = 0; i < daysOfWeek.length; i++) {
-      if (!currentFacilityProvider.currentFacility.hasDay(daysOfWeek[i])) {
+      if (!facility.hasDay(daysOfWeek[i])) {
         _dates.removeWhere((date) => date.weekday == (i + 1));
       }
     }
@@ -59,27 +53,12 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
     }
   }
 
-  Future<void> _fetchCourtByFacilityId() async {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
-
+  Future<void> _fetchCourtByFacilityId(Facility facility) async {
     _courts = await _facilityDetailService.fetchCourtByFacilityId(
       context,
-      currentFacilityProvider.currentFacility.id,
+      facility.id,
     );
     setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    for (int i = 0; i < 14; i++) {
-      _dates.add(_selectedDate.add(Duration(days: i)));
-    }
-    _removeInactiveDays();
-    _fetchCourtByFacilityId();
   }
 
   void _handleDateTagPressed(DateTime selectedDate) {
@@ -93,12 +72,19 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
 
   void _handleCourtSelection(Court court) {
     setState(() {
-      _selectedCourt = court; // 3. Lưu trữ Court được chọn vào _selectedCourt
+      _selectedCourt = court;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
+    for (int i = 0; i < 14; i++) {
+      _dates.add(_selectedDate.add(Duration(days: i)));
+    }
+    _removeInactiveDays(facility);
+    _fetchCourtByFacilityId(facility);
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
@@ -180,6 +166,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                               children: List.generate(
                                 _courts.length,
                                 (index) => CourtExpandPlayer(
+                                  facility: facility,
                                   court: _courts[index],
                                   currentDateTime: _selectedDate,
                                   onExpansionChanged: _handleCourtSelection,

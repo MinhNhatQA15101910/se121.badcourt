@@ -7,9 +7,8 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
-import 'package:frontend/models/user.dart';
+import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -18,8 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  // Sign up user
-  Future<bool> signUpUser({
+  Future<bool> validateSignUp({
     required BuildContext context,
     required String username,
     required String email,
@@ -31,19 +29,16 @@ class AuthService {
     );
 
     try {
-      User user = User(
-        id: '',
-        username: username,
-        email: email,
-        password: password,
-        imageUrl: '',
-        role: authProvider.isPlayer ? 'player' : 'manager',
-        token: '',
-      );
-
       http.Response response = await http.post(
-        Uri.parse('$uri/sign-up'),
-        body: user.toJson(),
+        Uri.parse('$uri/api/auth/validate-signup'),
+        body: jsonEncode(
+          {
+            'username': username,
+            'email': email,
+            'password': password,
+            if (!authProvider.isPlayer) 'role': 'manager',
+          },
+        ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -65,6 +60,79 @@ class AuthService {
         return false;
       }
 
+      final responseData = jsonDecode(response.body);
+      if (responseData['token'] != null) {
+        final String token = responseData['token'];
+
+        authProvider.setAuthToken(token);
+
+        return true;
+      } else {
+        IconSnackBar.show(
+          context,
+          label: 'Token not found in the response.',
+          snackBarType: SnackBarType.fail,
+        );
+        return false;
+      }
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> verifyCode({
+    required BuildContext context,
+    required bool isSignUp,
+    required String pincode,
+  }) async {
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      http.Response response = await http.post(
+        Uri.parse('$uri/api/auth/verify-pincode'),
+        body: jsonEncode(
+          {
+            'pincode': pincode,
+          },
+        ),
+        headers: {
+          'Authorization': 'Bearer ${authProvider.authToken}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          if (isSignUp) {
+            IconSnackBar.show(
+              context,
+              label: 'Account created successfully!',
+              snackBarType: SnackBarType.success,
+            );
+          } else {
+            IconSnackBar.show(
+              context,
+              label: 'Change password successfully!',
+              snackBarType: SnackBarType.success,
+            );
+          }
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return false;
+      }
+
       return true;
     } catch (error) {
       IconSnackBar.show(
@@ -72,7 +140,6 @@ class AuthService {
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
-
       return false;
     }
   }
@@ -95,12 +162,13 @@ class AuthService {
     try {
       http.Response response = await http.post(
         Uri.parse(
-          '$uri/${authProvider.isPlayer ? 'login-as-player' : 'login-as-manager'}',
+          '$uri/api/auth/login',
         ),
         body: jsonEncode(
           {
             'email': email,
             'password': password,
+            if (!authProvider.isPlayer) 'role': 'manager',
           },
         ),
         headers: <String, String>{
@@ -120,12 +188,15 @@ class AuthService {
 
           if (jsonDecode(response.body)['role'] == 'player') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              PlayerBottomBar.routeName,
+              // PlayerBottomBar.routeName,
+              PostScreen.routeName,
               (route) => false,
             );
           } else if (jsonDecode(response.body)['role'] == 'manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              IntroManagerScreen.routeName,
+              // IntroManagerScreen.routeName,
+              PostScreen.routeName,
+
               (route) => false,
             );
           }
@@ -279,41 +350,6 @@ class AuthService {
     }
   }
 
-  Future<bool> sendVerifyEmail({
-    required BuildContext context,
-    required String email,
-    required String pincode,
-  }) async {
-    try {
-      http.Response response = await http.post(
-        Uri.parse('$uri/send-email'),
-        body: jsonEncode(
-          {
-            'email': email,
-            'pincode': pincode,
-          },
-        ),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-
-      return false;
-    }
-  }
-
   Future<bool> changePassword({
     required BuildContext context,
     required String email,
@@ -343,19 +379,10 @@ class AuthService {
         response: response,
         context: context,
         onSuccess: () {
-          final userProvider = Provider.of<UserProvider>(
-            context,
-            listen: false,
-          );
           final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
-
-          User user = userProvider.user.copyWith(
-            password: jsonDecode(response.body)['password'],
-          );
-          userProvider.setUserFromModel(user);
 
           IconSnackBar.show(
             context,

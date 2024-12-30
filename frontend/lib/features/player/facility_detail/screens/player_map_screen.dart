@@ -4,11 +4,10 @@ import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PlayerMapScreen extends StatefulWidget {
   static const String routeName = '/playerMap';
@@ -44,27 +43,21 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
   void initState() {
     super.initState();
 
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
+    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
 
     markerPosition = LatLng(
-      currentFacilityProvider.currentFacility.latitude,
-      currentFacilityProvider.currentFacility.longitude,
+      facility.latitude,
+      facility.longitude,
     );
   }
 
   void _onUpdateLocation() {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
+    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
 
     setState(() {
       markerPosition = LatLng(
-        currentFacilityProvider.currentFacility.latitude,
-        currentFacilityProvider.currentFacility.longitude,
+        facility.latitude,
+        facility.longitude,
       );
     });
   }
@@ -128,7 +121,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -140,7 +133,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Detail Adress',
+                'Detail Address',
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -162,8 +155,8 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
               styleString: dotenv.env['VIETMAP_STRING_KEY']!,
               initialCameraPosition: CameraPosition(
                 target: LatLng(
-                  currentFacilityProvider.currentFacility.latitude,
-                  currentFacilityProvider.currentFacility.longitude,
+                  facility.latitude,
+                  facility.longitude,
                 ),
                 zoom: 15,
               ),

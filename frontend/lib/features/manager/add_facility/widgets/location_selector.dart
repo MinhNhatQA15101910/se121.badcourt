@@ -140,15 +140,12 @@ class _LocationSelectorState extends State<LocationSelector> {
           isRequired: true,
         ),
         Container(
-          height: 170,
-          width: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            border: Border.all(
-              width: 2,
-              color: GlobalVariables.lightGreen,
-            ),
+            border: Border.all(width: 2, color: GlobalVariables.lightGreen),
           ),
+          width: double.infinity,
+          height: 150,
           child: previewContent,
         ),
         const SizedBox(height: 8),
