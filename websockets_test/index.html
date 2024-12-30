@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Websockets</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"
+      integrity="sha512-8ExARjWWkIllMlNzVg7JKq9RKWPlJABQUNq6YvAjE/HobctjH/NA+bSiDMDvouBVjp4Wwnf1VP1OEv7Zgjtuxw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <h1>Websockets server test</h1>
+    <div class="curr-user">
+      <input
+        type="text"
+        id="currUserId"
+        placeholder="Current user id"
+        disabled
+      />
+      <input
+        type="text"
+        id="currEmail"
+        placeholder="Current user email"
+        disabled
+      />
+    </div>
+
+    <form id="formLogin">
+      <h2>Login</h2>
+      <input type="text" id="inputEmail" placeholder="Email" />
+      <input type="text" id="inputPassword" placeholder="Password" />
+      <input type="text" id="inputRole" placeholder="Role" />
+      <button>Login</button>
+    </form>
+
+    <div>
+      <h2>Get current user</h2>
+      <button id="btnGetCurrentUser">Get current user</button>
+    </div>
+
+    <h2>Send message</h2>
+    <div>
+      <input type="text" id="inputRecipientId" placeholder="Recipient id" />
+      <input type="text" id="inputRoomId" placeholder="Room id" />
+      <button id="btnGetMessages">Get messages</button>
+    </div>
+
+    <ul id="messages"></ul>
+
+    <form id="formSendMessage">
+      <input type="text" id="inputMessage" placeholder="Message" />
+      <button id="btnSendMsgToUser">Send message to user</button>
+      <button id="btnSendMsgToRoom">Send message to room</button>
+    </form>
+  </body>
+</html>

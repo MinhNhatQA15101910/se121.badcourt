@@ -198,27 +198,15 @@ export class AuthController {
 
       res.json(user);
     } else if (action === "verifyEmail") {
-      res.json(true);
+      const user = await this._userRepository.getUserByEmailAndRole(
+        req.email!,
+        req.role!
+      );
+
+      const token = this._jwtService.generateToken({ id: user._id });
+
+      res.json({ token });
     }
-  }
-
-  async changePassword(req: Request, res: Response) {
-    const changePasswordDto = ChangePasswordSchema.parse(req.body);
-
-    const user = await this._userRepository.getUserByEmailAndRole(
-      changePasswordDto.email,
-      changePasswordDto.role
-    );
-    if (!user) {
-      throw new BadRequestException("User with this email does not exist.");
-    }
-
-    user.password = this._bcryptService.hashPassword(
-      changePasswordDto.newPassword
-    );
-    await user.save();
-
-    res.status(204).send();
   }
 
   async validateToken(req: Request, res: Response) {

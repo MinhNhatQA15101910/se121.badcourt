@@ -24,8 +24,7 @@ export class PagedList<T> extends Array<T> {
 
     const items = await aggregate
       .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize)
-      .exec();
+      .limit(pageSize);
     return new PagedList<T>(items, count, pageNumber, pageSize);
   }
 }

@@ -1,9 +1,9 @@
 import { FileDto } from "./file.dto";
 
 export class NewMessageDto {
-  recipientId: string = "";
+  roomId?: string;
   content: string = "";
   resources?: FileDto[] = [];
   senderId?: string;
-  roomId?: string;
+  recipientId?: string;
 }

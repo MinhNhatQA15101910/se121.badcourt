@@ -55,4 +55,5 @@ export const AppUserSchema = new mongoose.Schema({
     require: true,
     default: Date.now(),
   },
+  chatRooms: [{ type: String }],
 });

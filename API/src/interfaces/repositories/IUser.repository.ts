@@ -1,9 +1,10 @@
 import { FileDto } from "../../dtos/file.dto";
+import { SignupDto } from "../../dtos/signup.dto";
 import { PagedList } from "../../helper/pagedList";
 import { UserParams } from "../../params/user.params";
-import { SignupDto } from "../../schemas/auth/signup.schema";
 
 export interface IUserRepository {
+  addChatRoom(user: any, chatRoomId: string): Promise<any>;
   addPhoto(userId: string, fileDto: FileDto): Promise<FileDto | undefined>;
   getUserByEmail(email: string): Promise<any>;
   getUserByEmailAndRole(email: string, role: string): Promise<any>;
