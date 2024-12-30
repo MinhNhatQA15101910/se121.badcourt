@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import { Server } from "socket.io";
 import { socketHandler } from "./websockets/handler";
 import cors from "cors";
+import { websocketsMiddleware } from "./middlewares/websockets.middleware";
 
 const app: Express = express();
 
@@ -37,5 +38,7 @@ export const io = new Server(expressServer, {
     origin: "*", // Allow all origins
   },
 });
+
+// io.use(websocketsMiddleware);
 
 socketHandler(io);
