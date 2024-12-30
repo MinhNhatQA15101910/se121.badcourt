@@ -17,6 +17,8 @@ import { PORT } from "../secrets";
 import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema";
 import { MessageRoomDto } from "../dtos/messageRoom.dto";
 import { NotFoundException } from "../exceptions/notFound.exception";
+import { io } from "..";
+import { users } from "../websockets/handler";
 
 @injectable()
 export class MessageController {
@@ -128,6 +130,7 @@ export class MessageController {
 
     // Get message from body
     const newMessageDto: NewMessageDto = NewMessageToRoomSchema.parse(req.body);
+    console.log(newMessageDto);
 
     // Get room
     const room = await this._messageRepository.getMessageRoomById(
@@ -147,14 +150,16 @@ export class MessageController {
     const message = await this._messageRepository.createMessage(newMessageDto);
 
     // Upload resources
-    const resources = await uploadImages(
-      this._fileService,
-      (req as any).files,
-      `messages/${message._id}`
-    );
+    if ((req as any).files) {
+      const resources = await uploadImages(
+        this._fileService,
+        (req as any).files,
+        `messages/${message._id}`
+      );
 
-    // Update message with resources
-    message.resources = resources;
+      // Update message with resources
+      message.resources = resources;
+    }
 
     message.createdAt = Date.now();
     message.updatedAt = Date.now();
@@ -171,6 +176,10 @@ export class MessageController {
 
     // Add sender info
     messageDto.senderImageUrl = user.image ? user.image.url : "";
+
+    // Emit message to room
+    console.log(room._id.toString(), messageDto);
+    io.to(room._id.toString()).emit("newMessage", messageDto);
 
     return res
       .status(201)
@@ -283,6 +292,9 @@ export class MessageController {
       const user = await this._userRepository.getUserById(userId);
 
       await this._userRepository.addChatRoom(user, messageRoom._id.toString());
+
+      // Invoke enter room
+      io.to(userId).emit("invokeEnterRoom", messageRoom._id.toString());
     }
 
     // Map to MessageRoomDto
@@ -311,7 +323,6 @@ export class MessageController {
       user._id.toString(),
       userId
     );
-    console.log(messageRoom);
     if (!messageRoom) {
       throw new NotFoundException("Personal message room not found");
     }
