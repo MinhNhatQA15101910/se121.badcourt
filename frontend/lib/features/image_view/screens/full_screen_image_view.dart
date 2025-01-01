@@ -85,9 +85,19 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
         builder: (context, index) {
           return PhotoViewGalleryPageOptions(
             imageProvider: NetworkImage(widget.imageUrls[index]),
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: Icon(
+                  Icons.broken_image,
+                  size: 50,
+                  color: Colors.grey,
+                ),
+              );
+            },
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2.0,
-            heroAttributes: PhotoViewHeroAttributes(tag: widget.imageUrls[index]),
+            heroAttributes:
+                PhotoViewHeroAttributes(tag: widget.imageUrls[index]),
           );
         },
         pageController: PageController(initialPage: widget.initialIndex),
@@ -106,7 +116,8 @@ class ImageItem extends StatelessWidget {
   final List<String> imageUrls;
   final int index;
 
-  const ImageItem({Key? key, required this.imageUrls, required this.index}) : super(key: key);
+  const ImageItem({Key? key, required this.imageUrls, required this.index})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -122,17 +133,23 @@ class ImageItem extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(
-            Radius.circular(10),
-          ),
-          image: DecorationImage(
-            image: NetworkImage(imageUrls[index]),
-            fit: BoxFit.cover,
-          ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        child: Image.network(
+          imageUrls[index],
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade200,
+              child: Center(
+                child: Icon(
+                  Icons.broken_image,
+                  color: Colors.grey,
+                  size: 50,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
