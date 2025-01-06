@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -125,11 +126,10 @@ class _PostFormWidgetState extends State<PostFormWidget> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Avatar
-              CircleAvatar(
+              CustomAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(
-                  widget.currentPost.publisherImageUrl,
-                ),
+                imageUrl: widget.currentPost.publisherImageUrl,
+                userId: widget.currentPost.publisherId,
               ),
               const SizedBox(width: 12),
               Text(
@@ -191,15 +191,39 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                         child: Container(
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                widget.currentPost.resources[index],
-                              ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              widget.currentPost.resources[index],
                               fit: BoxFit.cover,
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.width,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                      size: 50,
+                                    ),
+                                  ),
+                                );
+                              },
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -319,6 +343,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               return CommentWidget(
                 profileImageUrl: comment.publisherImageUrl,
                 username: comment.publisherUsername,
+                userId: comment.publisherId,
                 commentText: comment.content,
                 date: formatDate(comment.createdAt),
                 initialLikesCount: 0,
