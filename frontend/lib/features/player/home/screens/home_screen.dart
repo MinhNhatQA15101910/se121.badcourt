@@ -21,7 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _activeIndex = 0;
 
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
 
   List<String>? _cities;
   String? _selectedCity;

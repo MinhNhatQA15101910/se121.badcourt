@@ -26,7 +26,7 @@ class HomeService {
     List<Facility> facilities = [];
     bool isQuery = false;
 
-    String requestUri = '$uri/player/facilities';
+    String requestUri = '$uri/api/facilities';
     if (province != null) {
       requestUri += '?province=$province';
       isQuery = true;
@@ -49,7 +49,7 @@ class HomeService {
         Uri.parse(requestUri),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -92,7 +92,7 @@ class HomeService {
         Uri.parse('$uri/player/facilities/provinces'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
