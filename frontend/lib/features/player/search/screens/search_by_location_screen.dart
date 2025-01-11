@@ -367,6 +367,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                                 'assets/vectors/vector_reality_location.svg',
                                 width: 32,
                                 height: 32,
+                                // ignore: deprecated_member_use
                                 color: GlobalVariables.green,
                               ),
                             ),

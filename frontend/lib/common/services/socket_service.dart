@@ -1,4 +1,5 @@
 // socket_service.dart
+import 'package:frontend/constants/global_variables.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -6,7 +7,7 @@ class SocketService {
 
   // Connect to the socket server
   void connect(String token) {
-    socket = IO.io('ws://192.168.137.1:3000', <String, dynamic>{
+    socket = IO.io('ws://${ipconfig}:3000', <String, dynamic>{
       'transports': ['websocket'],
       'extraHeaders': {'Authorization': 'Bearer $token'},
     });

@@ -6,6 +6,7 @@ import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/account/services/account_service.dart';
 import 'package:frontend/features/player/account/widgets/item_tag.dart';
 import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,6 +38,10 @@ class AccountScreen extends StatelessWidget {
 
   void navigateToBookingManagementScreen(BuildContext context) {
     Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
+  }
+
+  void navigateToFavouriteScreen(BuildContext context) {
+    Navigator.of(context).pushNamed(FavoriteScreen.routeName);
   }
 
   void logOut(BuildContext context) {
@@ -75,43 +80,6 @@ class AccountScreen extends StatelessWidget {
     final userProvider = context.watch<UserProvider>();
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'ACCOUNT',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         child: Container(
           color: GlobalVariables.defaultColor,
@@ -367,10 +335,12 @@ class AccountScreen extends StatelessWidget {
               ),
               CustomContainer(
                 child: ItemTag(
-                  title: 'Recently',
-                  description: 'View recently facilities',
-                  imgPath: 'assets/images/img_recent.png',
-                  onTap: () {},
+                  title: 'Favourite',
+                  description: 'View your favourite facilities',
+                  imgPath: 'assets/images/img_favourite.png',
+                  onTap: () {
+                    navigateToFavouriteScreen(context);
+                  },
                   isVisibleArrow: true,
                 ),
               ),

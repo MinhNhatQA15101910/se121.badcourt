@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/message_button.dart';
+import 'package:frontend/common/widgets/notification_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/player/account/screens/account_screen.dart';
-import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/features/player/home/screens/home_screen.dart';
 import 'package:frontend/features/player/search/screens/search_screen.dart';
+import 'package:frontend/features/post/screens/post_screen.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:provider/provider.dart';
 
 class PlayerBottomBar extends StatefulWidget {
   static const String routeName = '/player-bottom-bar';
@@ -17,11 +22,11 @@ class PlayerBottomBar extends StatefulWidget {
 
 class _PlayerBottomBarState extends State<PlayerBottomBar> {
   int _selectedIndex = 0;
-
+  String userId = "";
   final List<Widget> _pages = [
     const HomeScreen(),
     const SearchScreen(),
-    const FavoriteScreen(),
+    const PostScreen(),
     const AccountScreen(),
   ];
 
@@ -29,12 +34,54 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
   void initState() {
     super.initState();
     getCurrentLocation(context);
-    setState(() {});
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+    final id = userProvider.user.id;
+    if (id.isNotEmpty) {
+      setState(() {
+        userId = id;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: AppBar(
+          backgroundColor: GlobalVariables.green,
+          title: Row(
+            children: [
+              Text(
+                'BAD',
+                style: GoogleFonts.alfaSlabOne(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w400,
+                  decoration: TextDecoration.none,
+                  color: GlobalVariables.yellow,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'COURT',
+                  style: GoogleFonts.alfaSlabOne(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    decoration: TextDecoration.none,
+                    color: GlobalVariables.white,
+                  ),
+                ),
+              ),
+              NotificationButton(userId: userId),
+              MessageButton(userId: userId),
+            ],
+          ),
+        ),
+      ),
+      body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
         color: GlobalVariables.green,
         child: Padding(
@@ -68,8 +115,8 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
                 text: 'Search',
               ),
               GButton(
-                icon: Icons.favorite_border,
-                text: 'Favorite',
+                icon: Icons.dashboard,
+                text: 'Post',
               ),
               GButton(
                 icon: Icons.account_circle,
@@ -79,7 +126,6 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
           ),
         ),
       ),
-      body: _pages[_selectedIndex],
     );
   }
 }

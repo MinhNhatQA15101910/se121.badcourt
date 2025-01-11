@@ -37,20 +37,6 @@ class _MessageScreenState extends State<MessageScreen> {
         messages; // Initialize filtered messages with all messages
   }
 
-  void _filterMessages(String query) {
-    setState(() {
-      filteredMessages = messages
-          .where((message) =>
-              message['userName']!
-                  .toLowerCase()
-                  .contains(query.toLowerCase()) ||
-              message['lastMessage']!
-                  .toLowerCase()
-                  .contains(query.toLowerCase()))
-          .toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

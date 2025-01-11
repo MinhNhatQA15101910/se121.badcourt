@@ -68,52 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            children: [
-              Text(
-                'BAD',
-                style: GoogleFonts.alfaSlabOne(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w400,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.yellow,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  'COURT',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () => {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(top: 8),
