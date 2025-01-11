@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:intl/intl.dart';
 
 class MessageDetailScreen extends StatefulWidget {
   static const String routeName = '/messageDetailScreen';

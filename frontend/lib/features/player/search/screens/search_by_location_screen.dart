@@ -4,7 +4,12 @@ import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/player/search/services/search_service.dart';
+import 'package:frontend/models/active.dart';
+import 'package:frontend/models/coordinates.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/models/location.dart';
+import 'package:frontend/models/manager_info.dart';
+import 'package:frontend/providers/sort_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +30,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
   final _searchController = TextEditingController();
   final _searchService = SearchService();
   String _searchCode = "";
+  List<Facility> _facilities = [];
 
   List<Marker> markers = [];
 
@@ -45,109 +51,84 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
   );
 
   Facility _facility = Facility(
-    id: '',
-    userId: '',
-    name: '',
-    facebookUrl: '',
-    courtsAmount: 0,
-    detailAddress: '',
-    latitude: 0.0,
-    longitude: 0.0,
-    ratingAvg: 0.0,
-    totalRating: 0,
-    activeAt: Active(schedule: {}),
-    registeredAt: 0,
-    imageUrls: [],
-    province: '',
-    description: '',
-    policy: '',
-    maxPrice: 0,
-    minPrice: 0,
-    managerInfo: ManagerInfo(
-      fullName: '',
-      email: '',
-      phoneNumber: '',
-      citizenId: '',
-      citizenImageUrlFront: '',
-      citizenImageUrlBack: '',
-      bankCardUrlFront: '',
-      bankCardUrlBack: '',
-      businessLicenseImageUrls: [],
-      id: '',
+    id: 'default_id',
+    userId: 'default_userId',
+    name: 'Default Facility Name',
+    facebookUrl: 'https://www.facebook.com/default',
+    courtsAmount: 1,
+    detailAddress: '123 Default Street, Default City',
+    province: 'Default Province',
+    location: Location(
+      type: 'Point',
+      coordinates: Coordinates(
+        longitude: 0.0,
+        latitude: 0.0,
+      ),
     ),
+    ratingAvg: 4.5,
+    totalRating: 100,
+    activeAt: Active(schedule: {}),
+    registeredAt: DateTime.now().millisecondsSinceEpoch,
+    description: 'This is a default facility description.',
+    policy: 'Default policy for this facility.',
+    maxPrice: 200000,
+    minPrice: 100000,
+    managerInfo: ManagerInfo(
+      fullName: 'Default Manager',
+      email: 'manager@example.com',
+      phoneNumber: '0123456789',
+      citizenId: '123456789',
+      citizenImageUrlFront: 'https://via.placeholder.com/150',
+      citizenImageUrlBack: 'https://via.placeholder.com/150',
+      bankCardUrlFront: 'https://via.placeholder.com/150',
+      bankCardUrlBack: 'https://via.placeholder.com/150',
+      businessLicenseImageUrls: [
+        'https://via.placeholder.com/150',
+        'https://via.placeholder.com/200',
+      ],
+      id: 'default_manager_id',
+    ),
+    facilityImages: [
+      FacilityImage(
+        url: 'https://via.placeholder.com/150',
+        isMain: true,
+        publicId: 'default_image_id_1',
+      ),
+      FacilityImage(
+        url: 'https://via.placeholder.com/200',
+        isMain: false,
+        publicId: 'default_image_id_2',
+      ),
+    ],
+    isApproved: false,
+    approvedAt: 0,
+    distance: 0.0,
   );
 
-  List<Facility> facilities = [
-    Facility(
-      id: '1',
-      userId: 'user1',
-      name: 'Facility 1',
-      facebookUrl: 'https://facebook.com/facility1',
-      courtsAmount: 3,
-      detailAddress: 'Address 1',
-      latitude: 10.762317,
-      longitude: 106.654551,
-      ratingAvg: 4.5,
-      totalRating: 120,
-      activeAt: Active(schedule: {}),
-      registeredAt: 0,
-      imageUrls: [],
-      province: 'Ho Chi Minh',
-      description: 'This is Facility 1',
-      policy: '',
-      maxPrice: 300000,
-      minPrice: 200000,
-      managerInfo: ManagerInfo(
-        fullName: 'Manager 1',
-        email: 'manager1@example.com',
-        phoneNumber: '0123456789',
-        citizenId: '',
-        citizenImageUrlFront: '',
-        citizenImageUrlBack: '',
-        bankCardUrlFront: '',
-        bankCardUrlBack: '',
-        businessLicenseImageUrls: [],
-        id: '',
-      ),
-    ),
-    Facility(
-      id: '2',
-      userId: 'user2',
-      name: 'Facility 2',
-      facebookUrl: 'https://facebook.com/facility2',
-      courtsAmount: 5,
-      detailAddress: 'Address 2',
-      latitude: 10.775841,
-      longitude: 106.700856,
-      ratingAvg: 4.0,
-      totalRating: 90,
-      activeAt: Active(schedule: {}),
-      registeredAt: 0,
-      imageUrls: [],
-      province: 'Ho Chi Minh',
-      description: 'This is Facility 2',
-      policy: '',
-      maxPrice: 400000,
-      minPrice: 250000,
-      managerInfo: ManagerInfo(
-        fullName: 'Manager 2',
-        email: 'manager2@example.com',
-        phoneNumber: '0987654321',
-        citizenId: '',
-        citizenImageUrlFront: '',
-        citizenImageUrlBack: '',
-        bankCardUrlFront: '',
-        bankCardUrlBack: '',
-        businessLicenseImageUrls: [],
-        id: '',
-      ),
-    ),
-  ];
+  void _fetchAllFacilities() async {
+    try {
+      _facilities = await _searchService.fetchAllFacilities(
+        context: context,
+        sort: Sort.location_asc,
+      );
+
+      print("Fetched facilities: ${_facilities.length}");
+      for (var facility in _facilities) {
+        print(
+            "Facility: ${facility.name}, Latitude: ${facility.location.coordinates.latitude}, Longitude: ${facility.location.coordinates.longitude}");
+      }
+
+      setState(() {
+        markers = _buildMarkers();
+      });
+    } catch (e) {
+      print("Error fetching facilities: $e");
+    }
+  }
 
   Future<void> _performSearch(String value) async {
     if (value.isNotEmpty) {
       try {
-        // Lấy mã tìm kiếm trước
         final searchCode = await _searchService.fetchAddressRefId(
           context: context,
           searchText: value,
@@ -178,7 +159,6 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
           }
         }
       } catch (e) {
-        // Xử lý lỗi (nếu có)
         print('Error during search: $e');
       }
     }
@@ -208,10 +188,8 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    markers = facilities.map((facility) {
+  List<Marker> _buildMarkers() {
+    return _facilities.map((facility) {
       return Marker(
         alignment: Alignment.bottomCenter,
         height: 50,
@@ -224,8 +202,10 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
               _mapController!.animateCamera(
                 CameraUpdate.newCameraPosition(
                   CameraPosition(
-                      target: LatLng(facility.latitude, facility.longitude),
-                      zoom: 15),
+                    target: LatLng(facility.location.coordinates.latitude,
+                        facility.location.coordinates.longitude),
+                    zoom: 15,
+                  ),
                 ),
               );
             });
@@ -248,9 +228,18 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
             ),
           ),
         ),
-        latLng: LatLng(facility.latitude, facility.longitude),
+        latLng: LatLng(
+          facility.location.coordinates.latitude,
+          facility.location.coordinates.longitude,
+        ),
       );
     }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllFacilities(); // Fetch dữ liệu và tự động cập nhật markers
   }
 
   @override
@@ -378,7 +367,6 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                                 'assets/vectors/vector_reality_location.svg',
                                 width: 32,
                                 height: 32,
-                                // ignore: deprecated_member_use
                                 color: GlobalVariables.green,
                               ),
                             ),

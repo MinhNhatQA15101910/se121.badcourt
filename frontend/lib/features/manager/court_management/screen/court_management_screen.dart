@@ -268,7 +268,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                       image: DecorationImage(
                         image: NetworkImage(
                           currentFacilityProvider
-                              .currentFacility.imageUrls.first,
+                              .currentFacility.facilityImages.first.url,
                         ),
                         fit: BoxFit.fill,
                       ),

@@ -13,6 +13,7 @@ import 'package:frontend/common/widgets/label_display.dart';
 import 'package:frontend/features/manager/add_facility/widgets/multiple_image_picker_button.dart';
 import 'package:frontend/features/manager/add_facility/widgets/selected_images.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/models/manager_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 

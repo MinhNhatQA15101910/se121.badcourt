@@ -10,7 +10,6 @@ import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
-import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';

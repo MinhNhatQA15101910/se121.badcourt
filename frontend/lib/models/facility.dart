@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:frontend/models/active.dart';
+import 'package:frontend/models/location.dart';
+import 'package:frontend/models/manager_info.dart';
+
 class Facility {
   final String id;
   final String userId;
@@ -8,18 +12,20 @@ class Facility {
   final int courtsAmount;
   final String detailAddress;
   final String province;
-  final double latitude;
-  final double longitude;
+  final Location location;
   final double ratingAvg;
   final int totalRating;
   final Active activeAt;
   final int registeredAt;
-  final List<String> imageUrls;
+  final List<FacilityImage> facilityImages; // Danh sách hình ảnh cơ sở
   final String description;
   final String policy;
   final int maxPrice;
   final int minPrice;
   final ManagerInfo managerInfo;
+  final bool isApproved; // Trạng thái phê duyệt
+  final int approvedAt; // Thời gian phê duyệt
+  final double distance; // Khoảng cách
 
   Facility({
     required this.id,
@@ -29,65 +35,73 @@ class Facility {
     required this.courtsAmount,
     required this.detailAddress,
     required this.province,
-    required this.latitude,
-    required this.longitude,
+    required this.location,
     required this.ratingAvg,
     required this.totalRating,
     required this.activeAt,
     required this.registeredAt,
-    required this.imageUrls,
+    required this.facilityImages,
     required this.description,
     required this.policy,
     required this.maxPrice,
     required this.minPrice,
     required this.managerInfo,
+    required this.isApproved,
+    required this.approvedAt,
+    required this.distance,
   });
 
   Map<String, dynamic> toMap() {
     return {
       '_id': id,
-      'user_id': userId,
+      'userId': userId,
       'name': name,
-      'facebook_url': facebookUrl,
-      'courts_amount': courtsAmount,
-      'detail_address': detailAddress,
+      'facebookUrl': facebookUrl,
+      'courtsAmount': courtsAmount,
+      'detailAddress': detailAddress,
       'province': province,
-      'latitude': latitude,
-      'longitude': longitude,
-      'rating_avg': ratingAvg,
-      'total_rating': totalRating,
-      'active_at': activeAt.toMap(),
-      'registered_at': registeredAt,
-      'image_urls': imageUrls,
+      'location': location.toMap(),
+      'ratingAvg': ratingAvg,
+      'totalRating': totalRating,
+      'activeAt': activeAt.toMap(),
+      'registeredAt': registeredAt,
+      'facilityImages': facilityImages.map((img) => img.toMap()).toList(),
       'description': description,
       'policy': policy,
-      'max_price': maxPrice,
-      'min_price': minPrice,
-      'manager_info': managerInfo.toMap(),
+      'maxPrice': maxPrice,
+      'minPrice': minPrice,
+      'managerInfo': managerInfo.toMap(),
+      'isApproved': isApproved,
+      'approvedAt': approvedAt,
+      'distance': distance,
     };
   }
 
   factory Facility.fromMap(Map<String, dynamic> map) {
     return Facility(
       id: map['_id'] ?? '',
-      userId: map['user_id'] ?? '',
+      userId: map['userId'] ?? '',
       name: map['name'] ?? '',
-      facebookUrl: map['facebook_url'] ?? '',
-      courtsAmount: map['courts_amount'] ?? 0,
-      detailAddress: map['detail_address'] ?? '',
+      facebookUrl: map['facebookUrl'] ?? '',
+      courtsAmount: map['courtsAmount'] ?? 0,
+      detailAddress: map['detailAddress'] ?? '',
       province: map['province'] ?? '',
-      latitude: map['latitude']?.toDouble() ?? 0.0,
-      longitude: map['longitude']?.toDouble() ?? 0.0,
-      ratingAvg: map['rating_avg']?.toDouble() ?? 0.0,
-      totalRating: map['total_rating'] ?? 0,
-      activeAt: Active.fromMap(map['active_at'] ?? {}),
-      registeredAt: map['registered_at'] ?? 0,
-      imageUrls: List<String>.from(map['image_urls'] ?? []),
+      location: Location.fromMap(map['location'] ?? {}),
+      ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
+      totalRating: map['totalRating'] ?? 0,
+      activeAt: Active.fromMap(map['activeAt'] ?? {}),
+      registeredAt: map['registeredAt'] ?? 0,
+      facilityImages: List<FacilityImage>.from(
+        (map['facilityImages'] ?? []).map((img) => FacilityImage.fromMap(img)),
+      ),
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
-      maxPrice: map['max_price'] ?? 0,
-      minPrice: map['min_price'] ?? 0,
-      managerInfo: ManagerInfo.fromMap(map['manager_info'] ?? {}),
+      maxPrice: map['maxPrice'] ?? 0,
+      minPrice: map['minPrice'] ?? 0,
+      managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
+      isApproved: map['isApproved'] ?? false,
+      approvedAt: map['approvedAt'] ?? 0,
+      distance: map['distance']?.toDouble() ?? 0.0,
     );
   }
 
@@ -104,18 +118,20 @@ class Facility {
     int? courtsAmount,
     String? detailAddress,
     String? province,
-    double? latitude,
-    double? longitude,
+    Location? location,
     double? ratingAvg,
     int? totalRating,
     Active? activeAt,
     int? registeredAt,
-    List<String>? imageUrls,
+    List<FacilityImage>? facilityImages,
     String? description,
     String? policy,
     int? maxPrice,
     int? minPrice,
     ManagerInfo? managerInfo,
+    bool? isApproved,
+    int? approvedAt,
+    double? distance,
   }) {
     return Facility(
       id: id ?? this.id,
@@ -125,18 +141,20 @@ class Facility {
       courtsAmount: courtsAmount ?? this.courtsAmount,
       detailAddress: detailAddress ?? this.detailAddress,
       province: province ?? this.province,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
+      location: location ?? this.location,
       ratingAvg: ratingAvg ?? this.ratingAvg,
       totalRating: totalRating ?? this.totalRating,
       activeAt: activeAt ?? this.activeAt,
       registeredAt: registeredAt ?? this.registeredAt,
-      imageUrls: imageUrls ?? this.imageUrls,
+      facilityImages: facilityImages ?? this.facilityImages,
       description: description ?? this.description,
       policy: policy ?? this.policy,
       maxPrice: maxPrice ?? this.maxPrice,
       minPrice: minPrice ?? this.minPrice,
       managerInfo: managerInfo ?? this.managerInfo,
+      isApproved: isApproved ?? this.isApproved,
+      approvedAt: approvedAt ?? this.approvedAt,
+      distance: distance ?? this.distance,
     );
   }
 
@@ -145,131 +163,30 @@ class Facility {
   }
 }
 
-class Active {
-  final Map<String, PeriodTime> schedule;
+class FacilityImage {
+  final String url;
+  final bool isMain;
+  final String publicId;
 
-  Active({required this.schedule});
-
-  factory Active.fromMap(Map<String, dynamic> map) {
-    Map<String, PeriodTime> schedule = {};
-    map.forEach((key, value) {
-      if (key != '_id') {
-        schedule[key] = PeriodTime.fromMap(value);
-      }
-    });
-    return Active(schedule: schedule);
-  }
-
-  Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {};
-    schedule.forEach((key, value) {
-      map[key] = value.toMap();
-    });
-    return map;
-  }
-}
-
-class PeriodTime {
-  final int hourFrom;
-  final int hourTo;
-
-  PeriodTime({required this.hourFrom, required this.hourTo});
-
-  factory PeriodTime.fromMap(Map<String, dynamic> map) {
-    return PeriodTime(
-      hourFrom: map['hour_from'] ?? 0,
-      hourTo: map['hour_to'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'hour_from': hourFrom,
-      'hour_to': hourTo,
-    };
-  }
-}
-
-class ManagerInfo {
-  final String fullName;
-  final String email;
-  final String phoneNumber;
-  final String citizenId;
-  final String citizenImageUrlFront;
-  final String citizenImageUrlBack;
-  final String bankCardUrlFront;
-  final String bankCardUrlBack;
-  final List<String> businessLicenseImageUrls;
-  final String id;
-
-  ManagerInfo({
-    required this.fullName,
-    required this.email,
-    required this.phoneNumber,
-    required this.citizenId,
-    required this.citizenImageUrlFront,
-    required this.citizenImageUrlBack,
-    required this.bankCardUrlFront,
-    required this.bankCardUrlBack,
-    required this.businessLicenseImageUrls,
-    required this.id,
+  FacilityImage({
+    required this.url,
+    required this.isMain,
+    required this.publicId,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'full_name': fullName,
-      'email': email,
-      'phone_number': phoneNumber,
-      'citizen_id': citizenId,
-      'citizen_image_url_front': citizenImageUrlFront,
-      'citizen_image_url_back': citizenImageUrlBack,
-      'bank_card_url_front': bankCardUrlFront,
-      'bank_card_url_back': bankCardUrlBack,
-      'business_license_image_urls': businessLicenseImageUrls,
-      '_id': id,
+      'url': url,
+      'isMain': isMain,
+      'publicId': publicId,
     };
   }
 
-  factory ManagerInfo.fromMap(Map<String, dynamic> map) {
-    return ManagerInfo(
-      fullName: map['full_name'] ?? '',
-      email: map['email'] ?? '',
-      phoneNumber: map['phone_number'] ?? '',
-      citizenId: map['citizen_id'] ?? '',
-      citizenImageUrlFront: map['citizen_image_url_front'] ?? '',
-      citizenImageUrlBack: map['citizen_image_url_back'] ?? '',
-      bankCardUrlFront: map['bank_card_url_front'] ?? '',
-      bankCardUrlBack: map['bank_card_url_back'] ?? '',
-      businessLicenseImageUrls:
-          List<String>.from(map['business_license_image_urls'] ?? []),
-      id: map['_id'] ?? '',
-    );
-  }
-
-  ManagerInfo copyWith({
-    String? fullName,
-    String? email,
-    String? phoneNumber,
-    String? citizenId,
-    String? citizenImageUrlFront,
-    String? citizenImageUrlBack,
-    String? bankCardUrlFront,
-    String? bankCardUrlBack,
-    List<String>? businessLicenseImageUrls,
-    String? id,
-  }) {
-    return ManagerInfo(
-      fullName: fullName ?? this.fullName,
-      email: email ?? this.email,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      citizenId: citizenId ?? this.citizenId,
-      citizenImageUrlFront: citizenImageUrlFront ?? this.citizenImageUrlFront,
-      citizenImageUrlBack: citizenImageUrlBack ?? this.citizenImageUrlBack,
-      bankCardUrlFront: bankCardUrlFront ?? this.bankCardUrlFront,
-      bankCardUrlBack: bankCardUrlBack ?? this.bankCardUrlBack,
-      businessLicenseImageUrls:
-          businessLicenseImageUrls ?? this.businessLicenseImageUrls,
-      id: id ?? this.id,
+  factory FacilityImage.fromMap(Map<String, dynamic> map) {
+    return FacilityImage(
+      url: map['url'] ?? '',
+      isMain: map['isMain'] ?? false,
+      publicId: map['publicId'] ?? '',
     );
   }
 }

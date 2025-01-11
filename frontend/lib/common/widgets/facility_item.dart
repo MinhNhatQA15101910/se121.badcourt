@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,31 +26,26 @@ class FacilityItem extends StatefulWidget {
 class _FacilityItemState extends State<FacilityItem> {
   int _activeIndex = 0;
 
-  void _navigateToManagerBottomBar() {
+  void _navigateToFacilityDetail() {
     final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
       context,
       listen: false,
     );
     currentFacilityProvider.setFacility(widget.facility);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('')),
-    );
-
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      ManagerBottomBar.routeName,
-      (route) => false,
+    Navigator.of(context).pushNamed(
+      FacilityDetailScreen.routeName,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final imageCount = widget.facility.imageUrls.length;
+    final imageCount = widget.facility.facilityImages.length;
     final minPrice = widget.facility.minPrice;
     final maxPrice = widget.facility.maxPrice;
 
     return GestureDetector(
-      onTap: _navigateToManagerBottomBar,
+      onTap: _navigateToFacilityDetail,
       child: Container(
         margin: EdgeInsets.only(
           left: 16,
@@ -76,7 +71,7 @@ class _FacilityItemState extends State<FacilityItem> {
                 child: Stack(
                   children: [
                     CarouselSlider.builder(
-                      itemCount: imageCount,
+                      itemCount: imageCount > 0 ? imageCount : 1,
                       options: CarouselOptions(
                         viewportFraction: 1.0,
                         enableInfiniteScroll: imageCount > 1,
@@ -86,43 +81,46 @@ class _FacilityItemState extends State<FacilityItem> {
                         }),
                       ),
                       itemBuilder: (context, index, realIndex) {
+                        final imageUrl = imageCount > 0
+                            ? widget.facility.facilityImages[index].url
+                            : 'https://via.placeholder.com/300'; // Placeholder nếu null
+
                         return Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.all(
                               Radius.circular(10),
                             ),
                             image: DecorationImage(
-                              image: NetworkImage(
-                                widget.facility.imageUrls[index],
-                              ),
-                              fit: BoxFit.contain,
+                              image: NetworkImage(imageUrl),
+                              fit: BoxFit.cover, // Căn chỉnh hình ảnh
                             ),
                           ),
                         );
                       },
                     ),
-                    Positioned(
-                      bottom: 8,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          imageCount,
-                          (index) {
-                            return Container(
-                              margin: EdgeInsets.symmetric(horizontal: 4),
-                              child: CircleAvatar(
-                                radius: 4,
-                                backgroundColor: _activeIndex == index
-                                    ? GlobalVariables.green
-                                    : GlobalVariables.grey,
-                              ),
-                            );
-                          },
+                    if (imageCount > 1)
+                      Positioned(
+                        bottom: 8,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            imageCount,
+                            (index) {
+                              return Container(
+                                margin: EdgeInsets.symmetric(horizontal: 4),
+                                child: CircleAvatar(
+                                  radius: 4,
+                                  backgroundColor: _activeIndex == index
+                                      ? GlobalVariables.green
+                                      : GlobalVariables.grey,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

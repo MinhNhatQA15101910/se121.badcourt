@@ -106,7 +106,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               child: Image(
                                 image: NetworkImage(
                                   currentFacilityProvider
-                                      .currentFacility.imageUrls.first,
+                                      .currentFacility.facilityImages.first.url,
                                 ),
                                 fit: BoxFit.fill,
                               ),

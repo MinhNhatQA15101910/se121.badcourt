@@ -10,7 +10,9 @@ import 'package:frontend/features/manager/add_facility/providers/new_facility_pr
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/common/widgets/custom_form_field.dart';
 import 'package:frontend/features/manager/add_facility/widgets/location_selector.dart';
+import 'package:frontend/models/coordinates.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/models/location.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -88,9 +90,15 @@ class _FacilityInfoState extends State<FacilityInfo> {
           detailAddress:
               '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
           province: _selectedAddress!.city,
-          latitude: _selectedAddress!.lat,
-          longitude: _selectedAddress!.lng,
+          location: Location(
+            type: 'Point',
+            coordinates: Coordinates(
+              longitude: _selectedAddress!.lng,
+              latitude: _selectedAddress!.lat,
+            ),
+          ),
         );
+
         newFacilityProvider.setFacility(facility);
         newFacilityProvider.setFacilityImageUrls(_images!);
 

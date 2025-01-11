@@ -26,7 +26,7 @@ class _FacilityHomeState extends State<FacilityHome> {
   Widget build(BuildContext context) {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
-    final imageCount = currentFacilityProvider.currentFacility.imageUrls.length;
+    final imageCount = currentFacilityProvider.currentFacility.facebookUrl.length;
     final minPrice = currentFacilityProvider.currentFacility.minPrice;
     final maxPrice = currentFacilityProvider.currentFacility.maxPrice;
 
@@ -108,7 +108,7 @@ class _FacilityHomeState extends State<FacilityHome> {
                       image: DecorationImage(
                         image: NetworkImage(
                           currentFacilityProvider
-                              .currentFacility.imageUrls[index],
+                              .currentFacility.facilityImages[index].url,
                         ),
                         fit: BoxFit.fill,
                       ),

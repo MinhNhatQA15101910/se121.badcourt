@@ -156,8 +156,10 @@ class AddFacilityService {
         body: jsonEncode(
           {
             "facility_name": newFacilityProvider.newFacility.name,
-            "lat": newFacilityProvider.newFacility.latitude,
-            "lon": newFacilityProvider.newFacility.longitude,
+            "lat":
+                newFacilityProvider.newFacility.location.coordinates.latitude,
+            "lon":
+                newFacilityProvider.newFacility.location.coordinates.longitude,
             "detail_address": newFacilityProvider.newFacility.detailAddress,
             "province": newFacilityProvider.newFacility.province,
             "facility_image_urls": uploadedFacilityImageUrls,

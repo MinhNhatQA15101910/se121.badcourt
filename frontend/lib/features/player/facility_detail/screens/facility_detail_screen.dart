@@ -6,7 +6,9 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
   static const String routeName = '/facility-detail-screen';
@@ -36,8 +38,11 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
-
+    final facilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    final currentFacility = facilityProvider.currentFacility;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
@@ -86,7 +91,19 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 children: [
                   CarouselSlider.builder(
                     carouselController: _controller,
-                    itemCount: facility.imageUrls.length, // Số lượng hình ảnh
+                    itemCount: currentFacility.facilityImages.length,
+                    itemBuilder: (context, index, realIndex) {
+                      final imageUrl =
+                          currentFacility.facilityImages[index].url;
+                      return Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(imageUrl),
+                            fit: BoxFit.fill,
+                          ),
+                        ),
+                      );
+                    },
                     options: CarouselOptions(
                       viewportFraction: 1.0,
                       aspectRatio: 3 / 2,
@@ -94,18 +111,6 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         _activeIndex = index;
                       }),
                     ),
-                    itemBuilder: (context, index, realIndex) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(
-                              facility.imageUrls[index],
-                            ), // Sử dụng NetworkImage
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                      );
-                    },
                   ),
                   Positioned(
                     bottom: 8,
@@ -114,7 +119,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        facility.imageUrls.length, // Số lượng hình ảnh
+                        currentFacility
+                            .facilityImages.length, // Số lượng hình ảnh
                         (index) {
                           return Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),
@@ -157,7 +163,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
-                        facility.name,
+                        currentFacility.name,
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
@@ -193,7 +199,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         height: 4,
                       ),
                       Text(
-                        '${facility.minPrice}đ - ${facility.maxPrice}đ / h',
+                        '${currentFacility.minPrice}đ - ${currentFacility.maxPrice}đ / h',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -243,7 +249,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _InterRegular14(
-                            facility.managerInfo.fullName,
+                            currentFacility.managerInfo.fullName,
                             GlobalVariables.blackGrey,
                             1,
                           ),
@@ -256,7 +262,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                                   size: 20,
                                 ),
                                 _InterRegular12(
-                                  facility.province,
+                                  currentFacility.province,
                                   GlobalVariables.darkGrey,
                                   1,
                                 )
@@ -327,7 +333,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        _navigateToPlayerMapScreen(facility);
+                        _navigateToPlayerMapScreen(currentFacility);
                       },
                       child: Container(
                         padding:
@@ -355,7 +361,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    facility.detailAddress,
+                                    currentFacility.detailAddress,
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -404,11 +410,11 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     SizedBox(height: 12),
                     _buildProductDetail(
                       'Number of courts',
-                      facility.courtsAmount.toString(),
+                      currentFacility.courtsAmount.toString(),
                     ),
                     SizedBox(height: 12),
                     Text(
-                      facility.description,
+                      currentFacility.description,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -439,7 +445,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      facility.policy,
+                      currentFacility.policy,
                       style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -469,7 +475,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           fillColor: GlobalVariables.green,
           textColor: Colors.white,
           onTap: () {
-            _navigateToCourtDetailScreen(facility);
+            _navigateToCourtDetailScreen(currentFacility);
           },
         ),
       ),
