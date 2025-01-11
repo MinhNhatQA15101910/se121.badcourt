@@ -1,13 +1,22 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:frontend/features/image_view/screens/full_screen_image_view_2.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_view/photo_view.dart';
+
+import 'package:dio/dio.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 
 class MessageWidget extends StatelessWidget {
   final bool isSender;
   final String message;
-  final int time; // Timestamp in milliseconds
-  final int? nextTime; // Timestamp of the next message
-  final String? imageUrl;
+  final int time;
+  final int? nextTime;
+  final List<String>? imageUrls;
 
   const MessageWidget({
     Key? key,
@@ -15,25 +24,20 @@ class MessageWidget extends StatelessWidget {
     required this.message,
     required this.time,
     this.nextTime,
-    this.imageUrl,
+    this.imageUrls,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final formattedTime =
-        DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(time));
-
     final currentDate = DateTime.fromMillisecondsSinceEpoch(time);
     final nextDate = nextTime != null
         ? DateTime.fromMillisecondsSinceEpoch(nextTime!)
         : null;
 
-    final isSameMinute = nextDate != null &&
-        currentDate.year == nextDate.year &&
-        currentDate.month == nextDate.month &&
-        currentDate.day == nextDate.day &&
-        currentDate.hour == nextDate.hour &&
-        currentDate.minute == nextDate.minute;
+    final formattedTime = DateFormat('HH:mm').format(currentDate);
+
+    final isSameMinute =
+        nextDate != null && currentDate.difference(nextDate).inMinutes == 0;
 
     final isDifferentDay = nextDate != null &&
         (currentDate.year != nextDate.year ||
@@ -50,38 +54,62 @@ class MessageWidget extends StatelessWidget {
             crossAxisAlignment:
                 isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              if (imageUrl != null)
+              if (imageUrls != null && imageUrls!.isNotEmpty)
+                const SizedBox(height: 12),
+              if (imageUrls != null && imageUrls!.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: imageUrls!.map((url) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FullScreenImageView2(
+                              imageUrl: url,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: url.startsWith('/data') ||
+                                    url.startsWith('/storage')
+                                ? FileImage(File(url))
+                                : NetworkImage(url) as ImageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              if (message.isNotEmpty)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  width: 200,
-                  height: 120,
+                  margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: NetworkImage(imageUrl!),
-                      fit: BoxFit.cover,
+                    color: isSender ? Colors.green[100] : Colors.grey[300],
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(isSender ? 12 : 0),
+                      topRight: Radius.circular(isSender ? 0 : 12),
+                      bottomLeft: const Radius.circular(12),
+                      bottomRight: const Radius.circular(12),
                     ),
                   ),
-                ),
-              Container(
-                margin: EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isSender ? Colors.green[100] : Colors.grey[300],
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(isSender ? 12 : 0),
-                    topRight: Radius.circular(isSender ? 0 : 12),
-                    bottomLeft: const Radius.circular(12),
-                    bottomRight: const Radius.circular(12),
+                  child: Text(
+                    message,
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
-                child: Text(message),
-              ),
               if (!isSameMinute)
                 Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 8,
-                  ),
+                  padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     formattedTime,
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -90,46 +118,31 @@ class MessageWidget extends StatelessWidget {
             ],
           ),
         ),
-        if (nextTime == null) const SizedBox(height: 12),
         if (isDifferentDay)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                // Left divider
                 const Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 64,
-                    ),
-                    child: Divider(
-                      color: Colors.grey,
-                      thickness: 1,
-                      endIndent: 10,
-                    ),
+                  child: Divider(
+                    color: Colors.grey,
+                    thickness: 1,
+                    endIndent: 10,
                   ),
                 ),
-                // Centered date text
                 Text(
-                  DateFormat('MMM, dd, yyyy')
-                      .format(currentDate), // e.g., Aug, 12, 2024
+                  DateFormat('MMM, dd, yyyy').format(currentDate),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                     color: Colors.grey,
                   ),
                 ),
-                // Right divider
                 const Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: 64,
-                    ),
-                    child: Divider(
-                      color: Colors.grey,
-                      thickness: 1,
-                      indent: 10,
-                    ),
+                  child: Divider(
+                    color: Colors.grey,
+                    thickness: 1,
+                    indent: 10,
                   ),
                 ),
               ],

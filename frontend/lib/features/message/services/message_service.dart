@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
@@ -89,30 +90,48 @@ class MessageService {
   }
 
   Future<dynamic> sendMessageToRoom({
-    required String roomId,
-    required String content,
-    required BuildContext context,
-  }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-    final response = await http.post(
+  required String roomId,
+  required String content,
+  List<File>? imageFiles, // Thêm danh sách file ảnh, có thể để trống
+  required BuildContext context,
+}) async {
+  final userProvider = Provider.of<UserProvider>(
+    context,
+    listen: false,
+  );
+
+  try {
+    var request = http.MultipartRequest(
+      'POST',
       Uri.parse('$uri/api/messages/send-to-room'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ${userProvider.user.token}",
-      },
-      body: jsonEncode({
-        "roomId": roomId,
-        "content": content,
-      }),
     );
+    request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
+
+    request.fields['roomId'] = roomId;
+    request.fields['content'] = content;
+
+    if (imageFiles != null && imageFiles.isNotEmpty) {
+      for (File file in imageFiles) {
+        var multipartFile = await http.MultipartFile.fromPath(
+          'resources',
+          file.path,
+        );
+        request.files.add(multipartFile);
+      }
+    }
+
+    var response = await request.send();
 
     if (response.statusCode == 201) {
-      return jsonDecode(response.body);
+      var responseBody = await response.stream.bytesToString();
+      return jsonDecode(responseBody);
     } else {
-      throw Exception('Failed to send message');
+      var responseBody = await response.stream.bytesToString();
+      throw Exception('Failed to send message: $responseBody');
     }
+  } catch (e) {
+    throw Exception('Error: ${e.toString()}');
   }
+}
+
 }

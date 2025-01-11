@@ -79,12 +79,21 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       _socketService.connect(userProvider.user.token);
       _socketService.enterRoom(roomId);
 
+      // Lắng nghe tin nhắn mới
       _socketService.onNewMessage((data) {
+        print('Received new message: $data'); // Debug dữ liệu nhận từ server
+
         setState(() {
+          // Parse và thêm tin nhắn vào danh sách
           _messages.insert(0, {
             'isSender': data['senderId'] == userProvider.user.id,
             'message': data['content'] ?? '',
-            'time': data['createdAt'],
+            'time': data['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
+            'resources': (data['resources'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList(),
+            'senderImageUrl':
+                data['senderImageUrl'], // Lưu ảnh đại diện (nếu có)
           });
         });
       });
@@ -131,6 +140,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             'isSender': msg['senderId'] == userProvider.user.id,
             'message': msg['content'] ?? '',
             'time': msg['createdAt'] as int? ?? 0,
+            'resources': msg['resources'] ?? [],
           };
         }).toList();
 
@@ -169,7 +179,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   }
 
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty) {
+    if (_messageController.text.trim().isEmpty && _imageFiles!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Message cannot be empty')),
       );
@@ -178,15 +188,29 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
     final content = _messageController.text.trim();
     _messageController.clear();
-    _imageFiles = [];
+
+    final List<File> imagesToSend = List<File>.from(_imageFiles!);
+
+    setState(() {
+      _imageFiles = [];
+    });
 
     try {
-      await _messageService.sendMessageToRoom(
+      final response = await _messageService.sendMessageToRoom(
         roomId: roomId,
         content: content,
+        imageFiles: imagesToSend,
         context: context,
       );
-      _socketService.sendMessage(roomId, content);
+
+      // Emit real-time message with images
+      _socketService.sendMessageWithImages(
+        roomId,
+        content,
+        imagesToSend.map((file) => file.path).toList(),
+      );
+
+      setState(() {});
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send message: $e')),
@@ -229,6 +253,9 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                           message: message['message'] ?? '',
                           time: message['time'],
                           nextTime: nextMessage?['time'],
+                          imageUrls: (message['resources'] as List<dynamic>?)
+                              ?.map((e) => e.toString())
+                              .toList(),
                         ),
                       );
                     },
@@ -336,9 +363,9 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
+          crossAxisCount: 5, // Số cột trong lưới
+          crossAxisSpacing: 4, // Khoảng cách ngang
+          mainAxisSpacing: 4, // Khoảng cách dọc
         ),
         itemCount: _imageFiles!.length,
         itemBuilder: (context, index) {
@@ -347,9 +374,12 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Image.file(
-                  imageFile,
-                  fit: BoxFit.cover,
+                child: AspectRatio(
+                  aspectRatio: 1, // Đảm bảo khung ảnh là hình vuông
+                  child: Image.file(
+                    imageFile,
+                    fit: BoxFit.cover, // Đảm bảo ảnh luôn bao phủ khung
+                  ),
                 ),
               ),
               Positioned(
