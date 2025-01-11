@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
+import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
@@ -38,6 +40,34 @@ class _MapScreenState extends State<MapScreen> {
     lng: 0.0,
   );
 
+  @override
+  void initState() {
+    super.initState();
+
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
+    final currentAddess = addressProvider.currentAddress;
+    if (currentAddess.lat != 0.0 && currentAddess.lng != 0.0) {
+      setState(() {
+        markerPosition = LatLng(
+          currentAddess.lat,
+          currentAddess.lng,
+        );
+        _detailAddress = currentAddess;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: markerPosition, zoom: 15),
+          ),
+        );
+      });
+    }
+  }
+
   Future<void> _updateAddress(LatLng latLng) async {
     try {
       final refId = await _addFacilityService.fetchAddressRefId(
@@ -59,16 +89,13 @@ class _MapScreenState extends State<MapScreen> {
           setState(() {
             _detailAddress = detailAddress;
             markerPosition = LatLng(_detailAddress.lat, _detailAddress.lng);
-
-            print(
-                'Updated _detailAddress: ${_detailAddress.lat}, ${_detailAddress.lng}');
-
-            _mapController?.animateCamera(
-              CameraUpdate.newCameraPosition(
-                CameraPosition(target: markerPosition, zoom: 15),
-              ),
-            );
           });
+
+          final addressProvider = Provider.of<AddressProvider>(
+            context,
+            listen: false,
+          );
+          addressProvider.setAddress(detailAddress);
         }
       }
     } catch (e) {
@@ -103,16 +130,13 @@ class _MapScreenState extends State<MapScreen> {
             setState(() {
               _detailAddress = detailAddress;
               markerPosition = LatLng(_detailAddress.lat, _detailAddress.lng);
-
-              print(
-                  'Updated _detailAddress: ${_detailAddress.lat}, ${_detailAddress.lng}');
-
-              _mapController?.animateCamera(
-                CameraUpdate.newCameraPosition(
-                  CameraPosition(target: markerPosition, zoom: 15),
-                ),
-              );
             });
+
+            _mapController?.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(target: markerPosition, zoom: 15),
+              ),
+            );
           }
         }
       } catch (e) {
@@ -250,8 +274,6 @@ class _MapScreenState extends State<MapScreen> {
                     Expanded(
                       child: CustomButton(
                         onTap: () {
-                          print(
-                              '_detailAddress: ${_detailAddress.lat}, ${_detailAddress.lng}');
                           Navigator.of(context).pop(_detailAddress);
                         },
                         buttonText: 'Select',

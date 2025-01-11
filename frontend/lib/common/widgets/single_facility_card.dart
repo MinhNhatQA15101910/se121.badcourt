@@ -3,7 +3,9 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class SingleFacilityCard extends StatelessWidget {
   const SingleFacilityCard({
@@ -15,9 +17,13 @@ class SingleFacilityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void _navigateToFacilityDetailScreen() {
+      final facilityProvider = Provider.of<CurrentFacilityProvider>(
+        context,
+        listen: false,
+      );
+      facilityProvider.setFacility(facility);
       Navigator.of(context).pushNamed(
         FacilityDetailScreen.routeName,
-        arguments: facility,
       );
     }
 

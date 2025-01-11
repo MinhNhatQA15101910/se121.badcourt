@@ -1,7 +1,7 @@
 let token = "";
 let currUser = {};
 const apiUrl = "http://localhost:3000/api/";
-const socket = io("ws://localhost:3000", {
+const socket = io("ws://192.168.137.1:3000", {
   extraHeaders: {
     Authorization: `Bearer ${token}`,
   },

@@ -1,8 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
 import 'package:frontend/models/facility.dart';
@@ -33,6 +35,13 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
     Navigator.of(context).pushNamed(
       PlayerMapScreen.routeName,
       arguments: facility,
+    );
+  }
+
+  void _navigateToDetailMessageScreen(BuildContext context, String userId) {
+    Navigator.of(context).pushNamed(
+      MessageDetailScreen.routeName,
+      arguments: userId,
     );
   }
 
@@ -289,21 +298,27 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     SizedBox(
                       width: 8,
                     ),
-                    Container(
-                      height: 32,
-                      width: 32,
-                      decoration: BoxDecoration(
-                        color: GlobalVariables.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          width: 1,
-                          color: GlobalVariables.green,
+                    GestureDetector(
+                      onTap: () {
+                        _navigateToDetailMessageScreen(
+                            context, currentFacility.userId);
+                      },
+                      child: Container(
+                        height: 32,
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: GlobalVariables.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            width: 1,
+                            color: GlobalVariables.green,
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.message_outlined,
-                          color: GlobalVariables.green,
+                        child: Center(
+                          child: Icon(
+                            Icons.message_outlined,
+                            color: GlobalVariables.green,
+                          ),
                         ),
                       ),
                     ),

@@ -159,10 +159,9 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         builder: (_) => const MessageScreen(),
       );
     case MessageDetailScreen.routeName:
-      final userId = routeSettings.arguments as String;
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => MessageDetailScreen(userId: userId),
+        builder: (_) => MessageDetailScreen(),
       );
     default:
       return MaterialPageRoute(

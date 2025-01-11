@@ -64,13 +64,17 @@ class MessageService {
   Future<dynamic> getMessages({
     required String roomId,
     required BuildContext context,
+    int pageNumber = 1,
+    int pageSize = 10,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
+
     final response = await http.get(
-      Uri.parse('$uri/api/messages?roomId=$roomId'),
+      Uri.parse(
+          '$uri/api/messages?roomId=$roomId&pageNumber=$pageNumber&pageSize=$pageSize'),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer ${userProvider.user.token}",
