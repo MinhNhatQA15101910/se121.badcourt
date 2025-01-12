@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:frontend/common/services/socket_service.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
@@ -181,13 +180,12 @@ class AuthService {
         response: response,
         context: context,
         onSuccess: () async {
-          final socketService = SocketService();
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(
               'x-auth-token', jsonDecode(response.body)['token']);
 
           userProvider.setUser(response.body);
-          socketService.connect(jsonDecode(response.body)['token']);
+
           if (jsonDecode(response.body)['role'] == 'player') {
             Navigator.of(context).pushNamedAndRemoveUntil(
               PlayerBottomBar.routeName,

@@ -24,7 +24,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   final _messageService = MessageService();
-  final _socketService = SocketService();
+  final SocketService _socketService = SocketService();
   late String? userId;
 
   final ImagePicker _picker = ImagePicker();
@@ -33,6 +33,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   bool _isLoading = true;
   bool _isLoadingMore = false;
   bool _hasMoreMessages = true;
+  bool _isSendingMessage = false;
 
   int _pageNumber = 1;
   final int _pageSize = 10;
@@ -69,19 +70,15 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
   Future<void> _initializeServices() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
+    _socketService.connect(userProvider.user.token, userProvider.user.id);
 
     try {
       roomId = await _messageService.getOrCreatePersonalMessageRoom(
         context: context,
         userId: userId ?? "",
       );
-
-      _socketService.connect(userProvider.user.token);
-      _socketService.enterRoom(roomId);
-
-      // Lắng nghe tin nhắn mới
       _socketService.onNewMessage((data) {
-        print('Received new message: $data'); // Debug dữ liệu nhận từ server
+        print('Received new message: $data');
 
         setState(() {
           // Parse và thêm tin nhắn vào danh sách
@@ -92,9 +89,10 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             'resources': (data['resources'] as List<dynamic>?)
                 ?.map((e) => e.toString())
                 .toList(),
-            'senderImageUrl':
-                data['senderImageUrl'], // Lưu ảnh đại diện (nếu có)
+            'senderImageUrl': data['senderImageUrl'],
           });
+
+          _isSendingMessage = false;
         });
       });
 
@@ -193,10 +191,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
     setState(() {
       _imageFiles = [];
+      _isSendingMessage = true; // Bắt đầu trạng thái loading
     });
 
     try {
-      final response = await _messageService.sendMessageToRoom(
+      await _messageService.sendMessageToRoom(
         roomId: roomId,
         content: content,
         imageFiles: imagesToSend,
@@ -209,20 +208,40 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         content,
         imagesToSend.map((file) => file.path).toList(),
       );
-
-      setState(() {});
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send message: $e')),
       );
+      setState(() {
+        _isSendingMessage = false; // Dừng trạng thái loading khi lỗi
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Message Details'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: AppBar(
+          backgroundColor: GlobalVariables.green,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Message',
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.none,
+                    color: GlobalVariables.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -310,9 +329,12 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                       hintText: 'Type your message...',
                       hintStyle: GoogleFonts.inter(
                         color: GlobalVariables.darkGrey,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
-                      contentPadding: const EdgeInsets.all(16),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
@@ -327,7 +349,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                       ),
                     ),
                     style: GoogleFonts.inter(
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -341,11 +363,20 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                         _sendMessage();
                       }
                     },
-                    child: const Icon(
-                      Icons.send,
-                      color: GlobalVariables.green,
-                      size: 28,
-                    ),
+                    child: _isSendingMessage
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: GlobalVariables.green,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.send,
+                            color: GlobalVariables.green,
+                            size: 28,
+                          ),
                   ),
                 ),
               ],

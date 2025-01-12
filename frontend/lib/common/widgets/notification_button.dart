@@ -20,7 +20,7 @@ class NotificationButton extends StatelessWidget {
       onPressed: () {
         _navigateToNotificationScreen(context);
       },
-      iconSize: 24,
+      iconSize: 28,
       icon: const Icon(
         Icons.notifications_outlined,
         color: GlobalVariables.white,

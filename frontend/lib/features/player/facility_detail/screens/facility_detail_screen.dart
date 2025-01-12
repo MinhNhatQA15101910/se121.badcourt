@@ -70,22 +70,6 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () => {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () => {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
             ],
           ),
         ),

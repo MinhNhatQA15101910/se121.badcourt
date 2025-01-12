@@ -1,15 +1,10 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/features/image_view/screens/full_screen_image_view_2.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:photo_view/photo_view.dart';
 
-import 'package:dio/dio.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 
 class MessageWidget extends StatelessWidget {
   final bool isSender;

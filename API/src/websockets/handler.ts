@@ -11,6 +11,7 @@ export const socketHandler = (io: Server) => {
       // Join rooms
       socket.join(userId);
       const user = await User.findById(userId);
+      
       if (!user) {
         return;
       }

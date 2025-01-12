@@ -2,66 +2,70 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
-  IO.Socket? socket;
+  // Singleton instance
+  static final SocketService _instance = SocketService._internal();
 
-  /// Kết nối tới socket server với token
-  void connect(String token) {
-    if (socket != null && socket!.connected) {
-      print('Socket already connected');
-      return;
-    }
+  // Socket instance
+  IO.Socket? _socket;
 
-    socket = IO.io(
-      'ws://localhost:3000',
-      <String, dynamic>{
-        'transports': ['websocket'],
-        'extraHeaders': {'Authorization': 'Bearer $token'},
-        'autoConnect': true,
-      },
-    );
+  // Private constructor
+  SocketService._internal();
 
-    // Các sự kiện mặc định
-    socket?.onConnect((_) => print('Connected to socket server'));
-    socket?.onDisconnect((_) => print('Disconnected from socket server'));
-    socket?.onError((error) => print('Socket error: $error'));
-    socket?.onReconnect((_) => print('Reconnected to socket server'));
-    socket?.onReconnectAttempt(
-        (_) => print('Attempting to reconnect to socket server'));
+  // Factory constructor
+  factory SocketService() {
+    return _instance;
   }
 
-  /// Ngắt kết nối socket
+  // Getter for socket
+  IO.Socket? get socket => _socket;
+
+  // Kết nối socket với token và userId
+  void connect(String token, String userId) {
+    if (_socket == null || !_socket!.connected) {
+      _socket = IO.io('ws://${ipconfig}:3000', <String, dynamic>{
+        'transports': ['websocket'],
+        'extraHeaders': {'Authorization': 'Bearer $token'},
+      });
+
+      _socket?.onConnect((_) {
+        print('Connected to socket server');
+        _socket?.emit('login', userId);
+        print('Socket sent login');
+      });
+
+      _socket?.onDisconnect((_) {
+        print('Disconnected from socket server');
+      });
+
+      _socket?.onError((error) {
+        print('Socket error: $error');
+      });
+
+      _socket?.onReconnect((_) {
+        print('Reconnected to socket server');
+      });
+
+      _socket?.onReconnectAttempt((_) {
+        print('Attempting to reconnect to socket server');
+      });
+    } else {
+      print('Socket already connected');
+    }
+  }
+
+  // Ngắt kết nối socket
   void disconnect() {
-    socket?.disconnect();
+    _socket?.disconnect();
     print('Socket disconnected manually');
   }
 
-  /// Tham gia vào một phòng
-  void enterRoom(String roomId) {
-    if (socket != null && socket!.connected) {
-      socket?.emit('enterRoom', {'roomId': roomId});
-      print('Entered room: $roomId');
+  /// Lắng nghe sự kiện nhận tin nhắn mới
+  void onNewMessage(Function(dynamic) callback) {
+    if (socket != null) {
+      socket?.on('newMessage', callback);
+      print('Listener added for newMessage event');
     } else {
-      print('Socket not connected');
-    }
-  }
-
-  /// Rời khỏi một phòng
-  void leaveRoom(String roomId) {
-    if (socket != null && socket!.connected) {
-      socket?.emit('leaveRoom', {'roomId': roomId});
-      print('Left room: $roomId');
-    } else {
-      print('Socket not connected');
-    }
-  }
-
-  /// Gửi tin nhắn tới phòng
-  void sendMessage(String roomId, String content) {
-    if (socket != null && socket!.connected) {
-      socket?.emit('sendMessage', {'roomId': roomId, 'content': content});
-      print('Message sent to room: $roomId');
-    } else {
-      print('Socket not connected');
+      print('Socket is null');
     }
   }
 
@@ -72,7 +76,7 @@ class SocketService {
       final payload = {
         'roomId': roomId,
         'content': content,
-        'resources': imagePaths, // Không cần mã hóa JSON tại đây
+        'resources': imagePaths,
       };
 
       socket?.emit('sendMessage', payload);
@@ -80,34 +84,5 @@ class SocketService {
     } else {
       print('Socket not connected');
     }
-  }
-
-  /// Lắng nghe sự kiện nhận tin nhắn mới
-  void onNewMessage(Function(dynamic) callback) {
-    if (socket != null) {
-      socket?.on('newMessage', (data) {
-        print('New message received: $data');
-        callback(data);
-      });
-      print('Listener added for newMessage event');
-    } else {
-      print('Socket is null');
-    }
-  }
-
-  /// Lắng nghe sự kiện lỗi
-  void onError(Function(dynamic) callback) {
-    if (socket != null) {
-      socket?.on('error', callback);
-      print('Listener added for error event');
-    } else {
-      print('Socket is null');
-    }
-  }
-
-  /// Xóa listener cho sự kiện cụ thể
-  void removeListener(String event) {
-    socket?.off(event);
-    print('Listener removed for event: $event');
   }
 }
