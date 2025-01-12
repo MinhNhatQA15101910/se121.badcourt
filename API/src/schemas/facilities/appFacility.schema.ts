@@ -71,6 +71,11 @@ const AppFacilitySchema = new mongoose.Schema({
     required: true,
     default: Date.now(),
   },
+  updatedAt: {
+    type: Number,
+    required: true,
+    default: Date.now(),
+  },
 });
 AppFacilitySchema.index({ location: "2dsphere" });
 

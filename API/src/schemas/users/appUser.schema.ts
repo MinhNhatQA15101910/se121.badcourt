@@ -43,8 +43,6 @@ export const AppUserSchema = new mongoose.Schema({
     trim: true,
     default: "player",
   },
-  likedPosts: [{ type: String }],
-  likedComments: [{ type: String }],
   createdAt: {
     type: Number,
     require: true,
@@ -56,4 +54,5 @@ export const AppUserSchema = new mongoose.Schema({
     default: Date.now(),
   },
   chatRooms: [{ type: String }],
+  likedFacilities: [{ type: String }],
 });

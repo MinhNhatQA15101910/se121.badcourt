@@ -47,7 +47,7 @@ export class UserController {
 
     // Delete old image (if exists)
     if (user.image) {
-      await this._fileService.deleteFile(user.image.publicId);
+      await this._fileService.deleteFile(user.image.publicId, "image");
     }
 
     // Upload photo
