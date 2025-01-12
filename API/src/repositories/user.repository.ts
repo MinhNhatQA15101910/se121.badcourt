@@ -19,12 +19,6 @@ export class UserRepository implements IUserRepository {
     this._bcryptService = bcryptService;
   }
 
-  async addChatRoom(user: any, chatRoomId: string): Promise<any> {
-    user.chatRooms.push(chatRoomId);
-    user.updatedAt = new Date();
-    return await user.save();
-  }
-
   async addPhoto(
     userId: string,
     fileDto: FileDto
