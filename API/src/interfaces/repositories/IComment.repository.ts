@@ -1,4 +1,4 @@
-import { NewCommentDto } from "../../dtos/newComment.dto";
+import { NewCommentDto } from "../../dtos/comments/newComment.dto";
 import { PagedList } from "../../helper/pagedList";
 import { CommentParams } from "../../params/comment.params";
 

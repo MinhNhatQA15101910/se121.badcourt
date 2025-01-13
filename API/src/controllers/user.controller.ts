@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
-import { UserDto } from "../dtos/user.dto";
+import { UserDto } from "../dtos/auth/user.dto";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IFileService } from "../interfaces/services/IFile.service";
@@ -10,12 +10,12 @@ import { PORT } from "../secrets";
 import { PostParams } from "../params/post.params";
 import { PostParamsSchema } from "../schemas/posts/postParams.schema";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
-import { PostDto } from "../dtos/post.dto";
+import { PostDto } from "../dtos/posts/post.dto";
 import { UserParams } from "../params/user.params";
 import { UserParamsSchema } from "../schemas/users/userParams.schema";
 import { MessageRoomParams } from "../params/messageRoom.params";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
-import { MessageRoomDto } from "../dtos/messageRoom.dto";
+import { MessageRoomDto } from "../dtos/messages/messageRoom.dto";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 

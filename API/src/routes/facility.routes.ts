@@ -12,15 +12,23 @@ import { IFileService } from "../interfaces/services/IFile.service";
 import { FileService } from "../services/file.service";
 import { IJwtService } from "../interfaces/services/IJwt.service";
 import { JwtService } from "../services/jwt.service";
+import { IUserRepository } from "../interfaces/repositories/IUser.repository";
+import { UserRepository } from "../repositories/user.repository";
+import { IBcryptService } from "../interfaces/services/IBcrypt.service";
+import { BcryptService } from "../services/bcrypt.service";
 
 const container = new Container();
 
+container.bind<IBcryptService>(INTERFACE_TYPE.BcryptService).to(BcryptService);
 container.bind<IFileService>(INTERFACE_TYPE.FileService).to(FileService);
 container.bind<IJwtService>(INTERFACE_TYPE.JwtService).to(JwtService);
 
 container
   .bind<IFacilityRepository>(INTERFACE_TYPE.FacilityRepository)
   .to(FacilityRepository);
+container
+  .bind<IUserRepository>(INTERFACE_TYPE.UserRepository)
+  .to(UserRepository);
 
 container.bind(INTERFACE_TYPE.FacilityController).to(FacilityController);
 
@@ -28,6 +36,11 @@ const facilityRoutes: Router = Router();
 
 const facilityController = container.get<FacilityController>(
   INTERFACE_TYPE.FacilityController
+);
+
+facilityRoutes.get(
+  "/:id",
+  errorHandler(facilityController.getFacility.bind(facilityController))
 );
 
 facilityRoutes.get(

@@ -1,5 +1,5 @@
-import { FileDto } from "../../dtos/file.dto";
-import { SignupDto } from "../../dtos/signup.dto";
+import { FileDto } from "../../dtos/files/file.dto";
+import { SignupDto } from "../../dtos/auth/signup.dto";
 import { PagedList } from "../../helper/pagedList";
 import { UserParams } from "../../params/user.params";
 

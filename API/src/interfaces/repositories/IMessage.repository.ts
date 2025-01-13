@@ -1,5 +1,5 @@
-import { NewMessageDto } from "../../dtos/newMessage.dto";
-import { NewMessageRoomDto } from "../../dtos/newMessageRoom.dto";
+import { NewMessageDto } from "../../dtos/messages/newMessage.dto";
+import { NewMessageRoomDto } from "../../dtos/messages/newMessageRoom.dto";
 import { PagedList } from "../../helper/pagedList";
 import { MessageParams } from "../../params/message.params";
 import { MessageRoomParams } from "../../params/messageRoom.params";

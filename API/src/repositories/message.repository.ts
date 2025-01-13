@@ -1,12 +1,12 @@
 import { injectable } from "inversify";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
-import { NewMessageRoomDto } from "../dtos/newMessageRoom.dto";
+import { NewMessageRoomDto } from "../dtos/messages/newMessageRoom.dto";
 import MessageRoom from "../models/messageRoom";
 import Message from "../models/message";
 import { PagedList } from "../helper/pagedList";
 import { MessageRoomParams } from "../params/messageRoom.params";
 import { Aggregate } from "mongoose";
-import { NewMessageDto } from "../dtos/newMessage.dto";
+import { NewMessageDto } from "../dtos/messages/newMessage.dto";
 import { MessageParams } from "../params/message.params";
 
 @injectable()

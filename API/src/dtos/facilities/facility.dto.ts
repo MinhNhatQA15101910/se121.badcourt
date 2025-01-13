@@ -1,4 +1,4 @@
-import { FileDto } from "./file.dto";
+import { FileDto } from "../files/file.dto";
 import { ManagerInfoDto } from "./managerInfo.dto";
 
 export class FacilityDto {
@@ -7,6 +7,9 @@ export class FacilityDto {
   facebookUrl?: string = "";
   description: string = "";
   policy: string = "";
+  userId: string = "";
+  userImageUrl: string = "";
+  facilityImageUrl: string = "";
   facilityImages: FileDto[] = [];
   courtsAmount: number = 0;
   minPrice: number = 0;
@@ -27,10 +30,15 @@ export class FacilityDto {
 
   private constructor(facility: any) {
     this._id = facility === null ? "" : facility._id;
+    this.userId = facility === null ? "" : facility.userId.toString();
     this.facilityName = facility === null ? "" : facility.facilityName;
     this.facebookUrl = facility === null ? "" : facility.facebookUrl;
     this.description = facility === null ? "" : facility.description;
     this.policy = facility === null ? "" : facility.policy;
+    this.facilityImageUrl =
+      facility === null
+        ? ""
+        : facility.facilityImages.find((image: any) => image.isMain).url;
     this.facilityImages =
       facility === null
         ? []

@@ -6,26 +6,46 @@ import { RegisterFacilitySchema } from "../schemas/facilities/registerFacility.s
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { FacilityParamsSchema } from "../schemas/facilities/facilityParams.schema";
-import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
 import { uploadImages } from "../helper/helpers";
 import { IJwtService } from "../interfaces/services/IJwt.service";
-import { FacilityDto } from "../dtos/facility.dto";
+import { FacilityDto } from "../dtos/facilities/facility.dto";
+import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
+import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 
 @injectable()
 export class FacilityController {
   private _fileService: IFileService;
   private _jwtService: IJwtService;
   private _facilityRepository: IFacilityRepository;
+  private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
     @inject(INTERFACE_TYPE.JwtService) jwtService: IJwtService,
     @inject(INTERFACE_TYPE.FacilityRepository)
-    facilityRepository: IFacilityRepository
+    facilityRepository: IFacilityRepository,
+    @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._fileService = fileService;
     this._jwtService = jwtService;
     this._facilityRepository = facilityRepository;
+    this._userRepository = userRepository;
+  }
+
+  async getFacility(req: Request, res: Response) {
+    const facilityId = req.params.id;
+
+    const facility = await this._facilityRepository.getFacilityById(facilityId);
+    if (!facility) {
+      throw new BadRequestException("Facility not found!");
+    }
+
+    const facilityDto = FacilityDto.mapFrom(facility);
+
+    const user = await this._userRepository.getUserById(facility.userId);
+    facilityDto.userImageUrl = user.image === null ? null : user.image.url;
+
+    res.json(facilityDto);
   }
 
   async getFacilities(req: Request, res: Response) {

@@ -1,4 +1,4 @@
-import { FileDto } from "./file.dto";
+import { FileDto } from "./files/file.dto";
 
 export interface RegisterFacilityDto {
   userId?: string;
