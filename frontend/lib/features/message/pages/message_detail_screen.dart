@@ -77,6 +77,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         context: context,
         userId: userId ?? "",
       );
+      _socketService.enterRoom(roomId);
       _socketService.onNewMessage((data) {
         print('Received new message: $data');
 
@@ -202,7 +203,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         context: context,
       );
 
-      // Emit real-time message with images
       _socketService.sendMessageWithImages(
         roomId,
         content,
@@ -213,7 +213,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         SnackBar(content: Text('Failed to send message: $e')),
       );
       setState(() {
-        _isSendingMessage = false; // Dừng trạng thái loading khi lỗi
+        _isSendingMessage = false;
       });
     }
   }
@@ -246,7 +246,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       body: Column(
         children: [
           _isLoading
-              ? CircularProgressIndicator()
+              ? Expanded(child: Center(child: CircularProgressIndicator()))
               : Expanded(
                   child: ListView.builder(
                     controller: _scrollController,

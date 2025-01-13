@@ -22,7 +22,6 @@ class HomeService {
       listen: false,
     );
     final prefs = await SharedPreferences.getInstance();
-
     List<Facility> facilities = [];
     bool isQuery = false;
 

@@ -2,24 +2,18 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
-  // Singleton instance
   static final SocketService _instance = SocketService._internal();
 
-  // Socket instance
   IO.Socket? _socket;
 
-  // Private constructor
   SocketService._internal();
 
-  // Factory constructor
   factory SocketService() {
     return _instance;
   }
 
-  // Getter for socket
   IO.Socket? get socket => _socket;
 
-  // Kết nối socket với token và userId
   void connect(String token, String userId) {
     if (_socket == null || !_socket!.connected) {
       _socket = IO.io('ws://${ipconfig}:3000', <String, dynamic>{
@@ -48,18 +42,30 @@ class SocketService {
       _socket?.onReconnectAttempt((_) {
         print('Attempting to reconnect to socket server');
       });
+
+      _socket?.on('invokeEnterRoom', (roomId) {
+        print('Socket Received invokeEnterRoom event with roomId: $roomId');
+        enterRoom(roomId);
+      });
     } else {
       print('Socket already connected');
     }
   }
 
-  // Ngắt kết nối socket
   void disconnect() {
     _socket?.disconnect();
     print('Socket disconnected manually');
   }
 
-  /// Lắng nghe sự kiện nhận tin nhắn mới
+  void enterRoom(String roomId) {
+    if (socket != null && socket!.connected) {
+      _socket?.emit('enterRoom', roomId);
+      print('Request sent to enter room: $roomId');
+    } else {
+      print('Socket not connected');
+    }
+  }
+
   void onNewMessage(Function(dynamic) callback) {
     if (socket != null) {
       socket?.on('newMessage', callback);
@@ -69,7 +75,6 @@ class SocketService {
     }
   }
 
-  /// Gửi tin nhắn với hình ảnh tới phòng (hỗ trợ không có hình ảnh)
   void sendMessageWithImages(String roomId, String content,
       [List<String>? imagePaths]) {
     if (socket != null && socket!.connected) {

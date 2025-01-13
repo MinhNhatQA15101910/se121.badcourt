@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
@@ -30,7 +31,7 @@ class UserMessageBox extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              radius: 30,
+              radius: 28,
               backgroundImage: NetworkImage(userImageUrl),
             ),
             const SizedBox(width: 16),
@@ -41,58 +42,42 @@ class UserMessageBox extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _customText(
-                        userName,
-                        16,
-                        FontWeight.w600,
-                        GlobalVariables.blackGrey,
-                        1,
+                      Expanded(
+                        child: _customText(
+                          userName,
+                          14,
+                          FontWeight.w600,
+                          GlobalVariables.blackGrey,
+                          1,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 8,
                       ),
                       _customText(
-                        "  •  ",
-                        16,
-                        FontWeight.w600,
-                        GlobalVariables.blackGrey,
-                        1,
-                      ),
-                      _customText(
-                        timestamp,
-                        14,
+                        'Manager',
+                        12,
                         FontWeight.w500,
-                        GlobalVariables.blackGrey,
+                        GlobalVariables.green,
                         1,
                       ),
                     ],
                   ),
                   _customText(
-                    "Sân cầu lông Nhật Duy",
-                    14,
-                    FontWeight.w500,
+                    timestamp,
+                    12,
+                    FontWeight.w400,
                     GlobalVariables.darkGrey,
                     1,
                   ),
-                  Text(
+                  _customText(
                     lastMessage,
-                    style: const TextStyle(color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
+                    13,
+                    FontWeight.w400,
+                    GlobalVariables.darkGrey,
+                    1,
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(8), // Đảm bảo bán kính bo tròn ở đây
-                child: Image.network(
-                  'https://via.placeholder.com/150',
-                  fit: BoxFit.cover,
-                ),
               ),
             ),
           ],
