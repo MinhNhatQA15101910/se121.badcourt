@@ -100,13 +100,10 @@ export class OrderController {
 
     newOrderDto.address = facility.detailAddress;
     newOrderDto.facilityName = facility.facilityName;
-    newOrderDto.price =
-      (court.pricePerHour * (orderHourTo - orderHourFrom)) / 1000;
+    newOrderDto.price = court.pricePerHour * (orderHourTo - orderHourFrom);
     newOrderDto.image = facility.facilityImages.find(
       (image: any) => image.isMain
     );
-
-    console.log(newOrderDto);
 
     const order = await this._orderRepository.createOrder(newOrderDto);
 
