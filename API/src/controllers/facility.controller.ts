@@ -7,7 +7,6 @@ import { BadRequestException } from "../exceptions/badRequest.exception";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { FacilityParamsSchema } from "../schemas/facilities/facilityParams.schema";
 import { uploadImages } from "../helper/helpers";
-import { IJwtService } from "../interfaces/services/IJwt.service";
 import { FacilityDto } from "../dtos/facilities/facility.dto";
 import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";

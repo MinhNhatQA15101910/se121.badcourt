@@ -42,4 +42,10 @@ courtRoutes.get(
   errorHandler(courtController.getCourts.bind(courtController))
 );
 
+courtRoutes.put(
+  "/:id",
+  [authMiddleware],
+  errorHandler(courtController.updateCourt.bind(courtController))
+);
+
 export default courtRoutes;

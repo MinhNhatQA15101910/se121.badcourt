@@ -11,6 +11,8 @@ import { PORT } from "../secrets";
 import { addPaginationHeader } from "../helper/helpers";
 import { CourtParams } from "../params/court.params";
 import { CourtParamsSchema } from "../schemas/courts/courtParams.schema";
+import { UpdateCourtDto } from "../dtos/courts/updateCourt.dto";
+import { UpdateCourtSchema } from "../schemas/courts/updateCourt.schema";
 
 @injectable()
 export class CourtController {
@@ -33,8 +35,6 @@ export class CourtController {
     if (!court) {
       throw new NotFoundException("Court not found!");
     }
-
-    const courtDto = CourtDto.mapFrom(court);
 
     // Check user role
     res.json(CourtDto.mapFrom(court));
@@ -105,5 +105,66 @@ export class CourtController {
       .status(201)
       .location(`https://localhost:${PORT}/api/courts/${court._id}`)
       .json(CourtDto.mapFrom(court));
+  }
+
+  async updateCourt(req: Request, res: Response) {
+    const user = req.user;
+
+    const courtId = req.params.id;
+    let court = await this._courtRepository.getCourtById(courtId);
+    if (!court) {
+      throw new NotFoundException("Court not found!");
+    }
+
+    const updateCourtDto: UpdateCourtDto = UpdateCourtSchema.parse(req.body);
+
+    // Check if user is authorized to update facility
+    const facility = await this._facilityRepository.getFacilityById(
+      court.facilityId
+    );
+    if (!facility) {
+      throw new NotFoundException("Facility not found!");
+    }
+    if (
+      user.role !== "admin" &&
+      facility.userId.toString() !== user._id.toString()
+    ) {
+      throw new NotFoundException("You are not authorized to update court!");
+    }
+
+    // Check if the court name exists
+    if (updateCourtDto.courtName) {
+      const existingCourt = await this._courtRepository.getCourtByName(
+        updateCourtDto.courtName
+      );
+      if (
+        existingCourt &&
+        existingCourt.facilityId === facility._id.toString() &&
+        existingCourt._id.toString() !== courtId
+      ) {
+        throw new NotFoundException("Court name already exists!");
+      }
+    }
+
+    // Update court
+    if (updateCourtDto.courtName) court.courtName = updateCourtDto.courtName;
+    if (updateCourtDto.description)
+      court.description = updateCourtDto.description;
+    if (updateCourtDto.pricePerHour)
+      court.pricePerHour = updateCourtDto.pricePerHour;
+    court.updatedAt = new Date();
+    await court.save();
+
+    // Update facility
+    facility.minPrice = await this._facilityRepository.getMinPrice(
+      facility._id.toString()
+    );
+    facility.maxPrice = await this._facilityRepository.getMaxPrice(
+      facility._id.toString()
+    );
+    facility.updatedAt = new Date();
+    await facility.save();
+
+    res.status(204).json();
   }
 }
