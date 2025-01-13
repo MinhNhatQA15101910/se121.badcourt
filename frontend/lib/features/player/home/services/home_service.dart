@@ -84,33 +84,7 @@ class HomeService {
       listen: false,
     );
 
-    List<String> provinces = [];
-
-    try {
-      http.Response response = await http.get(
-        Uri.parse('$uri/player/facilities/provinces'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer ${userProvider.user.token}',
-        },
-      );
-
-      httpErrorHandler(
-        response: response,
-        context: context,
-        onSuccess: () {
-          for (var object in jsonDecode(response.body)) {
-            provinces.add(object);
-          }
-        },
-      );
-    } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-    }
+    List<String> provinces = ['Thành phố Hồ Chí Minh'];
 
     return provinces;
   }
