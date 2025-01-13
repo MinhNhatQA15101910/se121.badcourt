@@ -4,6 +4,7 @@ export const INTERFACE_TYPE = {
   CourtController: Symbol.for("CourtController"),
   FacilityController: Symbol.for("FacilityController"),
   MessageController: Symbol.for("MessageController"),
+  OrderController: Symbol.for("OrderController"),
   PostController: Symbol.for("PostController"),
   UserController: Symbol.for("UserController"),
   BcryptService: Symbol.for("BcryptService"),
@@ -14,6 +15,7 @@ export const INTERFACE_TYPE = {
   CourtRepository: Symbol.for("CourtRepository"),
   FacilityRepository: Symbol.for("FacilityRepository"),
   MessageRepository: Symbol.for("MessageRepository"),
+  OrderRepository: Symbol.for("OrderRepository"),
   PostRepository: Symbol.for("PostRepository"),
   UserRepository: Symbol.for("UserRepository"),
 };
