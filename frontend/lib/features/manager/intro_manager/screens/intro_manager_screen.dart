@@ -1,6 +1,5 @@
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/colored_safe_area.dart';
-import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/common/widgets/manager_facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/account/services/account_service.dart';

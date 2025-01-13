@@ -25,12 +25,13 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   final _facilityDetailService = FacilityDetailService();
   List<Court> _courts = [];
   Court _selectedCourt = Court(
-      id: '',
-      facilityId: '',
-      name: '',
-      description: '',
-      pricePerHour: 0,
-      orderPeriods: []);
+    id: '',
+    courtName: 'Default Court Name',
+    description: 'Default description for the court.',
+    pricePerHour: 100000,
+    state: 'Active',
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+  );
 
   void _removeInactiveDays(Facility facility) {
     const List<String> daysOfWeek = [
@@ -202,7 +203,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               _subTotalText('Selected court:'),
-                              _subTotalPriceText(_selectedCourt.name),
+                              _subTotalPriceText(_selectedCourt.courtName),
                             ],
                           ),
                         ),

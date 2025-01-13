@@ -57,7 +57,7 @@ class _AddUpdateCourtBottomSheetState extends State<AddUpdateCourtBottomSheet> {
   void initState() {
     super.initState();
     if (widget.court != null) {
-      _courtNameController.text = widget.court!.name;
+      _courtNameController.text = widget.court!.courtName;
       _courtDescController.text = widget.court!.description;
       _pricePerHourController.text = widget.court!.pricePerHour.toString();
     }

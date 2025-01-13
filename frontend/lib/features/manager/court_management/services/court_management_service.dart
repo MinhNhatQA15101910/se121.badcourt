@@ -90,7 +90,7 @@ class CourtManagementService {
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -133,7 +133,7 @@ class CourtManagementService {
         Uri.parse('$uri/manager/courts?facility_id=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -200,6 +200,47 @@ class CourtManagementService {
     }
 
     return facility;
+  }
+
+  Future<Court?> fetchCourtById({
+    required BuildContext context,
+    required String courtId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+    Court? court = null;
+
+    try {
+      http.Response res = await http.get(
+        Uri.parse('$uri/api/courts/$courtId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': userProvider.user.token,
+        },
+      );
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          court = Court.fromJson(
+            jsonEncode(
+              jsonDecode(res.body),
+            ),
+          );
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return court;
   }
 
   Future<void> deleteCourt(

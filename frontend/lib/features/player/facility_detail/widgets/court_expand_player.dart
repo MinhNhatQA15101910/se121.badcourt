@@ -53,7 +53,7 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
             title: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                widget.court.name,
+                widget.court.courtName,
                 style: TextStyle(
                   color: GlobalVariables.blackGrey,
                   fontSize: 20,

@@ -4,11 +4,11 @@ import 'package:frontend/models/court.dart';
 class CheckoutProvider extends ChangeNotifier {
   Court _court = Court(
     id: '',
-    facilityId: '',
-    name: '',
-    description: '',
-    pricePerHour: 0,
-    orderPeriods: [],
+    courtName: 'Default Court Name',
+    description: 'Default description for the court.',
+    pricePerHour: 100000,
+    state: 'Active',
+    createdAt: DateTime.now().millisecondsSinceEpoch,
   );
 
   DateTime _startDate = DateTime.now();
@@ -55,11 +55,12 @@ class CheckoutProvider extends ChangeNotifier {
   void clear() {
     _court = Court(
       id: '',
-      facilityId: '',
-      name: '',
-      description: '',
-      pricePerHour: 0,
-      orderPeriods: [],
+      courtName: 'Default Court Name',
+      description: 'Default description for the court.',
+      pricePerHour: 100000,
+      state: 'Active',
+      createdAt:
+          DateTime.now().millisecondsSinceEpoch, // Thời gian tạo mặc định
     );
     _startDate = DateTime.now();
     _endDate = DateTime.now();

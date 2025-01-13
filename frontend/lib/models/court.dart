@@ -1,47 +1,41 @@
 import 'dart:convert';
 
-import 'package:frontend/models/order_period.dart';
-
 class Court {
   final String id;
-  final String facilityId;
-  final String name;
-  final String description;
-  final int pricePerHour;
-  final List<OrderPeriod> orderPeriods; // New field for order periods
+  final String courtName; // Tên sân
+  final String description; // Mô tả sân
+  final int pricePerHour; // Giá mỗi giờ
+  final String state; // Trạng thái sân
+  final int createdAt; // Thời gian tạo
 
   Court({
     required this.id,
-    required this.facilityId,
-    required this.name,
+    required this.courtName,
     required this.description,
     required this.pricePerHour,
-    required this.orderPeriods,
+    required this.state,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
       '_id': id,
-      'facility_id': facilityId,
-      'name': name,
+      'courtName': courtName,
       'description': description,
-      'price_per_hour': pricePerHour,
-      'order_periods': orderPeriods.map((period) => period.toMap()).toList(),
+      'pricePerHour': pricePerHour,
+      'state': state,
+      'createdAt': createdAt,
     };
   }
 
   factory Court.fromMap(Map<String, dynamic> map) {
-    List<dynamic> orderPeriodsJson = map['order_periods'] ?? [];
-    List<OrderPeriod> orderPeriods =
-        orderPeriodsJson.map((period) => OrderPeriod.fromMap(period)).toList();
-
     return Court(
       id: map['_id'] ?? '',
-      facilityId: map['facility_id'] ?? '',
-      name: map['name'] ?? '',
+      courtName: map['courtName'] ?? '',
       description: map['description'] ?? '',
-      pricePerHour: map['price_per_hour'] ?? 0,
-      orderPeriods: orderPeriods,
+      pricePerHour: map['pricePerHour'] ?? 0,
+      state: map['state'] ?? 'Inactive',
+      createdAt: map['createdAt'] ?? 0,
     );
   }
 
@@ -51,28 +45,19 @@ class Court {
 
   Court copyWith({
     String? id,
-    String? facilityId,
-    String? name,
+    String? courtName,
     String? description,
     int? pricePerHour,
-    List<OrderPeriod>? orderPeriods,
+    String? state,
+    int? createdAt,
   }) {
     return Court(
       id: id ?? this.id,
-      facilityId: facilityId ?? this.facilityId,
-      name: name ?? this.name,
+      courtName: courtName ?? this.courtName,
       description: description ?? this.description,
       pricePerHour: pricePerHour ?? this.pricePerHour,
-      orderPeriods: orderPeriods ?? this.orderPeriods,
+      state: state ?? this.state,
+      createdAt: createdAt ?? this.createdAt,
     );
-  }
-
-  List<OrderPeriod> getOrderPeriodsByDate(DateTime date) {
-    return orderPeriods
-        .where((period) =>
-            period.hourFrom.year == date.year &&
-            period.hourFrom.month == date.month &&
-            period.hourFrom.day == date.day)
-        .toList();
   }
 }

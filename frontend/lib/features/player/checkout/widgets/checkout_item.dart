@@ -29,7 +29,7 @@ class CheckoutItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _InterBold14(
-                court.name,
+                court.courtName,
                 GlobalVariables.blackGrey,
                 1,
               ),
