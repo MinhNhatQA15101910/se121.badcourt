@@ -45,7 +45,6 @@ facilityRoutes.get(
 
 facilityRoutes.get(
   "/",
-  [authMiddleware],
   errorHandler(facilityController.getFacilities.bind(facilityController))
 );
 
