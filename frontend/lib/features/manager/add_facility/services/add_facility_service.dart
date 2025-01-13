@@ -94,8 +94,8 @@ class AddFacilityService {
       // Thêm thông tin JSON dưới dạng fields
       request.fields.addAll({
         "facilityName": newFacilityProvider.newFacility.facilityName,
-        "lat": newFacilityProvider.newFacility.lat.toString(),
-        "lon": newFacilityProvider.newFacility.lon.toString(),
+        "lon": newFacilityProvider.newFacility.lat.toString(),
+        "lat": newFacilityProvider.newFacility.lon.toString(),
         "detailAddress": newFacilityProvider.newFacility.detailAddress,
         "province": newFacilityProvider.newFacility.province,
         "fullName": newFacilityProvider.newFacility.managerInfo.fullName,

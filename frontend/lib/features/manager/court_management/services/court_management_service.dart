@@ -29,16 +29,16 @@ class CourtManagementService {
     Court? court = null;
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/manager/add-court'),
+        Uri.parse('$uri/api/courts'),
         body: jsonEncode({
-          'facility_id': currentFacilityProvider.currentFacility.id,
-          'name': name,
+          'facilityId': currentFacilityProvider.currentFacility.id,
+          'courtName': name,
           'description': description,
-          'price_per_hour': pricePerHour,
+          'pricePerHour': pricePerHour,
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 

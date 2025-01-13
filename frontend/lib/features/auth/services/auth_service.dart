@@ -7,7 +7,8 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -182,7 +183,7 @@ class AuthService {
         onSuccess: () async {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(
-              'x-auth-token', jsonDecode(response.body)['token']);
+              'Authorization', 'Bearer ${jsonDecode(response.body)['token']}');
 
           userProvider.setUser(response.body);
 
@@ -193,7 +194,7 @@ class AuthService {
             );
           } else if (jsonDecode(response.body)['role'] == 'manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              ManagerBottomBar.routeName,
+              IntroManagerScreen.routeName,
               (route) => false,
             );
           }

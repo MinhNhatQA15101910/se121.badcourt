@@ -26,7 +26,8 @@ class _FacilityHomeState extends State<FacilityHome> {
   Widget build(BuildContext context) {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
-    final imageCount = currentFacilityProvider.currentFacility.facebookUrl.length;
+    final imageCount =
+        currentFacilityProvider.currentFacility.facilityImages.length;
     final minPrice = currentFacilityProvider.currentFacility.minPrice;
     final maxPrice = currentFacilityProvider.currentFacility.maxPrice;
 
@@ -65,11 +66,9 @@ class _FacilityHomeState extends State<FacilityHome> {
                     onSelected: (String result) {
                       switch (result) {
                         case 'Edit':
-                          // Xử lý khi chọn Edit
                           print('Edit selected');
                           break;
                         case 'Delete':
-                          // Xử lý khi chọn Delete
                           print('Delete selected');
                           break;
                       }
