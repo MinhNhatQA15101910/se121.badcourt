@@ -45,9 +45,9 @@ export class FacilityDto {
       facility === null
         ? []
         : facility.facilityImages.map((file: any) => FileDto.mapFrom(file));
-    this.activeAt = ActiveDto.mapFrom(
-      facility === null ? null : facility.activeAt
-    );
+    this.activeAt = facility.activeAt
+      ? ActiveDto.mapFrom(facility.activeAt)
+      : null;
     this.courtsAmount = facility === null ? 0 : facility.courtsAmount;
     this.minPrice = facility === null ? 0 : facility.minPrice;
     this.maxPrice = facility === null ? 0 : facility.maxPrice;
