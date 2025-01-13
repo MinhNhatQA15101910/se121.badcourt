@@ -1,5 +1,11 @@
 import 'dart:convert';
 
+import 'package:frontend/models/order_period.dart';
+
+import 'dart:convert';
+
+import 'package:frontend/models/order_period.dart';
+
 class Court {
   final String id;
   final String courtName; // Tên sân
@@ -7,6 +13,7 @@ class Court {
   final int pricePerHour; // Giá mỗi giờ
   final String state; // Trạng thái sân
   final int createdAt; // Thời gian tạo
+  final List<OrderPeriod> orderPeriods; // Danh sách các khoảng thời gian đặt sân
 
   Court({
     required this.id,
@@ -15,6 +22,7 @@ class Court {
     required this.pricePerHour,
     required this.state,
     required this.createdAt,
+    required this.orderPeriods,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +33,7 @@ class Court {
       'pricePerHour': pricePerHour,
       'state': state,
       'createdAt': createdAt,
+      'orderPeriods': orderPeriods.map((period) => period.toMap()).toList(),
     };
   }
 
@@ -36,6 +45,9 @@ class Court {
       pricePerHour: map['pricePerHour'] ?? 0,
       state: map['state'] ?? 'Inactive',
       createdAt: map['createdAt'] ?? 0,
+      orderPeriods: List<OrderPeriod>.from(
+        (map['orderPeriods'] ?? []).map((period) => OrderPeriod.fromMap(period)),
+      ),
     );
   }
 
@@ -50,6 +62,7 @@ class Court {
     int? pricePerHour,
     String? state,
     int? createdAt,
+    List<OrderPeriod>? orderPeriods,
   }) {
     return Court(
       id: id ?? this.id,
@@ -58,6 +71,16 @@ class Court {
       pricePerHour: pricePerHour ?? this.pricePerHour,
       state: state ?? this.state,
       createdAt: createdAt ?? this.createdAt,
+      orderPeriods: orderPeriods ?? this.orderPeriods,
     );
+  }
+
+  List<OrderPeriod> getOrderPeriodsByDate(DateTime date) {
+    return orderPeriods
+        .where((period) =>
+            period.hourFrom.year == date.year &&
+            period.hourFrom.month == date.month &&
+            period.hourFrom.day == date.day)
+        .toList();
   }
 }

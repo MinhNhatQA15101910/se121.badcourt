@@ -6,6 +6,7 @@ import 'package:frontend/models/booking.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order_period.dart';
+import 'package:frontend/models/period_time.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -32,21 +33,22 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   List<BookingTime> _bookingTimeListDisable = [];
 
   void _getTime() {
-    DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
+    String day =
+        DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
 
-    /*if (widget.facility.activeAt.schedule.containsKey(day)) {
-      PeriodTime periodTime = widget.facility.activeAt.schedule[day]!;
-      int startTime = periodTime.hourFrom;
-      int endTime = periodTime.hourTo;
-      setState(() {
-        _startTime = DateTime.fromMillisecondsSinceEpoch(startTime);
-        _endTime = DateTime.fromMillisecondsSinceEpoch(endTime);
-      });
-    }*/
+    if (widget.facility.activeAt.schedule.containsKey(day)) {
+      PeriodTime? periodTime = widget.facility.activeAt.schedule[day];
+      if (periodTime != null) {
+        setState(() {
+          _startTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourFrom);
+          _endTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourTo);
+        });
+      }
+    }
   }
 
   void _getOrderPeriodsByDate() {
-    //_orderPeriods = widget.court.(widget.currentDateTime);
+    _orderPeriods = widget.court.getOrderPeriodsByDate(widget.currentDateTime);
 
     List<BookingTime> bookingTimeListDisable = [];
     int index = 0;
@@ -332,12 +334,10 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   }
 
   double calculateMarginTop(DateTime startTime, DateTime bookingStartTime) {
-    int minutesFromStart =
-        (bookingStartTime.difference(startTime).inMinutes).abs();
+    int minutesFromStart = bookingStartTime.difference(startTime).inMinutes;
+    if (minutesFromStart < 0) minutesFromStart = 0;
 
-    // Return the margin top based on your scaling logic
-    return (minutesFromStart * 5 / 3) *
-        0.4; // Adjust multiplier and scale as needed
+    return (minutesFromStart * 5 / 3) * 0.4; // Tính toán chiều cao phù hợp.
   }
 
   double calculateHeight(DateTime startTime, DateTime endTime) {

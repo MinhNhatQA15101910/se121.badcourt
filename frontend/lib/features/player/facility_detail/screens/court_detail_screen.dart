@@ -8,7 +8,9 @@ import 'package:frontend/features/player/facility_detail/widgets/date_tag_player
 import 'package:frontend/features/player/facility_detail/widgets/timepicker_player_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class CourtDetailScreen extends StatefulWidget {
   static const String routeName = '/courtDetail';
@@ -31,6 +33,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
     pricePerHour: 100000,
     state: 'Active',
     createdAt: DateTime.now().millisecondsSinceEpoch,
+    orderPeriods: [],
   );
 
   void _removeInactiveDays(Facility facility) {
@@ -45,12 +48,14 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
     ];
 
     for (int i = 0; i < daysOfWeek.length; i++) {
-      /*if (!facility.hasDay(daysOfWeek[i])) {
-                    _dates.removeWhere((date) => date.weekday == (i + 1));
+      final dayName = daysOfWeek[i];
 
-      }*/
-      _dates.removeWhere((date) => date.weekday == (i + 1));
+      if (!facility.hasDay(dayName)) {
+        _dates.removeWhere((date) => date.weekday == (i + 1));
+      }
     }
+
+    // Gán ngày đầu tiên còn lại vào _selectedDate, nếu có
     if (_dates.isNotEmpty) {
       _selectedDate = _dates[0];
     }
@@ -80,13 +85,27 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final facility = ModalRoute.of(context)!.settings.arguments as Facility;
+  void initState() {
+    super.initState();
+    // Khởi tạo danh sách ngày
     for (int i = 0; i < 14; i++) {
       _dates.add(_selectedDate.add(Duration(days: i)));
     }
+
+    // Lấy facility từ Provider
+    final currentFacilityProvider =
+        Provider.of<CurrentFacilityProvider>(context, listen: false);
+    final facility = currentFacilityProvider.currentFacility;
+
+    // Loại bỏ các ngày không hoạt động và tải danh sách sân
     _removeInactiveDays(facility);
     _fetchCourtByFacilityId(facility);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+    final facility = currentFacilityProvider.currentFacility;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -127,7 +146,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
           ),
         ),
       ),
-      body: (true)
+      body: (_dates.isNotEmpty)
           ? Container(
               color: GlobalVariables.defaultColor,
               child: Column(

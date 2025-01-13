@@ -170,4 +170,8 @@ class Facility {
 
   factory Facility.fromJson(String source) =>
       Facility.fromMap(json.decode(source));
+
+  bool hasDay(String day) {
+    return activeAt.schedule.containsKey(day.toLowerCase());
+  }
 }

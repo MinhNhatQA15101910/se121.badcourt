@@ -3,6 +3,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/widgets/booking_widget_player.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CourtExpandPlayer extends StatefulWidget {
   final Facility facility;
@@ -41,52 +42,48 @@ class _CourtExpandPlayerState extends State<CourtExpandPlayer> {
           top: 12,
         ),
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              color: GlobalVariables.darkGrey,
-              width: 0.5,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(
+                color: GlobalVariables.darkGrey,
+                width: 0.5,
+              ),
+              borderRadius: BorderRadius.circular(10),
             ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: ExpansionTile(
-            title: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                widget.court.courtName,
-                style: TextStyle(
-                  color: GlobalVariables.blackGrey,
-                  fontSize: 20,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
+            child: ExpansionTile(
+              title: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  widget.court.courtName,
+                  style: GoogleFonts.inter(
+                    color: GlobalVariables.blackGrey,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                widget.court.description,
-                textAlign: TextAlign.start,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: GlobalVariables.darkGrey,
-                  fontSize: 14,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w400,
+              subtitle: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  widget.court.description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    color: GlobalVariables.darkGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
-            ),
-            onExpansionChanged: _handleExpansion,
-            children: [
-              BookingWidgetPlayer(
-                facility: widget.facility,
-                court: widget.court,
-                currentDateTime: widget.currentDateTime,
-              ),
-            ],
-          ),
-        ),
+              onExpansionChanged: _handleExpansion,
+              children: [
+                BookingWidgetPlayer(
+                  facility: widget.facility,
+                  court: widget.court,
+                  currentDateTime: widget.currentDateTime,
+                ),
+              ],
+            )),
       ),
     );
   }

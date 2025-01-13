@@ -9,6 +9,7 @@ class CheckoutProvider extends ChangeNotifier {
     pricePerHour: 100000,
     state: 'Active',
     createdAt: DateTime.now().millisecondsSinceEpoch,
+    orderPeriods: [],
   );
 
   DateTime _startDate = DateTime.now();
@@ -59,8 +60,8 @@ class CheckoutProvider extends ChangeNotifier {
       description: 'Default description for the court.',
       pricePerHour: 100000,
       state: 'Active',
-      createdAt:
-          DateTime.now().millisecondsSinceEpoch, // Thời gian tạo mặc định
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      orderPeriods: [],
     );
     _startDate = DateTime.now();
     _endDate = DateTime.now();
