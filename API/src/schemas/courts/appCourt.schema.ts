@@ -1,68 +1,38 @@
-// import mongoose from "mongoose";
+import mongoose from "mongoose";
+import TimePeriodSchema from "../active/timePeriod.schema";
 
-// const AppFacilitySchema = new mongoose.Schema({
-//   facilityId: {
-//     required: true,
-//     type: String,
-//     trim: true,
-//   },
-//   courtName: {
-//     required: true,
-//     type: String,
-//     trim: true,
-//   },
-//   description: { type: String, trim: true, required: true },
-//   policy: { type: String, trim: true, required: true },
-//   courtsAmount: {
-//     type: Number,
-//     default: 0,
-//   },
-//   minPrice: {
-//     type: Number,
-//     default: 0,
-//   },
-//   maxPrice: {
-//     type: Number,
-//     default: 0,
-//   },
-//   detailAddress: {
-//     required: true,
-//     type: String,
-//     trim: true,
-//   },
-//   province: {
-//     required: true,
-//     type: String,
-//     trim: true,
-//   },
-//   location: {
-//     type: { type: String, enum: ["Point"], required: true },
-//     coordinates: { type: [Number], required: true },
-//   },
-//   ratingAvg: {
-//     type: Number,
-//     default: 0,
-//   },
-//   totalRating: {
-//     type: Number,
-//     default: 0,
-//   },
-//   activeAt: { type: ActiveSchema, default: null },
-//   createdAt: {
-//     type: Number,
-//     required: true,
-//     default: Date.now(),
-//   },
-//   facilityImages: [FileSchema],
-//   managerInfo: ManagerInfoSchema,
-//   state: {
-//     type: String,
-//     trim: true,
-//     default: "Pending",
-//   },
-//   updatedAt: {
-//     type: Number,
-//     required: true,
-//     default: Date.now(),
-//   },
-// });
+export const AppCourtSchema = new mongoose.Schema({
+  facilityId: {
+    required: true,
+    type: String,
+    trim: true,
+  },
+  courtName: {
+    required: true,
+    type: String,
+    trim: true,
+  },
+  description: { type: String, trim: true, required: true },
+  pricePerHour: {
+    type: Number,
+    default: 0,
+  },
+  state: {
+    type: String,
+    trim: true,
+    default: "Active",
+  },
+  orderPeriods: [TimePeriodSchema],
+  inactivePeriods: [TimePeriodSchema],
+  orders: [String],
+  createdAt: {
+    type: Number,
+    required: true,
+    default: Date.now(),
+  },
+  updatedAt: {
+    type: Number,
+    required: true,
+    default: Date.now(),
+  },
+});
