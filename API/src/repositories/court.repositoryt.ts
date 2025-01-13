@@ -10,4 +10,8 @@ export class CourtRepository implements ICourtRepository {
     court = await court.save();
     return court;
   }
+
+  async getCourtById(courtId: string): Promise<any> {
+    return await Court.findById(courtId);
+  }
 }

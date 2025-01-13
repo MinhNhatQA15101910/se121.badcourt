@@ -7,6 +7,7 @@ import { NewCourtDto } from "../dtos/courts/newCourt.dto";
 import { AddCourtSchema } from "../schemas/courts/addCourt.schema";
 import { IFacilityRepository } from "../interfaces/repositories/IFacility.repository";
 import { CourtDto } from "../dtos/courts/court.dto";
+import { PORT } from "../secrets";
 
 @injectable()
 export class CourtController {
@@ -20,6 +21,20 @@ export class CourtController {
   ) {
     this._courtRepository = courtRepository;
     this._facilityRepository = facilityRepository;
+  }
+
+  async getCourt(req: Request, res: Response) {
+    const courtId = req.params.id;
+
+    const court = await this._courtRepository.getCourtById(courtId);
+    if (!court) {
+      throw new NotFoundException("Court not found!");
+    }
+
+    const courtDto = CourtDto.mapFrom(court);
+
+    // Check user role
+    res.json(CourtDto.mapFrom(court));
   }
 
   async addCourt(req: Request, res: Response) {
@@ -59,6 +74,9 @@ export class CourtController {
     facility.updatedAt = new Date();
     await facility.save();
 
-    res.json(CourtDto.mapFrom(court));
+    res
+      .status(201)
+      .location(`https://localhost:${PORT}/api/courts/${court._id}`)
+      .json(CourtDto.mapFrom(court));
   }
 }
