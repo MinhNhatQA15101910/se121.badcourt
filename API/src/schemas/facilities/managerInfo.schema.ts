@@ -44,10 +44,10 @@ const ManagerInfoSchema = new mongoose.Schema({
       message: "Invalid citizen id.",
     },
   },
-  citizenImageFront: FileSchema,
-  citizenImageBack: FileSchema,
-  bankCardFront: FileSchema,
-  bankCardBack: FileSchema,
+  citizenImageFront: { type: FileSchema, default: null },
+  citizenImageBack: { type: FileSchema, default: null },
+  bankCardFront: { type: FileSchema, default: null },
+  bankCardBack: { type: FileSchema, default: null },
   businessLicenseImages: [FileSchema],
 });
 
