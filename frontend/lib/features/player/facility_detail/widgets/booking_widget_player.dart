@@ -48,7 +48,13 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   }
 
   void _getOrderPeriodsByDate() {
-    _orderPeriods = widget.court.getOrderPeriodsByDate(widget.currentDateTime);
+    DateTime date = widget.currentDateTime;
+    _orderPeriods = widget.court.orderPeriods
+        .where((period) =>
+            period.hourFrom.year == date.year &&
+            period.hourFrom.month == date.month &&
+            period.hourFrom.day == date.day)
+        .toList();
 
     List<BookingTime> bookingTimeListDisable = [];
     int index = 0;

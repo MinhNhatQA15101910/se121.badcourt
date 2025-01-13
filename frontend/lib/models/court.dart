@@ -13,7 +13,8 @@ class Court {
   final int pricePerHour; // Giá mỗi giờ
   final String state; // Trạng thái sân
   final int createdAt; // Thời gian tạo
-  final List<OrderPeriod> orderPeriods; // Danh sách các khoảng thời gian đặt sân
+  final List<OrderPeriod>
+      orderPeriods; // Danh sách các khoảng thời gian đặt sân
 
   Court({
     required this.id,
@@ -46,7 +47,8 @@ class Court {
       state: map['state'] ?? 'Inactive',
       createdAt: map['createdAt'] ?? 0,
       orderPeriods: List<OrderPeriod>.from(
-        (map['orderPeriods'] ?? []).map((period) => OrderPeriod.fromMap(period)),
+        (map['orderPeriods'] ?? [])
+            .map((period) => OrderPeriod.fromMap(period)),
       ),
     );
   }
