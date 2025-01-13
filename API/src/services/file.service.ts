@@ -27,13 +27,10 @@ export class FileService implements IFileService {
     folder: string,
     resourceType: ResourceType
   ): Promise<UploadApiResponse> {
-    const result = await cloudinary.uploader.upload(
-      `BadCourt-test/${filePath}`,
-      {
-        folder,
-        resource_type: resourceType as "image" | "raw" | "video" | "auto",
-      }
-    );
+    const result = await cloudinary.uploader.upload(`${filePath}`, {
+      folder: `BadCourt-test/${folder}`,
+      resource_type: resourceType as "image" | "raw" | "video" | "auto",
+    });
     return result;
   }
 }
