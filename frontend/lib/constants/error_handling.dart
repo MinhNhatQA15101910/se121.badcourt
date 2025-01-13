@@ -16,6 +16,9 @@ void httpErrorHandler({
     case 201:
       onSuccess();
       break;
+    case 204:
+      onSuccess();
+      break;
     case 400:
       IconSnackBar.show(
         context,

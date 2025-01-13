@@ -81,12 +81,12 @@ class CourtManagementService {
 
     Court? court = null;
     try {
-      http.Response response = await http.patch(
-        Uri.parse('$uri/manager/update-court/$courtId'),
+      http.Response response = await http.put(
+        Uri.parse('$uri/api/courts/$courtId'),
         body: jsonEncode({
-          'name': name,
+          'courtName': name,
           'description': description,
-          'price_per_hour': pricePerHour,
+          'pricePerHour': pricePerHour,
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -98,9 +98,15 @@ class CourtManagementService {
         response: response,
         context: context,
         onSuccess: () {
-          court = Court.fromJson(
-            jsonEncode(jsonDecode(response.body)),
+          court = Court(
+            id: courtId,
+            courtName: name,
+            description: description,
+            pricePerHour: pricePerHour ,
+            state: 'Active',
+            createdAt: DateTime.now().millisecondsSinceEpoch,
           );
+
           IconSnackBar.show(
             context,
             label: 'Court updated successfully.',
@@ -108,13 +114,7 @@ class CourtManagementService {
           );
         },
       );
-    } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-    }
+    } catch (error) {}
 
     return court;
   }
