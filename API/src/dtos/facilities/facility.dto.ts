@@ -7,6 +7,8 @@ export class FacilityDto {
   facebookUrl?: string = "";
   description: string = "";
   policy: string = "";
+  userId: string = "";
+  userImageUrl: string = "";
   facilityImageUrl: string = "";
   facilityImages: FileDto[] = [];
   courtsAmount: number = 0;
@@ -28,6 +30,7 @@ export class FacilityDto {
 
   private constructor(facility: any) {
     this._id = facility === null ? "" : facility._id;
+    this.userId = facility === null ? "" : facility.userId.toString();
     this.facilityName = facility === null ? "" : facility.facilityName;
     this.facebookUrl = facility === null ? "" : facility.facebookUrl;
     this.description = facility === null ? "" : facility.description;
