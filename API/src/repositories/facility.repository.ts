@@ -5,6 +5,7 @@ import { Aggregate } from "mongoose";
 import Facility from "../models/facility";
 import { FacilityParams } from "../params/facility.params";
 import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
+import Court from "../models/court";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
@@ -68,6 +69,28 @@ export class FacilityRepository implements IFacilityRepository {
 
   async getFacilityByName(facilityName: string): Promise<any> {
     return await Facility.findOne({ name: facilityName });
+  }
+
+  async getMaxPrice(facilityId: string): Promise<number> {
+    const courts = await Court.find({ facilityId });
+
+    let maxPrice = courts[0].pricePerHour;
+    for (let i = 1; i < courts.length; i++) {
+      maxPrice = Math.max(maxPrice, courts[i].pricePerHour);
+    }
+
+    return maxPrice;
+  }
+
+  async getMinPrice(facilityId: string): Promise<number> {
+    const courts = await Court.find({ facilityId });
+
+    let minPrice = courts[0].pricePerHour;
+    for (let i = 1; i < courts.length; i++) {
+      minPrice = Math.min(minPrice, courts[i].pricePerHour);
+    }
+
+    return minPrice;
   }
 
   async registerFacility(
