@@ -1,14 +1,18 @@
 import { z } from "zod";
 
 export const FacilityParamsSchema = z.object({
-  lat: z.preprocess(
-    (l) => parseFloat(z.string().parse(l)),
-    z.number().min(-90).max(90)
-  ),
-  lon: z.preprocess(
-    (l) => parseFloat(z.string().parse(l)),
-    z.number().min(-180).max(180)
-  ),
+  lat: z
+    .preprocess(
+      (l) => parseFloat(z.string().parse(l)),
+      z.number().min(-90).max(90)
+    )
+    .default("0"),
+  lon: z
+    .preprocess(
+      (l) => parseFloat(z.string().parse(l)),
+      z.number().min(-180).max(180)
+    )
+    .default("0"),
   pageNumber: z
     .preprocess((n) => parseFloat(z.string().parse(n)), z.number().min(0))
     .default("1"),
