@@ -1,57 +1,50 @@
 import 'dart:convert';
 
+import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/order_period.dart';
 
 class Order {
   final String id;
-  final String userId;
-  final String courtId;
-  final DateTime orderedAt;
   final String facilityName;
   final String address;
-  final String imageUrl;
   final double price;
-  final OrderPeriod period;
+  final DateTime createdAt;
+  final ImageCustom image;
+  final OrderPeriod timePeriod;
 
   const Order({
     required this.id,
-    required this.userId,
-    required this.courtId,
-    required this.orderedAt,
     required this.facilityName,
     required this.address,
-    required this.imageUrl,
     required this.price,
-    required this.period,
+    required this.createdAt,
+    required this.image,
+    required this.timePeriod,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'user_id': userId,
-      'court_id': courtId,
-      'ordered_at': orderedAt.millisecondsSinceEpoch,
-      'facility_name': facilityName,
+      '_id': id,
+      'facilityName': facilityName,
       'address': address,
-      'image_url': imageUrl,
       'price': price,
-      'period': period.toMap(),
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'image': image.toMap(),
+      'timePeriod': timePeriod.toMap(),
     };
   }
 
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
       id: map['_id'] ?? '',
-      userId: map['user_id'] ?? '',
-      courtId: map['court_id'] ?? '',
-      orderedAt: DateTime.fromMillisecondsSinceEpoch(
-        map['ordered_at']?.toInt() ?? 0,
-      ),
-      facilityName: map['facility_name'] ?? '',
+      facilityName: map['facilityName'] ?? '',
       address: map['address'] ?? '',
-      imageUrl: map['image_url'] ?? '',
       price: map['price']?.toDouble() ?? 0.0,
-      period: OrderPeriod.fromMap(map['period']),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        map['createdAt']?.toInt() ?? 0,
+      ),
+      image: ImageCustom.fromMap(map['image'] ?? {}),
+      timePeriod: OrderPeriod.fromMap(map['timePeriod']),
     );
   }
 

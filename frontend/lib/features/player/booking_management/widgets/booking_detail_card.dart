@@ -21,7 +21,7 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
-    DateTime playTime = widget.order.period.hourFrom;
+    DateTime playTime = widget.order.timePeriod.hourFrom;
     bool isPlayed = now.isAfter(playTime);
 
     void _navigateToBookingDetailScreen() {
@@ -104,9 +104,9 @@ class _BookingDetailCardState extends State<BookingDetailCard> {
                     height: 100,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: widget.order.imageUrl.isNotEmpty
+                      child: widget.order.image.url.isNotEmpty
                           ? Image.network(
-                              widget.order.imageUrl,
+                              widget.order.image.url,
                               fit: BoxFit.fill,
                             )
                           : Image.asset(
