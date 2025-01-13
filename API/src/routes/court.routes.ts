@@ -32,4 +32,9 @@ courtRoutes.post(
   errorHandler(courtController.addCourt.bind(courtController))
 );
 
+courtRoutes.get(
+  "/:id",
+  errorHandler(courtController.getCourt.bind(courtController))
+);
+
 export default courtRoutes;

@@ -3,6 +3,7 @@ export class CourtDto {
   courtName: string = "";
   description: string = "";
   pricePerHour: string = "";
+  state: string = "";
   createdAt: number = 0;
 
   public static mapFrom(court: any): CourtDto {
@@ -14,6 +15,7 @@ export class CourtDto {
     this.courtName = court === null ? "" : court.courtName;
     this.description = court === null ? "" : court.description;
     this.pricePerHour = court === null ? "" : court.pricePerHour;
+    this.state = court === null ? "" : court.state;
     this.createdAt = court === null ? 0 : court.createdAt;
   }
 }
