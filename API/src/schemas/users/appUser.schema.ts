@@ -55,4 +55,5 @@ export const AppUserSchema = new mongoose.Schema({
   },
   chatRooms: [{ type: String }],
   likedFacilities: [{ type: String }],
+  likedComments: [{ type: String }],
 });
