@@ -9,7 +9,7 @@ const AppFacilitySchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  name: {
+  facilityName: {
     required: true,
     type: String,
     trim: true,
@@ -54,22 +54,18 @@ const AppFacilitySchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  activeAt: ActiveSchema,
-  registeredAt: {
+  activeAt: { type: ActiveSchema, default: null },
+  createdAt: {
     type: Number,
     required: true,
     default: Date.now(),
   },
   facilityImages: [FileSchema],
   managerInfo: ManagerInfoSchema,
-  isApproved: {
-    type: Boolean,
-    default: false,
-  },
-  approvedAt: {
-    type: Number,
-    required: true,
-    default: Date.now(),
+  state: {
+    type: String,
+    trim: true,
+    default: "Pending",
   },
   updatedAt: {
     type: Number,

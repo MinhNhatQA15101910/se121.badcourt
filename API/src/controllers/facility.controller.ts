@@ -9,6 +9,7 @@ import { FacilityParamsSchema } from "../schemas/facilities/facilityParams.schem
 import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
 import { uploadImages } from "../helper/helpers";
 import { IJwtService } from "../interfaces/services/IJwt.service";
+import { FacilityDto } from "../dtos/facility.dto";
 
 @injectable()
 export class FacilityController {
@@ -34,7 +35,12 @@ export class FacilityController {
       facilityParams
     );
 
-    res.json(facilities);
+    var facilityDtos: FacilityDto[] = [];
+    for (let facility of facilities) {
+      facilityDtos.push(FacilityDto.mapFrom(facility));
+    }
+
+    res.json(facilityDtos);
   }
 
   async registerFacility(req: Request, res: Response) {
@@ -68,52 +74,62 @@ export class FacilityController {
     facility.facilityImages = facilityImages;
 
     // Upload citizen image front
-    const citizenImageFront = (
-      await uploadImages(
-        this._fileService,
-        (req.files as any).citizenImageFront,
-        `facilities/${facility._id}/citizen_images`
-      )
-    )[0];
-    managerInfo.citizenImageFront = citizenImageFront;
+    if ((req.files as any).citizenImageFront) {
+      const citizenImageFront = (
+        await uploadImages(
+          this._fileService,
+          (req.files as any).citizenImageFront,
+          `facilities/${facility._id}/citizen_images`
+        )
+      )[0];
+      managerInfo.citizenImageFront = citizenImageFront;
+    }
 
     // Upload citizen image front
-    const citizenImageBack = (
-      await uploadImages(
-        this._fileService,
-        (req.files as any).citizenImageBack,
-        `facilities/${facility._id}/citizen_images`
-      )
-    )[0];
-    managerInfo.citizenImageBack = citizenImageBack;
+    if ((req.files as any).citizenImageBack) {
+      const citizenImageBack = (
+        await uploadImages(
+          this._fileService,
+          (req.files as any).citizenImageBack,
+          `facilities/${facility._id}/citizen_images`
+        )
+      )[0];
+      managerInfo.citizenImageBack = citizenImageBack;
+    }
 
     // Upload bank card image front
-    const bankCardFront = (
-      await uploadImages(
-        this._fileService,
-        (req.files as any).bankCardFront,
-        `facilities/${facility._id}/bank_card_images`
-      )
-    )[0];
-    managerInfo.bankCardFront = bankCardFront;
+    if ((req.files as any).bankCardFront) {
+      const bankCardFront = (
+        await uploadImages(
+          this._fileService,
+          (req.files as any).bankCardFront,
+          `facilities/${facility._id}/bank_card_images`
+        )
+      )[0];
+      managerInfo.bankCardFront = bankCardFront;
+    }
 
     // Upload bank card image back
-    const bankCardBack = (
-      await uploadImages(
-        this._fileService,
-        (req.files as any).bankCardBack,
-        `facilities/${facility._id}/bank_card_images`
-      )
-    )[0];
-    managerInfo.bankCardBack = bankCardBack;
+    if ((req.files as any).bankCardBack) {
+      const bankCardBack = (
+        await uploadImages(
+          this._fileService,
+          (req.files as any).bankCardBack,
+          `facilities/${facility._id}/bank_card_images`
+        )
+      )[0];
+      managerInfo.bankCardBack = bankCardBack;
+    }
 
     // Upload business licenses
-    const businessLicenseImages = await uploadImages(
-      this._fileService,
-      (req.files as any).businessLicenseImages,
-      `facilities/${facility._id}/business_license_images`
-    );
-    managerInfo.businessLicenseImages = businessLicenseImages;
+    if ((req.files as any).businessLicenseImages) {
+      const businessLicenseImages = await uploadImages(
+        this._fileService,
+        (req.files as any).businessLicenseImages,
+        `facilities/${facility._id}/business_license_images`
+      );
+      managerInfo.businessLicenseImages = businessLicenseImages;
+    }
 
     facility.managerInfo = managerInfo;
     facility = await facility.save();

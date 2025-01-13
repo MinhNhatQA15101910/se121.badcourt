@@ -57,7 +57,7 @@ export const userData = [
 
 export const facilityData = [
   {
-    name: "Sân Cầu Lông TamBo",
+    facilityName: "Sân Cầu Lông TamBo",
     facebookUrl:
       "https://www.facebook.com/pages/S%C3%A2n%20C%C3%A2%CC%80u%20L%C3%B4ng%20Tambo/287484124787156/",
     description: "Test description",
@@ -77,7 +77,7 @@ export const facilityData = [
     },
   },
   {
-    name: "Sân Cầu Lông ĐHCT",
+    facilityName: "Sân Cầu Lông ĐHCT",
     facebookUrl: "https://www.facebook.com/groups/1476641239790497/",
     description: "Test description",
     policy: "Test policy",
@@ -96,7 +96,7 @@ export const facilityData = [
     },
   },
   {
-    name: "Sân Cầu Lông Trần Não",
+    facilityName: "Sân Cầu Lông Trần Não",
     facebookUrl: "https://www.facebook.com/share/qkijJ3VG8knwf6qs/",
     description: "Test description",
     policy: "Test policy",
@@ -115,7 +115,7 @@ export const facilityData = [
     },
   },
   {
-    name: "Sân cầu lông THPT MARIE CURIE",
+    facilityName: "Sân cầu lông THPT MARIE CURIE",
     facebookUrl:
       "https://www.facebook.com/pages/Clb-C%E1%BA%A7u-L%C3%B4ng-Tr%C6%B0%E1%BB%9Dng-Thpt-Marie-Curie/1104998279561562",
     description: "Test description",
@@ -135,7 +135,7 @@ export const facilityData = [
     },
   },
   {
-    name: "Trung Tâm TDTT Sân Cầu Lông",
+    facilityName: "Trung Tâm TDTT Sân Cầu Lông",
     facebookUrl: "https://vi-vn.facebook.com/caulong.minhkhai/",
     description: "Test description",
     policy: "Test policy",
@@ -153,7 +153,7 @@ export const facilityData = [
     },
   },
   {
-    name: "Sân Cầu Lông Tiến Dinh Sport",
+    facilityName: "Sân Cầu Lông Tiến Dinh Sport",
     facebookUrl: "https://www.facebook.com/sancaulongtiendinhsport/",
     description: "Test description",
     policy: "Test policy",
