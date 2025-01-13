@@ -10,6 +10,8 @@ import { uploadImages } from "../helper/helpers";
 import { FacilityDto } from "../dtos/facilities/facility.dto";
 import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
+import { NewActiveSchema } from "../schemas/active/newActive.schema";
+import { ActiveDto } from "../dtos/active/active.dto";
 
 @injectable()
 export class FacilityController {
@@ -153,5 +155,27 @@ export class FacilityController {
     facility = await facility.save();
 
     res.json(facility);
+  }
+
+  async updateActive(req: Request, res: Response) {
+    const facilityId = req.params.id;
+    const facility = await this._facilityRepository.getFacilityById(facilityId);
+    if (!facility) {
+      throw new BadRequestException("Facility not found!");
+    }
+
+    const activeDto: ActiveDto = NewActiveSchema.parse(req.body);
+
+    // Check user role
+    const user = req.user;
+    if (user.role !== "admin" && facility.userId !== user._id.toString()) {
+      throw new BadRequestException("You are not authorized to update active!");
+    }
+
+    facility.activeAt = activeDto;
+    facility.updatedAt = new Date();
+    await facility.save();
+
+    res.status(204).json();
   }
 }
