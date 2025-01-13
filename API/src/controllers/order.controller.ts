@@ -161,6 +161,66 @@ export class OrderController {
       .json(OrderDto.mapFrom(order));
   }
 
+  async checkIntersect(req: Request, res: Response) {
+    const newOrderDto: NewOrderDto = CreateOrderSchema.parse(req.body);
+
+    // Check if court exists
+    const courtId = newOrderDto.courtId;
+    const court = await this._courtRepository.getCourtById(courtId);
+    if (!court) {
+      throw new NotFoundException("Court not found!");
+    }
+
+    // Check if facility active is in the time period
+    const facility = await this._facilityRepository.getFacilityById(
+      court.facilityId
+    );
+    if (!facility) {
+      throw new NotFoundException("Facility not found!");
+    }
+
+    const orderDayInWeek = new Date(newOrderDto.timePeriod?.hourFrom!).getDay();
+    const active = facility.activeAt[dayInWeekMap[orderDayInWeek]];
+    if (!active) {
+      throw new BadRequestException("Facility is not active at this time!");
+    }
+
+    // Check if the period is within the active time
+    const activeHourFrom = new Date(active.hourFrom).getHours();
+    const activeHourTo = new Date(active.hourTo).getHours();
+    const orderHourFrom = new Date(
+      newOrderDto.timePeriod?.hourFrom!
+    ).getHours();
+    const orderHourTo = new Date(newOrderDto.timePeriod?.hourTo!).getHours();
+    console.log(activeHourFrom, activeHourTo, orderHourFrom, orderHourTo);
+    if (
+      !this.isOverlap(
+        { hourFrom: activeHourFrom, hourTo: activeHourTo },
+        { hourFrom: orderHourFrom, hourTo: orderHourTo }
+      )
+    ) {
+      throw new BadRequestException("Period is not within the active time!");
+    }
+
+    // Check if the period is intersect with other orders
+    for (let orderPeriod of court.orderPeriods) {
+      if (this.isIntersect(orderPeriod, newOrderDto.timePeriod!)) {
+        throw new BadRequestException("Period is intersect with other orders!");
+      }
+    }
+
+    // Check if the period is intersect with inactive time
+    for (let inactive of court.inactivePeriods) {
+      if (this.isIntersect(inactive, newOrderDto.timePeriod!)) {
+        throw new BadRequestException(
+          "Period is intersect with inactive time!"
+        );
+      }
+    }
+
+    res.json(true);
+  }
+
   isIntersect(timePeriod1: any, timePeriod2: any) {
     return (
       timePeriod1.hourFrom < timePeriod2.hourTo &&

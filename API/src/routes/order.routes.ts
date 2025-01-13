@@ -49,4 +49,10 @@ orderRoutes.post(
   errorHandler(orderController.createOrder.bind(orderController))
 );
 
+orderRoutes.post(
+  "/check-intersect",
+  [authMiddleware],
+  errorHandler(orderController.checkIntersect.bind(orderController))
+);
+
 export default orderRoutes;
