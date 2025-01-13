@@ -17,7 +17,13 @@ class DayPicker extends StatefulWidget {
 
 class _DayPickerState extends State<DayPicker> {
   List<int> selectedDays = [
-    2
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
   ]; // Default selected days (you can change it as needed)
 
   @override

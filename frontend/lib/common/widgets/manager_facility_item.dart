@@ -34,8 +34,11 @@ class _ManagerFacilityItemState extends State<ManagerFacilityItem> {
     );
     currentFacilityProvider.setFacility(widget.facility);
 
-    Navigator.of(context).pushNamed(
-      ManagerBottomBar.routeName,
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => ManagerBottomBar(),
+      ),
+      (route) => false,
     );
   }
 

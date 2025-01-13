@@ -6,17 +6,19 @@ class Active {
   Active({required this.schedule});
 
   factory Active.fromMap(Map<String, dynamic> map) {
-    Map<String, PeriodTime> schedule = {};
+    final Map<String, PeriodTime> schedule = {};
+
     map.forEach((key, value) {
-      if (key != '_id') {
+      if (value != null && value is Map<String, dynamic>) {
         schedule[key] = PeriodTime.fromMap(value);
       }
     });
+
     return Active(schedule: schedule);
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {};
+    final Map<String, dynamic> map = {};
     schedule.forEach((key, value) {
       map[key] = value.toMap();
     });

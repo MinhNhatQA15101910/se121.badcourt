@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:frontend/models/active.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/manager_info.dart';
 import 'package:frontend/models/image_custom.dart';
@@ -83,6 +84,9 @@ class NewFacilityProvider extends ChangeNotifier {
           type: 'image',
         ),
       ],
+    ),
+    activeAt: Active(
+      schedule: {},
     ),
   );
 

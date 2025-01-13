@@ -1,7 +1,14 @@
 import 'dart:convert';
 
+import 'package:frontend/models/active.dart';
 import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/manager_info.dart';
+
+import 'dart:convert';
+
+import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/manager_info.dart';
+import 'package:frontend/models/period_time.dart';
 
 class Facility {
   final String id;
@@ -25,6 +32,7 @@ class Facility {
   final String state;
   final int createdAt;
   final ManagerInfo managerInfo;
+  final Active activeAt; // Added Active field
 
   Facility({
     required this.id,
@@ -48,6 +56,7 @@ class Facility {
     required this.state,
     required this.createdAt,
     required this.managerInfo,
+    required this.activeAt, // Include Active in the constructor
   });
 
   Facility copyWith({
@@ -72,6 +81,7 @@ class Facility {
     String? state,
     int? createdAt,
     ManagerInfo? managerInfo,
+    Active? activeAt, // Add Active to copyWith
   }) {
     return Facility(
       id: id ?? this.id,
@@ -95,6 +105,7 @@ class Facility {
       state: state ?? this.state,
       createdAt: createdAt ?? this.createdAt,
       managerInfo: managerInfo ?? this.managerInfo,
+      activeAt: activeAt ?? this.activeAt, // Include Active in copyWith
     );
   }
 
@@ -121,6 +132,7 @@ class Facility {
       'state': state,
       'createdAt': createdAt,
       'managerInfo': managerInfo.toMap(),
+      'activeAt': activeAt.toMap(), // Include Active in toMap
     };
   }
 
@@ -149,6 +161,8 @@ class Facility {
       state: map['state'] ?? '',
       createdAt: map['createdAt'] ?? 0,
       managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
+      activeAt:
+          Active.fromMap(map['activeAt'] ?? {}), // Include Active in fromMap
     );
   }
 

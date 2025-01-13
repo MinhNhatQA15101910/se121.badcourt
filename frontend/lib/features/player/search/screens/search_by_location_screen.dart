@@ -4,6 +4,7 @@ import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/player/search/services/search_service.dart';
+import 'package:frontend/models/active.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/manager_info.dart';
@@ -125,6 +126,9 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
           type: 'image',
         ),
       ],
+    ),
+    activeAt: Active(
+      schedule: {},
     ),
   );
 
