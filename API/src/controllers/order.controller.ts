@@ -13,7 +13,7 @@ import { PORT } from "../secrets";
 import { UnauthorizedException } from "../exceptions/unauthorized.exception";
 import { OrderParams } from "../params/order.params";
 import { OrderParamsSchema } from "../schemas/orders/orderParams.schema";
-import { addPaginationHeader } from "../helper/helpers";
+import { addPaginationHeader, isIntersect, isOverlap } from "../helper/helpers";
 
 const dayInWeekMap = [
   "sunday",
@@ -117,7 +117,7 @@ export class OrderController {
     const orderHourTo = new Date(newOrderDto.timePeriod?.hourTo!).getHours();
     console.log(activeHourFrom, activeHourTo, orderHourFrom, orderHourTo);
     if (
-      !this.isOverlap(
+      !isOverlap(
         { hourFrom: activeHourFrom, hourTo: activeHourTo },
         { hourFrom: orderHourFrom, hourTo: orderHourTo }
       )
@@ -127,14 +127,14 @@ export class OrderController {
 
     // Check if the period is intersect with other orders
     for (let orderPeriod of court.orderPeriods) {
-      if (this.isIntersect(orderPeriod, newOrderDto.timePeriod!)) {
+      if (isIntersect(orderPeriod, newOrderDto.timePeriod!)) {
         throw new BadRequestException("Period is intersect with other orders!");
       }
     }
 
     // Check if the period is intersect with inactive time
     for (let inactive of court.inactivePeriods) {
-      if (this.isIntersect(inactive, newOrderDto.timePeriod!)) {
+      if (isIntersect(inactive, newOrderDto.timePeriod!)) {
         throw new BadRequestException(
           "Period is intersect with inactive time!"
         );
@@ -194,7 +194,7 @@ export class OrderController {
     const orderHourTo = new Date(newOrderDto.timePeriod?.hourTo!).getHours();
     console.log(activeHourFrom, activeHourTo, orderHourFrom, orderHourTo);
     if (
-      !this.isOverlap(
+      !isOverlap(
         { hourFrom: activeHourFrom, hourTo: activeHourTo },
         { hourFrom: orderHourFrom, hourTo: orderHourTo }
       )
@@ -204,14 +204,14 @@ export class OrderController {
 
     // Check if the period is intersect with other orders
     for (let orderPeriod of court.orderPeriods) {
-      if (this.isIntersect(orderPeriod, newOrderDto.timePeriod!)) {
+      if (isIntersect(orderPeriod, newOrderDto.timePeriod!)) {
         throw new BadRequestException("Period is intersect with other orders!");
       }
     }
 
     // Check if the period is intersect with inactive time
     for (let inactive of court.inactivePeriods) {
-      if (this.isIntersect(inactive, newOrderDto.timePeriod!)) {
+      if (isIntersect(inactive, newOrderDto.timePeriod!)) {
         throw new BadRequestException(
           "Period is intersect with inactive time!"
         );
@@ -219,19 +219,5 @@ export class OrderController {
     }
 
     res.json(true);
-  }
-
-  isIntersect(timePeriod1: any, timePeriod2: any) {
-    return (
-      timePeriod1.hourFrom < timePeriod2.hourTo &&
-      timePeriod1.hourTo > timePeriod2.hourFrom
-    );
-  }
-
-  isOverlap(outsideTimePeriod1: any, insideTimePeriod2: any) {
-    return (
-      outsideTimePeriod1.hourFrom <= insideTimePeriod2.hourFrom &&
-      outsideTimePeriod1.hourTo >= insideTimePeriod2.hourTo
-    );
   }
 }

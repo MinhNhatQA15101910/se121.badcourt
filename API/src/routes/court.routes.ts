@@ -48,4 +48,10 @@ courtRoutes.put(
   errorHandler(courtController.updateCourt.bind(courtController))
 );
 
+courtRoutes.put(
+  "/update-inactive/:id",
+  [authMiddleware],
+  errorHandler(courtController.updateInactive.bind(courtController))
+);
+
 export default courtRoutes;
