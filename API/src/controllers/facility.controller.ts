@@ -49,68 +49,74 @@ export class FacilityController {
       throw new BadRequestException("Facility name already exists!");
     }
 
+    // Set current user id
     const user = req.user;
     registerFacilityDto.userId = user._id;
+
+    let facility = await this._facilityRepository.registerFacility(
+      registerFacilityDto
+    );
+
+    let managerInfo = facility.managerInfo;
 
     // Upload facility images
     const facilityImages = await uploadImages(
       this._fileService,
       (req.files as any).facilityImages,
-      `${user.username}/${registerFacilityDto.facilityName}/facility_images`
+      `facilities/${facility._id}/facility_images`
     );
-    registerFacilityDto.facilityImages = facilityImages;
+    managerInfo.facilityImages = facilityImages;
 
     // Upload citizen image front
     const citizenImageFront = (
       await uploadImages(
         this._fileService,
         (req.files as any).citizenImageFront,
-        `${user.username}/${registerFacilityDto.facilityName}/citizen_images`
+        `facilities/${facility._id}/citizen_images`
       )
     )[0];
-    registerFacilityDto.citizenImageFront = citizenImageFront;
+    managerInfo.citizenImageFront = citizenImageFront;
 
     // Upload citizen image front
     const citizenImageBack = (
       await uploadImages(
         this._fileService,
         (req.files as any).citizenImageBack,
-        `${user.username}/${registerFacilityDto.facilityName}/citizen_images`
+        `facilities/${facility._id}/citizen_images`
       )
     )[0];
-    registerFacilityDto.citizenImageBack = citizenImageBack;
+    managerInfo.citizenImageBack = citizenImageBack;
 
     // Upload bank card image front
     const bankCardFront = (
       await uploadImages(
         this._fileService,
         (req.files as any).bankCardFront,
-        `${user.username}/${registerFacilityDto.facilityName}/bank_card_images`
+        `facilities/${facility._id}/bank_card_images`
       )
     )[0];
-    registerFacilityDto.bankCardFront = bankCardFront;
+    managerInfo.bankCardFront = bankCardFront;
 
     // Upload bank card image back
     const bankCardBack = (
       await uploadImages(
         this._fileService,
         (req.files as any).bankCardBack,
-        `${user.username}/${registerFacilityDto.facilityName}/bank_card_images`
+        `facilities/${facility._id}/bank_card_images`
       )
     )[0];
-    registerFacilityDto.bankCardBack = bankCardBack;
+    managerInfo.bankCardBack = bankCardBack;
 
     // Upload business licenses
     const businessLicenseImages = await uploadImages(
       this._fileService,
       (req.files as any).businessLicenseImages,
-      `${user.username}/${registerFacilityDto.facilityName}/business_license_images`
+      `facilities/${facility._id}/business_license_images`
     );
-    registerFacilityDto.businessLicenseImages = businessLicenseImages;
+    managerInfo.businessLicenseImages = businessLicenseImages;
 
-    const facility = await this._facilityRepository.registerFacility(
-      registerFacilityDto
-    );
+    facility.managerInfo = managerInfo;
+    facility = await facility.save();
 
     res.json(facility);
   }

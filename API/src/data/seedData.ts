@@ -35,7 +35,7 @@ const seedUsers = async () => {
       newUser = await newUser.save();
 
       const result = await cloudinary.uploader.upload(
-        `src/data/resources/users/${index}.jpg`,
+        `src/data/resources/users/${index++}.jpg`,
         {
           folder: `BadCourt-prod/users/${newUser._id}`,
           resource_type: "image",
