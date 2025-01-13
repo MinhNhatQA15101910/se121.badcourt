@@ -12,7 +12,7 @@ export class FacilityDto {
   userImageUrl: string = "";
   facilityImageUrl: string = "";
   facilityImages: FileDto[] = [];
-  activeAt?: ActiveDto;
+  activeAt: any;
   courtsAmount: number = 0;
   minPrice: number = 0;
   maxPrice: number = 0;
