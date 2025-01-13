@@ -65,7 +65,7 @@ export class FacilityController {
       (req.files as any).facilityImages,
       `facilities/${facility._id}/facility_images`
     );
-    managerInfo.facilityImages = facilityImages;
+    facility.facilityImages = facilityImages;
 
     // Upload citizen image front
     const citizenImageFront = (
