@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
@@ -33,6 +34,9 @@ List<SingleChildWidget> providers = [
   ),
   ChangeNotifierProvider(
     create: (context) => CurrentFacilityProvider(),
+  ),
+  ChangeNotifierProvider(
+    create: (context) => AddressProvider(),
   ),
 ];
 

@@ -57,6 +57,8 @@ export class FacilityController {
       registerFacilityDto
     );
 
+    console.log(facility);
+
     let managerInfo = facility.managerInfo;
 
     // Upload facility images
