@@ -37,4 +37,9 @@ courtRoutes.get(
   errorHandler(courtController.getCourt.bind(courtController))
 );
 
+courtRoutes.get(
+  "/",
+  errorHandler(courtController.getCourts.bind(courtController))
+);
+
 export default courtRoutes;

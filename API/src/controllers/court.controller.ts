@@ -8,6 +8,9 @@ import { AddCourtSchema } from "../schemas/courts/addCourt.schema";
 import { IFacilityRepository } from "../interfaces/repositories/IFacility.repository";
 import { CourtDto } from "../dtos/courts/court.dto";
 import { PORT } from "../secrets";
+import { addPaginationHeader } from "../helper/helpers";
+import { CourtParams } from "../params/court.params";
+import { CourtParamsSchema } from "../schemas/courts/courtParams.schema";
 
 @injectable()
 export class CourtController {
@@ -37,6 +40,22 @@ export class CourtController {
     res.json(CourtDto.mapFrom(court));
   }
 
+  async getCourts(req: Request, res: Response) {
+    const courtParams: CourtParams = CourtParamsSchema.parse(req.query);
+
+    const courts = await this._courtRepository.getCourts(courtParams);
+
+    addPaginationHeader(res, courts);
+
+    const courtDtos: CourtDto[] = [];
+    for (let court of courts) {
+      const courtDto = CourtDto.mapFrom(court);
+      courtDtos.push(courtDto);
+    }
+
+    res.json(courtDtos);
+  }
+
   async addCourt(req: Request, res: Response) {
     const user = req.user;
 
@@ -54,6 +73,14 @@ export class CourtController {
       facility.userId.toString() !== user._id.toString()
     ) {
       throw new NotFoundException("You are not authorized to add court!");
+    }
+
+    // Check if the court name exists
+    const existingCourt = await this._courtRepository.getCourtByName(
+      newCourtDto.courtName
+    );
+    if (existingCourt) {
+      throw new NotFoundException("Court name already exists!");
     }
 
     // Add court to database
