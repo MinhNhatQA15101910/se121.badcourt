@@ -12,14 +12,12 @@ export const uploadImages = async (
   const images = [];
   let isMain = true;
   for (const file of files) {
-    const result = await fileService.addPhoto(
-      file.path,
-      `BadCourt/${folderName}`
-    );
+    const result = await fileService.uploadFile(file.path, folderName, "image");
     images.push({
       url: result.url,
       publicId: result.public_id,
       isMain,
+      type: "image",
     });
 
     isMain = false;

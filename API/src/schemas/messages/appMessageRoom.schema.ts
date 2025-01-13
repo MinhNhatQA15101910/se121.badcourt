@@ -13,7 +13,6 @@ export const AppMessageRoomSchema = new mongoose.Schema({
     default: "personal",
   },
   users: [{ type: String }],
-  messages: [{ type: String }],
   createdAt: {
     type: Number,
     default: Date.now(),
