@@ -64,4 +64,10 @@ facilityRoutes.post(
   errorHandler(facilityController.registerFacility.bind(facilityController))
 );
 
+facilityRoutes.patch(
+  "/update-active/:id",
+  [authMiddleware],
+  errorHandler(facilityController.updateActive.bind(facilityController))
+);
+
 export default facilityRoutes;

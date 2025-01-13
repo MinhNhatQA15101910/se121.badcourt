@@ -1,3 +1,4 @@
+import { ActiveDto } from "../active/active.dto";
 import { FileDto } from "../files/file.dto";
 import { ManagerInfoDto } from "./managerInfo.dto";
 
@@ -11,6 +12,7 @@ export class FacilityDto {
   userImageUrl: string = "";
   facilityImageUrl: string = "";
   facilityImages: FileDto[] = [];
+  activeAt?: ActiveDto;
   courtsAmount: number = 0;
   minPrice: number = 0;
   maxPrice: number = 0;
@@ -43,6 +45,9 @@ export class FacilityDto {
       facility === null
         ? []
         : facility.facilityImages.map((file: any) => FileDto.mapFrom(file));
+    this.activeAt = ActiveDto.mapFrom(
+      facility === null ? null : facility.activeAt
+    );
     this.courtsAmount = facility === null ? 0 : facility.courtsAmount;
     this.minPrice = facility === null ? 0 : facility.minPrice;
     this.maxPrice = facility === null ? 0 : facility.maxPrice;
