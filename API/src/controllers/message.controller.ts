@@ -17,6 +17,7 @@ import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema"
 import { MessageRoomDto } from "../dtos/messages/messageRoom.dto";
 import { NotFoundException } from "../exceptions/notFound.exception";
 import { io } from "..";
+import { UserDto } from "../dtos/auth/user.dto";
 
 @injectable()
 export class MessageController {
@@ -80,12 +81,6 @@ export class MessageController {
     message.updatedAt = Date.now();
     await message.save();
 
-    // Update message room with message
-    room.messages.push(message._id);
-    room.createdAt = Date.now();
-    room.updatedAt = Date.now();
-    await room.save();
-
     // Map to MessageDto
     const messageDto = MessageDto.mapFrom(message);
 
@@ -97,6 +92,11 @@ export class MessageController {
     // Emit message to room
     console.log(room._id.toString(), messageDto);
     io.to(room._id.toString()).emit("newMessage", messageDto);
+
+    // Emit message room to room
+    const messageRoomDto = MessageRoomDto.mapFrom(room);
+    messageRoomDto.lastMessage = messageDto;
+    io.to(room._id.toString()).emit("messageRoom", messageRoomDto);
 
     return res
       .status(201)
@@ -249,6 +249,13 @@ export class MessageController {
 
     // Map to MessageRoomDto
     const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+    messageRoomDto.lastMessage = await this._messageRepository.getLastMessage(
+      messageRoom._id.toString()
+    );
+    for (let userId of messageRoom.users) {
+      const user = await this._userRepository.getUserById(userId);
+      messageRoomDto.users.push(UserDto.mapFrom(user));
+    }
 
     res.json(messageRoomDto);
   }
