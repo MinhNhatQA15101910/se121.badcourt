@@ -1,10 +1,10 @@
 import { injectable } from "inversify";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
-import { NewPostDto } from "../dtos/newPost.dto";
 import Post from "../models/post";
 import { PagedList } from "../helper/pagedList";
 import { PostParams } from "../params/post.params";
 import { Aggregate } from "mongoose";
+import { NewPostDto } from "../dtos/posts/newPost.dto";
 
 @injectable()
 export class PostRepository implements IPostRepository {

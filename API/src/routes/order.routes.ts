@@ -37,6 +37,12 @@ orderRoutes.get(
   errorHandler(orderController.getOrder.bind(orderController))
 );
 
+orderRoutes.get(
+  "/",
+  [authMiddleware],
+  errorHandler(orderController.getOrders.bind(orderController))
+);
+
 orderRoutes.post(
   "/",
   [authMiddleware],

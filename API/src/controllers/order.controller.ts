@@ -62,49 +62,22 @@ export class OrderController {
   async getOrders(req: Request, res: Response) {
     const orderParams: OrderParams = OrderParamsSchema.parse(req.query);
 
+    const user = req.user;
+    if (!(user.role === "admin")) {
+      orderParams.userId = user._id.toString();
+    }
+
     const orders = await this._orderRepository.getOrders(orderParams);
 
     addPaginationHeader(res, orders);
 
     const orderDtos: OrderDto[] = [];
-    for (let post of posts) {
-      const postDto = PostDto.mapFrom(post);
-
-      // Add user info to postDto
-      const user = await this._userRepository.getUserById(post.userId);
-      postDto.publisherUsername = user.username;
-      postDto.publisherImageUrl =
-        user.image === undefined ? "" : user.image.url;
-
-      // Add comments to postDto
-      const comments = await this._commentRepository.getTop3CommentsForPost(
-        post._id
-      );
-      for (let comment of comments) {
-        const commentDto = CommentDto.mapFrom(comment);
-
-        const user = await this._userRepository.getUserById(comment.userId);
-        commentDto.publisherUsername = user.username;
-        commentDto.publisherImageUrl =
-          user.image === undefined ? "" : user.image.url;
-
-        postDto.comments.push(commentDto);
-      }
-      postDto.commentsCount = await this._commentRepository.getCommentsCount(
-        post._id
-      );
-
-      // Add liked users to postDto
-      for (let userId of post.likedUsers) {
-        const user = await this._userRepository.getUserById(userId);
-        const userDto = UserDto.mapFrom(user);
-        postDto.likedUsers.push(userDto);
-      }
-
-      postDtos.push(postDto);
+    for (let order of orders) {
+      const orderDto = OrderDto.mapFrom(order);
+      orderDtos.push(orderDto);
     }
 
-    res.json(postDtos);
+    res.json(orderDtos);
   }
 
   async createOrder(req: Request, res: Response) {
