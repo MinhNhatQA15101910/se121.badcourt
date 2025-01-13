@@ -3,8 +3,8 @@ import { PagedList } from "../helper/pagedList";
 import { injectable } from "inversify";
 import { Aggregate } from "mongoose";
 import Facility from "../models/facility";
-import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
 import { FacilityParams } from "../params/facility.params";
+import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
@@ -36,6 +36,10 @@ export class FacilityRepository implements IFacilityRepository {
             avgPrice: { $avg: ["$minPrice", "$maxPrice"] },
           })
           .sort({ avgPrice: facilityParams.order === "asc" ? 1 : -1 });
+    }
+
+    if (facilityParams.userId) {
+      aggregate = aggregate.match({ userId: facilityParams.userId });
     }
 
     if (facilityParams.province) {
@@ -71,7 +75,7 @@ export class FacilityRepository implements IFacilityRepository {
   ): Promise<any> {
     let facility = new Facility({
       userId: registerFacilityDto.userId,
-      name: registerFacilityDto.facilityName,
+      facilityName: registerFacilityDto.facilityName,
       facebookUrl: registerFacilityDto.facebookUrl,
       description: registerFacilityDto.description,
       policy: registerFacilityDto.policy,

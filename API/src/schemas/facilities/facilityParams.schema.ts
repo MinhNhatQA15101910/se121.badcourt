@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const FacilityParamsSchema = z.object({
+  userId: z.string().optional(),
   lat: z
     .preprocess(
       (l) => parseFloat(z.string().parse(l)),
