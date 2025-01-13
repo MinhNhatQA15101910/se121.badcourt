@@ -65,6 +65,9 @@ export const facilityData = [
     detailAddress:
       "Số 15A/1 Hẻm 51, Đường 3-2, Phường An Khánh, Ninh Kiều, Cần Thơ, Vietnam",
     province: "Thành phố Cần Thơ",
+    courtsAmount: 3,
+    minPrice: 50000,
+    maxPrice: 150000,
     location: {
       type: "Point",
       coordinates: [105.7538001, 10.0276055],
@@ -84,6 +87,9 @@ export const facilityData = [
     detailAddress:
       "2QJ9+V8R, Unnamed Rd, Xuân Khánh, Ninh Kiều, Cần Thơ, Vietnam",
     province: "Thành phố Cần Thơ",
+    courtsAmount: 3,
+    minPrice: 50000,
+    maxPrice: 150000,
     location: {
       type: "Point",
       coordinates: [105.7656973, 10.0322489],
@@ -103,6 +109,9 @@ export const facilityData = [
     detailAddress:
       "22 Đ. Số 24, Bình An, Quận 2, Thành phố Hồ Chí Minh, Vietnam",
     province: "Thành phố Hồ Chí Minh",
+    courtsAmount: 3,
+    minPrice: 50000,
+    maxPrice: 150000,
     location: {
       type: "Point",
       coordinates: [106.4250779, 10.7944488],
@@ -123,6 +132,9 @@ export const facilityData = [
     detailAddress:
       "26 Lê Quý Đôn, Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam",
     province: "Thành phố Hồ Chí Minh",
+    courtsAmount: 3,
+    minPrice: 50000,
+    maxPrice: 150000,
     location: {
       type: "Point",
       coordinates: [106.6876871, 10.7820299],
@@ -141,6 +153,9 @@ export const facilityData = [
     policy: "Test policy",
     detailAddress: "521 P. Minh Khai, Vĩnh Phú, Hai Bà Trưng, Hà Nội, Vietnam",
     province: "Thành phố Hà Nội",
+    courtsAmount: 3,
+    minPrice: 50000,
+    maxPrice: 150000,
     location: {
       type: "Point",
       coordinates: [105.8702438, 21.0007026],
@@ -160,6 +175,9 @@ export const facilityData = [
     detailAddress:
       "Tòa B, 488 P. Minh Khai, Vĩnh Phú, Hai Bà Trưng, Hà Nội 100000, Vietnam",
     province: "Thành phố Hà Nội",
+    courtsAmount: 3,
+    minPrice: 50000,
+    maxPrice: 150000,
     location: {
       type: "Point",
       coordinates: [105.8659253, 20.998275],
@@ -170,5 +188,23 @@ export const facilityData = [
       phoneNumber: "0869987669",
       citizenId: "082203001442",
     },
+  },
+];
+
+export const courtData = [
+  {
+    courtName: "Court 1",
+    description: "Test description",
+    pricePerHour: 50000,
+  },
+  {
+    courtName: "Court 2",
+    description: "Test description",
+    pricePerHour: 100000,
+  },
+  {
+    courtName: "Court 3",
+    description: "Test description",
+    pricePerHour: 150000,
   },
 ];

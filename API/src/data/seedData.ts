@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/user";
-import { facilityData, userData } from "./data";
+import { courtData, facilityData, userData } from "./data";
 import { hashSync } from "bcrypt";
 import {
   CLOUDINARY_API_KEY,
@@ -10,6 +10,7 @@ import {
 } from "../secrets";
 import { v2 as cloudinary } from "cloudinary";
 import Facility from "../models/facility";
+import Court from "../models/court";
 
 cloudinary.config({
   cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -21,6 +22,7 @@ export const seedData = async () => {
   try {
     await seedUsers();
     await seedFacilities();
+    await seedCourts();
   } catch (error) {
     console.error("Error seeding data:", error);
     mongoose.connection.close();
@@ -170,5 +172,20 @@ const seedFacilities = async () => {
       index++;
     }
     console.log("Facilities seeded successfully");
+  }
+};
+
+const seedCourts = async () => {
+  const courts = await Court.find();
+  if (courts.length === 0) {
+    const facilities = await Facility.find();
+    for (let facility of facilities) {
+      for (let court of courtData) {
+        let newCourt = new Court(court);
+        newCourt.facilityId = facility._id.toString();
+        await newCourt.save();
+      }
+    }
+    console.log("Courts seeded successfully");
   }
 };
