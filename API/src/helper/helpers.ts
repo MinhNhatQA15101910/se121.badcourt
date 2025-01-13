@@ -40,3 +40,20 @@ export const addPaginationHeader = function <T>(
   res.setHeader("Pagination", JSON.stringify(paginationHeader));
   res.setHeader("Access-Control-Expose-Headers", "Pagination");
 };
+
+export const isIntersect = function (timePeriod1: any, timePeriod2: any) {
+  return (
+    timePeriod1.hourFrom < timePeriod2.hourTo &&
+    timePeriod1.hourTo > timePeriod2.hourFrom
+  );
+};
+
+export const isOverlap = function (
+  outsideTimePeriod1: any,
+  insideTimePeriod2: any
+) {
+  return (
+    outsideTimePeriod1.hourFrom <= insideTimePeriod2.hourFrom &&
+    outsideTimePeriod1.hourTo >= insideTimePeriod2.hourTo
+  );
+};

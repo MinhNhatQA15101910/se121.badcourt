@@ -1,5 +1,5 @@
 export class FileDto {
-  _id: string = "";
+  _id?: string = "";
   url: string = "";
   isMain: boolean = false;
   type: string = "";

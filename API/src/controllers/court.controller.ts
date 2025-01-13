@@ -8,11 +8,15 @@ import { AddCourtSchema } from "../schemas/courts/addCourt.schema";
 import { IFacilityRepository } from "../interfaces/repositories/IFacility.repository";
 import { CourtDto } from "../dtos/courts/court.dto";
 import { PORT } from "../secrets";
-import { addPaginationHeader } from "../helper/helpers";
+import { addPaginationHeader, isIntersect } from "../helper/helpers";
 import { CourtParams } from "../params/court.params";
 import { CourtParamsSchema } from "../schemas/courts/courtParams.schema";
 import { UpdateCourtDto } from "../dtos/courts/updateCourt.dto";
 import { UpdateCourtSchema } from "../schemas/courts/updateCourt.schema";
+import { TimePeriodDto } from "../dtos/active/timePeriod.dto";
+import { NewTimePeriodSchema } from "../schemas/active/newTimePeriod.schema";
+import { BadRequestException } from "../exceptions/badRequest.exception";
+import { UnauthorizedException } from "../exceptions/unauthorized.exception";
 
 @injectable()
 export class CourtController {
@@ -164,6 +168,56 @@ export class CourtController {
     );
     facility.updatedAt = new Date();
     await facility.save();
+
+    res.status(204).json();
+  }
+
+  async updateInactive(req: Request, res: Response) {
+    const user = req.user;
+
+    const courtId = req.params.id;
+
+    const timePeriodDto: TimePeriodDto = NewTimePeriodSchema.parse(req.body);
+    let court = await this._courtRepository.getCourtById(courtId);
+    if (!court) {
+      throw new NotFoundException("Court not found!");
+    }
+
+    // Check if user is authorized to update facility
+    const facility = await this._facilityRepository.getFacilityById(
+      court.facilityId
+    );
+    if (!facility) {
+      throw new NotFoundException("Facility not found!");
+    }
+    if (
+      user.role !== "admin" &&
+      facility.userId.toString() !== user._id.toString()
+    ) {
+      throw new UnauthorizedException(
+        "You are not authorized to update court!"
+      );
+    }
+
+    // Check intersect with order periods
+    for (let orderPeriod of court.orderPeriods) {
+      if (isIntersect(orderPeriod, timePeriodDto)) {
+        throw new BadRequestException("Period is intersect with order period!");
+      }
+    }
+
+    // Check intersect with inactive periods
+    for (let inactivePeriod of court.inactivePeriods) {
+      if (isIntersect(inactivePeriod, timePeriodDto)) {
+        throw new BadRequestException(
+          "Period is intersect with inactive period!"
+        );
+      }
+    }
+
+    // Update court
+    court.inactivePeriods.push(timePeriodDto);
+    await court.save();
 
     res.status(204).json();
   }
