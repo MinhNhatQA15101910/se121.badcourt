@@ -1,6 +1,7 @@
 export const INTERFACE_TYPE = {
   AuthController: Symbol.for("AuthController"),
   CommentController: Symbol.for("CommentController"),
+  CourtController: Symbol.for("CourtController"),
   FacilityController: Symbol.for("FacilityController"),
   MessageController: Symbol.for("MessageController"),
   PostController: Symbol.for("PostController"),
@@ -10,6 +11,7 @@ export const INTERFACE_TYPE = {
   MailService: Symbol.for("MailService"),
   JwtService: Symbol.for("JwtService"),
   CommentRepository: Symbol.for("CommentRepository"),
+  CourtRepository: Symbol.for("CourtRepository"),
   FacilityRepository: Symbol.for("FacilityRepository"),
   MessageRepository: Symbol.for("MessageRepository"),
   PostRepository: Symbol.for("PostRepository"),

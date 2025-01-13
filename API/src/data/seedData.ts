@@ -63,7 +63,7 @@ const seedFacilities = async () => {
     let index = 1;
     for (let facility of facilityData) {
       let newFacility = new Facility(facility);
-      newFacility.userId = users[index - 1]._id.toString();
+      newFacility.userId = users[index + 1]._id.toString();
       newFacility = await newFacility.save();
 
       let managerInfo = newFacility.managerInfo;
