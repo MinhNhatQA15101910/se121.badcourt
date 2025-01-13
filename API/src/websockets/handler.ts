@@ -8,14 +8,18 @@ export const socketHandler = (io: Server) => {
     console.log(`User ${socket.id} connected`);
 
     socket.on("login", async (userId) => {
+      console.log(`User ${userId} logged in`);
+
       // Join rooms
       socket.join(userId);
+      console.log(`User ${userId} joined room ${userId}`);
       const user = await User.findById(userId);
       if (!user) {
         return;
       }
 
       for (const roomId of user.chatRooms) {
+        console.log(`User ${userId} joined room ${roomId}`);
         socket.join(roomId);
       }
 
