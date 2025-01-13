@@ -31,6 +31,12 @@ const orderController = container.get<OrderController>(
   INTERFACE_TYPE.OrderController
 );
 
+orderRoutes.get(
+  "/:id",
+  [authMiddleware],
+  errorHandler(orderController.getOrder.bind(orderController))
+);
+
 orderRoutes.post(
   "/",
   [authMiddleware],
