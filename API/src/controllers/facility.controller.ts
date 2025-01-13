@@ -61,6 +61,11 @@ export class FacilityController {
     res.json(facilityDtos);
   }
 
+  async getFacilityProvinces(req: Request, res: Response) {
+    const provinces = await this._facilityRepository.getFacilityProvinces();
+    res.json(provinces);
+  }
+
   async registerFacility(req: Request, res: Response) {
     const registerFacilityDto: RegisterFacilityDto =
       RegisterFacilitySchema.parse(req.body);

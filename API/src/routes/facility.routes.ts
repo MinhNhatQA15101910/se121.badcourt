@@ -48,6 +48,11 @@ facilityRoutes.get(
   errorHandler(facilityController.getFacilities.bind(facilityController))
 );
 
+facilityRoutes.get(
+  "/field/provinces",
+  errorHandler(facilityController.getFacilityProvinces.bind(facilityController))
+);
+
 facilityRoutes.post(
   "/",
   [authMiddleware],

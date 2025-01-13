@@ -71,6 +71,10 @@ export class FacilityRepository implements IFacilityRepository {
     return await Facility.findOne({ name: facilityName });
   }
 
+  async getFacilityProvinces(): Promise<string[]> {
+    return await Facility.distinct("province");
+  }
+
   async getMaxPrice(facilityId: string): Promise<number> {
     const courts = await Court.find({ facilityId });
 
