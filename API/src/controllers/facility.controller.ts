@@ -6,10 +6,10 @@ import { RegisterFacilitySchema } from "../schemas/facilities/registerFacility.s
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { FacilityParamsSchema } from "../schemas/facilities/facilityParams.schema";
-import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
 import { uploadImages } from "../helper/helpers";
 import { IJwtService } from "../interfaces/services/IJwt.service";
-import { FacilityDto } from "../dtos/facility.dto";
+import { FacilityDto } from "../dtos/facilities/facility.dto";
+import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
 
 @injectable()
 export class FacilityController {

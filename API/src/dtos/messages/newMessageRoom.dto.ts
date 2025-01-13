@@ -1,4 +1,4 @@
-import { FileDto } from "./file.dto";
+import { FileDto } from "../files/file.dto";
 
 export class NewMessageRoomDto {
   roomName?: string;

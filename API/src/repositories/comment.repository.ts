@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { ICommentRepository } from "../interfaces/repositories/IComment.repository";
-import { NewCommentDto } from "../dtos/newComment.dto";
+import { NewCommentDto } from "../dtos/comments/newComment.dto";
 import Comment from "../models/comment";
 import { PagedList } from "../helper/pagedList";
 import { CommentParams } from "../params/comment.params";

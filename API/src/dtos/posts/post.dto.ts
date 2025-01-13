@@ -1,6 +1,6 @@
-import { CommentDto } from "./comment.dto";
-import { FileDto } from "./file.dto";
-import { UserDto } from "./user.dto";
+import { CommentDto } from "../comments/comment.dto";
+import { FileDto } from "../files/file.dto";
+import { UserDto } from "../auth/user.dto";
 
 export class PostDto {
   _id: string = "";

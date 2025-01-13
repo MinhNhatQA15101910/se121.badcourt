@@ -5,16 +5,16 @@ import { IFileService } from "../interfaces/services/IFile.service";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
-import { MessageDto } from "../dtos/message.dto";
+import { MessageDto } from "../dtos/messages/message.dto";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { NewMessageToRoomSchema } from "../schemas/messages/newMessageToRoom.schema";
-import { NewMessageDto } from "../dtos/newMessage.dto";
-import { NewMessageRoomDto } from "../dtos/newMessageRoom.dto";
+import { NewMessageDto } from "../dtos/messages/newMessage.dto";
+import { NewMessageRoomDto } from "../dtos/messages/newMessageRoom.dto";
 import { MessageParams } from "../params/message.params";
 import { MessageParamsSchema } from "../schemas/messages/messageParams.schema";
 import { PORT } from "../secrets";
 import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema";
-import { MessageRoomDto } from "../dtos/messageRoom.dto";
+import { MessageRoomDto } from "../dtos/messages/messageRoom.dto";
 import { NotFoundException } from "../exceptions/notFound.exception";
 import { io } from "..";
 
@@ -207,7 +207,7 @@ export class MessageController {
       const user = await this._userRepository.getUserById(userId);
 
       user.chatRooms.push(messageRoom._id.toString());
-      
+
       user.updatedAt = Date.now();
       await user.save();
 

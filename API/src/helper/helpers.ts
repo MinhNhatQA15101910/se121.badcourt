@@ -1,4 +1,4 @@
-import { FileDto } from "../dtos/file.dto";
+import { FileDto } from "../dtos/files/file.dto";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { Response } from "express";
 import { PagedList } from "./pagedList";
