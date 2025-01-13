@@ -28,6 +28,17 @@ export class FacilityController {
     this._facilityRepository = facilityRepository;
   }
 
+  async getFacility(req: Request, res: Response) {
+    const facilityId = req.params.id;
+
+    const facility = await this._facilityRepository.getFacilityById(facilityId);
+    if (!facility) {
+      throw new BadRequestException("Facility not found!");
+    }
+
+    res.json(FacilityDto.mapFrom(facility));
+  }
+
   async getFacilities(req: Request, res: Response) {
     const facilityParams = FacilityParamsSchema.parse(req.query);
 

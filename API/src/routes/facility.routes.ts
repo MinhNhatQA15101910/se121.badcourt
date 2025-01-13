@@ -31,6 +31,11 @@ const facilityController = container.get<FacilityController>(
 );
 
 facilityRoutes.get(
+  "/:id",
+  errorHandler(facilityController.getFacility.bind(facilityController))
+);
+
+facilityRoutes.get(
   "/",
   [authMiddleware],
   errorHandler(facilityController.getFacilities.bind(facilityController))
