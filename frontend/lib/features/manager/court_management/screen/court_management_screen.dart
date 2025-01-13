@@ -252,7 +252,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _interRegular18(
-                          currentFacilityProvider.currentFacility.name,
+                          currentFacilityProvider.currentFacility.facilityName,
                           GlobalVariables.blackGrey,
                           1,
                         ),

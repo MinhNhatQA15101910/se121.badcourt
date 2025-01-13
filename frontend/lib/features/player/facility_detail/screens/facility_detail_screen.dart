@@ -155,7 +155,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
-                        currentFacility.name,
+                        currentFacility.facilityName,
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
@@ -227,9 +227,15 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         ),
                       ),
                       child: ClipOval(
-                        child: Image.asset(
-                          'assets/images/demo_facility.png',
+                        child: Image.network(
+                          currentFacility.userImageUrl,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/img_account.png',
+                              fit: BoxFit.cover,
+                            );
+                          },
                         ),
                       ),
                     ),

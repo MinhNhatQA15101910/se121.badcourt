@@ -44,7 +44,7 @@ class _FacilityHomeState extends State<FacilityHome> {
               children: [
                 Expanded(
                   child: _interMedium16(
-                    currentFacilityProvider.currentFacility.name,
+                    currentFacilityProvider.currentFacility.facilityName,
                     GlobalVariables.white,
                     1,
                   ),
@@ -152,7 +152,7 @@ class _FacilityHomeState extends State<FacilityHome> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _interRegular18(
-                  currentFacilityProvider.currentFacility.name,
+                  currentFacilityProvider.currentFacility.facilityName,
                   GlobalVariables.blackGrey,
                   1,
                 ),

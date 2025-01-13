@@ -119,7 +119,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 vertical: 12,
                               ),
                               child: _interMedium18(
-                                currentFacilityProvider.currentFacility.name,
+                                currentFacilityProvider
+                                    .currentFacility.facilityName,
                                 GlobalVariables.blackGrey,
                                 2,
                               ),

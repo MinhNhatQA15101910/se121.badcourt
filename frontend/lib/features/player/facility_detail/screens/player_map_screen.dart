@@ -27,8 +27,8 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
 
     // Thiết lập vị trí marker ban đầu
     markerPosition = LatLng(
-      facility!.location.coordinates.latitude,
-      facility!.location.coordinates.longitude,
+      facility!.lat,
+      facility!.lon,
     );
   }
 

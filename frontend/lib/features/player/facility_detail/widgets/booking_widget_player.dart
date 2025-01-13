@@ -6,7 +6,6 @@ import 'package:frontend/models/booking.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order_period.dart';
-import 'package:frontend/models/period_time.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -33,10 +32,9 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   List<BookingTime> _bookingTimeListDisable = [];
 
   void _getTime() {
-    String day =
-        DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
+    DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
 
-    if (widget.facility.activeAt.schedule.containsKey(day)) {
+    /*if (widget.facility.activeAt.schedule.containsKey(day)) {
       PeriodTime periodTime = widget.facility.activeAt.schedule[day]!;
       int startTime = periodTime.hourFrom;
       int endTime = periodTime.hourTo;
@@ -44,7 +42,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         _startTime = DateTime.fromMillisecondsSinceEpoch(startTime);
         _endTime = DateTime.fromMillisecondsSinceEpoch(endTime);
       });
-    }
+    }*/
   }
 
   void _getOrderPeriodsByDate() {

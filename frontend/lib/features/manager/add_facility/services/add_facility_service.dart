@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
@@ -94,11 +93,9 @@ class AddFacilityService {
 
       // Thêm thông tin JSON dưới dạng fields
       request.fields.addAll({
-        "facilityName": newFacilityProvider.newFacility.name,
-        "lat": newFacilityProvider.newFacility.location.coordinates.latitude
-            .toString(),
-        "lon": newFacilityProvider.newFacility.location.coordinates.longitude
-            .toString(),
+        "facilityName": newFacilityProvider.newFacility.facilityName,
+        "lat": newFacilityProvider.newFacility.lat.toString(),
+        "lon": newFacilityProvider.newFacility.lon.toString(),
         "detailAddress": newFacilityProvider.newFacility.detailAddress,
         "province": newFacilityProvider.newFacility.province,
         "fullName": newFacilityProvider.newFacility.managerInfo.fullName,

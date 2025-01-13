@@ -125,7 +125,7 @@ class _FacilityItemState extends State<FacilityItem> {
                 ),
               ),
               _interRegular16(
-                widget.facility.name,
+                widget.facility.facilityName,
                 widget.onPrimary
                     ? GlobalVariables.white
                     : GlobalVariables.blackGrey,

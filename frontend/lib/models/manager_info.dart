@@ -1,26 +1,26 @@
+import 'package:frontend/models/image_custom.dart';
+
 class ManagerInfo {
   final String fullName;
   final String email;
   final String phoneNumber;
   final String citizenId;
-  final String citizenImageUrlFront;
-  final String citizenImageUrlBack;
-  final String bankCardUrlFront;
-  final String bankCardUrlBack;
-  final List<String> businessLicenseImageUrls;
-  final String id;
+  final ImageCustom citizenImageFront;
+  final ImageCustom citizenImageBack;
+  final ImageCustom bankCardFront;
+  final ImageCustom bankCardBack;
+  final List<ImageCustom> businessLicenseImages;
 
   ManagerInfo({
     required this.fullName,
     required this.email,
     required this.phoneNumber,
     required this.citizenId,
-    required this.citizenImageUrlFront,
-    required this.citizenImageUrlBack,
-    required this.bankCardUrlFront,
-    required this.bankCardUrlBack,
-    required this.businessLicenseImageUrls,
-    required this.id,
+    required this.citizenImageFront,
+    required this.citizenImageBack,
+    required this.bankCardFront,
+    required this.bankCardBack,
+    required this.businessLicenseImages,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,13 +29,38 @@ class ManagerInfo {
       'email': email,
       'phoneNumber': phoneNumber,
       'citizenId': citizenId,
-      'citizenImageUrlFront': citizenImageUrlFront,
-      'citizenImageUrlBack': citizenImageUrlBack,
-      'bankCardUrlFront': bankCardUrlFront,
-      'bankCardUrlBack': bankCardUrlBack,
-      'businessLicenseImageUrls': businessLicenseImageUrls,
-      '_id': id,
+      'citizenImageFront': citizenImageFront.toMap(),
+      'citizenImageBack': citizenImageBack.toMap(),
+      'bankCardFront': bankCardFront.toMap(),
+      'bankCardBack': bankCardBack.toMap(),
+      'businessLicenseImages':
+          businessLicenseImages.map((img) => img.toMap()).toList(),
     };
+  }
+
+  ManagerInfo copyWith({
+    String? fullName,
+    String? email,
+    String? phoneNumber,
+    String? citizenId,
+    ImageCustom? citizenImageFront,
+    ImageCustom? citizenImageBack,
+    ImageCustom? bankCardFront,
+    ImageCustom? bankCardBack,
+    List<ImageCustom>? businessLicenseImages,
+  }) {
+    return ManagerInfo(
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      citizenId: citizenId ?? this.citizenId,
+      citizenImageFront: citizenImageFront ?? this.citizenImageFront,
+      citizenImageBack: citizenImageBack ?? this.citizenImageBack,
+      bankCardFront: bankCardFront ?? this.bankCardFront,
+      bankCardBack: bankCardBack ?? this.bankCardBack,
+      businessLicenseImages:
+          businessLicenseImages ?? this.businessLicenseImages,
+    );
   }
 
   factory ManagerInfo.fromMap(Map<String, dynamic> map) {
@@ -44,40 +69,14 @@ class ManagerInfo {
       email: map['email'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       citizenId: map['citizenId'] ?? '',
-      citizenImageUrlFront: map['citizenImageUrlFront'] ?? '',
-      citizenImageUrlBack: map['citizenImageUrlBack'] ?? '',
-      bankCardUrlFront: map['bankCardUrlFront'] ?? '',
-      bankCardUrlBack: map['bankCardUrlBack'] ?? '',
-      businessLicenseImageUrls:
-          List<String>.from(map['businessLicenseImageUrls'] ?? []),
-      id: map['_id'] ?? '',
-    );
-  }
-
-  ManagerInfo copyWith({
-    String? fullName,
-    String? email,
-    String? phoneNumber,
-    String? citizenId,
-    String? citizenImageUrlFront,
-    String? citizenImageUrlBack,
-    String? bankCardUrlFront,
-    String? bankCardUrlBack,
-    List<String>? businessLicenseImageUrls,
-    String? id,
-  }) {
-    return ManagerInfo(
-      fullName: fullName ?? this.fullName,
-      email: email ?? this.email,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      citizenId: citizenId ?? this.citizenId,
-      citizenImageUrlFront: citizenImageUrlFront ?? this.citizenImageUrlFront,
-      citizenImageUrlBack: citizenImageUrlBack ?? this.citizenImageUrlBack,
-      bankCardUrlFront: bankCardUrlFront ?? this.bankCardUrlFront,
-      bankCardUrlBack: bankCardUrlBack ?? this.bankCardUrlBack,
-      businessLicenseImageUrls:
-          businessLicenseImageUrls ?? this.businessLicenseImageUrls,
-      id: id ?? this.id,
+      citizenImageFront: ImageCustom.fromMap(map['citizenImageFront'] ?? {}),
+      citizenImageBack: ImageCustom.fromMap(map['citizenImageBack'] ?? {}),
+      bankCardFront: ImageCustom.fromMap(map['bankCardFront'] ?? {}),
+      bankCardBack: ImageCustom.fromMap(map['bankCardBack'] ?? {}),
+      businessLicenseImages: List<ImageCustom>.from(
+        (map['businessLicenseImages'] ?? [])
+            .map((img) => ImageCustom.fromMap(img)),
+      ),
     );
   }
 }

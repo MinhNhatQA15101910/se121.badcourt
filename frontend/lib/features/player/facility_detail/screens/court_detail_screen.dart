@@ -44,9 +44,11 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
     ];
 
     for (int i = 0; i < daysOfWeek.length; i++) {
-      if (!facility.hasDay(daysOfWeek[i])) {
-        _dates.removeWhere((date) => date.weekday == (i + 1));
-      }
+      /*if (!facility.hasDay(daysOfWeek[i])) {
+                    _dates.removeWhere((date) => date.weekday == (i + 1));
+
+      }*/
+      _dates.removeWhere((date) => date.weekday == (i + 1));
     }
     if (_dates.isNotEmpty) {
       _selectedDate = _dates[0];

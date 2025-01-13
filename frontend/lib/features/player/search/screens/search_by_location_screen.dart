@@ -4,10 +4,8 @@ import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/player/search/services/search_service.dart';
-import 'package:frontend/models/active.dart';
-import 'package:frontend/models/coordinates.dart';
 import 'package:frontend/models/facility.dart';
-import 'package:frontend/models/location.dart';
+import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/manager_info.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -53,56 +51,81 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
   Facility _facility = Facility(
     id: 'default_id',
     userId: 'default_userId',
-    name: 'Default Facility Name',
+    facilityName: 'Default Facility Name',
     facebookUrl: 'https://www.facebook.com/default',
+    description: 'This is a default facility description.',
+    policy: 'Default policy for this facility.',
+    userImageUrl: 'https://via.placeholder.com/150',
+    facilityImageUrl: 'https://via.placeholder.com/150',
+    facilityImages: [
+      ImageCustom(
+        id: 'default_image_id_1',
+        url: 'https://via.placeholder.com/150',
+        isMain: true,
+        type: 'image',
+      ),
+      ImageCustom(
+        id: 'default_image_id_2',
+        url: 'https://via.placeholder.com/200',
+        isMain: false,
+        type: 'image',
+      ),
+    ],
     courtsAmount: 1,
     detailAddress: '123 Default Street, Default City',
     province: 'Default Province',
-    location: Location(
-      type: 'Point',
-      coordinates: Coordinates(
-        longitude: 0.0,
-        latitude: 0.0,
-      ),
-    ),
+    lon: 0,
+    lat: 0,
     ratingAvg: 4.5,
     totalRating: 100,
-    activeAt: Active(schedule: {}),
-    registeredAt: DateTime.now().millisecondsSinceEpoch,
-    description: 'This is a default facility description.',
-    policy: 'Default policy for this facility.',
-    maxPrice: 200000,
-    minPrice: 100000,
+    state: 'Pending',
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+    minPrice: 0,
+    maxPrice: 0,
     managerInfo: ManagerInfo(
       fullName: 'Default Manager',
       email: 'manager@example.com',
       phoneNumber: '0123456789',
       citizenId: '123456789',
-      citizenImageUrlFront: 'https://via.placeholder.com/150',
-      citizenImageUrlBack: 'https://via.placeholder.com/150',
-      bankCardUrlFront: 'https://via.placeholder.com/150',
-      bankCardUrlBack: 'https://via.placeholder.com/150',
-      businessLicenseImageUrls: [
-        'https://via.placeholder.com/150',
-        'https://via.placeholder.com/200',
-      ],
-      id: 'default_manager_id',
-    ),
-    facilityImages: [
-      FacilityImage(
+      citizenImageFront: ImageCustom(
+        id: 'default_citizen_front_id',
         url: 'https://via.placeholder.com/150',
         isMain: true,
-        publicId: 'default_image_id_1',
+        type: 'image',
       ),
-      FacilityImage(
-        url: 'https://via.placeholder.com/200',
-        isMain: false,
-        publicId: 'default_image_id_2',
+      citizenImageBack: ImageCustom(
+        id: 'default_citizen_back_id',
+        url: 'https://via.placeholder.com/150',
+        isMain: true,
+        type: 'image',
       ),
-    ],
-    isApproved: false,
-    approvedAt: 0,
-    distance: 0.0,
+      bankCardFront: ImageCustom(
+        id: 'default_bank_front_id',
+        url: 'https://via.placeholder.com/150',
+        isMain: true,
+        type: 'image',
+      ),
+      bankCardBack: ImageCustom(
+        id: 'default_bank_back_id',
+        url: 'https://via.placeholder.com/150',
+        isMain: true,
+        type: 'image',
+      ),
+      businessLicenseImages: [
+        ImageCustom(
+          id: 'default_license_id_1',
+          url: 'https://via.placeholder.com/150',
+          isMain: true,
+          type: 'image',
+        ),
+        ImageCustom(
+          id: 'default_license_id_2',
+          url: 'https://via.placeholder.com/200',
+          isMain: false,
+          type: 'image',
+        ),
+      ],
+    ),
   );
 
   void _fetchAllFacilities() async {
@@ -115,7 +138,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
       print("Fetched facilities: ${_facilities.length}");
       for (var facility in _facilities) {
         print(
-            "Facility: ${facility.name}, Latitude: ${facility.location.coordinates.latitude}, Longitude: ${facility.location.coordinates.longitude}");
+            "Facility: ${facility.facilityName}, Latitude: ${facility.lat}, Longitude: ${facility.lon}");
       }
 
       setState(() {
@@ -202,8 +225,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
               _mapController!.animateCamera(
                 CameraUpdate.newCameraPosition(
                   CameraPosition(
-                    target: LatLng(facility.location.coordinates.latitude,
-                        facility.location.coordinates.longitude),
+                    target: LatLng(facility.lat, facility.lon),
                     zoom: 15,
                   ),
                 ),
@@ -229,8 +251,8 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
           ),
         ),
         latLng: LatLng(
-          facility.location.coordinates.latitude,
-          facility.location.coordinates.longitude,
+          facility.lat,
+          facility.lon,
         ),
       );
     }).toList();

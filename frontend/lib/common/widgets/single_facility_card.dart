@@ -50,7 +50,7 @@ class SingleFacilityCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            _buildText(facility.name),
+            _buildText(facility.facilityName),
             const SizedBox(height: 4),
             Row(
               children: [

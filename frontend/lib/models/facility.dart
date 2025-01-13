@@ -1,107 +1,154 @@
 import 'dart:convert';
 
-import 'package:frontend/models/active.dart';
-import 'package:frontend/models/location.dart';
+import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/manager_info.dart';
 
 class Facility {
   final String id;
-  final String userId;
-  final String name;
+  final String facilityName;
   final String facebookUrl;
-  final int courtsAmount;
-  final String detailAddress;
-  final String province;
-  final Location location;
-  final double ratingAvg;
-  final int totalRating;
-  final Active activeAt;
-  final int registeredAt;
-  final List<FacilityImage> facilityImages; // Danh sách hình ảnh cơ sở
   final String description;
   final String policy;
-  final int maxPrice;
+  final String userId;
+  final String userImageUrl;
+  final String facilityImageUrl;
+  final List<ImageCustom> facilityImages;
+  final int courtsAmount;
   final int minPrice;
+  final int maxPrice;
+  final String detailAddress;
+  final String province;
+  final double lat;
+  final double lon;
+  final double ratingAvg;
+  final int totalRating;
+  final String state;
+  final int createdAt;
   final ManagerInfo managerInfo;
-  final bool isApproved; // Trạng thái phê duyệt
-  final int approvedAt; // Thời gian phê duyệt
-  final double distance; // Khoảng cách
 
   Facility({
     required this.id,
-    required this.userId,
-    required this.name,
+    required this.facilityName,
     required this.facebookUrl,
-    required this.courtsAmount,
-    required this.detailAddress,
-    required this.province,
-    required this.location,
-    required this.ratingAvg,
-    required this.totalRating,
-    required this.activeAt,
-    required this.registeredAt,
-    required this.facilityImages,
     required this.description,
     required this.policy,
-    required this.maxPrice,
+    required this.userId,
+    required this.userImageUrl,
+    required this.facilityImageUrl,
+    required this.facilityImages,
+    required this.courtsAmount,
     required this.minPrice,
+    required this.maxPrice,
+    required this.detailAddress,
+    required this.province,
+    required this.lat,
+    required this.lon,
+    required this.ratingAvg,
+    required this.totalRating,
+    required this.state,
+    required this.createdAt,
     required this.managerInfo,
-    required this.isApproved,
-    required this.approvedAt,
-    required this.distance,
   });
+
+  Facility copyWith({
+    String? id,
+    String? facilityName,
+    String? facebookUrl,
+    String? description,
+    String? policy,
+    String? userId,
+    String? userImageUrl,
+    String? facilityImageUrl,
+    List<ImageCustom>? facilityImages,
+    int? courtsAmount,
+    int? minPrice,
+    int? maxPrice,
+    String? detailAddress,
+    String? province,
+    double? lat,
+    double? lon,
+    double? ratingAvg,
+    int? totalRating,
+    String? state,
+    int? createdAt,
+    ManagerInfo? managerInfo,
+  }) {
+    return Facility(
+      id: id ?? this.id,
+      facilityName: facilityName ?? this.facilityName,
+      facebookUrl: facebookUrl ?? this.facebookUrl,
+      description: description ?? this.description,
+      policy: policy ?? this.policy,
+      userId: userId ?? this.userId,
+      userImageUrl: userImageUrl ?? this.userImageUrl,
+      facilityImageUrl: facilityImageUrl ?? this.facilityImageUrl,
+      facilityImages: facilityImages ?? this.facilityImages,
+      courtsAmount: courtsAmount ?? this.courtsAmount,
+      minPrice: minPrice ?? this.minPrice,
+      maxPrice: maxPrice ?? this.maxPrice,
+      detailAddress: detailAddress ?? this.detailAddress,
+      province: province ?? this.province,
+      lat: lat ?? this.lat,
+      lon: lon ?? this.lon,
+      ratingAvg: ratingAvg ?? this.ratingAvg,
+      totalRating: totalRating ?? this.totalRating,
+      state: state ?? this.state,
+      createdAt: createdAt ?? this.createdAt,
+      managerInfo: managerInfo ?? this.managerInfo,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
       '_id': id,
-      'userId': userId,
-      'name': name,
+      'facilityName': facilityName,
       'facebookUrl': facebookUrl,
-      'courtsAmount': courtsAmount,
-      'detailAddress': detailAddress,
-      'province': province,
-      'location': location.toMap(),
-      'ratingAvg': ratingAvg,
-      'totalRating': totalRating,
-      'activeAt': activeAt.toMap(),
-      'registeredAt': registeredAt,
-      'facilityImages': facilityImages.map((img) => img.toMap()).toList(),
       'description': description,
       'policy': policy,
-      'maxPrice': maxPrice,
+      'userId': userId,
+      'userImageUrl': userImageUrl,
+      'facilityImageUrl': facilityImageUrl,
+      'facilityImages': facilityImages.map((img) => img.toMap()).toList(),
+      'courtsAmount': courtsAmount,
       'minPrice': minPrice,
+      'maxPrice': maxPrice,
+      'detailAddress': detailAddress,
+      'province': province,
+      'lat': lat,
+      'lon': lon,
+      'ratingAvg': ratingAvg,
+      'totalRating': totalRating,
+      'state': state,
+      'createdAt': createdAt,
       'managerInfo': managerInfo.toMap(),
-      'isApproved': isApproved,
-      'approvedAt': approvedAt,
-      'distance': distance,
     };
   }
 
   factory Facility.fromMap(Map<String, dynamic> map) {
     return Facility(
       id: map['_id'] ?? '',
-      userId: map['userId'] ?? '',
-      name: map['name'] ?? '',
+      facilityName: map['facilityName'] ?? '',
       facebookUrl: map['facebookUrl'] ?? '',
-      courtsAmount: map['courtsAmount'] ?? 0,
-      detailAddress: map['detailAddress'] ?? '',
-      province: map['province'] ?? '',
-      location: Location.fromMap(map['location'] ?? {}),
-      ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
-      totalRating: map['totalRating'] ?? 0,
-      activeAt: Active.fromMap(map['activeAt'] ?? {}),
-      registeredAt: map['registeredAt'] ?? 0,
-      facilityImages: List<FacilityImage>.from(
-        (map['facilityImages'] ?? []).map((img) => FacilityImage.fromMap(img)),
-      ),
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
-      maxPrice: map['maxPrice'] ?? 0,
+      userId: map['userId'] ?? '',
+      userImageUrl: map['userImageUrl'] ?? '',
+      facilityImageUrl: map['facilityImageUrl'] ?? '',
+      facilityImages: List<ImageCustom>.from(
+        (map['facilityImages'] ?? []).map((img) => ImageCustom.fromMap(img)),
+      ),
+      courtsAmount: map['courtsAmount'] ?? 0,
       minPrice: map['minPrice'] ?? 0,
+      maxPrice: map['maxPrice'] ?? 0,
+      detailAddress: map['detailAddress'] ?? '',
+      province: map['province'] ?? '',
+      lat: map['lat']?.toDouble() ?? 0.0,
+      lon: map['lon']?.toDouble() ?? 0.0,
+      ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
+      totalRating: map['totalRating'] ?? 0,
+      state: map['state'] ?? '',
+      createdAt: map['createdAt'] ?? 0,
       managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
-      isApproved: map['isApproved'] ?? false,
-      approvedAt: map['approvedAt'] ?? 0,
-      distance: map['distance']?.toDouble() ?? 0.0,
     );
   }
 
@@ -109,84 +156,4 @@ class Facility {
 
   factory Facility.fromJson(String source) =>
       Facility.fromMap(json.decode(source));
-
-  Facility copyWith({
-    String? id,
-    String? userId,
-    String? name,
-    String? facebookUrl,
-    int? courtsAmount,
-    String? detailAddress,
-    String? province,
-    Location? location,
-    double? ratingAvg,
-    int? totalRating,
-    Active? activeAt,
-    int? registeredAt,
-    List<FacilityImage>? facilityImages,
-    String? description,
-    String? policy,
-    int? maxPrice,
-    int? minPrice,
-    ManagerInfo? managerInfo,
-    bool? isApproved,
-    int? approvedAt,
-    double? distance,
-  }) {
-    return Facility(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      name: name ?? this.name,
-      facebookUrl: facebookUrl ?? this.facebookUrl,
-      courtsAmount: courtsAmount ?? this.courtsAmount,
-      detailAddress: detailAddress ?? this.detailAddress,
-      province: province ?? this.province,
-      location: location ?? this.location,
-      ratingAvg: ratingAvg ?? this.ratingAvg,
-      totalRating: totalRating ?? this.totalRating,
-      activeAt: activeAt ?? this.activeAt,
-      registeredAt: registeredAt ?? this.registeredAt,
-      facilityImages: facilityImages ?? this.facilityImages,
-      description: description ?? this.description,
-      policy: policy ?? this.policy,
-      maxPrice: maxPrice ?? this.maxPrice,
-      minPrice: minPrice ?? this.minPrice,
-      managerInfo: managerInfo ?? this.managerInfo,
-      isApproved: isApproved ?? this.isApproved,
-      approvedAt: approvedAt ?? this.approvedAt,
-      distance: distance ?? this.distance,
-    );
-  }
-
-  bool hasDay(String day) {
-    return activeAt.schedule.containsKey(day.toLowerCase());
-  }
-}
-
-class FacilityImage {
-  final String url;
-  final bool isMain;
-  final String publicId;
-
-  FacilityImage({
-    required this.url,
-    required this.isMain,
-    required this.publicId,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'url': url,
-      'isMain': isMain,
-      'publicId': publicId,
-    };
-  }
-
-  factory FacilityImage.fromMap(Map<String, dynamic> map) {
-    return FacilityImage(
-      url: map['url'] ?? '',
-      isMain: map['isMain'] ?? false,
-      publicId: map['publicId'] ?? '',
-    );
-  }
 }
