@@ -1,6 +1,7 @@
 import { PaginationParams } from "./pagination.params";
 
 export class FacilityParams extends PaginationParams {
+  userId?: string;
   minPrice: number = 0;
   maxPrice: number = 1000000;
   lat: number = 0;

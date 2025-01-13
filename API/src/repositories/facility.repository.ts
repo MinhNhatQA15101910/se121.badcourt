@@ -38,6 +38,10 @@ export class FacilityRepository implements IFacilityRepository {
           .sort({ avgPrice: facilityParams.order === "asc" ? 1 : -1 });
     }
 
+    if (facilityParams.userId) {
+      aggregate = aggregate.match({ userId: facilityParams.userId });
+    }
+
     if (facilityParams.province) {
       aggregate = aggregate.match({ province: facilityParams.province });
     }

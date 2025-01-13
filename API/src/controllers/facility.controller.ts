@@ -15,19 +15,16 @@ import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 @injectable()
 export class FacilityController {
   private _fileService: IFileService;
-  private _jwtService: IJwtService;
   private _facilityRepository: IFacilityRepository;
   private _userRepository: IUserRepository;
 
   constructor(
     @inject(INTERFACE_TYPE.FileService) fileService: IFileService,
-    @inject(INTERFACE_TYPE.JwtService) jwtService: IJwtService,
     @inject(INTERFACE_TYPE.FacilityRepository)
     facilityRepository: IFacilityRepository,
     @inject(INTERFACE_TYPE.UserRepository) userRepository: IUserRepository
   ) {
     this._fileService = fileService;
-    this._jwtService = jwtService;
     this._facilityRepository = facilityRepository;
     this._userRepository = userRepository;
   }
@@ -50,6 +47,8 @@ export class FacilityController {
 
   async getFacilities(req: Request, res: Response) {
     const facilityParams = FacilityParamsSchema.parse(req.query);
+
+    console.log(facilityParams);
 
     const facilities = await this._facilityRepository.getFacilities(
       facilityParams
