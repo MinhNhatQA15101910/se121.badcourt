@@ -1,7 +1,10 @@
+import { UserDto } from "../auth/user.dto";
+
 export class MessageRoomDto {
   _id: string = "";
   roomName?: string;
   roomImageUrl?: string;
+  users: UserDto[] = [];
   updatedAt: number = Date.now();
 
   public static mapFrom(messageRoom: any): MessageRoomDto {

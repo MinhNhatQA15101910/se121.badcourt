@@ -17,6 +17,7 @@ import { NewMessageRoomSchema } from "../schemas/messages/newMessageRoom.schema"
 import { MessageRoomDto } from "../dtos/messages/messageRoom.dto";
 import { NotFoundException } from "../exceptions/notFound.exception";
 import { io } from "..";
+import { UserDto } from "../dtos/auth/user.dto";
 
 @injectable()
 export class MessageController {
@@ -36,74 +37,66 @@ export class MessageController {
   }
 
   async sendMessageToRoom(req: Request, res: Response) {
-    try {
-      const user = req.user;
+    const user = req.user;
 
-      // Get message from body
-      const newMessageDto: NewMessageDto = NewMessageToRoomSchema.parse(
-        req.body
-      );
-      console.log(newMessageDto);
+    // Get message from body
+    const newMessageDto: NewMessageDto = NewMessageToRoomSchema.parse(req.body);
+    console.log(newMessageDto);
 
-      // Check if the message have either content or resources
-      if (!newMessageDto.content && !(req as any).files) {
-        throw new BadRequestException("Message must have content or resources");
-      }
-
-      // Get room
-      const room = await this._messageRepository.getMessageRoomById(
-        newMessageDto.roomId!
-      );
-      if (!room) {
-        throw new BadRequestException("Room not found");
-      }
-
-      // Check if user is in the room
-      if (!room.users.includes(user._id)) {
-        throw new BadRequestException("User is not in the room");
-      }
-
-      // Create message
-      newMessageDto.senderId = user._id;
-      const message = await this._messageRepository.createMessage(
-        newMessageDto
-      );
-
-      // Upload resources
-      if ((req as any).files) {
-        const resources = await uploadImages(
-          this._fileService,
-          (req as any).files,
-          `messages/${message._id}`
-        );
-
-        // Update message with resources
-        message.resources = resources;
-      }
-
-      message.createdAt = Date.now();
-      message.updatedAt = Date.now();
-      await message.save();
-      
-      // Map to MessageDto
-      const messageDto = MessageDto.mapFrom(message);
-
-      // Add sender info
-      messageDto.senderImageUrl = user.image ? user.image.url : "";
-
-      // Emit message to room
-      console.log(room._id.toString(), messageDto);
-      io.to(room._id.toString()).emit("newMessage", messageDto);
-
-      return res
-        .status(201)
-        .location(
-          `https://localhost:${PORT}/api/messages?roomId=${room._id.toString()})}`
-        )
-        .json(messageDto);
-    } catch (error) {
-      console.log(error);
+    // Check if the message have either content or resources
+    if (!newMessageDto.content && !(req as any).files) {
+      throw new BadRequestException("Message must have content or resources");
     }
+
+    // Get room
+    const room = await this._messageRepository.getMessageRoomById(
+      newMessageDto.roomId!
+    );
+    if (!room) {
+      throw new BadRequestException("Room not found");
+    }
+
+    // Check if user is in the room
+    if (!room.users.includes(user._id)) {
+      throw new BadRequestException("User is not in the room");
+    }
+
+    // Create message
+    newMessageDto.senderId = user._id;
+    const message = await this._messageRepository.createMessage(newMessageDto);
+
+    // Upload resources
+    if ((req as any).files) {
+      const resources = await uploadImages(
+        this._fileService,
+        (req as any).files,
+        `messages/${message._id}`
+      );
+
+      // Update message with resources
+      message.resources = resources;
+    }
+
+    message.createdAt = Date.now();
+    message.updatedAt = Date.now();
+    await message.save();
+
+    // Map to MessageDto
+    const messageDto = MessageDto.mapFrom(message);
+
+    // Add sender info
+    messageDto.senderImageUrl = user.image ? user.image.url : "";
+
+    // Emit message to room
+    console.log(room._id.toString(), messageDto);
+    io.to(room._id.toString()).emit("newMessage", messageDto);
+
+    return res
+      .status(201)
+      .location(
+        `https://localhost:${PORT}/api/messages?roomId=${room._id.toString()})}`
+      )
+      .json(messageDto);
   }
 
   async getMessagesInRoom(req: Request, res: Response) {
@@ -249,6 +242,10 @@ export class MessageController {
 
     // Map to MessageRoomDto
     const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+    for (let userId of messageRoom.users) {
+      const user = await this._userRepository.getUserById(userId);
+      messageRoomDto.users.push(UserDto.mapFrom(user));
+    }
 
     res.json(messageRoomDto);
   }
