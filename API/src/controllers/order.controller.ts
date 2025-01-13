@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { IOrderRepository } from "../interfaces/repositories/IOrder.repository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
@@ -8,6 +9,11 @@ import { NotFoundException } from "../exceptions/notFound.exception";
 import { IFacilityRepository } from "../interfaces/repositories/IFacility.repository";
 import { BadRequestException } from "../exceptions/badRequest.exception";
 import { OrderDto } from "../dtos/orders/order.dto";
+import { PORT } from "../secrets";
+import { UnauthorizedException } from "../exceptions/unauthorized.exception";
+import { OrderParams } from "../params/order.params";
+import { OrderParamsSchema } from "../schemas/orders/orderParams.schema";
+import { addPaginationHeader } from "../helper/helpers";
 
 const dayInWeekMap = [
   "sunday",
@@ -35,6 +41,70 @@ export class OrderController {
     this._courtRepository = courtRepository;
     this._facilityRepository = facilityRepository;
     this._orderRepository = orderRepository;
+  }
+
+  async getOrder(req: Request, res: Response) {
+    const orderId = req.params.id;
+
+    const order = await this._orderRepository.getOrderById(orderId);
+    if (!order) {
+      throw new NotFoundException("Order not found!");
+    }
+
+    const user = req.user;
+    if (!(user.role === "admin") && order.userId !== user._id.toString()) {
+      throw new UnauthorizedException("Unauthorized to access this order!");
+    }
+
+    res.json(OrderDto.mapFrom(order));
+  }
+
+  async getOrders(req: Request, res: Response) {
+    const orderParams: OrderParams = OrderParamsSchema.parse(req.query);
+
+    const orders = await this._orderRepository.getOrders(orderParams);
+
+    addPaginationHeader(res, orders);
+
+    const orderDtos: OrderDto[] = [];
+    for (let post of posts) {
+      const postDto = PostDto.mapFrom(post);
+
+      // Add user info to postDto
+      const user = await this._userRepository.getUserById(post.userId);
+      postDto.publisherUsername = user.username;
+      postDto.publisherImageUrl =
+        user.image === undefined ? "" : user.image.url;
+
+      // Add comments to postDto
+      const comments = await this._commentRepository.getTop3CommentsForPost(
+        post._id
+      );
+      for (let comment of comments) {
+        const commentDto = CommentDto.mapFrom(comment);
+
+        const user = await this._userRepository.getUserById(comment.userId);
+        commentDto.publisherUsername = user.username;
+        commentDto.publisherImageUrl =
+          user.image === undefined ? "" : user.image.url;
+
+        postDto.comments.push(commentDto);
+      }
+      postDto.commentsCount = await this._commentRepository.getCommentsCount(
+        post._id
+      );
+
+      // Add liked users to postDto
+      for (let userId of post.likedUsers) {
+        const user = await this._userRepository.getUserById(userId);
+        const userDto = UserDto.mapFrom(user);
+        postDto.likedUsers.push(userDto);
+      }
+
+      postDtos.push(postDto);
+    }
+
+    res.json(postDtos);
   }
 
   async createOrder(req: Request, res: Response) {
@@ -112,9 +182,10 @@ export class OrderController {
     court.updatedAt = new Date();
     await court.save();
 
-    const orderDto = OrderDto.mapFrom(order);
-
-    res.json(orderDto);
+    res
+      .status(201)
+      .location(`https://localhost:${PORT}/api/orders/${order._id})}`)
+      .json(OrderDto.mapFrom(order));
   }
 
   isIntersect(timePeriod1: any, timePeriod2: any) {

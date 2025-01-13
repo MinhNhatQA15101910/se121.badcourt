@@ -10,4 +10,8 @@ export class OrderRepository implements IOrderRepository {
     order = await order.save();
     return order;
   }
+
+  async getOrderById(orderId: string): Promise<any> {
+    return await Order.findById(orderId);
+  }
 }
