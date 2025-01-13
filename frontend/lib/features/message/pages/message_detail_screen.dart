@@ -63,7 +63,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   @override
   void dispose() {
     _messageController.dispose();
-    _socketService.socket?.dispose();
     _scrollController.dispose();
     super.dispose();
   }

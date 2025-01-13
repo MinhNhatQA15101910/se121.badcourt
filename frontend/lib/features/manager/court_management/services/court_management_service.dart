@@ -130,7 +130,7 @@ class CourtManagementService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/manager/courts?facility_id=$facilityId'),
+        Uri.parse('$uri/api/courts?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -176,7 +176,7 @@ class CourtManagementService {
         Uri.parse('$uri/manager/facilities/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -217,7 +217,7 @@ class CourtManagementService {
         Uri.parse('$uri/api/courts/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -257,7 +257,7 @@ class CourtManagementService {
         Uri.parse('$uri/manager/delete-court/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -337,7 +337,7 @@ class CourtManagementService {
         Uri.parse('$uri/manager/update-active/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
         body: jsonEncode(requestBody),
       );

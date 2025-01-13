@@ -92,6 +92,8 @@ export class MessageController {
     // Add sender info
     messageDto.senderImageUrl = user.image ? user.image.url : "";
 
+    console.log(messageDto);
+
     // Emit message to room
     console.log(room._id.toString(), messageDto);
     io.to(room._id.toString()).emit("newMessage", messageDto);

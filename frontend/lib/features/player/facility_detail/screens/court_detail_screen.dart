@@ -127,7 +127,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
           ),
         ),
       ),
-      body: (_dates.isNotEmpty)
+      body: (true)
           ? Container(
               color: GlobalVariables.defaultColor,
               child: Column(

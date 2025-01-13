@@ -20,10 +20,10 @@ class FacilityDetailService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/player/courts?facility_id=$facilityId'),
+        Uri.parse('$uri/api/courts?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -65,7 +65,7 @@ class FacilityDetailService {
         Uri.parse('$uri/manager/delete-court/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -108,7 +108,7 @@ class FacilityDetailService {
         Uri.parse('$uri/player/book-court/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
         body: jsonEncode(requestBody),
       );
@@ -158,7 +158,7 @@ class FacilityDetailService {
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
