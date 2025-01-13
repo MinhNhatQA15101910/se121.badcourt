@@ -91,6 +91,11 @@ export class MessageController {
     console.log(room._id.toString(), messageDto);
     io.to(room._id.toString()).emit("newMessage", messageDto);
 
+    // Emit message room to room
+    const messageRoomDto = MessageRoomDto.mapFrom(room);
+    messageRoomDto.lastMessage = messageDto;
+    io.to(room._id.toString()).emit("messageRoom", messageRoomDto);
+
     return res
       .status(201)
       .location(
@@ -242,6 +247,9 @@ export class MessageController {
 
     // Map to MessageRoomDto
     const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+    messageRoomDto.lastMessage = await this._messageRepository.getLastMessage(
+      messageRoom._id.toString()
+    );
     for (let userId of messageRoom.users) {
       const user = await this._userRepository.getUserById(userId);
       messageRoomDto.users.push(UserDto.mapFrom(user));

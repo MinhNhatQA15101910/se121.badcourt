@@ -131,6 +131,13 @@ export class UserController {
     const messageRoomDtos: MessageRoomDto[] = [];
     for (let messageRoom of messageRooms) {
       const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+      messageRoomDto.lastMessage = await this._messageRepository.getLastMessage(
+        messageRoom._id.toString()
+      );
+      for (let userId of messageRoom.users) {
+        const user = await this._userRepository.getUserById(userId);
+        messageRoomDto.users.push(UserDto.mapFrom(user));
+      }
 
       messageRoomDtos.push(messageRoomDto);
     }

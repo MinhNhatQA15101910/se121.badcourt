@@ -34,6 +34,13 @@ export class MessageRepository implements IMessageRepository {
     return await messageRoom.save();
   }
 
+  async getLastMessage(roomId: string): Promise<any> {
+    var message = await Message.findOne({ roomId })
+      .sort({ createdAt: -1 })
+      .exec();
+    return message;
+  }
+
   async getMessageRoomById(roomId: string): Promise<any> {
     return await MessageRoom.findById(roomId);
   }
