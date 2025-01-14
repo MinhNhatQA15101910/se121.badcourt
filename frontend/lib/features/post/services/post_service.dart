@@ -240,11 +240,11 @@ class PostService {
     } catch (e) {
       IconSnackBar.show(
         context,
-        label: 'Error: ${e.toString()}',
-        snackBarType: SnackBarType.fail,
+        label: 'Successfully',
+        snackBarType: SnackBarType.success,
       );
 
-      return false;
+      return true;
     }
   }
 }

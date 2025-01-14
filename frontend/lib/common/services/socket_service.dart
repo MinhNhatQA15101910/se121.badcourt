@@ -17,7 +17,7 @@ class SocketService {
 
   void connect(String token, String userId) {
     if (_socket == null || !_socket!.connected) {
-      _socket = IO.io('ws://${ipconfig}:3000', <String, dynamic>{
+      _socket = IO.io('http://${ipconfig}:3000', <String, dynamic>{
         'transports': ['websocket'],
         'extraHeaders': {'Authorization': 'Bearer $token'},
       });
