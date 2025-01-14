@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/services/socket_service.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/user_message_box.dart';
+import 'package:frontend/models/message_room.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class MessageScreen extends StatefulWidget {
   static const String routeName = '/messageScreen';
+
   const MessageScreen({Key? key}) : super(key: key);
 
   @override
@@ -13,28 +19,52 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, String>> messages = [
-    {
-      'userName': 'Nhật Duy',
-      'lastMessage': 'Chào bạn, mình muốn thuê sân',
-      'timestamp': '29/03/2024',
-      'userImageUrl': 'https://via.placeholder.com/150',
-    },
-    {
-      'userName': 'Nhật Duy',
-      'lastMessage': 'Mình muốn đặt sân này',
-      'timestamp': '29/03/2024',
-      'userImageUrl': 'https://via.placeholder.com/150',
-    },
-    // Add more messages here
-  ];
-  List<Map<String, String>> filteredMessages = [];
+  final MessageService _messageService = MessageService();
+  final SocketService _socketService = SocketService();
+
+  List<MessageRoom> messages = [];
+  List<dynamic> filteredMessages = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    filteredMessages =
-        messages; // Initialize filtered messages with all messages
+    _fetchMessageRooms();
+
+    // Lắng nghe sự kiện messageRoomUpdate từ socket
+    _socketService.onMessageRoomUpdate((updatedMessageRoom) {
+      setState(() {
+        // Cập nhật danh sách messages: thay thế hoặc thêm mới MessageRoom
+        messages.removeWhere((room) => room.id == updatedMessageRoom.id);
+        messages.add(updatedMessageRoom);
+
+        // Cập nhật danh sách filteredMessages nếu cần
+        filteredMessages = List.from(messages);
+      });
+    });
+  }
+
+  Future<void> _fetchMessageRooms() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final messageRooms =
+          await _messageService.getMessageRooms(context: context);
+      setState(() {
+        messages = messageRooms;
+        filteredMessages = messageRooms;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching messages: $e')),
+      );
+    }
   }
 
   @override
@@ -91,24 +121,58 @@ class _MessageScreenState extends State<MessageScreen> {
               ),
             ),
             // Message list
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredMessages.length,
-                itemBuilder: (context, index) {
-                  final message = filteredMessages[index];
-                  return UserMessageBox(
-                    userName: message['userName']!,
-                    lastMessage: message['lastMessage']!,
-                    timestamp: message['timestamp']!,
-                    userImageUrl: message['userImageUrl']!,
-                  );
-                },
-              ),
-            ),
+            _isLoading
+                ? const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredMessages.length,
+                      itemBuilder: (context, index) {
+                        final message = filteredMessages[index];
+
+                        // Lấy thông tin user hiện tại
+                        final currentUserId =
+                            Provider.of<UserProvider>(context, listen: false)
+                                .user
+                                .id;
+
+                        // Tìm user khác với user hiện tại
+                        final user = message.users.firstWhere(
+                          (u) => u.id != currentUserId,
+                          orElse: () => User(
+                            id: 'default',
+                            username: 'Default User',
+                            email: 'default@example.com',
+                            imageUrl: '',
+                            role: 'Unknown',
+                          ),
+                        );
+
+                        return UserMessageBox(
+                          userName: user.username,
+                          lastMessage: message.lastMessage?.content ?? '',
+                          timestamp: _formatTimestamp(
+                              message.updatedAt.millisecondsSinceEpoch),
+                          userImageUrl: user.imageUrl,
+                          role: user.role,
+                          userId: user.id,
+                        );
+                      },
+                    ),
+                  ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatTimestamp(int? timestamp) {
+    if (timestamp == null) return '';
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 
   @override

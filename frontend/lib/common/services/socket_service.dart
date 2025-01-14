@@ -1,4 +1,5 @@
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/message_room.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -45,7 +46,7 @@ class SocketService {
 
       _socket?.on('invokeEnterRoom', (roomId) {
         print('Socket Received invokeEnterRoom event with roomId: $roomId');
-        enterRoom(roomId);
+        socket?.emit("enterRoom", roomId);
       });
     } else {
       print('Socket already connected');
@@ -70,6 +71,23 @@ class SocketService {
     if (socket != null) {
       socket?.on('newMessage', callback);
       print('Listener added for newMessage event');
+    } else {
+      print('Socket is null');
+    }
+  }
+
+  void onMessageRoomUpdate(Function(dynamic) callback) {
+    if (socket != null) {
+      socket?.on('messageRoom', (data) {
+        try {
+          final messageRoom = MessageRoom.fromMap(data);
+          callback(messageRoom);
+          print('Received and parsed MessageRoom data');
+        } catch (e) {
+          print('Error parsing MessageRoom data: $e');
+        }
+      });
+      print('Listener added for messageRoomUpdate event');
     } else {
       print('Socket is null');
     }

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/message_room.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -87,6 +90,46 @@ class MessageService {
     } else {
       throw Exception('Failed to fetch messages');
     }
+  }
+
+  Future<List<MessageRoom>> getMessageRooms({
+    required BuildContext context,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+    List<MessageRoom> messageRoomList = [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$uri/api/users/me/message-rooms'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          for (var object in jsonDecode(response.body)) {
+            messageRoomList.add(
+              MessageRoom.fromMap(object),
+            );
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return messageRoomList;
   }
 
   Future<dynamic> sendMessageToRoom({

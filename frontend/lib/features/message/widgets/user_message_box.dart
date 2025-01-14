@@ -9,6 +9,8 @@ class UserMessageBox extends StatelessWidget {
   final String lastMessage;
   final String timestamp;
   final String userImageUrl;
+  final String role;
+  final String userId; // Thay vì roomId, truyền userId
 
   const UserMessageBox({
     Key? key,
@@ -16,16 +18,21 @@ class UserMessageBox extends StatelessWidget {
     required this.lastMessage,
     required this.timestamp,
     required this.userImageUrl,
+    required this.role,
+    required this.userId, // Thay đổi từ roomId sang userId
   }) : super(key: key);
+
+  void _navigateToMessageScreen(BuildContext context, String userId) {
+    Navigator.of(context).pushNamed(
+      MessageDetailScreen.routeName,
+      arguments: userId, // Truyền userId thay vì roomId
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    void _navigateToMessageScreen() {
-      Navigator.of(context).pushNamed(MessageDetailScreen.routeName);
-    }
-
     return GestureDetector(
-      onTap: _navigateToMessageScreen,
+      onTap: () => _navigateToMessageScreen(context, userId),
       child: CustomContainer(
         child: Row(
           children: [
@@ -50,11 +57,9 @@ class UserMessageBox extends StatelessWidget {
                           1,
                         ),
                       ),
-                      SizedBox(
-                        width: 8,
-                      ),
+                      const SizedBox(width: 8),
                       _customText(
-                        'Manager',
+                        role,
                         12,
                         FontWeight.w500,
                         GlobalVariables.green,
@@ -64,14 +69,14 @@ class UserMessageBox extends StatelessWidget {
                   ),
                   _customText(
                     timestamp,
-                    12,
+                    10,
                     FontWeight.w400,
                     GlobalVariables.darkGrey,
                     1,
                   ),
                   _customText(
                     lastMessage,
-                    13,
+                    12,
                     FontWeight.w400,
                     GlobalVariables.darkGrey,
                     1,

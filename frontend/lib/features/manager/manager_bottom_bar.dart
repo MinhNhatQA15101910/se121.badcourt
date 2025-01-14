@@ -35,10 +35,14 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
   @override
   void initState() {
     super.initState();
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
     final id = userProvider.user.id;
     if (id.isNotEmpty) {
       _socketService.connect(userProvider.user.token, userProvider.user.id);
+
       setState(() {
         userId = id;
       });
@@ -58,6 +62,12 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
       _selectedIndex = 0; // Chuyển về tab đầu tiên (Home)
       _unreadMessages = 0; // Reset số tin nhắn chưa đọc
     });
+  }
+
+  @override
+  void dispose() {
+    _socketService.disconnect();
+    super.dispose();
   }
 
   @override

@@ -43,20 +43,24 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
       listen: false,
     );
     final id = userProvider.user.id;
-
     if (id.isNotEmpty) {
       _socketService.connect(userProvider.user.token, userProvider.user.id);
       setState(() {
         userId = id;
       });
 
-      // Lắng nghe sự kiện newMessage
       _socketService.onNewMessage((data) {
         setState(() {
           _unreadMessages++; // Tăng số tin nhắn chưa đọc
         });
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _socketService.disconnect();
+    super.dispose();
   }
 
   // Callback function để reset index và unreadMessages

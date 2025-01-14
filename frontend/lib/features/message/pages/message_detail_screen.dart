@@ -69,14 +69,12 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
   Future<void> _initializeServices() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    _socketService.connect(userProvider.user.token, userProvider.user.id);
 
     try {
       roomId = await _messageService.getOrCreatePersonalMessageRoom(
         context: context,
         userId: userId ?? "",
       );
-      _socketService.enterRoom(roomId);
       _socketService.onNewMessage((data) {
         print('Received new message: $data');
 
@@ -191,7 +189,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
     setState(() {
       _imageFiles = [];
-      _isSendingMessage = true; // Bắt đầu trạng thái loading
+      _isSendingMessage = false; // Bắt đầu trạng thái loading
     });
 
     try {
