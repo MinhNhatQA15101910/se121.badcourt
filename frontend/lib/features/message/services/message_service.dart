@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/message_room.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -53,7 +57,7 @@ class MessageService {
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
       return data["_id"];
     } else {
@@ -64,13 +68,17 @@ class MessageService {
   Future<dynamic> getMessages({
     required String roomId,
     required BuildContext context,
+    int pageNumber = 1,
+    int pageSize = 10,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
+
     final response = await http.get(
-      Uri.parse('$uri/api/messages?roomId=$roomId'),
+      Uri.parse(
+          '$uri/api/messages?roomId=$roomId&pageNumber=$pageNumber&pageSize=$pageSize'),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer ${userProvider.user.token}",
@@ -84,31 +92,88 @@ class MessageService {
     }
   }
 
-  Future<dynamic> sendMessageToRoom({
-    required String roomId,
-    required String content,
+  Future<List<MessageRoom>> getMessageRooms({
     required BuildContext context,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
-    final response = await http.post(
-      Uri.parse('$uri/api/messages/send-to-room'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ${userProvider.user.token}",
-      },
-      body: jsonEncode({
-        "roomId": roomId,
-        "content": content,
-      }),
+    List<MessageRoom> messageRoomList = [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$uri/api/users/me/message-rooms'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          for (var object in jsonDecode(response.body)) {
+            messageRoomList.add(
+              MessageRoom.fromMap(object),
+            );
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return messageRoomList;
+  }
+
+  Future<dynamic> sendMessageToRoom({
+    required String roomId,
+    required String content,
+    List<File>? imageFiles,
+    required BuildContext context,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
     );
 
-    if (response.statusCode == 201) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to send message');
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$uri/api/messages/send-to-room'),
+      );
+      request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
+
+      request.fields['roomId'] = roomId;
+      request.fields['content'] = content;
+
+      if (imageFiles != null && imageFiles.isNotEmpty) {
+        for (File file in imageFiles) {
+          var multipartFile = await http.MultipartFile.fromPath(
+            'resources',
+            file.path,
+          );
+          request.files.add(multipartFile);
+        }
+      }
+
+      var response = await request.send();
+
+      if (response.statusCode == 201) {
+        var responseBody = await response.stream.bytesToString();
+        return jsonDecode(responseBody);
+      } else {
+        var responseBody = await response.stream.bytesToString();
+        throw Exception('Failed to send message: $responseBody');
+      }
+    } catch (e) {
+      throw Exception('Error: ${e.toString()}');
     }
   }
 }

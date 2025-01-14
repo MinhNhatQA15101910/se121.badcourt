@@ -32,12 +32,12 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     _orders = await _bookingManagementService.fetchAllOrders(context: context);
     _playedOrders = _orders!.where((order) {
       DateTime now = DateTime.now();
-      DateTime playTime = order.period.hourFrom;
+      DateTime playTime = order.timePeriod.hourFrom;
       return now.isAfter(playTime);
     }).toList();
     _notPlayedOrders = _orders!.where((order) {
       DateTime now = DateTime.now();
-      DateTime playTime = order.period.hourFrom;
+      DateTime playTime = order.timePeriod.hourFrom;
       return now.isBefore(playTime);
     }).toList();
     _ordersCount = _orders!.length;

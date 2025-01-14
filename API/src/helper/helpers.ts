@@ -1,4 +1,4 @@
-import { FileDto } from "../dtos/file.dto";
+import { FileDto } from "../dtos/files/file.dto";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { Response } from "express";
 import { PagedList } from "./pagedList";
@@ -12,14 +12,12 @@ export const uploadImages = async (
   const images = [];
   let isMain = true;
   for (const file of files) {
-    const result = await fileService.addPhoto(
-      file.path,
-      `BadCourt/${folderName}`
-    );
+    const result = await fileService.uploadFile(file.path, folderName, "image");
     images.push({
       url: result.url,
       publicId: result.public_id,
       isMain,
+      type: "image",
     });
 
     isMain = false;
@@ -41,4 +39,21 @@ export const addPaginationHeader = function <T>(
 
   res.setHeader("Pagination", JSON.stringify(paginationHeader));
   res.setHeader("Access-Control-Expose-Headers", "Pagination");
+};
+
+export const isIntersect = function (timePeriod1: any, timePeriod2: any) {
+  return (
+    timePeriod1.hourFrom < timePeriod2.hourTo &&
+    timePeriod1.hourTo > timePeriod2.hourFrom
+  );
+};
+
+export const isOverlap = function (
+  outsideTimePeriod1: any,
+  insideTimePeriod2: any
+) {
+  return (
+    outsideTimePeriod1.hourFrom <= insideTimePeriod2.hourFrom &&
+    outsideTimePeriod1.hourTo >= insideTimePeriod2.hourTo
+  );
 };

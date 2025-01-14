@@ -1,4 +1,4 @@
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import { v2 as cloudinary, ResourceType, UploadApiResponse } from "cloudinary";
 import {
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
@@ -15,21 +15,22 @@ cloudinary.config({
 
 @injectable()
 export class FileService implements IFileService {
-  async addPhoto(filePath: string, folder: string): Promise<UploadApiResponse> {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder,
-      transformation: {
-        width: 500,
-        height: 500,
-        crop: "fill",
-        gravity: "face",
-      },
+  async deleteFile(publicId: string, resourceType: ResourceType): Promise<any> {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
     });
     return result;
   }
 
-  async deleteFile(publicId: string): Promise<any> {
-    const result = await cloudinary.uploader.destroy(publicId);
+  async uploadFile(
+    filePath: string,
+    folder: string,
+    resourceType: ResourceType
+  ): Promise<UploadApiResponse> {
+    const result = await cloudinary.uploader.upload(`${filePath}`, {
+      folder: `BadCourt-test/${folder}`,
+      resource_type: resourceType as "image" | "raw" | "video" | "auto",
+    });
     return result;
   }
 }

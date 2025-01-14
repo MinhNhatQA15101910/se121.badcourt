@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:frontend/common/services/socket_service.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
-import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -181,24 +181,20 @@ class AuthService {
         response: response,
         context: context,
         onSuccess: () async {
-          final socketService = SocketService();
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(
-              'x-auth-token', jsonDecode(response.body)['token']);
+              'Authorization', 'Bearer ${jsonDecode(response.body)['token']}');
 
           userProvider.setUser(response.body);
-          socketService.connect(jsonDecode(response.body)['token']);
+
           if (jsonDecode(response.body)['role'] == 'player') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              // PlayerBottomBar.routeName,
-              PostScreen.routeName,
+              PlayerBottomBar.routeName,
               (route) => false,
             );
           } else if (jsonDecode(response.body)['role'] == 'manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              // IntroManagerScreen.routeName,
-              PostScreen.routeName,
-
+              IntroManagerScreen.routeName,
               (route) => false,
             );
           }

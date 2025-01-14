@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class DayPicker extends StatefulWidget {
   final void Function(List<int>)
@@ -16,9 +18,65 @@ class DayPicker extends StatefulWidget {
 }
 
 class _DayPickerState extends State<DayPicker> {
-  List<int> selectedDays = [
-    2
-  ]; // Default selected days (you can change it as needed)
+  late List<int> selectedDays;
+
+  @override
+  void initState() {
+    super.initState();
+    // Lấy danh sách ngày từ provider
+    final currentFacilityProvider =
+        Provider.of<CurrentFacilityProvider>(context, listen: false);
+    selectedDays = currentFacilityProvider
+        .currentFacility.activeAt.schedule.keys
+        .map((dayName) => _getDayNumber(dayName))
+        .where((dayNumber) => dayNumber != null)
+        .cast<int>()
+        .toList();
+  }
+
+  int? _getDayNumber(String dayName) {
+    // Chuyển đổi tên ngày thành số ngày
+    switch (dayName.toLowerCase()) {
+      case 'sunday':
+        return 1;
+      case 'monday':
+        return 2;
+      case 'tuesday':
+        return 3;
+      case 'wednesday':
+        return 4;
+      case 'thursday':
+        return 5;
+      case 'friday':
+        return 6;
+      case 'saturday':
+        return 7;
+      default:
+        return null;
+    }
+  }
+
+  String _getDayName(int dayNumber) {
+    // Chuyển đổi số ngày thành tên ngày
+    switch (dayNumber) {
+      case 1:
+        return 'sunday';
+      case 2:
+        return 'monday';
+      case 3:
+        return 'tuesday';
+      case 4:
+        return 'wednesday';
+      case 5:
+        return 'thursday';
+      case 6:
+        return 'friday';
+      case 7:
+        return 'saturday';
+      default:
+        return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +85,7 @@ class _DayPickerState extends State<DayPicker> {
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
             ),
@@ -39,33 +97,27 @@ class _DayPickerState extends State<DayPicker> {
                   GlobalVariables.blackGrey,
                   1,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(7, (index) {
-                    int day =
-                        (index + 2) % 8; // Ensure the days wrap around properly
-                    if (day == 0) {
-                      day = 1; // Correct wrap-around to ensure day 1
-                    }
+                    int day = index + 1; // Ngày từ 1 đến 7 (Chủ nhật -> Thứ 7)
                     bool isSelected = selectedDays.contains(day);
 
                     return GestureDetector(
                       onTap: () {
                         setState(() {
                           if (isSelected) {
-                            selectedDays.remove(
-                                day); // Unselect the day if already selected
+                            selectedDays.remove(day); // Bỏ chọn ngày
                           } else {
-                            selectedDays
-                                .add(day); // Select the day if not selected
+                            selectedDays.add(day); // Chọn ngày
                           }
                         });
-                        widget.onDaysSelected(
-                            selectedDays); // Callback to pass selected days to parent
+                        // Truyền danh sách ngày đã chọn cho callback
+                        widget.onDaysSelected(selectedDays);
                       },
                       child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 4.0),
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? GlobalVariables.green
@@ -80,7 +132,7 @@ class _DayPickerState extends State<DayPicker> {
                         height: 24.0,
                         child: Center(
                           child: Text(
-                            day == 1 ? 'S' : '$day',
+                            _getDayName(day).substring(0, 1).toUpperCase(),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: isSelected
@@ -102,7 +154,7 @@ class _DayPickerState extends State<DayPicker> {
           Container(
             height: 1,
             color: GlobalVariables.grey,
-          )
+          ),
         ],
       ),
     );

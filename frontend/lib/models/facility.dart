@@ -1,93 +1,168 @@
 import 'dart:convert';
 
+import 'package:frontend/models/active.dart';
+import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/manager_info.dart';
+
+import 'dart:convert';
+
+import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/manager_info.dart';
+import 'package:frontend/models/period_time.dart';
+
 class Facility {
   final String id;
-  final String userId;
-  final String name;
+  final String facilityName;
   final String facebookUrl;
-  final int courtsAmount;
-  final String detailAddress;
-  final String province;
-  final double latitude;
-  final double longitude;
-  final double ratingAvg;
-  final int totalRating;
-  final Active activeAt;
-  final int registeredAt;
-  final List<String> imageUrls;
   final String description;
   final String policy;
-  final int maxPrice;
+  final String userId;
+  final String userImageUrl;
+  final String facilityImageUrl;
+  final List<ImageCustom> facilityImages;
+  final int courtsAmount;
   final int minPrice;
+  final int maxPrice;
+  final String detailAddress;
+  final String province;
+  final double lat;
+  final double lon;
+  final double ratingAvg;
+  final int totalRating;
+  final String state;
+  final int createdAt;
   final ManagerInfo managerInfo;
+  final Active activeAt; // Added Active field
 
   Facility({
     required this.id,
-    required this.userId,
-    required this.name,
+    required this.facilityName,
     required this.facebookUrl,
-    required this.courtsAmount,
-    required this.detailAddress,
-    required this.province,
-    required this.latitude,
-    required this.longitude,
-    required this.ratingAvg,
-    required this.totalRating,
-    required this.activeAt,
-    required this.registeredAt,
-    required this.imageUrls,
     required this.description,
     required this.policy,
-    required this.maxPrice,
+    required this.userId,
+    required this.userImageUrl,
+    required this.facilityImageUrl,
+    required this.facilityImages,
+    required this.courtsAmount,
     required this.minPrice,
+    required this.maxPrice,
+    required this.detailAddress,
+    required this.province,
+    required this.lat,
+    required this.lon,
+    required this.ratingAvg,
+    required this.totalRating,
+    required this.state,
+    required this.createdAt,
     required this.managerInfo,
+    required this.activeAt, // Include Active in the constructor
   });
+
+  Facility copyWith({
+    String? id,
+    String? facilityName,
+    String? facebookUrl,
+    String? description,
+    String? policy,
+    String? userId,
+    String? userImageUrl,
+    String? facilityImageUrl,
+    List<ImageCustom>? facilityImages,
+    int? courtsAmount,
+    int? minPrice,
+    int? maxPrice,
+    String? detailAddress,
+    String? province,
+    double? lat,
+    double? lon,
+    double? ratingAvg,
+    int? totalRating,
+    String? state,
+    int? createdAt,
+    ManagerInfo? managerInfo,
+    Active? activeAt, // Add Active to copyWith
+  }) {
+    return Facility(
+      id: id ?? this.id,
+      facilityName: facilityName ?? this.facilityName,
+      facebookUrl: facebookUrl ?? this.facebookUrl,
+      description: description ?? this.description,
+      policy: policy ?? this.policy,
+      userId: userId ?? this.userId,
+      userImageUrl: userImageUrl ?? this.userImageUrl,
+      facilityImageUrl: facilityImageUrl ?? this.facilityImageUrl,
+      facilityImages: facilityImages ?? this.facilityImages,
+      courtsAmount: courtsAmount ?? this.courtsAmount,
+      minPrice: minPrice ?? this.minPrice,
+      maxPrice: maxPrice ?? this.maxPrice,
+      detailAddress: detailAddress ?? this.detailAddress,
+      province: province ?? this.province,
+      lat: lat ?? this.lat,
+      lon: lon ?? this.lon,
+      ratingAvg: ratingAvg ?? this.ratingAvg,
+      totalRating: totalRating ?? this.totalRating,
+      state: state ?? this.state,
+      createdAt: createdAt ?? this.createdAt,
+      managerInfo: managerInfo ?? this.managerInfo,
+      activeAt: activeAt ?? this.activeAt, // Include Active in copyWith
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
       '_id': id,
-      'user_id': userId,
-      'name': name,
-      'facebook_url': facebookUrl,
-      'courts_amount': courtsAmount,
-      'detail_address': detailAddress,
-      'province': province,
-      'latitude': latitude,
-      'longitude': longitude,
-      'rating_avg': ratingAvg,
-      'total_rating': totalRating,
-      'active_at': activeAt.toMap(),
-      'registered_at': registeredAt,
-      'image_urls': imageUrls,
+      'facilityName': facilityName,
+      'facebookUrl': facebookUrl,
       'description': description,
       'policy': policy,
-      'max_price': maxPrice,
-      'min_price': minPrice,
-      'manager_info': managerInfo.toMap(),
+      'userId': userId,
+      'userImageUrl': userImageUrl,
+      'facilityImageUrl': facilityImageUrl,
+      'facilityImages': facilityImages.map((img) => img.toMap()).toList(),
+      'courtsAmount': courtsAmount,
+      'minPrice': minPrice,
+      'maxPrice': maxPrice,
+      'detailAddress': detailAddress,
+      'province': province,
+      'lat': lat,
+      'lon': lon,
+      'ratingAvg': ratingAvg,
+      'totalRating': totalRating,
+      'state': state,
+      'createdAt': createdAt,
+      'managerInfo': managerInfo.toMap(),
+      'activeAt': activeAt.toMap(), // Include Active in toMap
     };
   }
 
   factory Facility.fromMap(Map<String, dynamic> map) {
     return Facility(
       id: map['_id'] ?? '',
-      userId: map['user_id'] ?? '',
-      name: map['name'] ?? '',
-      facebookUrl: map['facebook_url'] ?? '',
-      courtsAmount: map['courts_amount'] ?? 0,
-      detailAddress: map['detail_address'] ?? '',
-      province: map['province'] ?? '',
-      latitude: map['latitude']?.toDouble() ?? 0.0,
-      longitude: map['longitude']?.toDouble() ?? 0.0,
-      ratingAvg: map['rating_avg']?.toDouble() ?? 0.0,
-      totalRating: map['total_rating'] ?? 0,
-      activeAt: Active.fromMap(map['active_at'] ?? {}),
-      registeredAt: map['registered_at'] ?? 0,
-      imageUrls: List<String>.from(map['image_urls'] ?? []),
+      facilityName: map['facilityName'] ?? '',
+      facebookUrl: map['facebookUrl'] ?? '',
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
-      maxPrice: map['max_price'] ?? 0,
-      minPrice: map['min_price'] ?? 0,
-      managerInfo: ManagerInfo.fromMap(map['manager_info'] ?? {}),
+      userId: map['userId'] ?? '',
+      userImageUrl: map['userImageUrl'] ?? '',
+      facilityImageUrl: map['facilityImageUrl'] ?? '',
+      facilityImages: List<ImageCustom>.from(
+        (map['facilityImages'] ?? []).map((img) => ImageCustom.fromMap(img)),
+      ),
+      courtsAmount: map['courtsAmount'] ?? 0,
+      minPrice: map['minPrice'] ?? 0,
+      maxPrice: map['maxPrice'] ?? 0,
+      detailAddress: map['detailAddress'] ?? '',
+      province: map['province'] ?? '',
+      lat: map['lat']?.toDouble() ?? 0.0,
+      lon: map['lon']?.toDouble() ?? 0.0,
+      ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
+      totalRating: map['totalRating'] ?? 0,
+      state: map['state'] ?? '',
+      createdAt: map['createdAt'] ?? 0,
+      managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
+      activeAt:
+          Active.fromMap(map['activeAt'] ?? {}), // Include Active in fromMap
     );
   }
 
@@ -96,180 +171,7 @@ class Facility {
   factory Facility.fromJson(String source) =>
       Facility.fromMap(json.decode(source));
 
-  Facility copyWith({
-    String? id,
-    String? userId,
-    String? name,
-    String? facebookUrl,
-    int? courtsAmount,
-    String? detailAddress,
-    String? province,
-    double? latitude,
-    double? longitude,
-    double? ratingAvg,
-    int? totalRating,
-    Active? activeAt,
-    int? registeredAt,
-    List<String>? imageUrls,
-    String? description,
-    String? policy,
-    int? maxPrice,
-    int? minPrice,
-    ManagerInfo? managerInfo,
-  }) {
-    return Facility(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      name: name ?? this.name,
-      facebookUrl: facebookUrl ?? this.facebookUrl,
-      courtsAmount: courtsAmount ?? this.courtsAmount,
-      detailAddress: detailAddress ?? this.detailAddress,
-      province: province ?? this.province,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      ratingAvg: ratingAvg ?? this.ratingAvg,
-      totalRating: totalRating ?? this.totalRating,
-      activeAt: activeAt ?? this.activeAt,
-      registeredAt: registeredAt ?? this.registeredAt,
-      imageUrls: imageUrls ?? this.imageUrls,
-      description: description ?? this.description,
-      policy: policy ?? this.policy,
-      maxPrice: maxPrice ?? this.maxPrice,
-      minPrice: minPrice ?? this.minPrice,
-      managerInfo: managerInfo ?? this.managerInfo,
-    );
-  }
-
   bool hasDay(String day) {
     return activeAt.schedule.containsKey(day.toLowerCase());
-  }
-}
-
-class Active {
-  final Map<String, PeriodTime> schedule;
-
-  Active({required this.schedule});
-
-  factory Active.fromMap(Map<String, dynamic> map) {
-    Map<String, PeriodTime> schedule = {};
-    map.forEach((key, value) {
-      if (key != '_id') {
-        schedule[key] = PeriodTime.fromMap(value);
-      }
-    });
-    return Active(schedule: schedule);
-  }
-
-  Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {};
-    schedule.forEach((key, value) {
-      map[key] = value.toMap();
-    });
-    return map;
-  }
-}
-
-class PeriodTime {
-  final int hourFrom;
-  final int hourTo;
-
-  PeriodTime({required this.hourFrom, required this.hourTo});
-
-  factory PeriodTime.fromMap(Map<String, dynamic> map) {
-    return PeriodTime(
-      hourFrom: map['hour_from'] ?? 0,
-      hourTo: map['hour_to'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'hour_from': hourFrom,
-      'hour_to': hourTo,
-    };
-  }
-}
-
-class ManagerInfo {
-  final String fullName;
-  final String email;
-  final String phoneNumber;
-  final String citizenId;
-  final String citizenImageUrlFront;
-  final String citizenImageUrlBack;
-  final String bankCardUrlFront;
-  final String bankCardUrlBack;
-  final List<String> businessLicenseImageUrls;
-  final String id;
-
-  ManagerInfo({
-    required this.fullName,
-    required this.email,
-    required this.phoneNumber,
-    required this.citizenId,
-    required this.citizenImageUrlFront,
-    required this.citizenImageUrlBack,
-    required this.bankCardUrlFront,
-    required this.bankCardUrlBack,
-    required this.businessLicenseImageUrls,
-    required this.id,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'full_name': fullName,
-      'email': email,
-      'phone_number': phoneNumber,
-      'citizen_id': citizenId,
-      'citizen_image_url_front': citizenImageUrlFront,
-      'citizen_image_url_back': citizenImageUrlBack,
-      'bank_card_url_front': bankCardUrlFront,
-      'bank_card_url_back': bankCardUrlBack,
-      'business_license_image_urls': businessLicenseImageUrls,
-      '_id': id,
-    };
-  }
-
-  factory ManagerInfo.fromMap(Map<String, dynamic> map) {
-    return ManagerInfo(
-      fullName: map['full_name'] ?? '',
-      email: map['email'] ?? '',
-      phoneNumber: map['phone_number'] ?? '',
-      citizenId: map['citizen_id'] ?? '',
-      citizenImageUrlFront: map['citizen_image_url_front'] ?? '',
-      citizenImageUrlBack: map['citizen_image_url_back'] ?? '',
-      bankCardUrlFront: map['bank_card_url_front'] ?? '',
-      bankCardUrlBack: map['bank_card_url_back'] ?? '',
-      businessLicenseImageUrls:
-          List<String>.from(map['business_license_image_urls'] ?? []),
-      id: map['_id'] ?? '',
-    );
-  }
-
-  ManagerInfo copyWith({
-    String? fullName,
-    String? email,
-    String? phoneNumber,
-    String? citizenId,
-    String? citizenImageUrlFront,
-    String? citizenImageUrlBack,
-    String? bankCardUrlFront,
-    String? bankCardUrlBack,
-    List<String>? businessLicenseImageUrls,
-    String? id,
-  }) {
-    return ManagerInfo(
-      fullName: fullName ?? this.fullName,
-      email: email ?? this.email,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      citizenId: citizenId ?? this.citizenId,
-      citizenImageUrlFront: citizenImageUrlFront ?? this.citizenImageUrlFront,
-      citizenImageUrlBack: citizenImageUrlBack ?? this.citizenImageUrlBack,
-      bankCardUrlFront: bankCardUrlFront ?? this.bankCardUrlFront,
-      bankCardUrlBack: bankCardUrlBack ?? this.bankCardUrlBack,
-      businessLicenseImageUrls:
-          businessLicenseImageUrls ?? this.businessLicenseImageUrls,
-      id: id ?? this.id,
-    );
   }
 }

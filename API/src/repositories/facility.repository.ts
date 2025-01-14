@@ -3,8 +3,9 @@ import { PagedList } from "../helper/pagedList";
 import { injectable } from "inversify";
 import { Aggregate } from "mongoose";
 import Facility from "../models/facility";
-import { RegisterFacilityDto } from "../dtos/registerFacility.dto";
 import { FacilityParams } from "../params/facility.params";
+import { RegisterFacilityDto } from "../dtos/facilities/registerFacility.dto";
+import Court from "../models/court";
 
 @injectable()
 export class FacilityRepository implements IFacilityRepository {
@@ -38,6 +39,10 @@ export class FacilityRepository implements IFacilityRepository {
           .sort({ avgPrice: facilityParams.order === "asc" ? 1 : -1 });
     }
 
+    if (facilityParams.userId) {
+      aggregate = aggregate.match({ userId: facilityParams.userId });
+    }
+
     if (facilityParams.province) {
       aggregate = aggregate.match({ province: facilityParams.province });
     }
@@ -66,12 +71,38 @@ export class FacilityRepository implements IFacilityRepository {
     return await Facility.findOne({ name: facilityName });
   }
 
+  async getFacilityProvinces(): Promise<string[]> {
+    return await Facility.distinct("province");
+  }
+
+  async getMaxPrice(facilityId: string): Promise<number> {
+    const courts = await Court.find({ facilityId });
+
+    let maxPrice = courts[0].pricePerHour;
+    for (let i = 1; i < courts.length; i++) {
+      maxPrice = Math.max(maxPrice, courts[i].pricePerHour);
+    }
+
+    return maxPrice;
+  }
+
+  async getMinPrice(facilityId: string): Promise<number> {
+    const courts = await Court.find({ facilityId });
+
+    let minPrice = courts[0].pricePerHour;
+    for (let i = 1; i < courts.length; i++) {
+      minPrice = Math.min(minPrice, courts[i].pricePerHour);
+    }
+
+    return minPrice;
+  }
+
   async registerFacility(
     registerFacilityDto: RegisterFacilityDto
   ): Promise<any> {
     let facility = new Facility({
       userId: registerFacilityDto.userId,
-      name: registerFacilityDto.facilityName,
+      facilityName: registerFacilityDto.facilityName,
       facebookUrl: registerFacilityDto.facebookUrl,
       description: registerFacilityDto.description,
       policy: registerFacilityDto.policy,

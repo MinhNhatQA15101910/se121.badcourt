@@ -74,16 +74,18 @@ class _CommentWidgetState extends State<CommentWidget> {
                   widget.username,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
+                  maxLines: 1,
                 ),
               ),
               Text(
                 widget.date,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: Colors.grey[500],
                 ),
+                maxLines: 1,
               ),
             ],
           ),
@@ -104,7 +106,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             child: Text(
               widget.commentText,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: GlobalVariables.darkGrey,
               ),
             ),

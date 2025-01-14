@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
 
 class BookingManagementManagerScreen extends StatefulWidget {
+  static const String routeName = '/bookingManagementManagerScreen';
   const BookingManagementManagerScreen({super.key});
 
   @override

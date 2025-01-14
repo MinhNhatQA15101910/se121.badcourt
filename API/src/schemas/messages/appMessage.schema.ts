@@ -3,7 +3,6 @@ import { FileSchema } from "../files/file.schema";
 
 export const AppMessageSchema = new mongoose.Schema({
   content: {
-    required: true,
     type: String,
     trim: true,
   },

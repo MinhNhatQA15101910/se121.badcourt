@@ -3,11 +3,11 @@ import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import User from "../models/user";
-import { FileDto } from "../dtos/file.dto";
+import { FileDto } from "../dtos/files/file.dto";
 import { PagedList } from "../helper/pagedList";
 import { UserParams } from "../params/user.params";
 import { Aggregate } from "mongoose";
-import { SignupDto } from "../dtos/signup.dto";
+import { SignupDto } from "../dtos/auth/signup.dto";
 
 @injectable()
 export class UserRepository implements IUserRepository {
@@ -17,12 +17,6 @@ export class UserRepository implements IUserRepository {
     @inject(INTERFACE_TYPE.BcryptService) bcryptService: IBcryptService
   ) {
     this._bcryptService = bcryptService;
-  }
-
-  async addChatRoom(user: any, chatRoomId: string): Promise<any> {
-    user.chatRooms.push(chatRoomId);
-    user.updatedAt = new Date();
-    return await user.save();
   }
 
   async addPhoto(

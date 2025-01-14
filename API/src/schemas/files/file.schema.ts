@@ -6,6 +6,11 @@ export const FileSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  type: {
+    required: true,
+    type: String,
+    trim: true,
+  },
   isMain: {
     required: true,
     type: Boolean,

@@ -3,7 +3,6 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/post_form.dart';
@@ -102,52 +101,11 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  void _navigateToMessageScreen() {
-    Navigator.of(context).pushNamed(MessageScreen.routeName);
-  }
-
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'POST',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: _navigateToMessageScreen,
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       body: Container(
         color: GlobalVariables.defaultColor,
         child: RefreshIndicator(

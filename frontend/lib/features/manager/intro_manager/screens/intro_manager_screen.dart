@@ -1,6 +1,6 @@
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/common/widgets/colored_safe_area.dart';
-import 'package:frontend/common/widgets/facility_item.dart';
+import 'package:frontend/common/widgets/manager_facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/account/services/account_service.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
@@ -19,7 +19,6 @@ class IntroManagerScreen extends StatefulWidget {
 
 class _IntroManagerScreenState extends State<IntroManagerScreen> {
   final _introManagerService = IntroManagerService();
-
   List<Facility> _facilityList = [];
 
   void _logOut() {
@@ -30,7 +29,6 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
           title: const Text('Log out confirm'),
           content: const Text('Are you sure to log out the app?'),
           actions: [
-            // The "Yes" button
             TextButton(
               onPressed: () {
                 final accountService = AccountService();
@@ -40,7 +38,6 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
               },
               child: const Text('Yes'),
             ),
-            // The "No" button
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -75,205 +72,136 @@ class _IntroManagerScreenState extends State<IntroManagerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Vector badminton cross
-          SvgPicture.asset(
-            'assets/vectors/vector-badminton-cross.svg',
-            width: 240,
-            height: 240,
-            colorFilter: ColorFilter.mode(
-              GlobalVariables.white,
-              BlendMode.srcIn,
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          // No badminton facility yet text
-          Text(
-            'No badminton',
-            style: GoogleFonts.inter(
-              color: GlobalVariables.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            'facility yet',
-            style: GoogleFonts.inter(
-              color: GlobalVariables.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          // Let's add a badminton facility text
-          Text(
-            "Let's add a badminton facility",
-            style: GoogleFonts.inter(
-              color: GlobalVariables.white,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          // Add a new facility button
-          SizedBox(
-            width: 240,
-            height: 40,
-            child: ElevatedButton(
-              onPressed: _navigateToFacilityInfo,
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: GlobalVariables.white,
-              ),
-              child: Text(
-                'Add a new facility',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: GlobalVariables.green,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Logout button
-          Container(
-            width: 240,
-            height: 40,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: GlobalVariables.white,
-                width: 2,
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: ElevatedButton(
-              onPressed: _logOut,
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-              ),
-              child: Text(
-                'Logout',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (_facilityList.isNotEmpty) {
-      content = Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            top: 16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return ColoredSafeArea(
+      child: Scaffold(
+        backgroundColor: GlobalVariables.green,
+        body: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          children: [
+            if (_facilityList.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    'Choose your badminton facility',
-                    style: GoogleFonts.inter(
-                      color: GlobalVariables.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                child: Text(
+                  'Choose your badminton facility',
+                  style: GoogleFonts.inter(
+                    color: GlobalVariables.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                height: 480,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _facilityList.length,
-                  itemBuilder: (context, index) => FacilityItem(
-                    facility: _facilityList[index],
-                  ),
+              ..._facilityList.map(
+                (facility) => ManagerFacilityItem(facility: facility),
+              ),
+              const SizedBox(height: 16),
+            ] else ...[
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/vectors/vector-badminton-cross.svg',
+                      width: 240,
+                      height: 240,
+                      colorFilter: ColorFilter.mode(
+                        GlobalVariables.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      'No badminton facility yet',
+                      style: GoogleFonts.inter(
+                        color: GlobalVariables.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    ElevatedButton(
+                      onPressed: _navigateToFacilityInfo,
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor: GlobalVariables.white,
+                      ),
+                      child: Text(
+                        'Add a new facility',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: GlobalVariables.green,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 32),
             ],
-          ),
-        ),
-      );
-    }
 
-    return ColoredSafeArea(
-      child: Scaffold(
-        backgroundColor: GlobalVariables.green,
-        body: Column(
-          children: [
-            content,
-
-            // Register a facility button
             if (_facilityList.isNotEmpty)
               SizedBox(
-                width: 240,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: _navigateToFacilityInfo,
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: GlobalVariables.white,
-                  ),
-                  child: Text(
-                    'Register a facility',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: GlobalVariables.green,
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    // Register a facility button
+                    SizedBox(
+                      width: 240,
+                      height: 40,
+                      child: ElevatedButton(
+                        onPressed: _navigateToFacilityInfo,
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          backgroundColor: GlobalVariables.white,
+                        ),
+                        child: Text(
+                          'Register a facility',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: GlobalVariables.green,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
+                    const SizedBox(height: 12),
 
-            if (_facilityList.isNotEmpty) const SizedBox(height: 12),
-
-            // Logout button
-            if (_facilityList.isNotEmpty)
-              Container(
-                width: 240,
-                height: 40,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: GlobalVariables.white,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: ElevatedButton(
-                  onPressed: _logOut,
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                  ),
-                  child: Text(
-                    'Logout',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: GlobalVariables.white,
+                    // Logout button
+                    Container(
+                      width: 240,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: GlobalVariables.white,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _logOut,
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          backgroundColor: Colors.transparent,
+                        ),
+                        child: Text(
+                          'Logout',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: GlobalVariables.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
 
             const SizedBox(height: 32),
 
+            // Facility registration instructions
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Align(

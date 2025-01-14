@@ -13,6 +13,7 @@ import 'package:frontend/common/widgets/label_display.dart';
 import 'package:frontend/features/manager/add_facility/widgets/multiple_image_picker_button.dart';
 import 'package:frontend/features/manager/add_facility/widgets/selected_images.dart';
 import 'package:frontend/models/facility.dart';
+import 'package:frontend/models/manager_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -205,6 +206,14 @@ class _ManagerInfoScreenState extends State<ManagerInfoScreen> {
                                       if (email == null || email.isEmpty) {
                                         return 'Please enter your email.';
                                       }
+                                      final emailRegex = RegExp(
+                                        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                                      );
+
+                                      if (!emailRegex.hasMatch(email)) {
+                                        return 'Please enter a valid email address.';
+                                      }
+
                                       return null;
                                     },
                                     isEmail: true,

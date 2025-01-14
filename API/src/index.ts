@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import { Server } from "socket.io";
 import { socketHandler } from "./websockets/handler";
 import cors from "cors";
-import { websocketsMiddleware } from "./middlewares/websockets.middleware";
+import { seedData } from "./data/seedData";
 
 const app: Express = express();
 
@@ -28,6 +28,8 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
+seedData();
 
 const expressServer = app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}`);

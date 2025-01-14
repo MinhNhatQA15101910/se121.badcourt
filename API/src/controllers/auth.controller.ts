@@ -11,7 +11,7 @@ import { LoginSchema } from "../schemas/auth/login.schema";
 import { ValidateEmailSchema } from "../schemas/auth/validateEmail.schema";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
-import { UserDto } from "../dtos/user.dto";
+import { UserDto } from "../dtos/auth/user.dto";
 import { VerifyPincodeSchema } from "../schemas/auth/verifyPincode.schema";
 
 const pincodeMap = new Map();

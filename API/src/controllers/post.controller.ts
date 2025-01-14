@@ -1,20 +1,20 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
-import { NewPostDto } from "../dtos/newPost.dto";
 import { AddPostSchema } from "../schemas/posts/addPost.schema";
 import { IFileService } from "../interfaces/services/IFile.service";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
-import { PostDto } from "../dtos/post.dto";
+import { PostDto } from "../dtos/posts/post.dto";
 import { PORT } from "../secrets";
 import { NotFoundException } from "../exceptions/notFound.exception";
 import { IUserRepository } from "../interfaces/repositories/IUser.repository";
 import { PostParamsSchema } from "../schemas/posts/postParams.schema";
 import { PostParams } from "../params/post.params";
 import { ICommentRepository } from "../interfaces/repositories/IComment.repository";
-import { CommentDto } from "../dtos/comment.dto";
-import { UserDto } from "../dtos/user.dto";
+import { CommentDto } from "../dtos/comments/comment.dto";
+import { UserDto } from "../dtos/auth/user.dto";
+import { NewPostDto } from "../dtos/posts/newPost.dto";
 
 @injectable()
 export class PostController {

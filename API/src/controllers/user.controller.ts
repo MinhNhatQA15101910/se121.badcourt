@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
-import { UserDto } from "../dtos/user.dto";
+import { UserDto } from "../dtos/auth/user.dto";
 import { addPaginationHeader, uploadImages } from "../helper/helpers";
 import { INTERFACE_TYPE } from "../utils/appConsts";
 import { IFileService } from "../interfaces/services/IFile.service";
@@ -10,12 +10,12 @@ import { PORT } from "../secrets";
 import { PostParams } from "../params/post.params";
 import { PostParamsSchema } from "../schemas/posts/postParams.schema";
 import { IPostRepository } from "../interfaces/repositories/IPost.repository";
-import { PostDto } from "../dtos/post.dto";
+import { PostDto } from "../dtos/posts/post.dto";
 import { UserParams } from "../params/user.params";
 import { UserParamsSchema } from "../schemas/users/userParams.schema";
 import { MessageRoomParams } from "../params/messageRoom.params";
 import { IMessageRepository } from "../interfaces/repositories/IMessage.repository";
-import { MessageRoomDto } from "../dtos/messageRoom.dto";
+import { MessageRoomDto } from "../dtos/messages/messageRoom.dto";
 import { ChangePasswordSchema } from "../schemas/auth/changePassword.schema";
 import { IBcryptService } from "../interfaces/services/IBcrypt.service";
 
@@ -47,7 +47,7 @@ export class UserController {
 
     // Delete old image (if exists)
     if (user.image) {
-      await this._fileService.deleteFile(user.image.publicId);
+      await this._fileService.deleteFile(user.image.publicId, "image");
     }
 
     // Upload photo
@@ -131,6 +131,13 @@ export class UserController {
     const messageRoomDtos: MessageRoomDto[] = [];
     for (let messageRoom of messageRooms) {
       const messageRoomDto = MessageRoomDto.mapFrom(messageRoom);
+      messageRoomDto.lastMessage = await this._messageRepository.getLastMessage(
+        messageRoom._id.toString()
+      );
+      for (let userId of messageRoom.users) {
+        const user = await this._userRepository.getUserById(userId);
+        messageRoomDto.users.push(UserDto.mapFrom(user));
+      }
 
       messageRoomDtos.push(messageRoomDto);
     }

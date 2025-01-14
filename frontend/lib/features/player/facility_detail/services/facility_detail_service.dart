@@ -20,10 +20,10 @@ class FacilityDetailService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/player/courts?facility_id=$facilityId'),
+        Uri.parse('$uri/api/courts?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -65,7 +65,7 @@ class FacilityDetailService {
         Uri.parse('$uri/manager/delete-court/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -95,20 +95,21 @@ class FacilityDetailService {
       context,
       listen: false,
     );
+
     final requestBody = {
-      "order_periods": [
-        {
-          "hour_from": startTime.millisecondsSinceEpoch,
-          "hour_to": endTime.millisecondsSinceEpoch
-        }
-      ]
+      "courtId": courtId,
+      "timePeriod": {
+        "hourFrom": startTime.millisecondsSinceEpoch,
+        "hourTo": endTime.millisecondsSinceEpoch,
+      }
     };
+
     try {
-      final response = await http.patch(
-        Uri.parse('$uri/player/book-court/$courtId'),
+      final response = await http.post(
+        Uri.parse('$uri/api/orders'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
         body: jsonEncode(requestBody),
       );
@@ -133,7 +134,7 @@ class FacilityDetailService {
     }
   }
 
-  Future<bool> validateOverlap(
+  Future<bool> checkIntersect(
     BuildContext context,
     String courtId,
     DateTime startTime,
@@ -145,20 +146,19 @@ class FacilityDetailService {
     );
     try {
       final response = await http.post(
-        Uri.parse('$uri/player/validate-overlap/$courtId'),
+        Uri.parse('$uri/api/orders/check-intersect'),
         body: jsonEncode(
           {
-            "order_periods": [
-              {
-                "hour_from": startTime.millisecondsSinceEpoch,
-                "hour_to": endTime.millisecondsSinceEpoch
-              }
-            ]
+            "courtId": courtId,
+            "timePeriod": {
+              "hourFrom": startTime.millisecondsSinceEpoch,
+              "hourTo": endTime.millisecondsSinceEpoch,
+            },
           },
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 
@@ -167,9 +167,9 @@ class FacilityDetailService {
         context: context,
         onSuccess: () {},
       );
+
       if (response.statusCode == 200) {
-        final bool hasOverlap = jsonDecode(response.body);
-        return hasOverlap;
+        return true;
       } else {
         return false;
       }

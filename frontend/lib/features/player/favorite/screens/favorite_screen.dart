@@ -7,6 +7,7 @@ import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FavoriteScreen extends StatefulWidget {
+  static const String routeName = '/favourite-screen';
   const FavoriteScreen({super.key});
 
   @override
@@ -40,20 +41,21 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         child: AppBar(
           backgroundColor: GlobalVariables.green,
           title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  'FAVORITE',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
+                  'Favourite',
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                     decoration: TextDecoration.none,
                     color: GlobalVariables.white,
                   ),
                 ),
               ),
               IconButton(
-                onPressed: () => {},
+                onPressed: () {},
                 iconSize: 24,
                 icon: const Icon(
                   Icons.notifications_outlined,
@@ -61,7 +63,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () => {},
+                onPressed: () {},
                 iconSize: 24,
                 icon: const Icon(
                   Icons.message_outlined,

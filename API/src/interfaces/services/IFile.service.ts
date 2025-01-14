@@ -1,6 +1,10 @@
-import { UploadApiResponse } from "cloudinary";
+import { ResourceType, UploadApiResponse } from "cloudinary";
 
 export interface IFileService {
-  addPhoto(filePath: string, folder: string): Promise<UploadApiResponse>;
-  deleteFile(publicId: string): Promise<void>;
+  uploadFile(
+    filePath: string,
+    folder: string,
+    resourceType: ResourceType
+  ): Promise<UploadApiResponse>;
+  deleteFile(publicId: string, resourceType: ResourceType): Promise<void>;
 }

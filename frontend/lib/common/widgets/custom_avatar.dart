@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class CustomAvatar extends StatelessWidget {
   final double radius;
@@ -21,28 +23,33 @@ class CustomAvatar extends StatelessWidget {
   }
 
   void _showMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.chat),
-              title: Text('Chat with User'),
-              onTap: () {
-                _navigateToDetailMessageScreen(context, userId);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('View Profile'),
-              onTap: () {},
-            ),
-          ],
-        );
-      },
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
     );
+    if (userId != userProvider.user.id)
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.chat),
+                title: Text('Chat with User'),
+                onTap: () {
+                  _navigateToDetailMessageScreen(context, userId);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text('View Profile'),
+                onTap: () {},
+              ),
+            ],
+          );
+        },
+      );
   }
 
   @override

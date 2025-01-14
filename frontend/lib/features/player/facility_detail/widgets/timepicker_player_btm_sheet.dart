@@ -55,7 +55,7 @@ class _TimePickerPlayerBottomSheetState
   }
 
   Future<bool> isOverlapse() async {
-    return await _facilityDetailService.validateOverlap(
+    return await _facilityDetailService.checkIntersect(
       context,
       widget.court.id,
       combineDateTime(widget.dateTime, startHour, startMinuteIndex),
@@ -293,7 +293,7 @@ class _TimePickerPlayerBottomSheetState
                     child: Container(
                       child: CustomButton(
                         onTap: () async {
-                          if (await isOverlapse() == false) {
+                          if (await isOverlapse() == true) {
                             final checkoutProvider =
                                 Provider.of<CheckoutProvider>(context,
                                     listen: false);

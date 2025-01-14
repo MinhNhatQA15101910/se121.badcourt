@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -12,6 +14,69 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchService {
+  Future<String?> fetchAddressRefId({
+    required BuildContext context,
+    String? searchText,
+    double? lat,
+    double? lng,
+  }) async {
+    String apiUrl = 'https://maps.vietmap.vn/api/';
+    if (searchText != null) {
+      apiUrl +=
+          'search/v3?apikey=${dotenv.env['VIETMAP_API_KEY']!}&text=$searchText';
+    } else if (lat != null && lng != null) {
+      apiUrl +=
+          'reverse/v3?apikey=${dotenv.env['VIETMAP_API_KEY']!}&lat=$lat&lng=$lng';
+    }
+
+    String? result = null;
+
+    try {
+      http.Response response = await http.get(Uri.parse(apiUrl));
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          List<dynamic> data = jsonDecode(response.body);
+
+          if (data.isNotEmpty) {
+            result = data[0]['ref_id'] as String?;
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return result;
+  }
+
+  Future<DetailAddress?> fetchDetailAddress({required String refId}) async {
+    String apiUrl = 'https://maps.vietmap.vn/api/place/v3';
+    String fullUrl =
+        '$apiUrl?apikey=${dotenv.env['VIETMAP_API_KEY']!}&refid=$refId';
+
+    try {
+      final response = await http.get(Uri.parse(fullUrl));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = jsonDecode(response.body);
+        return DetailAddress.fromJson(data);
+      } else {
+        print('HTTP Error ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+
+    return null;
+  }
+
   Future<List<Facility>> fetchAllFacilities({
     required BuildContext context,
     String? province,
@@ -28,7 +93,7 @@ class SearchService {
     List<Facility> facilities = [];
     bool isQuery = false;
 
-    String requestUri = '$uri/player/facilities';
+    String requestUri = '$uri/api/facilities';
     if (province != null) {
       requestUri += '?province=$province';
       isQuery = true;
@@ -69,7 +134,7 @@ class SearchService {
         Uri.parse(requestUri),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': 'Bearer ${userProvider.user.token}',
         },
       );
 

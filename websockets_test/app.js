@@ -32,6 +32,10 @@ socket.on("newMessage", (message) => {
   document.querySelector("#messages").appendChild(li);
 });
 
+socket.on("messageRoom", (room) => {
+  console.log(room);
+});
+
 // Create event listener
 document
   .querySelector("#btnGetCurrentUser")
