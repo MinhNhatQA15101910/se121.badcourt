@@ -5,43 +5,38 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace BadCourtAPI.Data.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250306084428_SqlInitial")]
-partial class SqlInitial
+[Migration("20250306191443_SqlIntial")]
+partial class SqlIntial
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
-        modelBuilder
-            .HasAnnotation("ProductVersion", "9.0.2")
-            .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
-        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+        modelBuilder.HasAnnotation("ProductVersion", "9.0.2");
 
         modelBuilder.Entity("BadCourtAPI.Entities.Role", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("ConcurrencyStamp")
                     .IsConcurrencyToken()
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("Name")
                     .HasMaxLength(256)
-                    .HasColumnType("character varying(256)");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("NormalizedName")
                     .HasMaxLength(256)
-                    .HasColumnType("character varying(256)");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
@@ -56,60 +51,64 @@ partial class SqlInitial
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.Property<int>("AccessFailedCount")
-                    .HasColumnType("integer");
+                    .HasColumnType("INTEGER");
 
                 b.Property<string>("ConcurrencyStamp")
                     .IsConcurrencyToken()
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("timestamp with time zone");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("Email")
                     .HasMaxLength(256)
-                    .HasColumnType("character varying(256)");
+                    .HasColumnType("TEXT");
 
                 b.Property<bool>("EmailConfirmed")
-                    .HasColumnType("boolean");
+                    .HasColumnType("INTEGER");
+
+                b.Property<string>("FullName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
                 b.Property<bool>("LockoutEnabled")
-                    .HasColumnType("boolean");
+                    .HasColumnType("INTEGER");
 
                 b.Property<DateTimeOffset?>("LockoutEnd")
-                    .HasColumnType("timestamp with time zone");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("NormalizedEmail")
                     .HasMaxLength(256)
-                    .HasColumnType("character varying(256)");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("NormalizedUserName")
                     .HasMaxLength(256)
-                    .HasColumnType("character varying(256)");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("PasswordHash")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("PhoneNumber")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<bool>("PhoneNumberConfirmed")
-                    .HasColumnType("boolean");
+                    .HasColumnType("INTEGER");
 
                 b.Property<string>("SecurityStamp")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<bool>("TwoFactorEnabled")
-                    .HasColumnType("boolean");
+                    .HasColumnType("INTEGER");
 
                 b.Property<DateTime>("UpdatedAt")
-                    .HasColumnType("timestamp with time zone");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("UserName")
                     .HasMaxLength(256)
-                    .HasColumnType("character varying(256)");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
@@ -123,27 +122,43 @@ partial class SqlInitial
                 b.ToTable("AspNetUsers", (string)null);
             });
 
+        modelBuilder.Entity("BadCourtAPI.Entities.UserPhoto", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<bool>("IsMain")
+                    .HasColumnType("INTEGER");
+
+                b.Property<string>("PublicId")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Url")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserId");
+
+                b.ToTable("UserPhotos");
+            });
+
         modelBuilder.Entity("BadCourtAPI.Entities.UserRole", b =>
             {
                 b.Property<Guid>("UserId")
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.Property<Guid>("RoleId")
-                    .HasColumnType("uuid");
-
-                b.Property<Guid>("RoleId1")
-                    .HasColumnType("uuid");
-
-                b.Property<Guid>("UserId1")
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("UserId", "RoleId");
 
                 b.HasIndex("RoleId");
-
-                b.HasIndex("RoleId1");
-
-                b.HasIndex("UserId1");
 
                 b.ToTable("AspNetUserRoles", (string)null);
             });
@@ -152,18 +167,16 @@ partial class SqlInitial
             {
                 b.Property<int>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
-
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    .HasColumnType("INTEGER");
 
                 b.Property<string>("ClaimType")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("ClaimValue")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<Guid>("RoleId")
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
@@ -176,18 +189,16 @@ partial class SqlInitial
             {
                 b.Property<int>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
-
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    .HasColumnType("INTEGER");
 
                 b.Property<string>("ClaimType")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("ClaimValue")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<Guid>("UserId")
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
@@ -199,16 +210,16 @@ partial class SqlInitial
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
             {
                 b.Property<string>("LoginProvider")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("ProviderKey")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("ProviderDisplayName")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<Guid>("UserId")
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("LoginProvider", "ProviderKey");
 
@@ -220,45 +231,44 @@ partial class SqlInitial
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
             {
                 b.Property<Guid>("UserId")
-                    .HasColumnType("uuid");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("LoginProvider")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("Name")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.Property<string>("Value")
-                    .HasColumnType("text");
+                    .HasColumnType("TEXT");
 
                 b.HasKey("UserId", "LoginProvider", "Name");
 
                 b.ToTable("AspNetUserTokens", (string)null);
             });
 
+        modelBuilder.Entity("BadCourtAPI.Entities.UserPhoto", b =>
+            {
+                b.HasOne("BadCourtAPI.Entities.User", "User")
+                    .WithMany("Photos")
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("User");
+            });
+
         modelBuilder.Entity("BadCourtAPI.Entities.UserRole", b =>
             {
-                b.HasOne("BadCourtAPI.Entities.Role", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
                 b.HasOne("BadCourtAPI.Entities.Role", "Role")
                     .WithMany("UserRoles")
-                    .HasForeignKey("RoleId1")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.HasOne("BadCourtAPI.Entities.User", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
+                    .HasForeignKey("RoleId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
                 b.HasOne("BadCourtAPI.Entities.User", "User")
                     .WithMany("UserRoles")
-                    .HasForeignKey("UserId1")
+                    .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
@@ -310,6 +320,8 @@ partial class SqlInitial
 
         modelBuilder.Entity("BadCourtAPI.Entities.User", b =>
             {
+                b.Navigation("Photos");
+
                 b.Navigation("UserRoles");
             });
 #pragma warning restore 612, 618

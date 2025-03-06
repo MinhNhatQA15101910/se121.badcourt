@@ -484,3 +484,6 @@ $RECYCLE.BIN/
 *.swp
 
 BadCourtAPI/appsettings.json
+BadCourtAPI/badcourt.db
+BadCourtAPI/badcourt.db-shm
+BadCourtAPI/badcourt.db-wal

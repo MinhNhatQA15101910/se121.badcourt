@@ -43,6 +43,7 @@ public class Seed
         int index = 0;
         foreach (var user in users)
         {
+            Console.WriteLine(index.ToString());
             await userManager.CreateAsync(user, "Pa$$w0rd");
 
             if (index < 2)
