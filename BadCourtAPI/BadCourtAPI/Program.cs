@@ -1,6 +1,7 @@
 using BadCourtAPI.Data;
 using BadCourtAPI.Entities;
 using BadCourtAPI.Extensions;
+using BadCourtAPI.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,8 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddIdentityServices();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 
