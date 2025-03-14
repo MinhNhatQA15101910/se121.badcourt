@@ -2,9 +2,7 @@ import 'dart:convert';
 
 import 'package:frontend/models/order_period.dart';
 
-import 'dart:convert';
 
-import 'package:frontend/models/order_period.dart';
 
 class Court {
   final String id;

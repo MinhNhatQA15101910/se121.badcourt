@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
-import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
