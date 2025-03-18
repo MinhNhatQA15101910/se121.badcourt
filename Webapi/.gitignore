@@ -484,6 +484,6 @@ $RECYCLE.BIN/
 *.swp
 
 Presentation/appsettings.json
-Presentation/auth.db
-Presentation/auth.db-shm
-Presentation/auth.db-wal
+Presentation/badcourt.db
+Presentation/badcourt.db-shm
+Presentation/badcourt.db-wal
