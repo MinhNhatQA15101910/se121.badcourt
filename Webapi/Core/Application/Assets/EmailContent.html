@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+        padding: 20px;
+      }
+      .container {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        margin: auto;
+      }
+      .code {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin: 20px 0;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Email Verification</h2>
+      <p>Please use the following pincode to verify your email:</p>
+      <div class="code">{{PINCODE}}</div>
+      <p>If you did not request this, please ignore this email.</p>
+      <div class="footer">&copy; 2025 Your Company. All rights reserved.</div>
+    </div>
+  </body>
+</html>
