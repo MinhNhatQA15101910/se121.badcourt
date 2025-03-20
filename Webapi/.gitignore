@@ -487,3 +487,8 @@ AuthService/AuthService.Presentation/appsettings.json
 AuthService/AuthService.Presentation/auth.db
 AuthService/AuthService.Presentation/auth.db-shm
 AuthService/AuthService.Presentation/auth.db-wal
+
+FacilityService/FacilityService.Presentation/appsettings.json
+FacilityService/FacilityService.Presentation/facilities.db
+FacilityService/FacilityService.Presentation/facilities.db-shm
+FacilityService/FacilityService.Presentation/facilities.db-wal
