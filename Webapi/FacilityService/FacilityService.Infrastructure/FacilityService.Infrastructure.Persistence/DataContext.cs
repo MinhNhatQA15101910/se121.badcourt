@@ -21,7 +21,8 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
                aa.OwnsOne(x => x.Friday);
                aa.OwnsOne(x => x.Saturday);
                aa.OwnsOne(x => x.Sunday);
-           });
+           })
+           .OwnsOne(f => f.Location);
 
         builder.Entity<Facility>()
             .HasOne(o => o.ManagerInfo)

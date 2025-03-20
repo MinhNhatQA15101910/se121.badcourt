@@ -31,7 +31,8 @@ public class Seed
         {
             var roles = new List<Role>
             {
-                new() { Name = "User" },
+                new() { Name = "Player" },
+                new() { Name = "Manager" },
                 new() { Name = "Admin" },
             };
 
@@ -47,9 +48,13 @@ public class Seed
             Console.WriteLine(index.ToString());
             await userManager.CreateAsync(user, "Pa$$w0rd");
 
-            if (index < 8)
+            if (index < 2)
             {
-                await userManager.AddToRoleAsync(user, "User");
+                await userManager.AddToRoleAsync(user, "Player");
+            }
+            else if (index >= 2 && index < 8)
+            {
+                await userManager.AddToRoleAsync(user, "Manager");
             }
             else
             {
