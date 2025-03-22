@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:frontend/features/image_view/screens/full_screen_image_view_2.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -58,14 +57,6 @@ class MessageWidget extends StatelessWidget {
                   children: imageUrls!.map((url) {
                     return GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FullScreenImageView2(
-                              imageUrl: url,
-                            ),
-                          ),
-                        );
                       },
                       child: Container(
                         width: 200,

@@ -1,0 +1,2 @@
+C:/Users/duyvi/Documents/GitHub/se121.badcourt/frontend/android/app/.cxx/RelWithDebInfo/3hio5p1z/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/duyvi/Documents/GitHub/se121.badcourt/frontend/android/app/.cxx/RelWithDebInfo/3hio5p1z/x86_64/CMakeFiles/rebuild_cache.dir

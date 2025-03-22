@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:dio/dio.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'dart:typed_data';
 
 class FullScreenImageView extends StatefulWidget {
   static const String routeName = '/fullScreenImageView';
@@ -30,54 +26,11 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     _currentIndex = widget.initialIndex;
   }
 
-  Future<void> _saveImage(BuildContext context) async {
-    try {
-      // Lấy URL ảnh hiện tại
-      final imageUrl = widget.imageUrls[_currentIndex];
-
-      // Tải ảnh từ URL dưới dạng byte
-      final response = await Dio().get(
-        imageUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
-
-      // Lưu ảnh vào thư viện
-      final result = await ImageGallerySaver.saveImage(
-        Uint8List.fromList(response.data),
-        name: imageUrl.split('/').last,
-      );
-
-      if (result['isSuccess']) {
-        // Hiển thị thông báo thành công
-        IconSnackBar.show(
-          context,
-          label: 'Saved image to gallery!',
-          snackBarType: SnackBarType.success,
-        );
-      } else {
-        throw Exception('Save failed');
-      }
-    } catch (e) {
-      // Hiển thị thông báo lỗi
-      IconSnackBar.show(
-        context,
-        label: 'Failed to save image!',
-        snackBarType: SnackBarType.fail,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.download, color: Colors.white),
-            onPressed: () => _saveImage(context),
-          ),
-        ],
       ),
       backgroundColor: Colors.black,
       body: PhotoViewGallery.builder(

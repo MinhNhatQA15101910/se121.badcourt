@@ -129,14 +129,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2+3"
-  dartz:
-    dependency: transitive
-    description:
-      name: dartz
-      sha256: e6acf34ad2e31b1eb00948692468c30ab48ac8250e0f0df661e29f12dd252168
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.10.1"
   dio:
     dependency: "direct main"
     description:
@@ -421,14 +413,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.3"
-  image_gallery_saver:
-    dependency: "direct main"
-    description:
-      name: image_gallery_saver
-      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.3"
   image_picker:
     dependency: "direct main"
     description:
@@ -1046,26 +1030,18 @@ packages:
     dependency: "direct main"
     description:
       name: vietmap_flutter_gl
-      sha256: fd398870851e7eb76f936c9dc5da5db89fcb20cc77cdc91fc4450f858c8feedc
+      sha256: "99ac8aa586a2f0a22040d7e7fce0a3c434d078817a0ce2e67a72cd1253723ea8"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
-  vietmap_flutter_plugin:
-    dependency: "direct main"
-    description:
-      name: vietmap_flutter_plugin
-      sha256: b057b2f04ec2b71fc070126b13615569a7f78385d7c84595fabbba4374f91f3f
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.0"
+    version: "3.2.3"
   vietmap_gl_platform_interface:
     dependency: "direct main"
     description:
       name: vietmap_gl_platform_interface
-      sha256: "83199ff883cd150094e50a3333d007c767133b7f02121313fdc4c1cf76836eb7"
+      sha256: b84909d9fdf48fbea2823cec00b095d32c6774c8c05db9866e36a6218ecdd3ad
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.3.0"
   vm_service:
     dependency: transitive
     description:

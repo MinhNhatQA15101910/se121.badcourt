@@ -1,54 +1,29 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:dio/dio.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'dart:typed_data';
+import 'package:photo_view/photo_view_gallery.dart';
 
-class FullScreenImageView2 extends StatelessWidget {
-  final String imageUrl;
+class FullScreenImageView2 extends StatefulWidget {
+  static const String routeName = '/fullScreenImageView';
+  final List<String> imageUrls;
+  final int initialIndex;
 
-  const FullScreenImageView2({Key? key, required this.imageUrl})
-      : super(key: key);
+  const FullScreenImageView2({
+    Key? key,
+    required this.imageUrls,
+    required this.initialIndex,
+  }) : super(key: key);
 
-  Future<void> _saveImage(BuildContext context) async {
-    try {
-      Uint8List imageData;
+  @override
+  _FullScreenImageView2State createState() => _FullScreenImageView2State();
+}
 
-      if (imageUrl.startsWith('/data') || imageUrl.startsWith('/storage')) {
-        final file = File(imageUrl);
-        imageData = await file.readAsBytes();
-      } else {
-        final response = await Dio().get(
-          imageUrl,
-          options: Options(responseType: ResponseType.bytes),
-        );
-        imageData = Uint8List.fromList(response.data);
-      }
+class _FullScreenImageView2State extends State<FullScreenImageView2> {
+  late int _currentIndex;
 
-      final result = await ImageGallerySaver.saveImage(
-        imageData,
-        name: imageUrl.split('/').last,
-      );
-
-      if (result['isSuccess']) {
-        IconSnackBar.show(
-          context,
-          label: 'Image saved successfully!',
-          snackBarType: SnackBarType.success,
-        );
-      } else {
-        throw Exception('Save failed');
-      }
-    } catch (e) {
-      IconSnackBar.show(
-        context,
-        label: 'Failed to save image!',
-        snackBarType: SnackBarType.fail,
-      );
-    }
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
   }
 
   @override
@@ -56,23 +31,78 @@ class FullScreenImageView2 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.download, color: Colors.white),
-            onPressed: () => _saveImage(context),
-          ),
-        ],
       ),
       backgroundColor: Colors.black,
-      body: Center(
-        child: PhotoView(
-          imageProvider:
-              imageUrl.startsWith('/data') || imageUrl.startsWith('/storage')
-                  ? FileImage(File(imageUrl))
-                  : NetworkImage(imageUrl) as ImageProvider,
-          minScale: PhotoViewComputedScale.contained,
-          maxScale: PhotoViewComputedScale.covered * 2.0,
+      body: PhotoViewGallery.builder(
+        itemCount: widget.imageUrls.length,
+        builder: (context, index) {
+          return PhotoViewGalleryPageOptions(
+            imageProvider: NetworkImage(widget.imageUrls[index]),
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: Icon(
+                  Icons.broken_image,
+                  size: 50,
+                  color: Colors.grey,
+                ),
+              );
+            },
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 2.0,
+            heroAttributes:
+                PhotoViewHeroAttributes(tag: widget.imageUrls[index]),
+          );
+        },
+        pageController: PageController(initialPage: widget.initialIndex),
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        backgroundDecoration: const BoxDecoration(color: Colors.black),
+      ),
+    );
+  }
+}
+
+class ImageItem extends StatelessWidget {
+  final List<String> imageUrls;
+  final int index;
+
+  const ImageItem({Key? key, required this.imageUrls, required this.index})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FullScreenImageView2(
+              imageUrls: imageUrls,
+              initialIndex: index,
+            ),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        child: Image.network(
+          imageUrls[index],
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade200,
+              child: Center(
+                child: Icon(
+                  Icons.broken_image,
+                  color: Colors.grey,
+                  size: 50,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
