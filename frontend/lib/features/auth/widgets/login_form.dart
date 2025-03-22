@@ -112,7 +112,7 @@ class _LoginFormState extends State<LoginForm> {
         color: GlobalVariables.defaultColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: GlobalVariables.lightGreen.withOpacity(0.5),
+        color: GlobalVariables.lightGreen.withValues(alpha: 128),
         ),
       ),
       padding: EdgeInsets.symmetric(

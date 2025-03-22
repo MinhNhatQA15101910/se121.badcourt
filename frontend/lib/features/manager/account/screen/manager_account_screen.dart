@@ -76,8 +76,8 @@ class ManagerAccountScreen extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Colors.white.withOpacity(0.5),
-                              Colors.black.withOpacity(0.5)
+                              Colors.white.withValues(alpha: 128),
+                              Colors.black.withValues(alpha: 128),
                             ],
                           ),
                         ),

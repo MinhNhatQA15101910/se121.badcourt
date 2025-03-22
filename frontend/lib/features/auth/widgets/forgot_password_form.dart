@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_textfield.dart';
@@ -20,7 +22,6 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
   var _isValidateLoading = false;
 
   final _forgotPasswordFormKey = GlobalKey<FormState>();
-
   final _emailController = TextEditingController();
 
   void _validateEmailAndNavigate() {
@@ -29,7 +30,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
         _isValidateLoading = true;
       });
 
-      Future.delayed(Duration(seconds: 2), () async {
+      Future.delayed(Duration(seconds: 2), () async { 
         await _authService.validateEmail(
           context: context,
           email: _emailController.text.trim(),
@@ -64,7 +65,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
         ),
       ),
       padding: EdgeInsets.symmetric(
-        vertical: 20,
+        vertical: 12,
         horizontal: 14,
       ),
       margin: const EdgeInsets.symmetric(

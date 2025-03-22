@@ -102,7 +102,7 @@ class _PlayerMapScreenState extends State<PlayerMapScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 26),
                               spreadRadius: 0.2,
                               blurRadius: 32,
                             ),

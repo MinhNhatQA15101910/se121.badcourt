@@ -250,8 +250,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                                   : GlobalVariables.grey,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black
-                                      .withOpacity(0.3), // Màu shadow
+                                  color: Colors.black.withValues(alpha: 78), // Màu shadow
                                   blurRadius: 4, // Độ mờ
                                   offset: Offset(0, 2), // Vị trí của shadow
                                 ),
