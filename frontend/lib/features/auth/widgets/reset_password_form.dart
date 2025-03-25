@@ -71,7 +71,7 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
         color: GlobalVariables.defaultColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: GlobalVariables.lightGreen.withValues(alpha: 128),
+          color: GlobalVariables.lightGreen..withOpacity(0.5),
         ),
       ),
       padding: EdgeInsets.symmetric(

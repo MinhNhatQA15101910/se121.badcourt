@@ -146,7 +146,7 @@ class _ContractScreenState extends State<ContractScreen> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withValues(alpha: 128),
+              color: Colors.black..withOpacity(0.5),
               child: Loader(),
             ),
         ],

@@ -241,7 +241,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 26),
+                  color: Colors.black.withOpacity(0.1),
                   spreadRadius: 0.2,
                   blurRadius: 32,
                 ),
@@ -426,7 +426,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 52),
+                                  color: Colors.black.withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 16,
                                 ),

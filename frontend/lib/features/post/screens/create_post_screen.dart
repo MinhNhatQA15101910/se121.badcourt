@@ -322,7 +322,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             children: [
               Container(
                 color:
-                    Colors.black.withValues(alpha: 78), // Semi-transparent barrier
+                    Colors.black..withOpacity(0.3), // Semi-transparent barrier
               ),
               const Center(
                 child: Loader(),
