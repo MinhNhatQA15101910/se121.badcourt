@@ -109,7 +109,7 @@ class _FacilityHomeState extends State<FacilityHome> {
                           currentFacilityProvider
                               .currentFacility.facilityImages[index].url,
                         ),
-                        fit: BoxFit.fill,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   );
