@@ -6,7 +6,7 @@ import Image from "next/image";
 
 export default function LoginScreen() {
   return (
-    <div className="relative w-full h-screen flex items-center justify-center bg-gray-100">
+    <div className="relative w-screen h-screen flex items-center justify-center bg-gray-100">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -14,7 +14,7 @@ export default function LoginScreen() {
           alt="Background"
           layout="fill"
           objectFit="cover"
-          className="absolute inset-0 w-full h-full object-cover brightness-75"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       </div>
 
@@ -29,7 +29,7 @@ export default function LoginScreen() {
           <p className="text-black-grey text-xl font-medium">Login with admin</p>
             <Input type="email" placeholder="Email" className="w-full" />
             <Input type="password" placeholder="Password" className="w-full" />
-            <Button className="w-full bg-green-500 hover:bg-green-600 text-white text-lg font-semibold py-2">
+            <Button className="w-full bg-green-500 hover:bg-dark-green text-white text-lg font-semibold py-2">
               Log in
             </Button>
           </div>

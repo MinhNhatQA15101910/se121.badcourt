@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,8 +20,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
-    </html>
+    <SidebarProvider>
+      <AppSidebar />
+      <main>
+        <SidebarTrigger />
+        <html lang="en">
+        <body
+          className={`${inter.variable} antialiased h-screen overflow-hidden`}
+        >
+          <div className="h-full overflow-auto">
+            <div className="min-h-screenoverflow-auto">{children}</div>
+          </div>
+        </body>
+      </html>
+        </main>
+    </SidebarProvider>
   );
 }
