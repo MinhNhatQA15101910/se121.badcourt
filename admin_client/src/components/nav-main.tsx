@@ -14,13 +14,13 @@ export function NavMain({
 }: {
   items: {
     title: string;
-    url: string;
+    url?: string;
+    action?: () => void;
     icon?: LucideIcon;
   }[];
 }) {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-  // Khi component mount, chọn phần tử đầu tiên nếu có items
   useEffect(() => {
     if (items.length > 0) {
       setSelectedItem(items[0].title);
@@ -31,23 +31,44 @@ export function NavMain({
     <SidebarGroup>
       <SidebarMenu>
         {items.map((item) => (
-          <SidebarMenuItem
-            key={item.title}
-            onClick={() => setSelectedItem(item.title)}
-          >
-            <SidebarMenuButton className="hover:bg-dark-green hover:text-white" asChild>
-              <a
-                href={item.url}
-                className={`p-6 text-base font-medium flex items-center space-x-3
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton
+              className="hover:bg-dark-green hover:text-white"
+              asChild
+              onClick={() => {
+                if (item.action) {
+                  item.action(); // Gọi action nếu có
+                } else {
+                  setSelectedItem(item.title);
+                }
+              }}
+            >
+              {item.url ? (
+                <a
+                  href={item.url}
+                  className={`p-6 text-base font-medium flex items-center space-x-3
                     ${
                       selectedItem === item.title
-                        ? "bg-green text-white" // Nếu được chọn, giữ màu xanh
-                        : "bg-transparent text-dark-grey" // Nếu chưa chọn, giữ màu mặc định
+                        ? "bg-green text-white"
+                        : "bg-transparent text-dark-grey"
                     }`}
-              >
-                {item.icon && <item.icon/>}
-                <span>{item.title}</span>
-              </a>
+                >
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </a>
+              ) : (
+                <div
+                  className={`p-6 text-base font-medium flex items-center space-x-3 cursor-pointer
+                    ${
+                      selectedItem === item.title
+                        ? "bg-green text-white"
+                        : "bg-transparent text-dark-grey"
+                    }`}
+                >
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </div>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

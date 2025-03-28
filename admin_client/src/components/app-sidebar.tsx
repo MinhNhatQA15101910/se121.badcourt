@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,14 +23,18 @@ import {
 import { NavMain } from "./nav-main";
 
 const navMain = [
-  { title: "Dashboard", url: "#", icon: LayoutDashboard, isActive: true },
-  {title: "Facility Confirm", url: "#", icon: ClipboardCheck, isActive: false,},
-  { title: "Facility Owners", url: "#", icon: UserCog, isActive: false },
-  { title: "Customers", url: "#", icon: UserRoundCog, isActive: false },
-  { title: "Post", url: "#", icon: Dribbble, isActive: false },
-  { title: "Message", url: "#", icon: MessageSquare, isActive: false },
-  { title: "Setting", url: "#", icon: Settings, isActive: false },
-  { title: "Log Out", url: "/login", icon: LogOut, isActive: false },
+  { title: "Dashboard", url: "#", icon: LayoutDashboard },
+  { title: "Facility Confirm", url: "#", icon: ClipboardCheck },
+  { title: "Facility Owners", url: "#", icon: UserCog },
+  { title: "Customers", url: "#", icon: UserRoundCog },
+  { title: "Post", url: "#", icon: Dribbble },
+  { title: "Message", url: "#", icon: MessageSquare },
+  { title: "Setting", url: "#", icon: Settings },
+  {
+    title: "Log Out",
+    action: () => signOut({ callbackUrl: "/login" }), // Gọi `signOut()` thay vì chuyển trang
+    icon: LogOut,
+  },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -52,8 +57,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <div className="flex flex-col aspect-auto w-auto h-auto items-center justify-center rounded-lg text-sidebar-primary-foreground ml-6 mr-6 mt-4">
-          <Image src="/info-sidebar.png" alt="Logo" width={200} height={150} />
+        <div className="relative flex flex-col w-auto h-auto items-center justify-center rounded-lg text-sidebar-primary-foreground ml-6 mr-6 mt-4">
+          <Image
+            src="/info-sidebar.png"
+            alt="Logo"
+            width={200}
+            height={150}
+            className="rounded-lg"
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-lg font-semibold space-y-1">
+            {/* Logo */}
+            <Image src="/logo-reverse.svg" alt="Logo" width={40} height={40} />
+
+            {/* Tiêu đề */}
+            <h2 className="text-lg font-bold">BadCourt</h2>
+
+            {/* Mô tả */}
+            <p className="text-center text-xs">
+            Badcourt provides a variety of badminton training court options.
+            </p>
+          </div>
         </div>
       </SidebarContent>
     </Sidebar>
