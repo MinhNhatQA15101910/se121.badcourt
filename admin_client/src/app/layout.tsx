@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Separator } from "@radix-ui/react-separator";
+import { AccountDropdown } from "@/components/account-dropdown";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,20 +26,44 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        <html lang="en">
-        <body
-          className={`${inter.variable} antialiased h-screen overflow-hidden`}
-        >
-          <div className="h-full overflow-auto">
-            <div className="min-h-screenoverflow-auto">{children}</div>
+    <html lang="en">
+      <body
+        className={`${inter.variable} antialiased h-screen w-screen overflow-hidden`}
+      >
+        <SidebarProvider>
+          <div className="flex h-full w-full">
+            <AppSidebar className="w-[250px] flex-shrink-0" />
+
+            <div className="flex flex-col flex-1">
+              <header className="flex flex-row h-16 shrink-0 items-center gap-2 bg-green">
+                <div className="flex w-full items-center px-2">
+                  <div className="flex-shrink-0">
+                    <SidebarTrigger className="flex -ml-1 text-white hover:bg-light-green hover:text-green font-bold" />
+                  </div>
+                  <div className="flex-1 flex justify-center items-center">
+                    Nội dung ở giữa
+                  </div>
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    <AccountDropdown
+                      user={{
+                        name: "sadsad",
+                        email: "duyvipzingme@gmail.com",
+                        avatar: "",
+                      }}
+                    />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                  </div>
+                </div>
+              </header>
+              <SidebarInset>
+                <main className="flex-1 overflow-auto">
+                  <div className="h-full w-full">{children}</div>
+                </main>
+              </SidebarInset>
+            </div>
           </div>
-        </body>
-      </html>
-        </main>
-    </SidebarProvider>
+        </SidebarProvider>
+      </body>
+    </html>
   );
 }
