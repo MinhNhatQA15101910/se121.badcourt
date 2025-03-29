@@ -12,19 +12,22 @@ export function RevenueByHour() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+  // Check scroll position to show/hide arrows
+  const checkScroll = () => {
+    if (!scrollContainerRef.current) return
+
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+    setShowLeftArrow(scrollLeft > 0)
+    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5)
+  }
 
   useEffect(() => {
-    const checkScroll = () => {
-      if (!scrollContainerRef.current) return
-
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
-      setShowLeftArrow(scrollLeft > 0)
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5)
-    }
-
     const container = scrollContainerRef.current
     if (container) {
       container.addEventListener("scroll", checkScroll)
+      // Initial check
       checkScroll()
     }
 
@@ -34,6 +37,13 @@ export function RevenueByHour() {
       }
     }
   }, [selectedYear]) // Re-run when the year changes
+
+  // Re-check scroll when dropdown closes
+  useEffect(() => {
+    if (!isDropdownOpen) {
+      setTimeout(checkScroll, 100) // Small delay to ensure DOM is updated
+    }
+  }, [isDropdownOpen])
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return
@@ -66,7 +76,7 @@ export function RevenueByHour() {
       { hour: "21:00", revenue: 15 },
       { hour: "22:00", revenue: 8 },
     ]
-  
+
     // Thay đổi cách tạo dữ liệu để tránh Math.random()
     const yearFactor = Number.parseInt(year) - 2021
     return baseData.map((item) => ({
@@ -74,7 +84,6 @@ export function RevenueByHour() {
       revenue: Math.max(2, item.revenue + yearFactor * 2), // Không dùng random
     }))
   }
-  
 
   const data = getDataForYear(selectedYear)
 
@@ -82,11 +91,11 @@ export function RevenueByHour() {
     <Card className="shadow-sm h-full flex flex-col">
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-[#425166]">Revenue by Hour</CardTitle>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
+        <Select value={selectedYear} onValueChange={setSelectedYear} onOpenChange={(open) => setIsDropdownOpen(open)}>
           <SelectTrigger className="w-[100px] h-8">
             <SelectValue placeholder="Year" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={5}>
             {years.map((year) => (
               <SelectItem key={year} value={year}>
                 {year}
@@ -106,11 +115,7 @@ export function RevenueByHour() {
             </button>
           )}
 
-          <div
-            ref={scrollContainerRef}
-            className="overflow-x-auto scrollbar-hide h-[300px] w-full"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
+          <div ref={scrollContainerRef} className="overflow-x-auto w-full h-[300px] custom-scrollbar">
             <div className="min-w-[800px] h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -167,3 +172,4 @@ export function RevenueByHour() {
     </Card>
   )
 }
+

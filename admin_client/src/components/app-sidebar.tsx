@@ -23,8 +23,8 @@ import {
 import { NavMain } from "./nav-main";
 
 const navMain = [
-  { title: "Dashboard", url: "#", icon: LayoutDashboard },
-  { title: "Facility Confirm", url: "#", icon: ClipboardCheck },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Facility Confirm", url: "/facility-confirm", icon: ClipboardCheck },
   { title: "Facility Owners", url: "#", icon: UserCog },
   { title: "Customers", url: "#", icon: UserRoundCog },
   { title: "Post", url: "#", icon: Dribbble },

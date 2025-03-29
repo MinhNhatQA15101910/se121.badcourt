@@ -10,7 +10,7 @@ export function TopFacility() {
         <CardTitle className="text-[#425166]">Top Facility</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="max-h-[350px] overflow-y-auto px-6 pb-6">
+        <div className="overflow-y-auto px-6">
           <table className="w-full">
             <thead className="sticky top-0 bg-white z-10">
               <tr className="text-[#737791] text-sm">
@@ -51,7 +51,7 @@ function FacilityRow({ id, name, progress, color, percentage }: FacilityRowProps
       <td className="py-3 text-[#425166]">{id}</td>
       <td className="py-3 text-[#425166]">{name}</td>
       <td className="py-3 w-1/3">
-      <Progress value={progress} className="h-2" style={{ backgroundColor: color }} />
+        <Progress value={progress} className="h-2 flex-1" indicatorColor={color} />
       </td>
       <td className="py-3 text-right">
         <span

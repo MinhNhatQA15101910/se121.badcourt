@@ -3,6 +3,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+body {
+  overflow-y: auto;
+}
+
+::selection {
+  background-color: #007D3A;
+  color: white;
+}
+
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -112,6 +123,15 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.RadioGroupIndicator::after {
+	content: "";
+	display: block;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	background-color: var(#007D3A);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -119,4 +139,5 @@
   body {
     @apply bg-background text-foreground;
   }
+  
 }

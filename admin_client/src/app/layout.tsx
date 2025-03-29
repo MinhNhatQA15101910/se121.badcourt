@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { Inter } from "next/font/google";
 import {
   SidebarInset,
@@ -7,7 +8,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { Separator } from "@radix-ui/react-separator";
+import { Separator } from "@/components/ui/separator";
 import { AccountDropdown } from "@/components/account-dropdown";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -15,11 +16,9 @@ import { useEffect } from "react";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 import { NotificationDropdown } from "@/components/notification-dropdown";
+import { HeaderContent } from "@/components/header-content";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export default function RootLayout({
   children,
@@ -27,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased h-screen w-screen overflow-hidden`}
+        className={`${inter.variable} antialiased min-h-screen w-screen overflow-auto`}
       >
         <SessionProvider>
           <LayoutContent>{children}</LayoutContent>
@@ -61,20 +60,20 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         {session ? (
           <>
             <AppSidebar />
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 h-full">
               <header className="flex flex-row h-16 shrink-0 items-center gap-2 bg-green">
                 <div className="flex w-full items-center px-2">
                   <div className="flex-shrink-0">
                     <SidebarTrigger className="flex -ml-1 text-white hover:bg-light-green hover:text-green font-bold" />
                   </div>
                   <div className="flex-1 flex justify-center items-center">
-                    Nội dung ở giữa
+                    <HeaderContent pageName="Dashboard" showSearch={true}   />
                   </div>
                   <NotificationDropdown />
                   <div className="flex-shrink-0 flex items-center gap-2">
                     <AccountDropdown
                       user={{
-                        name: session.user?.name || "User",
+                        name: session.user?.name || "User 123",
                         email: session.user?.email || "",
                         avatar: session.user?.image || "",
                       }}
@@ -83,17 +82,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
               </header>
-              <SidebarInset>
-                <main className="flex-1 h-full overflow-auto">
-                  <div className="min-h-full w-full">{children}</div>
-                </main>
+              <SidebarInset className="flex-1 flex flex-col">
+                <main className="flex-1 overflow-y-auto">{children}</main>
               </SidebarInset>
             </div>
           </>
         ) : (
-          <main className="flex-1 h-full overflow-auto">
-            <div className="min-h-full w-full">{children}</div>
-          </main>
+          <main className="flex-1 h-full overflow-auto">{children}</main>
         )}
       </div>
     </SidebarProvider>

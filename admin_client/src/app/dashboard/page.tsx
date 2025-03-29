@@ -27,8 +27,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen p-6">
-      <div className="grid grid-cols-12 gap-6">
+    <div className="bg-[#fafbfc] min-h-full w-full p-6 overflow-y-auto">
+      <div className="grid grid-cols-12 gap-6 overflow-y-auto">
         {/* Top Row */}
         <div className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Commission Fee */}
@@ -108,12 +108,12 @@ export default function Dashboard() {
         <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Today's Revenue with Date Range */}
           <div className="col-span-1">
-            <TodayRevenue/>
+            <TodayRevenue />
           </div>
 
           {/* Top Facility */}
           <div className="col-span-1">
-            <TopFacility/>
+            <TopFacility />
           </div>
         </div>
 
@@ -121,7 +121,7 @@ export default function Dashboard() {
         <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Monthly Users (replacing Volume vs Service Level) */}
           <div className="col-span-1">
-            <MonthlyUsers/>
+            <MonthlyUsers />
           </div>
 
           {/* Monthly Revenue/Profit */}
@@ -134,12 +134,12 @@ export default function Dashboard() {
         <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Revenue by Region */}
           <div className="col-span-1">
-            <RevenueByRegion/>
+            <RevenueByRegion />
           </div>
 
           {/* Revenue by Hour */}
           <div className="col-span-1">
-            <RevenueByHour/>
+            <RevenueByHour />
           </div>
         </div>
       </div>
