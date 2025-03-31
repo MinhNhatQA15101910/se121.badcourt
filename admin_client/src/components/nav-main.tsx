@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { type LucideIcon } from "lucide-react";
 import {
   SidebarGroup,
@@ -19,59 +19,49 @@ export function NavMain({
     icon?: LucideIcon;
   }[];
 }) {
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (items.length > 0) {
-      setSelectedItem(items[0].title);
-    }
-  }, [items]);
+  const pathname = usePathname(); // Lấy đường dẫn hiện tại
 
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              className="hover:bg-dark-green hover:text-white"
-              asChild
-              onClick={() => {
-                if (item.action) {
-                  item.action(); // Gọi action nếu có
-                } else {
-                  setSelectedItem(item.title);
-                }
-              }}
-            >
-              {item.url ? (
-                <a
-                  href={item.url}
-                  className={`p-6 text-base font-medium flex items-center space-x-3
-                    ${
-                      selectedItem === item.title
-                        ? "bg-green text-white"
-                        : "bg-transparent text-dark-grey"
-                    }`}
-                >
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </a>
-              ) : (
-                <div
-                  className={`p-6 text-base font-medium flex items-center space-x-3 cursor-pointer
-                    ${
-                      selectedItem === item.title
-                        ? "bg-green text-white"
-                        : "bg-transparent text-dark-grey"
-                    }`}
-                >
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </div>
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {items.map((item) => {
+          const isActive = item.url && pathname.startsWith(item.url); // Kiểm tra xem mục có đang được chọn không
+
+          return (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                className="hover:bg-dark-green hover:text-white"
+                asChild
+                onClick={() => {
+                  if (item.action) {
+                    item.action(); // Gọi action nếu có
+                  }
+                }}
+              >
+                {item.url ? (
+                  <a
+                    href={item.url}
+                    className={`p-6 text-base font-medium flex items-center space-x-3
+                      ${isActive ? "bg-green text-white" : "bg-transparent text-dark-grey"}
+                    `}
+                  >
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </a>
+                ) : (
+                  <div
+                    className={`p-6 text-base font-medium flex items-center space-x-3 cursor-pointer
+                      ${isActive ? "bg-green text-white" : "bg-transparent text-dark-grey"}
+                    `}
+                  >
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </div>
+                )}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );

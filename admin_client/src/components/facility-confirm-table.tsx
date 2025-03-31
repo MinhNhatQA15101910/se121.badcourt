@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowUpDown, ArrowUp, ArrowDown, Filter} from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -182,8 +182,8 @@ export function FacilityConfirmTable() {
   const [selectAll, setSelectAll] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
-    province: "",
-    district: "",
+    province: "all",
+    district: "all",
     status: "all",
     searchTerm: "",
   })
@@ -248,13 +248,13 @@ export function FacilityConfirmTable() {
       return false
     }
 
-    // Filter by province (skip if "all")
-    if (activeFilters.province !== "all" && facility.province !== activeFilters.province) {
+    // Filter by province (skip if empty or "all")
+    if (activeFilters.province && activeFilters.province !== "all" && facility.province !== activeFilters.province) {
       return false
     }
 
-    // Filter by district (skip if "all")
-    if (activeFilters.district !== "all" && facility.district !== activeFilters.district) {
+    // Filter by district (skip if empty or "all")
+    if (activeFilters.district && activeFilters.district !== "all" && facility.district !== activeFilters.district) {
       return false
     }
 
@@ -319,8 +319,8 @@ export function FacilityConfirmTable() {
 
   // Check if any filters are active
   const hasActiveFilters =
-    activeFilters.province !== "" ||
-    activeFilters.district !== "" ||
+    (activeFilters.province !== "" && activeFilters.province !== "all") ||
+    (activeFilters.district !== "" && activeFilters.district !== "all") ||
     activeFilters.status !== "all" ||
     activeFilters.searchTerm !== ""
 

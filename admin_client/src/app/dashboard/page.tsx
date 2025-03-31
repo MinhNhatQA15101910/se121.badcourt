@@ -1,33 +1,42 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { PieChart, Plus, Minus, Users } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-// Import components
+import LoadingScreen from "@/components/loading-creen"
+import { MonthlyRevenue } from "@/components/monthly-revenue"
+import { MonthlyUsers } from "@/components/monthly-users"
+import { RevenueByHour } from "@/components/revenue-by-hour"
+import { RevenueByRegion } from "@/components/revenue-by-region"
 import { TodayRevenue } from "@/components/today-revenue"
 import { TopFacility } from "@/components/top-facility"
-import { MonthlyUsers } from "@/components/monthly-users"
-import { MonthlyRevenue } from "@/components/monthly-revenue"
-import { RevenueByRegion } from "@/components/revenue-by-region"
-import { RevenueByHour } from "@/components/revenue-by-hour"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Minus, PieChart, Plus, Users } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
-export default function Dashboard() {
-  const [mounted, setMounted] = useState(false)
+export default function DashboardPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    // If user is not authenticated, redirect to login
+    if (status === "unauthenticated") {
+      router.replace("/login")
+    }
+  }, [status, router])
 
-  if (!mounted) {
-    return null
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <LoadingScreen/>
+    )
   }
 
-  return (
-    <div className="bg-[#fafbfc] min-h-full w-full p-6 overflow-y-auto">
+  // Only render the actual content if authenticated
+  if (status === "authenticated") {
+    return (
+      <div className="bg-[#fafbfc] min-h-full w-full p-6 overflow-y-auto">
       <div className="grid grid-cols-12 gap-6 overflow-y-auto">
         {/* Top Row */}
         <div className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,7 +153,11 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+    )
+  }
+
+  // Return empty div while redirecting
+  return <div></div>
 }
 
 interface StatCardProps {

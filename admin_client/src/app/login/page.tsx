@@ -1,42 +1,52 @@
-"use client";
-import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+"use client"
+import { useState, useEffect } from "react"
+import type React from "react"
 
-export default function LoginScreen() {
-  const { data: session } = useSession(); // Lấy thông tin user
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+import { signIn, useSession } from "next-auth/react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 
-  // Nếu đã đăng nhập, tự động redirect về "/"
+export default function LoginPage() {
+  const { status } = useSession()
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+
+  // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (session) {
-      router.replace("/");
+    if (status === "authenticated") {
+      router.replace("/dashboard")
     }
-  }, [session, router]);
+  }, [status, router])
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+
     const result = await signIn("credentials", {
       redirect: false,
       email,
       password,
-    });
+    })
 
     if (result?.ok) {
-      router.push("/");
+      router.push("/dashboard")
     } else {
-      alert("Login failed");
+      setError("Invalid email or password")
     }
-  };
+  }
 
-  // Tránh hiển thị UI khi đang redirect
-  if (session) {
-    return null;
+  // Don't render anything while checking authentication status
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    )
   }
 
   return (
@@ -57,14 +67,16 @@ export default function LoginScreen() {
               <Image src="/logo.png" alt="logo" width={50} height={50} />
               <h2 className="text-2xl font-bold mt-3 text-gray-700">BadCourt</h2>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <p className="text-gray-700 text-xl font-medium">Login with admin</p>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
               <Input
                 type="email"
                 placeholder="Email"
                 className="w-full"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
               <Input
                 type="password"
@@ -72,17 +84,19 @@ export default function LoginScreen() {
                 className="w-full"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               <Button
+                type="submit"
                 className="w-full bg-green-500 hover:bg-green-700 text-white text-lg font-semibold py-2"
-                onClick={handleLogin}
               >
                 Log in
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
+  )
 }
+
