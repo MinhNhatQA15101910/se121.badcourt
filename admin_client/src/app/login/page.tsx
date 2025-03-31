@@ -1,44 +1,44 @@
-"use client"
-import { useState, useEffect } from "react"
-import type React from "react"
+"use client";
+import { useState, useEffect } from "react";
+import type React from "react";
 
-import { signIn, useSession } from "next-auth/react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { signIn, useSession } from "next-auth/react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const { status } = useSession()
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const { status } = useSession();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/dashboard")
+      router.replace("/dashboard");
     }
-  }, [status, router])
+  }, [status, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     const result = await signIn("credentials", {
       redirect: false,
       email,
       password,
-    })
+    });
 
     if (result?.ok) {
-      router.push("/dashboard")
+      router.push("/dashboard");
     } else {
-      setError("Invalid email or password")
+      setError("Invalid email or password");
     }
-  }
+  };
 
   // Don't render anything while checking authentication status
   if (status === "loading") {
@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -65,10 +65,14 @@ export default function LoginPage() {
           <CardContent className="space-y-6 px-8 py-6">
             <div className="flex text-center gap-2 justify-center">
               <Image src="/logo.png" alt="logo" width={50} height={50} />
-              <h2 className="text-2xl font-bold mt-3 text-gray-700">BadCourt</h2>
+              <h2 className="text-2xl font-bold mt-3 text-gray-700">
+                BadCourt
+              </h2>
             </div>
             <form onSubmit={handleLogin} className="space-y-4">
-              <p className="text-gray-700 text-xl font-medium">Login with admin</p>
+              <p className="text-gray-700 text-xl font-medium">
+                Login with admin
+              </p>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <Input
                 type="email"
@@ -97,6 +101,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

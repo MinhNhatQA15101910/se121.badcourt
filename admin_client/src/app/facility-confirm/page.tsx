@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { FacilityConfirmTable } from "@/components/facility-confirm-table"
-import { useState, useEffect } from "react"
+import { FacilityConfirmTable } from "@/components/facility-confirm-table";
+import { useState, useEffect } from "react";
 
 export default function Dashboard() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return null
+    return null;
   }
 
   return (
@@ -22,6 +22,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

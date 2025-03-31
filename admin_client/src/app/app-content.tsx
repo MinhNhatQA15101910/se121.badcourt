@@ -1,24 +1,32 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
-import { HeaderContent } from "@/components/header-content"
-import { AccountDropdown } from "@/components/account-dropdown"
-import { NotificationDropdown } from "@/components/notification-dropdown"
-import { useSession } from "next-auth/react"
-import { usePathname } from "next/navigation"
+import type React from "react";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { HeaderContent } from "@/components/header-content";
+import { AccountDropdown } from "@/components/account-dropdown";
+import { NotificationDropdown } from "@/components/notification-dropdown";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
-export default function AppContent({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession()
-  const pathname = usePathname()
+export default function AppContent({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
 
   // Check if the current path is the login page
-  const isLoginPage = pathname === "/login"
+  const isLoginPage = pathname === "/login";
 
   // If we're on the login page or not authenticated, render without sidebar
   if (isLoginPage || status === "unauthenticated") {
-    return <>{children}</>
+    return <>{children}</>;
   }
 
   // Otherwise render the full app layout with sidebar
@@ -53,6 +61,5 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
         </div>
       </div>
     </SidebarProvider>
-  )
+  );
 }
-

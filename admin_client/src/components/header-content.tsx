@@ -28,7 +28,10 @@ interface HeaderContentProps {
   className?: string;
 }
 
-export function HeaderContent({ searchPlaceholder, className }: HeaderContentProps) {
+export function HeaderContent({
+  searchPlaceholder,
+  className,
+}: HeaderContentProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -43,7 +46,8 @@ export function HeaderContent({ searchPlaceholder, className }: HeaderContentPro
   const showSearch = pagesWithSearch.includes(pathname);
 
   // Nếu `searchPlaceholder` không được truyền từ props, lấy từ danh sách
-  const computedPlaceholder = searchPlaceholder || searchPlaceholders[pathname] || "Tìm kiếm...";
+  const computedPlaceholder =
+    searchPlaceholder || searchPlaceholders[pathname] || "Tìm kiếm...";
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -59,8 +63,15 @@ export function HeaderContent({ searchPlaceholder, className }: HeaderContentPro
   };
 
   return (
-    <div className={cn("flex items-center justify-between gap-4 w-full p-6", className)}>
-      <h1 className="w-60 text-2xl font-medium text-white">{getPageTitle(pathname)}</h1>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-4 w-full p-6",
+        className
+      )}
+    >
+      <h1 className="w-60 text-2xl font-medium text-white">
+        {getPageTitle(pathname)}
+      </h1>
       {showSearch && (
         <div className="relative w-full ml-8 mr-8">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />

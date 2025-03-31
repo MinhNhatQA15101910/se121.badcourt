@@ -42,7 +42,11 @@ export function NavMain({
                   <a
                     href={item.url}
                     className={`p-6 text-base font-medium flex items-center space-x-3
-                      ${isActive ? "bg-green text-white" : "bg-transparent text-dark-grey"}
+                      ${
+                        isActive
+                          ? "bg-green text-white"
+                          : "bg-transparent text-dark-grey"
+                      }
                     `}
                   >
                     {item.icon && <item.icon />}
@@ -51,7 +55,11 @@ export function NavMain({
                 ) : (
                   <div
                     className={`p-6 text-base font-medium flex items-center space-x-3 cursor-pointer
-                      ${isActive ? "bg-green text-white" : "bg-transparent text-dark-grey"}
+                      ${
+                        isActive
+                          ? "bg-green text-white"
+                          : "bg-transparent text-dark-grey"
+                      }
                     `}
                   >
                     {item.icon && <item.icon />}

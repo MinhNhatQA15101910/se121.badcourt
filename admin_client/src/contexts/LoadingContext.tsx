@@ -1,5 +1,5 @@
-import LoadingScreen from '@/components/loading-creen';
-import { createContext, useContext, useState, useEffect } from 'react';
+import LoadingScreen from "@/components/loading-creen";
+import { createContext, useContext, useState, useEffect } from "react";
 
 type LoadingContextType = {
   isLoading: boolean;
@@ -12,7 +12,7 @@ export const useLoading = () => {
   const context = useContext(LoadingContext);
 
   if (!context) {
-    throw new Error('useLoading must be used within a LoadingProvider!');
+    throw new Error("useLoading must be used within a LoadingProvider!");
   }
 
   return context;
