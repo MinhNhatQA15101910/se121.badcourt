@@ -3,7 +3,7 @@
 import { FacilityConfirmTable } from "@/components/facility-confirm-table";
 import { useState, useEffect } from "react";
 
-export default function Dashboard() {
+export default function FacilityConfirmPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

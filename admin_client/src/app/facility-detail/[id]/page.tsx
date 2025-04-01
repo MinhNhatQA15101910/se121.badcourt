@@ -1,6 +1,6 @@
 import React from "react";
 
-function SimplePage() {
+function FacilityDetailPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-3xl font-bold text-gray-900">Hello, TypeScript + React!</h1>
@@ -9,4 +9,4 @@ function SimplePage() {
   );
 }
 
-export default SimplePage;
+export default FacilityDetailPage;
