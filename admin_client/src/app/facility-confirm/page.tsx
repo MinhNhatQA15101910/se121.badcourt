@@ -1,6 +1,6 @@
 "use client";
 
-import { FacilityConfirmTable } from "@/components/facility-confirm-table";
+import { FacilityConfirmTable } from "@/app/facility-confirm/_components/facility-confirm-table";
 import { useState, useEffect } from "react";
 
 export default function FacilityConfirmPage() {
