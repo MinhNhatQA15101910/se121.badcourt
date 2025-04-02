@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,181 +13,143 @@ import { Pagination } from "@/components/ui/pagination"
 import { TooltipText } from "@/components/ui/tooltip-text"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { FacilityConfirmFilter, type FilterValues } from "@/app/facility-confirm/_components/facility-confirm-filter"
-import { FacilityDetails } from "../../../components/facility-detail"
+import { FacilityOwnersFilter, type FilterValues } from "./facility-owners-filter"
 
-const facilities = [
+const owners = [
   {
     id: 1,
-    facilityName: "Central Hospital",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "123 Main St, New York, NY 10001, United States of America - Medical District Area",
-    facilityId: "FAC001",
     ownerName: "John Smith",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "john.smith@example.com",
-    registerDate: "2023-01-15",
-    status: "Active",
+    ownerId: "OWN001",
+    ownerAddress: "123 Main St, New York, NY 10001, United States of America",
+    numberOfFacilities: 3,
+    totalRevenue: 325000000,
+    status: "Activated",
     province: "p1",
     district: "d1",
-    revenue: 150000,
   },
   {
     id: 2,
-    facilityName: "Westside Clinic",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "456 West Ave, Los Angeles, CA 90001",
-    facilityId: "FAC002",
     ownerName: "Sarah Johnson",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "sarah.j@example.com",
-    registerDate: "2023-02-20",
-    status: "Pending",
+    ownerId: "OWN002",
+    ownerAddress: "456 West Ave, Los Angeles, CA 90001",
+    numberOfFacilities: 1,
+    totalRevenue: 87500000,
+    status: "Activated",
     province: "p2",
     district: "d6",
-    revenue: 90000,
   },
   {
     id: 3,
-    facilityName: "Eastside Medical Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "789 East Blvd, Chicago, IL 60007",
-    facilityId: "FAC003",
     ownerName: "Robert Williams",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "r.williams@example.com",
-    registerDate: "2022-11-05",
-    status: "Active",
+    ownerId: "OWN003",
+    ownerAddress: "789 East Blvd, Chicago, IL 60007",
+    numberOfFacilities: 2,
+    totalRevenue: 210000000,
+    status: "Deactivated",
     province: "p5",
     district: "d18",
-    revenue: 220000,
   },
   {
     id: 4,
-    facilityName: "North Health Services",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "321 North Rd, Boston, MA 02108",
-    facilityId: "FAC004",
     ownerName: "Emily Davis",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "emily.d@example.com",
-    registerDate: "2023-03-10",
-    status: "Inactive",
+    ownerId: "OWN004",
+    ownerAddress: "321 North Rd, Boston, MA 02108",
+    numberOfFacilities: 1,
+    totalRevenue: 65000000,
+    status: "Activated",
     province: "p1",
     district: "d2",
-    revenue: 60000,
   },
   {
     id: 5,
-    facilityName: "South Community Hospital",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "654 South St, Miami, FL 33101",
-    facilityId: "FAC005",
     ownerName: "Michael Brown",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "m.brown@example.com",
-    registerDate: "2022-09-18",
-    status: "Active",
+    ownerId: "OWN005",
+    ownerAddress: "654 South St, Miami, FL 33101",
+    numberOfFacilities: 2,
+    totalRevenue: 175000000,
+    status: "Activated",
     province: "p4",
     district: "d14",
-    revenue: 180000,
   },
   {
     id: 6,
-    facilityName: "Downtown Medical Plaza",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "987 Downtown Ave, Seattle, WA 98101",
-    facilityId: "FAC006",
     ownerName: "Jennifer Wilson",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "j.wilson@example.com",
-    registerDate: "2023-04-22",
-    status: "Pending",
+    ownerId: "OWN006",
+    ownerAddress: "987 Downtown Ave, Seattle, WA 98101",
+    numberOfFacilities: 1,
+    totalRevenue: 92000000,
+    status: "Deactivated",
     province: "p2",
     district: "d7",
-    revenue: 110000,
   },
   {
     id: 7,
-    facilityName: "Riverside Health Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "159 Riverside Dr, Austin, TX 78701",
-    facilityId: "FAC007",
     ownerName: "David Miller",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "david.m@example.com",
-    registerDate: "2022-12-30",
-    status: "Active",
+    ownerId: "OWN007",
+    ownerAddress: "159 Riverside Dr, Austin, TX 78701",
+    numberOfFacilities: 1,
+    totalRevenue: 145000000,
+    status: "Activated",
     province: "p3",
     district: "d11",
-    revenue: 200000,
   },
   {
     id: 8,
-    facilityName: "Mountain View Hospital",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "753 Mountain Rd, Denver, CO 80202",
-    facilityId: "FAC008",
     ownerName: "Lisa Taylor",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "lisa.t@example.com",
-    registerDate: "2023-05-15",
-    status: "Active",
+    ownerId: "OWN008",
+    ownerAddress: "753 Mountain Rd, Denver, CO 80202",
+    numberOfFacilities: 1,
+    totalRevenue: 195000000,
+    status: "Activated",
     province: "p3",
     district: "d12",
-    revenue: 160000,
   },
   {
     id: 9,
-    facilityName: "Oceanside Medical Group",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "426 Ocean Dr, San Diego, CA 92101",
-    facilityId: "FAC009",
     ownerName: "Thomas Anderson",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "t.anderson@example.com",
-    registerDate: "2023-01-28",
-    status: "Inactive",
+    ownerId: "OWN009",
+    ownerAddress: "426 Ocean Dr, San Diego, CA 92101",
+    numberOfFacilities: 1,
+    totalRevenue: 78000000,
+    status: "Deactivated",
     province: "p2",
     district: "d8",
-    revenue: 75000,
   },
   {
     id: 10,
-    facilityName: "Valley Care Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "871 Valley Blvd, Phoenix, AZ 85001",
-    facilityId: "FAC010",
     ownerName: "Amanda Martinez",
+    ownerImage: "/placeholder.svg?height=40&width=40",
     ownerEmail: "a.martinez@example.com",
-    registerDate: "2022-10-12",
-    status: "Active",
+    ownerId: "OWN010",
+    ownerAddress: "871 Valley Blvd, Phoenix, AZ 85001",
+    numberOfFacilities: 1,
+    totalRevenue: 155000000,
+    status: "Activated",
     province: "p3",
     district: "d10",
-    revenue: 190000,
-  },
-  {
-    id: 11,
-    facilityName: "Lakeside Wellness Clinic",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "329 Lake St, Chicago, IL 60007",
-    facilityId: "FAC011",
-    ownerName: "Kevin Johnson",
-    ownerEmail: "k.johnson@example.com",
-    registerDate: "2023-06-05",
-    status: "Pending",
-    province: "p5",
-    district: "d18",
-    revenue: 120000,
-  },
-  {
-    id: 12,
-    facilityName: "Parkview Medical Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "512 Park Ave, Atlanta, GA 30301",
-    facilityId: "FAC012",
-    ownerName: "Nicole White",
-    ownerEmail: "n.white@example.com",
-    registerDate: "2022-08-22",
-    status: "Active",
-    province: "p4",
-    district: "d15",
-    revenue: 210000,
   },
 ]
 
-export function FacilityConfirmTable() {
+export function FacilityOwnersTable() {
+  const router = useRouter()
   const [sortColumn, setSortColumn] = useState("")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
@@ -198,7 +161,6 @@ export function FacilityConfirmTable() {
     status: "all",
     searchTerm: "",
   })
-  const [selectedFacility, setSelectedFacility] = useState<string | null>(null)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -219,29 +181,29 @@ export function FacilityConfirmTable() {
 
     const newSelectedRows: Record<string, boolean> = {}
     if (newSelectAll) {
-      paginatedFacilities.forEach((facility) => {
-        newSelectedRows[facility.facilityId] = true
+      paginatedOwners.forEach((owner) => {
+        newSelectedRows[owner.ownerId] = true
       })
     }
     setSelectedRows(newSelectedRows)
   }
 
-  const handleSelectRow = (facilityId: string, checked: boolean, event: React.MouseEvent) => {
+  const handleSelectRow = (ownerId: string, checked: boolean, event: React.MouseEvent) => {
     // Stop propagation to prevent row click navigation when clicking checkbox
     event.stopPropagation()
 
     setSelectedRows((prev) => ({
       ...prev,
-      [facilityId]: checked,
+      [ownerId]: checked,
     }))
 
     // Update selectAll state based on whether all rows are selected
-    const allSelected = Object.keys(selectedRows).length === paginatedFacilities.length - 1 && checked
+    const allSelected = Object.keys(selectedRows).length === paginatedOwners.length - 1 && checked
     setSelectAll(allSelected)
   }
 
-  const handleRowClick = (facilityId: string) => {
-    setSelectedFacility(facilityId)
+  const handleRowClick = (ownerId: string) => {
+    router.push(`/facility-owners-detail/${ownerId}`)
   }
 
   const handleApplyFilter = (filters: FilterValues) => {
@@ -249,46 +211,43 @@ export function FacilityConfirmTable() {
     setCurrentPage(1) // Reset to first page when applying filters
   }
 
-  // Apply filters to facilities
-  const filteredFacilities = facilities.filter((facility) => {
+  // Apply filters to owners
+  const filteredOwners = owners.filter((owner) => {
     // Filter by search term (keeping this for compatibility)
     if (
       activeFilters.searchTerm &&
-      !facility.facilityName.toLowerCase().includes(activeFilters.searchTerm.toLowerCase()) &&
-      !facility.facilityId.toLowerCase().includes(activeFilters.searchTerm.toLowerCase())
+      !owner.ownerName.toLowerCase().includes(activeFilters.searchTerm.toLowerCase()) &&
+      !owner.ownerId.toLowerCase().includes(activeFilters.searchTerm.toLowerCase())
     ) {
       return false
     }
 
     // Filter by province (skip if empty or "all")
-    if (activeFilters.province && activeFilters.province !== "all" && facility.province !== activeFilters.province) {
+    if (activeFilters.province && activeFilters.province !== "all" && owner.province !== activeFilters.province) {
       return false
     }
 
     // Filter by district (skip if empty or "all")
-    if (activeFilters.district && activeFilters.district !== "all" && facility.district !== activeFilters.district) {
+    if (activeFilters.district && activeFilters.district !== "all" && owner.district !== activeFilters.district) {
       return false
     }
 
     // Filter by status (skip if "all")
-    if (activeFilters.status !== "all" && facility.status.toLowerCase() !== activeFilters.status) {
+    if (activeFilters.status !== "all" && owner.status.toLowerCase() !== activeFilters.status.toLowerCase()) {
       return false
     }
 
     return true
   })
 
-  const sortedFacilities = [...filteredFacilities].sort((a, b) => {
+  const sortedOwners = [...filteredOwners].sort((a, b) => {
     if (sortColumn === "") return 0
 
     const aValue = a[sortColumn as keyof typeof a]
     const bValue = b[sortColumn as keyof typeof a]
 
-    if (sortColumn === "registerDate") {
-      // Sort dates
-      const aDate = new Date(aValue.toString())
-      const bDate = new Date(bValue.toString())
-      return sortDirection === "asc" ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime()
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return sortDirection === "asc" ? aValue - bValue : bValue - aValue
     }
 
     // Sort strings
@@ -298,9 +257,9 @@ export function FacilityConfirmTable() {
   })
 
   // Calculate pagination
-  const totalPages = Math.ceil(sortedFacilities.length / itemsPerPage)
+  const totalPages = Math.ceil(sortedOwners.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedFacilities = sortedFacilities.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedOwners = sortedOwners.slice(startIndex, startIndex + itemsPerPage)
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -316,21 +275,13 @@ export function FacilityConfirmTable() {
     return sortDirection === "asc" ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
   }
 
-  // Format date to be more readable
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  // Format currency
+  // Format currency to VND format
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("vi-VN", {
       style: "currency",
-      currency: "USD",
+      currency: "VND",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount)
   }
 
@@ -349,7 +300,7 @@ export function FacilityConfirmTable() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold text-gray-800">Facility Management</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Facility Owners Management</h2>
 
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogTrigger asChild>
@@ -363,15 +314,15 @@ export function FacilityConfirmTable() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px] p-4">
-                <DialogTitle className="text-2xl text-black-grey">Filter Facilities</DialogTitle>
-                <FacilityConfirmFilter onClose={() => setFilterOpen(false)} onApplyFilter={handleApplyFilter} />
+                <DialogTitle className="text-2xl text-black-grey">Filter Owners</DialogTitle>
+                <FacilityOwnersFilter onClose={() => setFilterOpen(false)} onApplyFilter={handleApplyFilter} />
               </DialogContent>
             </Dialog>
           </div>
 
           {selectedCount > 0 && (
             <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-              {selectedCount} {selectedCount === 1 ? "facility" : "facilities"} selected
+              {selectedCount} {selectedCount === 1 ? "owner" : "owners"} selected
             </div>
           )}
         </div>
@@ -382,34 +333,34 @@ export function FacilityConfirmTable() {
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/40">
                   <TableHead className="w-[60px] rounded-tl-xl">No</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("facilityName")}>
-                    <div className="flex items-center">
-                      Facility Name
-                      {getSortIcon("facilityName")}
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("facilityId")}>
-                    <div className="flex items-center">
-                      Facility ID
-                      {getSortIcon("facilityId")}
-                    </div>
-                  </TableHead>
                   <TableHead className="cursor-pointer" onClick={() => handleSort("ownerName")}>
                     <div className="flex items-center">
                       Owner Name
                       {getSortIcon("ownerName")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("registerDate")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("ownerId")}>
                     <div className="flex items-center">
-                      Register Date
-                      {getSortIcon("registerDate")}
+                      Owner ID
+                      {getSortIcon("ownerId")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("revenue")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("ownerAddress")}>
                     <div className="flex items-center">
-                    Revenue
-                      {getSortIcon("revenue")}
+                      Owner Address
+                      {getSortIcon("ownerAddress")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("numberOfFacilities")}>
+                    <div className="flex items-center">
+                      Number of Facilities
+                      {getSortIcon("numberOfFacilities")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("totalRevenue")}>
+                    <div className="flex items-center">
+                      Total Revenue
+                      {getSortIcon("totalRevenue")}
                     </div>
                   </TableHead>
                   <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
@@ -426,21 +377,21 @@ export function FacilityConfirmTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedFacilities.map((facility, index) => (
+                {paginatedOwners.map((owner, index) => (
                   <TableRow
-                    key={facility.facilityId}
+                    key={owner.ownerId}
                     className={`${
-                      selectedRows[facility.facilityId] ? "bg-green-50" : ""
+                      selectedRows[owner.ownerId] ? "bg-green-50" : ""
                     } hover:bg-muted/20 transition-colors cursor-pointer`}
-                    onClick={() => handleRowClick(facility.facilityId)}
+                    onClick={() => handleRowClick(owner.ownerId)}
                   >
                     <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg overflow-hidden shadow-sm border">
+                        <div className="h-10 w-10 rounded-full overflow-hidden shadow-sm border">
                           <Image
-                            src={facility.facilityImage || "/placeholder.svg"}
-                            alt={facility.facilityName}
+                            src={owner.ownerImage || "/placeholder.svg"}
+                            alt={owner.ownerName}
                             width={40}
                             height={40}
                             className="object-cover"
@@ -448,38 +399,29 @@ export function FacilityConfirmTable() {
                         </div>
                         <div>
                           <div className="font-medium text-gray-900 max-w-[200px]">
-                            <TooltipText text={facility.facilityName} maxLength={25} />
+                            <TooltipText text={owner.ownerName} maxLength={25} />
                           </div>
                           <div className="text-xs text-muted-foreground max-w-[200px]">
-                            <TooltipText text={facility.facilityAddress} maxLength={30} />
+                            <TooltipText text={owner.ownerEmail} maxLength={30} />
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-sm">{facility.facilityId}</TableCell>
+                    <TableCell className="font-mono text-sm">{owner.ownerId}</TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium text-gray-900 max-w-[150px]">
-                          <TooltipText text={facility.ownerName} maxLength={20} />
-                        </div>
-                        <div className="text-xs text-muted-foreground max-w-[150px]">
-                          <TooltipText text={facility.ownerEmail} maxLength={25} />
-                        </div>
+                      <div className="max-w-[200px]">
+                        <TooltipText text={owner.ownerAddress} maxLength={30} />
                       </div>
                     </TableCell>
-                    <TableCell>{formatDate(facility.registerDate)}</TableCell>
-                    <TableCell className="font-medium text-start">{formatCurrency(facility.revenue)}</TableCell>
+                    <TableCell className="text-center">{owner.numberOfFacilities}</TableCell>
+                    <TableCell className="font-medium text-left">{formatCurrency(owner.totalRevenue)}</TableCell>
                     <TableCell>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          facility.status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : facility.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                          owner.status === "Activated" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {facility.status}
+                        {owner.status}
                       </span>
                     </TableCell>
                     <TableCell
@@ -489,15 +431,15 @@ export function FacilityConfirmTable() {
                       }}
                     >
                       <Checkbox
-                        checked={selectedRows[facility.facilityId] || false}
+                        checked={selectedRows[owner.ownerId] || false}
                         onCheckedChange={(checked) => {
                           // Create a synthetic mouse event
                           const syntheticEvent = {
                             stopPropagation: () => {},
                           } as React.MouseEvent
-                          handleSelectRow(facility.facilityId, checked as boolean, syntheticEvent)
+                          handleSelectRow(owner.ownerId, checked as boolean, syntheticEvent)
                         }}
-                        aria-label={`Select ${facility.facilityName}`}
+                        aria-label={`Select ${owner.ownerName}`}
                         className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                       />
                     </TableCell>
@@ -510,7 +452,7 @@ export function FacilityConfirmTable() {
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
-                      totalItems={filteredFacilities.length}
+                      totalItems={filteredOwners.length}
                       itemsPerPage={itemsPerPage}
                       startIndex={startIndex}
                       onPageChange={handlePageChange}
@@ -523,15 +465,6 @@ export function FacilityConfirmTable() {
           </div>
         </div>
       </div>
-      {selectedFacility && (
-        <FacilityDetails
-          facilityId={selectedFacility}
-          open={!!selectedFacility}
-          onOpenChange={(open) => {
-            if (!open) setSelectedFacility(null)
-          }}
-        />
-      )}
     </TooltipProvider>
   )
 }

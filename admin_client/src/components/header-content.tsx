@@ -19,7 +19,7 @@ const getPageTitle = (pathname: string) => {
 const searchPlaceholders: Record<string, string> = {
   "/facility-confirm": "Tìm kiếm cơ sở cầu lông...",
   "/customers": "Tìm kiếm người chơi...",
-  "/facility-owner": "Tìm kiếm chủ sân...",
+  "/facility-owners": "Tìm kiếm chủ sân...",
   "/post": "Tìm kiếm bài viết...",
 };
 

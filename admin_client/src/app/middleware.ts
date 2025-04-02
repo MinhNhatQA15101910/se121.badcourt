@@ -12,6 +12,7 @@ const VALID_ROUTES = [
   "/message",
   "/setting",
   "/login",
+  "/facility-owners-detail/", // Allow dynamic paths under this route
   // Add any other valid routes here
 ];
 
@@ -44,8 +45,13 @@ export async function middleware(request: NextRequest) {
   const isValidRoute = VALID_ROUTES.some(
     (route) =>
       pathname === route ||
-      (route !== "/login" && pathname.startsWith(`${route}/`))
+      (route !== "/login" && pathname.startsWith(`${route}/`)) ||
+      /^\/facility-owners-detail\/[\w\d]+$/.test(pathname) // Cho phép động
   );
+  console.log("Path:", pathname);
+console.log("IsValidRoute:", isValidRoute);
+console.log("Token exists:", !!token);
+  
 
   // If at root path, redirect to dashboard or login based on auth status
   if (isRootPage) {

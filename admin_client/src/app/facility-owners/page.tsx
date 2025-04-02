@@ -1,12 +1,26 @@
-import React from "react";
+"use client";
 
-function FacilityOwnersPage() {
+import { useState, useEffect } from "react";
+import { FacilityOwnersTable } from "./_components/facility-owners-table";
+
+export default function FacilityOwnersPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold text-gray-900">Hello, TypeScript + React!</h1>
-      <p className="text-lg text-gray-700 mt-2">This is a simple TSX page.</p>
+    <div className="min-h-full w-full p-6 overflow-y-auto">
+      <div className="grid grid-cols-12 gap-6 overflow-y-auto">
+        <div className="col-span-12">
+          <FacilityOwnersTable />
+        </div>
+      </div>
     </div>
   );
 }
-
-export default FacilityOwnersPage;
