@@ -1,10 +1,10 @@
+import SocialFeed from "@/components/social-feed";
 import React from "react";
 
 function PostPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold text-gray-900">Hello, TypeScript + React!</h1>
-      <p className="text-lg text-gray-700 mt-2">This is a simple TSX page.</p>
+    <div className="min-h-screen bg-[#f0f2f5] py-6">
+      <SocialFeed />
     </div>
   );
 }
