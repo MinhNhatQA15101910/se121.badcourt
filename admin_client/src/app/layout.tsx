@@ -12,7 +12,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased min-h-screen w-screen overflow-auto`}
+        className={`${inter.variable} antialiased min-h-screen w-screen overflow-hidden`}
       >
         <Providers>
           <AppContent>{children}</AppContent>

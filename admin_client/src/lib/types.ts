@@ -73,6 +73,33 @@ export interface Owner {
     bookmarked: boolean
     privacy?: "public" | "friends" | "private"
   }
+
+
+export interface ConversationType {
+  id: number
+  name: string
+  avatar: string
+  lastMessage: string
+  time: string
+  unread: number
+  online: boolean
+  isActive: boolean
+  starred: boolean
+  messages: MessageType[]
+}
+
+export interface MessageType {
+  id: number
+  text: string
+  sent: boolean
+  time: string
+  hasImage?: boolean
+  imageUrl?: string
+}
+
+
+
+
   
   
   

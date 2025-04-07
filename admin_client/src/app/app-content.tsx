@@ -44,7 +44,7 @@ export default function AppContent({
                 <HeaderContent />
               </div>
               <NotificationDropdown />
-              <div className="flex-shrink-0 flex items-center gap-2">
+              <div className="flex-shrink-0 flex items-center gap-2 mr-3">
                 <AccountDropdown
                   user={{
                     name: session?.user?.name || "User",
@@ -56,7 +56,7 @@ export default function AppContent({
             </div>
           </header>
           <SidebarInset className="flex-1 flex flex-col">
-            <main className="flex-1 h-full overflow-y-auto">{children}</main>
+            <main className="flex-1 h-full overflow-y-auto mr-3">{children}</main>
           </SidebarInset>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import type { Facility, Owner } from "@/lib/types"
+import type { ConversationType, Facility, Owner } from "@/lib/types"
 
 
 // Mock data for owners
@@ -560,6 +560,113 @@ export const initialPosts: Post[] = [
     privacy: "public",
   },
 ]
+
+export const conversationsData: ConversationType[] = [
+  {
+    id: 1,
+    name: "Ammi Watts",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Chào bạn",
+    time: "06:32 PM",
+    unread: 0,
+    online: true,
+    isActive: true,
+    starred: false,
+    messages: [
+      { id: 1, text: "Chào bạn", sent: false, time: "06:32 PM" },
+      { id: 2, text: "Có phải bạn muốn đặt sân cầu lông bên mình không", sent: false, time: "06:33 PM" },
+      { id: 3, text: "Đúng rồi bạn", sent: true, time: "06:34 PM" },
+      {
+        id: 4,
+        text: "Mình muốn đặt sân này",
+        sent: true,
+        time: "06:35 PM",
+        imageUrl: "/placeholder.svg?height=200&width=300",
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: "Jennifer Markus",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Hey! Did you finish the Hi-Fi wireframes for flora app design?",
+    time: "05:30 PM",
+    unread: 1,
+    online: false,
+    isActive: false,
+    starred: true,
+    messages: [
+      { id: 1, text: "Hi there! How's the project coming along?", sent: false, time: "05:25 PM" },
+      { id: 2, text: "Hey! Did you finish the Hi-Fi wireframes for flora app design?", sent: false, time: "05:30 PM" },
+    ],
+  },
+  {
+    id: 3,
+    name: "Iva Ryan",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Hey! Did you finish the Hi-Fi wireframes for flora app design?",
+    time: "05:30 PM",
+    unread: 0,
+    online: true,
+    isActive: false,
+    starred: false,
+    messages: [
+      { id: 1, text: "Hey! Did you finish the Hi-Fi wireframes for flora app design?", sent: false, time: "05:30 PM" },
+    ],
+  },
+  {
+    id: 4,
+    name: "Mai Duy",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Tôi sẽ gửi lịch đặt sân cho bạn vào ngày mai",
+    time: "04:15 PM",
+    unread: 2,
+    online: true,
+    isActive: false,
+    starred: true,
+    messages: [
+      { id: 1, text: "Xin chào, tôi muốn hỏi về giá cả sân cầu lông", sent: true, time: "04:10 PM" },
+      {
+        id: 2,
+        text: "Dạ, giá thuê sân là 200.000đ/giờ vào giờ cao điểm và 150.000đ/giờ vào giờ thấp điểm",
+        sent: false,
+        time: "04:12 PM",
+      },
+      { id: 3, text: "Cảm ơn bạn, tôi muốn đặt sân vào thứ 7 tuần sau", sent: true, time: "04:14 PM" },
+      { id: 4, text: "Tôi sẽ gửi lịch đặt sân cho bạn vào ngày mai", sent: false, time: "04:15 PM" },
+      {
+        id: 5,
+        text: "",
+        sent: false,
+        time: "04:20 PM",
+        imageUrl: "/placeholder.svg?height=200&width=300",
+      },
+    ],
+  },
+  {
+    id: 5,
+    name: "Nguyễn Văn A",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Bạn có thể gửi cho tôi thêm thông tin về các khóa học cầu lông không?",
+    time: "Yesterday",
+    unread: 0,
+    online: false,
+    isActive: false,
+    starred: false,
+    messages: [
+      {
+        id: 1,
+        text: "Bạn có thể gửi cho tôi thêm thông tin về các khóa học cầu lông không?",
+        sent: false,
+        time: "Yesterday",
+      },
+    ],
+  },
+]
+
+
+
+
 
 
 

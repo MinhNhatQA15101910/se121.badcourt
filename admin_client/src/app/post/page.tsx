@@ -1,4 +1,4 @@
-import SocialFeed from "@/components/social-feed";
+import SocialFeed from "@/app/post/_components/social-feed";
 import React from "react";
 
 function PostPage() {

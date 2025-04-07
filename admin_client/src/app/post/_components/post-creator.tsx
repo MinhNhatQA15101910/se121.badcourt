@@ -85,7 +85,7 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
               className={`flex-1 bg-[#f0f2f5] rounded-full px-4 py-3 text-[#565973] cursor-text ${isExpanded ? "hidden" : "block"}`}
               onClick={handleFocus}
             >
-              What's on your mind, {currentUser.name.split(" ")[0]}?
+              What on your mind, {currentUser.name.split(" ")[0]}?
             </div>
             {isExpanded && (
               <div className="flex-1">
