@@ -1,0 +1,6 @@
+@CourtService.Presentation_HostAddress = http://localhost:5098
+
+GET {{CourtService.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

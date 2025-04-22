@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FacilityService.Core\FacilityService.Core.Application\FacilityService.Core.Application.csproj" />
+    <ProjectReference Include="..\FacilityService.Infrastructure.Configuration\FacilityService.Infrastructure.Configuration.csproj" />
+  </ItemGroup>
+
+</Project>

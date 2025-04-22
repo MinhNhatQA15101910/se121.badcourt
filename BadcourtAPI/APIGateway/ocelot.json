@@ -1,0 +1,120 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/auth/login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/login",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/validate-signup",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/validate-signup",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/email-exists",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/email-exists",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/verify-pincode",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/verify-pincode",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/reset-password",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/reset-password",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/me",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/me",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/{id}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/change-password",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/change-password",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/add-photo",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/add-photo",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/set-main-photo/{photoId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/set-main-photo/{photoId}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/delete-photo/{photoId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/delete-photo/{photoId}",
+      "UpstreamHttpMethod": ["Delete"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/facilities/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/{id}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities/update-active/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/update-active/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000"
+  }
+}
