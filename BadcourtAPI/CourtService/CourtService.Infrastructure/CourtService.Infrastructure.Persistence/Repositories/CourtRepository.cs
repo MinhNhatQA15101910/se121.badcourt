@@ -28,4 +28,9 @@ public class CourtRepository : ICourtRepository
     {
         return _courts.Find(_ => true).AnyAsync(cancellationToken: cancellationToken);
     }
+
+    public async Task<Court?> GetCourtByIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        return await _courts.Find(court => court.Id == id).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+    }
 }

@@ -6,4 +6,5 @@ public interface ICourtRepository
 {
     Task AddCourtAsync(Court court, CancellationToken cancellationToken = default);
     Task<bool> AnyAsync(CancellationToken cancellationToken = default);
+    Task<Court?> GetCourtByIdAsync(string id, CancellationToken cancellationToken = default);
 }
