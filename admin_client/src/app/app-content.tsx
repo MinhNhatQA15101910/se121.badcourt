@@ -44,7 +44,7 @@ export default function AppContent({
                 <HeaderContent />
               </div>
               <NotificationDropdown />
-              <div className="flex-shrink-0 flex items-center gap-2 mr-3">
+              <div className="flex-shrink-0 flex items-center gap-2 mr-6">
                 <AccountDropdown
                   user={{
                     name: session?.user?.name || "User",
