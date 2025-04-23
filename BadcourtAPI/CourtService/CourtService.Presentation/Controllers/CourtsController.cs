@@ -1,7 +1,9 @@
 using CourtService.Core.Application.Queries;
+using CourtService.Presentation.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace CourtService.Presentation.Controllers;
 
@@ -14,5 +16,15 @@ public class CourtsController(IMediator mediator) : ControllerBase
     {
         var court = await mediator.Send(new GetCourtByIdQuery(id));
         return Ok(court);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<CourtDto>>> GetCourts([FromQuery] CourtParams courtParams)
+    {
+        var courts = await mediator.Send(new GetCourtsQuery(courtParams));
+
+        Response.AddPaginationHeader(courts);
+
+        return Ok(courts);
     }
 }
