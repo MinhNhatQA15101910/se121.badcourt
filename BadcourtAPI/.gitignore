@@ -483,6 +483,6 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-AuthService/AuthService.Presentation/auth.db
-AuthService/AuthService.Presentation/auth.db-shm
-AuthService/AuthService.Presentation/auth.db-wal
+AuthService/AuthService.Presentation/BadCourt_Auth.db
+AuthService/AuthService.Presentation/BadCourt_Auth.db-shm
+AuthService/AuthService.Presentation/BadCourt_Auth.db-wal

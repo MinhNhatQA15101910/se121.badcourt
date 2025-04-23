@@ -19,8 +19,13 @@ public class CourtRepository : ICourtRepository
         _courts = mongoDatabase.GetCollection<Court>(courtDatabaseSettings.Value.CourtsCollectionName);
     }
 
-    public async Task InsertManyAsync(IEnumerable<Court> facilities, CancellationToken cancellationToken = default)
+    public async Task AddCourtAsync(Court court, CancellationToken cancellationToken = default)
     {
-        await _courts.InsertManyAsync(facilities, cancellationToken: cancellationToken);
+        await _courts.InsertOneAsync(court, cancellationToken: cancellationToken);
+    }
+
+    public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
+    {
+        return _courts.Find(_ => true).AnyAsync(cancellationToken: cancellationToken);
     }
 }
