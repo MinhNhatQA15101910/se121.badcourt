@@ -566,19 +566,19 @@ export const conversationsData: ConversationType[] = [
     id: 1,
     name: "Ammi Watts",
     avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Chào bạn",
+    lastMessage: "Hello there",
     time: "06:32 PM",
     unread: 0,
     online: true,
     isActive: true,
     starred: false,
     messages: [
-      { id: 1, text: "Chào bạn", sent: false, time: "06:32 PM" },
-      { id: 2, text: "Có phải bạn muốn đặt sân cầu lông bên mình không", sent: false, time: "06:33 PM" },
-      { id: 3, text: "Đúng rồi bạn", sent: true, time: "06:34 PM" },
+      { id: 1, text: "Hello there", sent: false, time: "06:32 PM" },
+      { id: 2, text: "Are you looking to book a badminton court with us?", sent: false, time: "06:33 PM" },
+      { id: 3, text: "Yes, that's right", sent: true, time: "06:34 PM" },
       {
         id: 4,
-        text: "Mình muốn đặt sân này",
+        text: "I'd like to book this court",
         sent: true,
         time: "06:35 PM",
         imageUrl: "/placeholder.svg?height=200&width=300",
@@ -618,22 +618,22 @@ export const conversationsData: ConversationType[] = [
     id: 4,
     name: "Mai Duy",
     avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Tôi sẽ gửi lịch đặt sân cho bạn vào ngày mai",
+    lastMessage: "I'll send you the court schedule tomorrow",
     time: "04:15 PM",
     unread: 2,
     online: true,
     isActive: false,
     starred: true,
     messages: [
-      { id: 1, text: "Xin chào, tôi muốn hỏi về giá cả sân cầu lông", sent: true, time: "04:10 PM" },
+      { id: 1, text: "Hello, I'd like to ask about badminton court prices", sent: true, time: "04:10 PM" },
       {
         id: 2,
-        text: "Dạ, giá thuê sân là 200.000đ/giờ vào giờ cao điểm và 150.000đ/giờ vào giờ thấp điểm",
+        text: "The court rental is $20/hour during peak hours and $15/hour during off-peak hours",
         sent: false,
         time: "04:12 PM",
       },
-      { id: 3, text: "Cảm ơn bạn, tôi muốn đặt sân vào thứ 7 tuần sau", sent: true, time: "04:14 PM" },
-      { id: 4, text: "Tôi sẽ gửi lịch đặt sân cho bạn vào ngày mai", sent: false, time: "04:15 PM" },
+      { id: 3, text: "Thank you, I'd like to book a court for next Saturday", sent: true, time: "04:14 PM" },
+      { id: 4, text: "I'll send you the court schedule tomorrow", sent: false, time: "04:15 PM" },
       {
         id: 5,
         text: "",
@@ -645,9 +645,9 @@ export const conversationsData: ConversationType[] = [
   },
   {
     id: 5,
-    name: "Nguyễn Văn A",
+    name: "John Smith",
     avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Bạn có thể gửi cho tôi thêm thông tin về các khóa học cầu lông không?",
+    lastMessage: "Can you send me more information about the badminton training courses?",
     time: "Yesterday",
     unread: 0,
     online: false,
@@ -656,13 +656,15 @@ export const conversationsData: ConversationType[] = [
     messages: [
       {
         id: 1,
-        text: "Bạn có thể gửi cho tôi thêm thông tin về các khóa học cầu lông không?",
+        text: "Can you send me more information about the badminton training courses?",
         sent: false,
         time: "Yesterday",
       },
     ],
   },
 ]
+
+
 
 
 

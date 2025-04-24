@@ -1,3 +1,5 @@
+"use client"
+
 interface DateSeparatorProps {
   date: string
 }

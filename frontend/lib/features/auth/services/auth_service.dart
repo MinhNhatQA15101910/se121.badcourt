@@ -30,7 +30,7 @@ class AuthService {
 
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/api/auth/validate-signup'),
+        Uri.parse('$uri/gateway/auth/validate-signup'),
         body: jsonEncode(
           {
             'username': username,
@@ -97,7 +97,7 @@ class AuthService {
 
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/api/auth/verify-pincode'),
+        Uri.parse('$uri/gateway/auth/verify-pincode'),
         body: jsonEncode(
           {
             'pincode': pincode,
@@ -162,7 +162,7 @@ class AuthService {
     try {
       http.Response response = await http.post(
         Uri.parse(
-          '$uri/api/auth/login',
+          '$uri/gateway/auth/login',
         ),
         body: jsonEncode(
           {
@@ -229,7 +229,7 @@ class AuthService {
   }) async {
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/login/google'),
+        Uri.parse('$uri/gateway/login/google'),
         body: jsonEncode(
           {
             'email': account.email,
@@ -293,7 +293,7 @@ class AuthService {
     );
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/api/auth/email-exists'),
+        Uri.parse('$uri/gateway/api/auth/email-exists'),
         body: jsonEncode(
           {
             'email': email,
@@ -367,7 +367,7 @@ class AuthService {
 
     try {
       http.Response response = await http.patch(
-        Uri.parse('$uri/api/users/change-password'),
+        Uri.parse('$uri/gateway/api/users/change-password'),
         body: jsonEncode(
           {
             'currentPassword': email,
@@ -433,7 +433,7 @@ class AuthService {
       }
 
       var tokenRes = await http.post(
-        Uri.parse('$uri/token-is-valid'),
+        Uri.parse('$uri/gateway/token-is-valid'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'x-auth-token': token,

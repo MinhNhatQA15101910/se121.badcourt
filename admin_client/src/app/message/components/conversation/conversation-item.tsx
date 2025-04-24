@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Clock } from "lucide-react"
-import type { ConversationType } from "@/types/conversation"
+import type { ConversationType } from "@/lib/types"
 
 interface ConversationItemProps {
   conversation: ConversationType
