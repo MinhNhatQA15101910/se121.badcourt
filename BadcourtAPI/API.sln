@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CourtService.Core.Domain", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CourtService.Infrastructure.Configuration", "CourtService\CourtService.Infrastructure\CourtService.Infrastructure.Configuration\CourtService.Infrastructure.Configuration.csproj", "{3E3C6E92-F01C-48DA-9F42-343347C1444C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CourtService.Core.Application", "CourtService\CourtService.Core\CourtService.Core.Application\CourtService.Core.Application.csproj", "{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -283,6 +285,18 @@ Global
 		{3E3C6E92-F01C-48DA-9F42-343347C1444C}.Release|x64.Build.0 = Release|Any CPU
 		{3E3C6E92-F01C-48DA-9F42-343347C1444C}.Release|x86.ActiveCfg = Release|Any CPU
 		{3E3C6E92-F01C-48DA-9F42-343347C1444C}.Release|x86.Build.0 = Release|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Debug|x64.Build.0 = Debug|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Debug|x86.Build.0 = Debug|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Release|x64.ActiveCfg = Release|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Release|x64.Build.0 = Release|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Release|x86.ActiveCfg = Release|Any CPU
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -310,5 +324,6 @@ Global
 		{DF83A060-3040-B733-B9C6-0EA8EE7CACD5} = {7692A8B2-2E74-F41C-E710-8AE95D36E39B}
 		{E3E887A0-36D3-4F3C-B028-8B850A03882A} = {DF83A060-3040-B733-B9C6-0EA8EE7CACD5}
 		{3E3C6E92-F01C-48DA-9F42-343347C1444C} = {4DF0DACA-0AAF-7F73-908B-7241FAD972C3}
+		{A2A567EE-A738-49D6-8A71-DBCC8FCFBA57} = {DF83A060-3040-B733-B9C6-0EA8EE7CACD5}
 	EndGlobalSection
 EndGlobal

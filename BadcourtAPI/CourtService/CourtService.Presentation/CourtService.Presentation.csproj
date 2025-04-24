@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CourtService.Core\CourtService.Core.Application\CourtService.Core.Application.csproj" />
     <ProjectReference Include="..\CourtService.Infrastructure\CourtService.Infrastructure.Persistence\CourtService.Infrastructure.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
   </ItemGroup>
 
 </Project>

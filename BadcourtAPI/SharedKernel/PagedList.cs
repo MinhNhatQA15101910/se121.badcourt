@@ -53,14 +53,14 @@ public class PagedList<T> : List<T>
         pipeline.Add(new BsonDocument("$skip", skip));
         pipeline.Add(new BsonDocument("$limit", pageSize));
 
-        var facilitiesTask = collection.Aggregate<T>(pipeline, cancellationToken: cancellationToken).ToListAsync(cancellationToken);
+        var task = collection.Aggregate<T>(pipeline, cancellationToken: cancellationToken).ToListAsync(cancellationToken);
         var countTask = collection.Aggregate<BsonDocument>(countPipeline, cancellationToken: cancellationToken).FirstOrDefaultAsync(cancellationToken);
 
-        await Task.WhenAll(facilitiesTask, countTask);
+        await Task.WhenAll(task, countTask);
 
         var totalCount = countTask.Result?.GetValue("count", 0).ToInt32() ?? 0;
 
-        return new PagedList<T>(facilitiesTask.Result, totalCount, pageNumber, pageSize);
+        return new PagedList<T>(task.Result, totalCount, pageNumber, pageSize);
     }
 
     public static PagedList<T> Map<TSource>(PagedList<TSource> source, IMapper mapper)
