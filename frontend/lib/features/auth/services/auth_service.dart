@@ -186,12 +186,15 @@ class AuthService {
 
           userProvider.setUser(response.body);
 
-          if (jsonDecode(response.body)['role'] == 'player') {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final roles = (data['roles'] as List<dynamic>).cast<String>();
+
+          if (roles.isNotEmpty && roles[0] == 'Player') {
             Navigator.of(context).pushNamedAndRemoveUntil(
               PlayerBottomBar.routeName,
               (route) => false,
             );
-          } else if (jsonDecode(response.body)['role'] == 'manager') {
+          } else if (roles.isNotEmpty && roles[0] == 'Manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
               IntroManagerScreen.routeName,
               (route) => false,
