@@ -20,6 +20,7 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddControllers();
+        services.AddHttpContextAccessor();
 
         // Options pattern
         services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));

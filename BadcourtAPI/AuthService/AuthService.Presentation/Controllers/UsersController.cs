@@ -18,9 +18,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     [Authorize]
     public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
-        var userId = User.GetUserId();
-
-        var userDto = await mediator.Send(new GetUserByIdQuery(userId));
+        var userDto = await mediator.Send(new GetCurrentUserQuery());
         return Ok(userDto);
     }
 
