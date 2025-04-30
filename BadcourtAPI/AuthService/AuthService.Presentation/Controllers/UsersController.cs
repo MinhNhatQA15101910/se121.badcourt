@@ -33,10 +33,6 @@ public class UsersController(IMediator mediator) : ControllerBase
     [Authorize]
     public async Task<ActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
     {
-        var userId = User.GetUserId();
-
-        changePasswordDto.UserId = userId;
-
         await mediator.Send(new ChangePasswordCommand(changePasswordDto));
 
         return NoContent();
