@@ -83,8 +83,17 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 children: [
                   CarouselSlider.builder(
                     carouselController: _controller,
-                    itemCount: currentFacility.facilityImages.length,
+                    itemCount: currentFacility.facilityImages.isNotEmpty
+                        ? currentFacility.facilityImages.length
+                        : 1,
                     itemBuilder: (context, index, realIndex) {
+                      if (currentFacility.facilityImages.isEmpty) {
+                        return Image.asset(
+                          'assets/images/demo_facility.png',
+                          fit: BoxFit.cover,
+                        );
+                      }
+
                       final imageUrl =
                           currentFacility.facilityImages[index].url;
                       return Container(
@@ -92,7 +101,19 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                           image: DecorationImage(
                             image: NetworkImage(imageUrl),
                             fit: BoxFit.fill,
+                            onError: (exception, stackTrace) {
+                            },
                           ),
+                        ),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/demo_facility.png',
+                              fit: BoxFit.cover,
+                            );
+                          },
                         ),
                       );
                     },

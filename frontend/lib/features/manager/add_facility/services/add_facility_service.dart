@@ -88,7 +88,7 @@ class AddFacilityService {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('$uri/api/facilities'),
+        Uri.parse('$uri/gateway/facilities'),
       );
 
       // Thêm thông tin JSON dưới dạng fields

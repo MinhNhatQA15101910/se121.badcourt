@@ -174,7 +174,7 @@ class CourtManagementService {
 
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/manager/facilities/$facilityId'),
+        Uri.parse('$uri/gateway/facilities/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -306,7 +306,7 @@ class CourtManagementService {
 
       // Gửi request PATCH
       final response = await http.patch(
-        Uri.parse('$uri/api/facilities/update-active/$facilityId'),
+        Uri.parse('$uri/gateway/facilities/update-active/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

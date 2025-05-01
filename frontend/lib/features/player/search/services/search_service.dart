@@ -93,7 +93,7 @@ class SearchService {
     List<Facility> facilities = [];
     bool isQuery = false;
 
-    String requestUri = '$uri/api/facilities';
+    String requestUri = '$uri/gateway/facilities';
     if (province != null) {
       requestUri += '?province=$province';
       isQuery = true;

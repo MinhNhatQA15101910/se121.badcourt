@@ -25,7 +25,7 @@ class HomeService {
     List<Facility> facilities = [];
     bool isQuery = false;
 
-    String requestUri = '$uri/api/facilities';
+    String requestUri = '$uri/gateway/facilities';
     if (province != null) {
       requestUri += '?province=$province';
       isQuery = true;
@@ -88,7 +88,7 @@ class HomeService {
 
     try {
       http.Response response = await http.get(
-        Uri.parse('$uri/api/facilities/field/provinces'),
+        Uri.parse('$uri/gateway/facilities/provinces'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -111,7 +111,6 @@ class HomeService {
         snackBarType: SnackBarType.fail,
       );
     }
-
     return provinces;
   }
 }
