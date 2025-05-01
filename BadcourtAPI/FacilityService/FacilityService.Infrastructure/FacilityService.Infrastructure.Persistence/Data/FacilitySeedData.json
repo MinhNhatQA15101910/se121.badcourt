@@ -7,6 +7,7 @@
     "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
     "DetailAddress": "Số 15A/1 Hẻm 51, Đường 3-2, Phường An Khánh, Ninh Kiều, Cần Thơ, Vietnam",
     "Province": "Thành phố Cần Thơ",
+    "CourtsAmount": 2,
     "MinPrice": 150000,
     "MaxPrice": 150000,
     "Location": {
@@ -94,6 +95,7 @@
     "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
     "DetailAddress": "2QJ9+V8R, Unnamed Rd, Xuân Khánh, Ninh Kiều, Cần Thơ, Vietnam",
     "Province": "Thành phố Cần Thơ",
+    "CourtsAmount": 2,
     "MinPrice": 200000,
     "MaxPrice": 200000,
     "Location": {
@@ -181,6 +183,7 @@
     "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
     "DetailAddress": "22 Đ. Số 24, Bình An, Quận 2, Thành phố Hồ Chí Minh, Vietnam",
     "Province": "Thành phố Hồ Chí Minh",
+    "CourtsAmount": 2,
     "MinPrice": 250000,
     "MaxPrice": 250000,
     "Location": {
@@ -268,6 +271,7 @@
     "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
     "DetailAddress": "26 Lê Quý Đôn, Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam",
     "Province": "Thành phố Hồ Chí Minh",
+    "CourtsAmount": 2,
     "MinPrice": 150000,
     "MaxPrice": 150000,
     "Location": {
@@ -345,6 +349,7 @@
     "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
     "DetailAddress": "521 P. Minh Khai, Vĩnh Phú, Hai Bà Trưng, Hà Nội, Vietnam",
     "Province": "Thành phố Hà Nội",
+    "CourtsAmount": 2,
     "MinPrice": 200000,
     "MaxPrice": 200000,
     "Location": {
@@ -432,6 +437,7 @@
     "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
     "DetailAddress": "Tòa B, 488 P. Minh Khai, Vĩnh Phú, Hai Bà Trưng, Hà Nội 100000, Vietnam",
     "Province": "Thành phố Hà Nội",
+    "CourtsAmount": 2,
     "MinPrice": 250000,
     "MaxPrice": 250000,
     "Location": {
