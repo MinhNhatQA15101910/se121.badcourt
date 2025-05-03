@@ -38,6 +38,7 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
         return Ok(provinces);
     }
 
+    [Authorize(Roles = "Admin, Manager")]
     [HttpPost]
     public async Task<ActionResult<FacilityDto>> RegisterFacility([FromForm] RegisterFacilityDto registerFacilityDto)
     {
@@ -51,6 +52,7 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
         );
     }
 
+    [Authorize(Roles = "Admin, Manager")]
     [HttpPut("update-active/{id:length(24)}")]
     public async Task<IActionResult> UpdateActive(string id, ActiveDto activeDto)
     {

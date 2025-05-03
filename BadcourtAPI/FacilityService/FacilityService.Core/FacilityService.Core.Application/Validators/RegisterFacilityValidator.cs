@@ -27,15 +27,11 @@ public class RegisterFacilityValidator : AbstractValidator<RegisterFacilityComma
 
         RuleFor(x => x.RegisterFacilityDto.Description)
             .NotEmpty()
-            .WithMessage("Description is required.")
-            .MaximumLength(500)
-            .WithMessage("Description must not exceed 500 characters.");
+            .WithMessage("Description is required.");
 
         RuleFor(x => x.RegisterFacilityDto.Policy)
             .NotEmpty()
-            .WithMessage("Policy is required.")
-            .MaximumLength(500)
-            .WithMessage("Policy must not exceed 500 characters.");
+            .WithMessage("Policy is required.");
 
         RuleFor(x => x.RegisterFacilityDto.DetailAddress)
             .NotEmpty()
