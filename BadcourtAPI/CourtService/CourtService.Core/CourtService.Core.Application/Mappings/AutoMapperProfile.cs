@@ -1,4 +1,5 @@
 using AutoMapper;
+using CourtService.Core.Application.DTOs;
 using CourtService.Core.Domain.Entities;
 using SharedKernel.DTOs;
 
@@ -9,5 +10,6 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<Court, CourtDto>();
+        CreateMap<AddCourtDto, Court>();
     }
 }

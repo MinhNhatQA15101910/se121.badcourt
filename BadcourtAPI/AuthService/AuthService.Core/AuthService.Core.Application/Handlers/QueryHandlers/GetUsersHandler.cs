@@ -9,35 +9,42 @@ using SharedKernel.Exceptions;
 
 namespace AuthService.Core.Application.Handlers.QueryHandlers;
 
-public class GetUsersHandler(IUserRepository userRepository, IDistributedCache cache) : IRequestHandler<GetUsersQuery, PagedList<UserDto>>
+public class GetUsersHandler(
+    IUserRepository userRepository
+) : IRequestHandler<GetUsersQuery, PagedList<UserDto>>
 {
     public async Task<PagedList<UserDto>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
-        // Custom cache key
-        var cacheKey = GetCacheKey(request);
-        PagedList<UserDto> users;
-
-        var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
-        if (!string.IsNullOrEmpty(cachedData))
-        {
-            var settings = new JsonSerializerSettings();
-            settings.Converters.Add(new PagedListConverter<UserDto>());
-
-            users = JsonConvert.DeserializeObject<PagedList<UserDto>>(cachedData, settings)
-                ?? throw new BadRequestException($"Failed to deserialize cached data: {cacheKey}");
-        }
-        else
-        {
-            users = await userRepository.GetUsersAsync(request.UserParams);
-            var serializedData = JsonConvert.SerializeObject(users);
-            await cache.SetStringAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(5)
-            }, cancellationToken);
-        }
-
-        return users;
+        return await userRepository.GetUsersAsync(request.UserParams);
     }
+
+    // public async Task<PagedList<UserDto>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+    // {
+    //     // Custom cache key
+    //     var cacheKey = GetCacheKey(request);
+    //     PagedList<UserDto> users;
+
+    //     var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
+    //     if (!string.IsNullOrEmpty(cachedData))
+    //     {
+    //         var settings = new JsonSerializerSettings();
+    //         settings.Converters.Add(new PagedListConverter<UserDto>());
+
+    //         users = JsonConvert.DeserializeObject<PagedList<UserDto>>(cachedData, settings)
+    //             ?? throw new BadRequestException($"Failed to deserialize cached data: {cacheKey}");
+    //     }
+    //     else
+    //     {
+    //         users = await userRepository.GetUsersAsync(request.UserParams);
+    //         var serializedData = JsonConvert.SerializeObject(users);
+    //         await cache.SetStringAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
+    //         {
+    //             SlidingExpiration = TimeSpan.FromMinutes(5)
+    //         }, cancellationToken);
+    //     }
+
+    //     return users;
+    // }
 
     private static string GetCacheKey(GetUsersQuery request)
     {

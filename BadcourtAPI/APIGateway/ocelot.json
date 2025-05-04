@@ -119,6 +119,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 3000 }],
       "UpstreamPathTemplate": "/gateway/courts/{id}",
       "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/courts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts",
+      "UpstreamHttpMethod": ["Post"]
     }
   ],
   "GlobalConfiguration": {

@@ -43,6 +43,14 @@ public class CourtRepository : ICourtRepository
         return await _courts.Find(court => court.Id == id).FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<Court?> GetCourtByNameAsync(string courtName, string facilityId, CancellationToken cancellationToken = default)
+    {
+        return await _courts.Find(
+            court => court.CourtName == courtName && 
+            court.FacilityId == facilityId
+        ).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+    }
+
     public async Task<PagedList<CourtDto>> GetCourtsAsync(CourtParams courtParams, CancellationToken cancellationToken = default)
     {
         var pipeline = new List<BsonDocument>();
