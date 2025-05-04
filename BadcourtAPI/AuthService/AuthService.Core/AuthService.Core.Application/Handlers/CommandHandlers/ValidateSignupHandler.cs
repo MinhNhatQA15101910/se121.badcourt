@@ -1,12 +1,13 @@
 using AuthService.Core.Application.Commands;
 using AuthService.Core.Application.Interfaces;
-using AuthService.Core.Application.Notifications;
 using AuthService.Core.Application.Services;
 using AuthService.Core.Domain.Entities;
 using AuthService.Core.Domain.Enums;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Events;
 using SharedKernel.Exceptions;
 
 namespace AuthService.Core.Application.Handlers.CommandHandlers;
@@ -15,7 +16,7 @@ public class ValidateSignupHandler(
     UserManager<User> userManager,
     PincodeStore pincodeStore,
     ITokenService tokenService,
-    IMediator mediator
+    IPublishEndpoint publishEndpoint
 ) : ICommandHandler<ValidateSignupCommand, string>
 {
     public async Task<string> Handle(ValidateSignupCommand request, CancellationToken cancellationToken)
@@ -46,8 +47,8 @@ public class ValidateSignupHandler(
         pincodeStore.AddValidateUser(request.ValidateSignupDto.Email, request.ValidateSignupDto);
 
         // Send pincode email
-        await mediator.Publish(
-            new SignupValidatedNotification(request.ValidateSignupDto.Username, request.ValidateSignupDto.Email, pincode),
+        await publishEndpoint.Publish(
+            new SignupValidatedEvent(request.ValidateSignupDto.Username, request.ValidateSignupDto.Email, pincode),
             cancellationToken
         );
 
