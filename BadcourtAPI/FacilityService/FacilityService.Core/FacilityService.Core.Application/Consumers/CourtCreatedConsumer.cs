@@ -27,8 +27,8 @@ public class CourtCreatedConsumer(
             facility.MaxPrice = context.Message.PricePerHour;
         }
 
-        await facilityRepository.UpdateFacilityAsync(facility, context.CancellationToken);
+        facility.UpdatedAt = DateTime.UtcNow;
 
-        Console.WriteLine($"Facility {facility.Id} updated with new court. New courts amount: {facility.CourtsAmount}");
+        await facilityRepository.UpdateFacilityAsync(facility, context.CancellationToken);
     }
 }

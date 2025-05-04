@@ -53,12 +53,17 @@ public static class ApplicationServiceExtensions
         services.AddMassTransit(x =>
         {
             x.AddConsumer<CourtCreatedConsumer>();
+            x.AddConsumer<CourtUpdatedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
                 cfg.ReceiveEndpoint("court-created-queue", e =>
                 {
                     e.ConfigureConsumer<CourtCreatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("court-updated-queue", e =>
+                {
+                    e.ConfigureConsumer<CourtUpdatedConsumer>(ctx);
                 });
             });
         });

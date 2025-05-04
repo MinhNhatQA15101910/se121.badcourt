@@ -12,4 +12,7 @@ public interface ICourtRepository
     Task<Court?> GetCourtByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<Court?> GetCourtByNameAsync(string courtName, string facilityId, CancellationToken cancellationToken = default);
     Task<PagedList<CourtDto>> GetCourtsAsync(CourtParams courtParams, CancellationToken cancellationToken = default);
+    Task<decimal> GetFacilityMaxPriceAsync(string facilityId, CancellationToken cancellationToken = default);
+    Task<decimal> GetFacilityMinPriceAsync(string facilityId, CancellationToken cancellationToken = default);
+    Task UpdateCourtAsync(Court court, CancellationToken cancellationToken = default);
 }

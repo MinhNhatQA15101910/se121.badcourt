@@ -38,4 +38,12 @@ public class CourtsController(IMediator mediator) : ControllerBase
         var court = await mediator.Send(new AddCourtCommand(addCourtDto));
         return CreatedAtAction(nameof(GetCourt), new { id = court.Id }, court);
     }
+
+    [Authorize(Roles = "Admin, Manager")]
+    [HttpPut("{id:length(24)}")]
+    public async Task<IActionResult> UpdateCourt(string id, UpdateCourtDto updateCourtDto)
+    {
+        await mediator.Send(new UpdateCourtCommand(id, updateCourtDto));
+        return NoContent();
+    }
 }

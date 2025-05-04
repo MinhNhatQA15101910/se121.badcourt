@@ -2,6 +2,7 @@ using AutoMapper;
 using CourtService.Core.Domain.Entities;
 using CourtService.Core.Domain.Repositories;
 using CourtService.Infrastructure.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -46,7 +47,7 @@ public class CourtRepository : ICourtRepository
     public async Task<Court?> GetCourtByNameAsync(string courtName, string facilityId, CancellationToken cancellationToken = default)
     {
         return await _courts.Find(
-            court => court.CourtName == courtName && 
+            court => court.CourtName == courtName &&
             court.FacilityId == facilityId
         ).FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }
@@ -81,5 +82,60 @@ public class CourtRepository : ICourtRepository
         );
 
         return PagedList<CourtDto>.Map(courts, _mapper);
+    }
+
+    public async Task<decimal> GetFacilityMaxPriceAsync(string facilityId, CancellationToken cancellationToken = default)
+    {
+        var filter = new BsonDocument("FacilityId", facilityId);
+        var pipeline = new[]
+        {
+            new BsonDocument("$match", filter),
+            new BsonDocument("$group", new BsonDocument
+            {
+                { "_id", BsonNull.Value },
+                { "maxPrice", new BsonDocument("$max", "$PricePerHour") }
+            })
+        };
+
+        var result = await _courts.AggregateAsync<BsonDocument>(pipeline, cancellationToken: cancellationToken);
+        var document = await result.FirstOrDefaultAsync(cancellationToken);
+
+        decimal maxPrice = 0;
+        if (document != null && document.Contains("maxPrice") && document["maxPrice"].IsDecimal128)
+        {
+            maxPrice = document["maxPrice"].ToDecimal();
+        }
+
+        return maxPrice;
+    }
+
+    public async Task<decimal> GetFacilityMinPriceAsync(string facilityId, CancellationToken cancellationToken = default)
+    {
+        var filter = new BsonDocument("FacilityId", facilityId);
+        var pipeline = new[]
+        {
+            new BsonDocument("$match", filter),
+            new BsonDocument("$group", new BsonDocument
+            {
+                { "_id", BsonNull.Value },
+                { "minPrice", new BsonDocument("$min", "$PricePerHour") }
+            })
+        };
+
+        var result = await _courts.AggregateAsync<BsonDocument>(pipeline, cancellationToken: cancellationToken);
+        var document = await result.FirstOrDefaultAsync(cancellationToken);
+
+        decimal minPrice = 0;
+        if (document != null && document.Contains("minPrice") && document["minPrice"].IsDecimal128)
+        {
+            minPrice = document["minPrice"].ToDecimal();
+        }
+
+        return minPrice;
+    }
+
+    public async Task UpdateCourtAsync(Court court, CancellationToken cancellationToken = default)
+    {
+        await _courts.ReplaceOneAsync(c => c.Id == court.Id, court, cancellationToken: cancellationToken);
     }
 }

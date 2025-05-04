@@ -11,5 +11,6 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<Court, CourtDto>();
         CreateMap<AddCourtDto, Court>();
+        CreateMap<UpdateCourtDto, Court>();
     }
 }
