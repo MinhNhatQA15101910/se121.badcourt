@@ -46,4 +46,12 @@ public class CourtsController(IMediator mediator) : ControllerBase
         await mediator.Send(new UpdateCourtCommand(id, updateCourtDto));
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin, Manager")]
+    [HttpPut("update-inactive/{id:length(24)}")]
+    public async Task<IActionResult> UpdateInactive(string id, DateTimePeriodDto dateTimePeriodDto)
+    {
+        await mediator.Send(new UpdateInactiveCommand(id, dateTimePeriodDto));
+        return NoContent();
+    }
 }

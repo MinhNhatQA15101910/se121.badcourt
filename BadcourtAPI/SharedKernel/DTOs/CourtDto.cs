@@ -7,7 +7,7 @@ public class CourtDto
     public string Description { get; set; } = string.Empty;
     public decimal PricePerHour { get; set; }
     public string State { get; set; } = string.Empty;
-    public List<TimePeriodDto> OrderPeriods { get; set; } = [];
-    public List<TimePeriodDto> InactivePeriods { get; set; } = [];
+    public List<DateTimePeriodDto> OrderPeriods { get; set; } = [];
+    public List<DateTimePeriodDto> InactivePeriods { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 }
