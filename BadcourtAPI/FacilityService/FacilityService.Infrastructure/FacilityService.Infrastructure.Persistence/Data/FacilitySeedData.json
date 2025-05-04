@@ -1,0 +1,520 @@
+[
+  {
+    "UserId": "d8e4a2b9-3f60-4e1c-8c2d-7b9a5d6e1f3b",
+    "FacilityName": "Sân Cầu Lông TamBo",
+    "Description": "Sân Cầu Lông TamBo là một sân cầu lông được trang bị đầy đủ tiện nghi hiện đại, mang đến trải nghiệm tốt nhất cho người chơi. Sân có hệ thống đèn chiếu sáng đạt chuẩn, sàn cầu lông chất lượng cao giúp giảm chấn thương và tạo cảm giác thoải mái khi chơi.",
+    "FacebookUrl": "https://www.facebook.com/pages/S%C3%A2n%20C%C3%A2%CC%80u%20L%C3%B4ng%20Tambo/287484124787156/",
+    "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
+    "DetailAddress": "Số 15A/1 Hẻm 51, Đường 3-2, Phường An Khánh, Ninh Kiều, Cần Thơ, Vietnam",
+    "Province": "Thành phố Cần Thơ",
+    "CourtsAmount": 2,
+    "MinPrice": 150000,
+    "MaxPrice": 150000,
+    "Location": {
+      "Type": "Point",
+      "Coordinates": [105.7538001, 10.0276055]
+    },
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744261993/1_mmd7er.jpg",
+        "IsMain": true,
+        "Id": "67852046d042601dbbeb6fdd"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744261994/2_was9uf.jpg",
+        "IsMain": false,
+        "Id": "67852047d042601dbbeb6fde"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744261993/3_rcntre.jpg",
+        "IsMain": false,
+        "Id": "67852049d042601dbbeb6fdf"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744261994/4_ozbyiy.jpg",
+        "IsMain": false,
+        "Id": "6785204ad042601dbbeb6fe0"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744261994/5_zpc9id.jpg",
+        "IsMain": false,
+        "Id": "6785204bd042601dbbeb6fe1"
+      }
+    ],
+    "ManagerInfo": {
+      "FullName": "Bertie Keller",
+      "Email": "bertiekeller@gmail.com",
+      "PhoneNumber": "0702853345",
+      "CitizenId": "082203001442",
+      "CitizenImageFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/1_yxzhsr.jpg",
+        "IsMain": true
+      },
+      "CitizenImageBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/2_iihlpl.jpg",
+        "IsMain": true
+      },
+      "BankCardFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618123/1_vibole.jpg",
+        "IsMain": true
+      },
+      "BankCardBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618122/2_gaskqy.jpg",
+        "IsMain": true
+      },
+      "BusinessLicenseImages": [
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618437/1_rl8scg.jpg",
+          "IsMain": true
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/2_yqm2gy.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/3_hoiasm.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/4_ozc99w.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/5_zl3mj9.jpg",
+          "IsMain": false
+        }
+      ]
+    },
+    "Id": "671cac2452f035314caed71a"
+  },
+  {
+    "UserId": "6b7e8c3d-9a2f-4d5b-8e1c-7f6a2b4d3c0e",
+    "FacilityName": "Sân Cầu Lông ĐHCT",
+    "Description": "Sân Cầu Lông ĐHCT là một sân cầu lông được trang bị đầy đủ tiện nghi hiện đại, mang đến trải nghiệm tốt nhất cho người chơi. Sân có hệ thống đèn chiếu sáng đạt chuẩn, sàn cầu lông chất lượng cao giúp giảm chấn thương và tạo cảm giác thoải mái khi chơi.",
+    "FacebookUrl": "https://www.facebook.com/groups/1476641239790497/",
+    "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
+    "DetailAddress": "2QJ9+V8R, Unnamed Rd, Xuân Khánh, Ninh Kiều, Cần Thơ, Vietnam",
+    "Province": "Thành phố Cần Thơ",
+    "CourtsAmount": 2,
+    "MinPrice": 200000,
+    "MaxPrice": 200000,
+    "Location": {
+      "Type": "Point",
+      "Coordinates": [105.7656973, 10.0322489]
+    },
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263518/1_zecum5.jpg",
+        "IsMain": true,
+        "Id": "67852074d042601dbbeb6ff9"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263518/2_rpdxwm.jpg",
+        "IsMain": false,
+        "Id": "67852076d042601dbbeb6ffa"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263518/3_mggwsb.jpg",
+        "IsMain": false,
+        "Id": "67852078d042601dbbeb6ffb"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263518/4_xug5hs.jpg",
+        "IsMain": false,
+        "Id": "67852079d042601dbbeb6ffc"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263518/5_salk7f.jpg",
+        "IsMain": false,
+        "Id": "6785207cd042601dbbeb6ffd"
+      }
+    ],
+    "ManagerInfo": {
+      "FullName": "Susan Sweet",
+      "Email": "susansweet@gmail.com",
+      "PhoneNumber": "0388815552",
+      "CitizenId": "082203001442",
+      "CitizenImageFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/1_yxzhsr.jpg",
+        "IsMain": true
+      },
+      "CitizenImageBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/2_iihlpl.jpg",
+        "IsMain": true
+      },
+      "BankCardFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618123/1_vibole.jpg",
+        "IsMain": true
+      },
+      "BankCardBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618122/2_gaskqy.jpg",
+        "IsMain": true
+      },
+      "BusinessLicenseImages": [
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618437/1_rl8scg.jpg",
+          "IsMain": true
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/2_yqm2gy.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/3_hoiasm.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/4_ozc99w.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/5_zl3mj9.jpg",
+          "IsMain": false
+        }
+      ]
+    },
+    "Id": "671cadb452f035314caed732"
+  },
+  {
+    "UserId": "c2d7f9a5-3b1e-4c6d-8e0f-7a9b2d5c4e3f",
+    "FacilityName": "Sân Cầu Lông Trần Não",
+    "Description": "Sân Cầu Lông Trần Não là một sân cầu lông được trang bị đầy đủ tiện nghi hiện đại, mang đến trải nghiệm tốt nhất cho người chơi. Sân có hệ thống đèn chiếu sáng đạt chuẩn, sàn cầu lông chất lượng cao giúp giảm chấn thương và tạo cảm giác thoải mái khi chơi.",
+    "FacebookUrl": "https://www.facebook.com/share/qkijJ3VG8knwf6qs/",
+    "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
+    "DetailAddress": "22 Đ. Số 24, Bình An, Quận 2, Thành phố Hồ Chí Minh, Vietnam",
+    "Province": "Thành phố Hồ Chí Minh",
+    "CourtsAmount": 2,
+    "MinPrice": 250000,
+    "MaxPrice": 250000,
+    "Location": {
+      "Type": "Point",
+      "Coordinates": [106.4250779, 10.7944488]
+    },
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263753/1_bgdd3k.jpg",
+        "IsMain": true,
+        "Id": "6785209bd042601dbbeb7015"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263753/2_zvgrfj.jpg",
+        "IsMain": false,
+        "Id": "6785209ed042601dbbeb7016"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263753/3_essfy7.jpg",
+        "IsMain": false,
+        "Id": "6785209fd042601dbbeb7017"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263752/4_pjygif.jpg",
+        "IsMain": false,
+        "Id": "678520a1d042601dbbeb7018"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263753/5_hybsep.jpg",
+        "IsMain": false,
+        "Id": "678520a2d042601dbbeb7019"
+      }
+    ],
+    "ManagerInfo": {
+      "FullName": "Corrine Lewis",
+      "Email": "corrinelewis@gmail.com",
+      "PhoneNumber": "0962427872",
+      "CitizenId": "082203001442",
+      "CitizenImageFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/1_yxzhsr.jpg",
+        "IsMain": true
+      },
+      "CitizenImageBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/2_iihlpl.jpg",
+        "IsMain": true
+      },
+      "BankCardFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618123/1_vibole.jpg",
+        "IsMain": true
+      },
+      "BankCardBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618122/2_gaskqy.jpg",
+        "IsMain": true
+      },
+      "BusinessLicenseImages": [
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618437/1_rl8scg.jpg",
+          "IsMain": true
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/2_yqm2gy.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/3_hoiasm.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/4_ozc99w.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/5_zl3mj9.jpg",
+          "IsMain": false
+        }
+      ]
+    },
+    "Id": "671caf4f52f035314caed74b"
+  },
+  {
+    "UserId": "9e2c5d7b-8a4f-3c1d-6e0f-7b5a9d2c4e3f",
+    "FacilityName": "Sân cầu lông THPT MARIE CURIE",
+    "Description": "Sân cầu lông THPT MARIE CURIE là một sân cầu lông được trang bị đầy đủ tiện nghi hiện đại, mang đến trải nghiệm tốt nhất cho người chơi. Sân có hệ thống đèn chiếu sáng đạt chuẩn, sàn cầu lông chất lượng cao giúp giảm chấn thương và tạo cảm giác thoải mái khi chơi.",
+    "FacebookUrl": "https://www.facebook.com/pages/Clb-C%E1%BA%A7u-L%C3%B4ng-Tr%C6%B0%E1%BB%9Dng-Thpt-Marie-Curie/1104998279561562",
+    "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
+    "DetailAddress": "26 Lê Quý Đôn, Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh, Vietnam",
+    "Province": "Thành phố Hồ Chí Minh",
+    "CourtsAmount": 2,
+    "MinPrice": 150000,
+    "MaxPrice": 150000,
+    "Location": {
+      "Type": "Point",
+      "Coordinates": [106.6876871, 10.7820299]
+    },
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263974/1_uvn5ms.jpg",
+        "IsMain": true,
+        "Id": "678520b8d042601dbbeb7031"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263974/2_ntek3u.jpg",
+        "IsMain": false,
+        "Id": "678520bad042601dbbeb7032"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744263974/3_ebogj5.jpg",
+        "IsMain": false,
+        "Id": "678520bcd042601dbbeb7033"
+      }
+    ],
+    "ManagerInfo": {
+      "FullName": "Goodman Duncan",
+      "Email": "goodmanduncan@gmail.com",
+      "PhoneNumber": "0979464649",
+      "CitizenId": "082203001442",
+      "CitizenImageFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/1_yxzhsr.jpg",
+        "IsMain": true
+      },
+      "CitizenImageBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/2_iihlpl.jpg",
+        "IsMain": true
+      },
+      "BankCardFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618123/1_vibole.jpg",
+        "IsMain": true
+      },
+      "BankCardBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618122/2_gaskqy.jpg",
+        "IsMain": true
+      },
+      "BusinessLicenseImages": [
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618437/1_rl8scg.jpg",
+          "IsMain": true
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/2_yqm2gy.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/3_hoiasm.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/4_ozc99w.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/5_zl3mj9.jpg",
+          "IsMain": false
+        }
+      ]
+    },
+    "Id": "671cb28fe8b56d6b54f5d726"
+  },
+  {
+    "UserId": "4d3f7e9b-2c5a-1e6d-8a0f-7b9d2c4e5f3b",
+    "FacilityName": "Trung Tâm TDTT Sân Cầu Lông",
+    "Description": "Trung Tâm TDTT Sân Cầu Lông là một sân cầu lông được trang bị đầy đủ tiện nghi hiện đại, mang đến trải nghiệm tốt nhất cho người chơi. Sân có hệ thống đèn chiếu sáng đạt chuẩn, sàn cầu lông chất lượng cao giúp giảm chấn thương và tạo cảm giác thoải mái khi chơi.",
+    "FacebookUrl": "https://vi-vn.facebook.com/caulong.minhkhai/",
+    "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
+    "DetailAddress": "521 P. Minh Khai, Vĩnh Phú, Hai Bà Trưng, Hà Nội, Vietnam",
+    "Province": "Thành phố Hà Nội",
+    "CourtsAmount": 2,
+    "MinPrice": 200000,
+    "MaxPrice": 200000,
+    "Location": {
+      "Type": "Point",
+      "Coordinates": [105.8702438, 21.0007026]
+    },
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264177/1_w4a6pf.jpg",
+        "IsMain": true,
+        "Id": "678520d8d042601dbbeb704d"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264177/2_o2d4ac.jpg",
+        "IsMain": false,
+        "Id": "678520d9d042601dbbeb704e"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264176/3_qufkhq.jpg",
+        "IsMain": false,
+        "Id": "678520dad042601dbbeb704f"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264176/4_fg7v8u.jpg",
+        "IsMain": false,
+        "Id": "678520dbd042601dbbeb7050"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264176/5_y3lxa0.jpg",
+        "IsMain": false,
+        "Id": "678520ddd042601dbbeb7051"
+      }
+    ],
+    "ManagerInfo": {
+      "FullName": "Mack York",
+      "Email": "mackyork@gmail.com",
+      "PhoneNumber": "0936129898",
+      "CitizenId": "082203001442",
+      "CitizenImageFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/1_yxzhsr.jpg",
+        "IsMain": true
+      },
+      "CitizenImageBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/2_iihlpl.jpg",
+        "IsMain": true
+      },
+      "BankCardFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618123/1_vibole.jpg",
+        "IsMain": true
+      },
+      "BankCardBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618122/2_gaskqy.jpg",
+        "IsMain": true
+      },
+      "BusinessLicenseImages": [
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618437/1_rl8scg.jpg",
+          "IsMain": true
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/2_yqm2gy.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/3_hoiasm.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/4_ozc99w.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/5_zl3mj9.jpg",
+          "IsMain": false
+        }
+      ]
+    },
+    "Id": "671cb416e8b56d6b54f5d73d"
+  },
+  {
+    "UserId": "7a2f9d5b-4c3e-1d6e-8b0f-7c5a9d2e4f3b",
+    "FacilityName": "Sân Cầu Lông Tiến Dinh Sport",
+    "Description": "Sân Cầu Lông Tiến Dinh Sport là một sân cầu lông được trang bị đầy đủ tiện nghi hiện đại, mang đến trải nghiệm tốt nhất cho người chơi. Sân có hệ thống đèn chiếu sáng đạt chuẩn, sàn cầu lông chất lượng cao giúp giảm chấn thương và tạo cảm giác thoải mái khi chơi.",
+    "FacebookUrl": "https://www.facebook.com/sancaulongtiendinhsport/",
+    "Policy": "1. Đặt sân trước ít nhất 24 giờ để đảm bảo có chỗ.\n2. Thanh toán trước hoặc ngay khi đến sân.\n3. Không mang thức ăn, đồ uống có cồn vào khu vực sân.\n4. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n5. Tôn trọng thời gian đặt sân, không làm ảnh hưởng đến lượt chơi của người khác.\n6. Tuân thủ hướng dẫn của quản lý sân để đảm bảo an toàn và chất lượng dịch vụ.",
+    "DetailAddress": "Tòa B, 488 P. Minh Khai, Vĩnh Phú, Hai Bà Trưng, Hà Nội 100000, Vietnam",
+    "Province": "Thành phố Hà Nội",
+    "CourtsAmount": 2,
+    "MinPrice": 250000,
+    "MaxPrice": 250000,
+    "Location": {
+      "Type": "Point",
+      "Coordinates": [105.8659253, 20.998275]
+    },
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264377/1_jqmkzf.jpg",
+        "IsMain": true,
+        "Id": "678520f5d042601dbbeb7069"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264377/2_lvjfus.jpg",
+        "IsMain": false,
+        "Id": "678520f8d042601dbbeb706a"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264378/3_knv8ca.jpg",
+        "IsMain": false,
+        "Id": "678520f9d042601dbbeb706b"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264376/4_fqgp9j.jpg",
+        "IsMain": false,
+        "Id": "678520fad042601dbbeb706c"
+      },
+      {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744264376/5_awz4rb.jpg",
+        "IsMain": false,
+        "Id": "678520fcd042601dbbeb706d"
+      }
+    ],
+    "ManagerInfo": {
+      "FullName": "Dela Cruzday",
+      "Email": "delacruzday@gmail.com",
+      "PhoneNumber": "0869987669",
+      "CitizenId": "082203001442",
+      "CitizenImageFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/1_yxzhsr.jpg",
+        "IsMain": true
+      },
+      "CitizenImageBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744617936/2_iihlpl.jpg",
+        "IsMain": true
+      },
+      "BankCardFront": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618123/1_vibole.jpg",
+        "IsMain": true
+      },
+      "BankCardBack": {
+        "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618122/2_gaskqy.jpg",
+        "IsMain": true
+      },
+      "BusinessLicenseImages": [
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618437/1_rl8scg.jpg",
+          "IsMain": true
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/2_yqm2gy.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/3_hoiasm.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618438/4_ozc99w.jpg",
+          "IsMain": false
+        },
+        {
+          "Url": "https://res.cloudinary.com/dv6pe0ra9/image/upload/v1744618435/5_zl3mj9.jpg",
+          "IsMain": false
+        }
+      ]
+    },
+    "Id": "671cb530e8b56d6b54f5d755"
+  }
+]

@@ -1,0 +1,91 @@
+[
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a1",
+    "FacilityId": "671cac2452f035314caed71a",
+    "CourtName": "Court 1",
+    "Description": "Test description",
+    "PricePerHour": 150000
+  },
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a2",
+    "FacilityId": "671cac2452f035314caed71a",
+    "CourtName": "Court 2",
+    "Description": "Test description",
+    "PricePerHour": 150000
+  },
+
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a3",
+    "FacilityId": "671cadb452f035314caed732",
+    "CourtName": "Court 1",
+    "Description": "Test description",
+    "PricePerHour": 200000
+  },
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a4",
+    "FacilityId": "671cadb452f035314caed732",
+    "CourtName": "Court 2",
+    "Description": "Test description",
+    "PricePerHour": 200000
+  },
+
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a5",
+    "FacilityId": "671caf4f52f035314caed74b",
+    "CourtName": "Court 1",
+    "Description": "Test description",
+    "PricePerHour": 250000
+  },
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a6",
+    "FacilityId": "671caf4f52f035314caed74b",
+    "CourtName": "Court 2",
+    "Description": "Test description",
+    "PricePerHour": 250000
+  },
+
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a7",
+    "FacilityId": "671cb28fe8b56d6b54f5d726",
+    "CourtName": "Court 1",
+    "Description": "Test description",
+    "PricePerHour": 150000
+  },
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a8",
+    "FacilityId": "671cb28fe8b56d6b54f5d726",
+    "CourtName": "Court 2",
+    "Description": "Test description",
+    "PricePerHour": 150000
+  },
+
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39a9",
+    "FacilityId": "671cb416e8b56d6b54f5d73d",
+    "CourtName": "Court 1",
+    "Description": "Test description",
+    "PricePerHour": 200000
+  },
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39aa",
+    "FacilityId": "671cb416e8b56d6b54f5d73d",
+    "CourtName": "Court 2",
+    "Description": "Test description",
+    "PricePerHour": 200000
+  },
+
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39ab",
+    "FacilityId": "671cb530e8b56d6b54f5d755",
+    "CourtName": "Court 1",
+    "Description": "Test description",
+    "PricePerHour": 250000
+  },
+  {
+    "Id": "661cf2e7b2a8a3a2d75e39ac",
+    "FacilityId": "671cb530e8b56d6b54f5d755",
+    "CourtName": "Court 2",
+    "Description": "Test description",
+    "PricePerHour": 250000
+  }
+]
