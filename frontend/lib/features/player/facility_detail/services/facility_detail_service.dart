@@ -20,7 +20,7 @@ class FacilityDetailService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/api/courts?facilityId=$facilityId'),
+        Uri.parse('$uri/gateway/courts?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

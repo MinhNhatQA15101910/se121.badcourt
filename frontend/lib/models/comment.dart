@@ -19,7 +19,7 @@ class Comment {
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'publisherId': publisherId,
       'publisherUsername': publisherUsername,
       'publisherImageUrl': publisherImageUrl,
@@ -30,7 +30,7 @@ class Comment {
 
   factory Comment.fromMap(Map<String, dynamic> map) {
     return Comment(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       publisherId: map['publisherId'] ?? '',
       publisherUsername: map['publisherUsername'] ?? '',
       publisherImageUrl: map['publisherImageUrl'] ?? '',

@@ -32,7 +32,7 @@ class Post {
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'publisherId': publisherId,
       'publisherUsername': publisherUsername,
       'publisherImageUrl': publisherImageUrl,
@@ -51,7 +51,7 @@ class Post {
 
   factory Post.fromMap(Map<String, dynamic> map) {
     return Post(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       publisherId: map['publisherId'] ?? '',
       publisherUsername: map['publisherUsername'] ?? '',
       publisherImageUrl: map['publisherImageUrl'] ?? '',

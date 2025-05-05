@@ -27,7 +27,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _authService = AuthService();
 
-  bool _isFirstLaunch = false;
 
   void getFirstLaunch() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -35,11 +34,9 @@ class _MyAppState extends State<MyApp> {
 
     if (isFirstLaunch == null || isFirstLaunch) {
       setState(() {
-        _isFirstLaunch = true;
       });
     } else {
       setState(() {
-        _isFirstLaunch = false;
       });
     }
   }

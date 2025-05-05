@@ -29,7 +29,7 @@ class CourtManagementService {
     Court? court = null;
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/api/courts'),
+        Uri.parse('$uri/gateway/courts'),
         body: jsonEncode({
           'facilityId': currentFacilityProvider.currentFacility.id,
           'courtName': name,
@@ -82,7 +82,7 @@ class CourtManagementService {
     Court? court = null;
     try {
       http.Response response = await http.put(
-        Uri.parse('$uri/api/courts/$courtId'),
+        Uri.parse('$uri/gateway/courts/$courtId'),
         body: jsonEncode({
           'courtName': name,
           'description': description,
@@ -104,7 +104,7 @@ class CourtManagementService {
             description: description,
             pricePerHour: pricePerHour,
             state: 'Active',
-            createdAt: DateTime.now().millisecondsSinceEpoch,
+            createdAt: DateTime.now().toUtc().toIso8601String(),
             orderPeriods: [],
           );
 
@@ -131,7 +131,7 @@ class CourtManagementService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/api/courts?facilityId=$facilityId'),
+        Uri.parse('$uri/gateway/courts?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -215,7 +215,7 @@ class CourtManagementService {
 
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/api/courts/$courtId'),
+        Uri.parse('$uri/gateway/courts/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

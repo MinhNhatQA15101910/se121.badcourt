@@ -13,7 +13,7 @@ class ImageCustom {
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'url': url,
       'isMain': isMain,
       'type': type,
@@ -22,7 +22,7 @@ class ImageCustom {
 
   factory ImageCustom.fromMap(Map<String, dynamic> map) {
     return ImageCustom(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       url: map['url'] ?? '',
       isMain: map['isMain'] ?? false,
       type: map['type'] ?? '',

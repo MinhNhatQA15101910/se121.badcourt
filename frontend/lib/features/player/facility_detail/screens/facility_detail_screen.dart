@@ -100,21 +100,17 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         decoration: BoxDecoration(
                           image: DecorationImage(
                             image: NetworkImage(imageUrl),
-                            fit: BoxFit.fill,
+                            fit: BoxFit.cover,
                             onError: (exception, stackTrace) {
                             },
                           ),
                         ),
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/demo_facility.png',
-                              fit: BoxFit.cover,
-                            );
-                          },
-                        ),
+                        child: imageUrl.isNotEmpty
+                            ? Container()
+                            : Image.asset(
+                                'assets/images/demo_facility.png',
+                                fit: BoxFit.cover,
+                              ),
                       );
                     },
                     options: CarouselOptions(
@@ -248,7 +244,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         ),
                       ),
                       child: ClipOval(
-                        child: Image.network(
+                        /*child: Image.network(
                           currentFacility.userImageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
@@ -257,6 +253,10 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                               fit: BoxFit.cover,
                             );
                           },
+                        ),*/
+                        child: Image.asset(
+                          'assets/images/img_account.png',
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),

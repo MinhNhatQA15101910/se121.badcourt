@@ -103,7 +103,7 @@ class MessageService {
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/api/users/me/message-rooms'),
+        Uri.parse('$uri/gateway/users/me/message-rooms'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

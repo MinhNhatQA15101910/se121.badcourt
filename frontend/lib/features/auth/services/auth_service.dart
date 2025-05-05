@@ -370,7 +370,7 @@ class AuthService {
 
     try {
       http.Response response = await http.patch(
-        Uri.parse('$uri/gateway/api/users/change-password'),
+        Uri.parse('$uri/gateway/users/change-password'),
         body: jsonEncode(
           {
             'currentPassword': email,

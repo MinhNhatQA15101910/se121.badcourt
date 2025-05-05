@@ -10,7 +10,7 @@ class Court {
   final String description; // Mô tả sân
   final int pricePerHour; // Giá mỗi giờ
   final String state; // Trạng thái sân
-  final int createdAt; // Thời gian tạo
+  final String createdAt; // Thời gian tạo
   final List<OrderPeriod>
       orderPeriods; // Danh sách các khoảng thời gian đặt sân
 
@@ -61,7 +61,7 @@ class Court {
     String? description,
     int? pricePerHour,
     String? state,
-    int? createdAt,
+    String? createdAt,
     List<OrderPeriod>? orderPeriods,
   }) {
     return Court(

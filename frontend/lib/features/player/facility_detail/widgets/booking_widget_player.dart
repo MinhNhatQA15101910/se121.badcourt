@@ -36,15 +36,19 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     String day =
         DateFormat('EEEE').format(widget.currentDateTime).toLowerCase();
 
-    if (widget.facility.activeAt.schedule.containsKey(day)) {
-      PeriodTime? periodTime = widget.facility.activeAt.schedule[day];
-      if (periodTime != null) {
-        setState(() {
-          _startTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourFrom);
-          _endTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourTo);
-        });
-      }
-    }
+    final schedule = widget.facility.activeAt?.schedule;
+
+if (schedule != null && schedule.containsKey(day)) {
+  final periodTime = schedule[day];
+
+  if (periodTime != null) {
+    setState(() {
+      _startTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourFrom);
+      _endTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourTo);
+    });
+  }
+}
+
   }
 
   void _getOrderPeriodsByDate() {

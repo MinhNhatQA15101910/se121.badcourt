@@ -24,7 +24,7 @@ class Order {
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'facilityName': facilityName,
       'address': address,
       'price': price,
@@ -36,7 +36,7 @@ class Order {
 
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       facilityName: map['facilityName'] ?? '',
       address: map['address'] ?? '',
       price: map['price']?.toDouble() ?? 0.0,

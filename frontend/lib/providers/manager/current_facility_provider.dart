@@ -12,8 +12,6 @@ class CurrentFacilityProvider extends ChangeNotifier {
     facebookUrl: 'https://www.facebook.com/default',
     description: 'This is a default facility description.',
     policy: 'Default policy for this facility.',
-    userImageUrl: 'https://via.placeholder.com/150',
-    facilityImageUrl: 'https://via.placeholder.com/150',
     facilityImages: [
       ImageCustom(
         id: 'default_image_id_1',
@@ -36,7 +34,7 @@ class CurrentFacilityProvider extends ChangeNotifier {
     ratingAvg: 4.5,
     totalRating: 100,
     state: 'Pending',
-    createdAt: DateTime.now().millisecondsSinceEpoch,
+    registeredAt: DateTime.now(),
     minPrice: 0,
     maxPrice: 0,
     managerInfo: ManagerInfo(

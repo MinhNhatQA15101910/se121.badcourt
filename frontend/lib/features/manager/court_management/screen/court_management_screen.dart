@@ -198,24 +198,23 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     );
 
     final currentFacility = currentFacilityProvider.currentFacility;
+    final schedule = currentFacility.activeAt?.schedule;
 
-    if (currentFacility.activeAt.schedule.isNotEmpty) {
-      final firstDaySchedule = currentFacility.activeAt.schedule.values.first;
+    if (schedule != null && schedule.isNotEmpty) {
+      final firstDaySchedule = schedule.values.first;
+
+      final startTime =
+          DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourFrom);
+      final endTime =
+          DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourTo);
 
       setState(() {
-        // Chuyển đổi từ milliseconds sang giờ và phút
-        _startHour =
-            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourFrom).hour;
-        _startMinute =
-            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourFrom)
-                .minute;
-        _endHour =
-            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourTo).hour;
-        _endMinute =
-            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourTo).minute;
+        _startHour = startTime.hour;
+        _startMinute = startTime.minute;
+        _endHour = endTime.hour;
+        _endMinute = endTime.minute;
       });
     } else {
-      // Giá trị mặc định
       setState(() {
         _startHour = 9;
         _startMinute = 0;

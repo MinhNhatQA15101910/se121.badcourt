@@ -12,7 +12,7 @@ class MessageRoom {
 
   factory MessageRoom.fromMap(Map<String, dynamic> map) {
     return MessageRoom(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       users: List<User>.from(map['users']?.map((x) => User.fromMap(x)) ?? []),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt']),
       lastMessage: map['lastMessage'] != null
@@ -72,7 +72,7 @@ class LastMessage {
 
   factory LastMessage.fromMap(Map<String, dynamic> map) {
     return LastMessage(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       content: map['content'] ?? '',
       senderId: map['senderId'] ?? '',
       roomId: map['roomId'] ?? '',

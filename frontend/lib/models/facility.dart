@@ -4,8 +4,6 @@ import 'package:frontend/models/active.dart';
 import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/manager_info.dart';
 
-
-
 class Facility {
   final String id;
   final String facilityName;
@@ -13,8 +11,6 @@ class Facility {
   final String description;
   final String policy;
   final String userId;
-  final String userImageUrl;
-  final String facilityImageUrl;
   final List<ImageCustom> facilityImages;
   final int courtsAmount;
   final int minPrice;
@@ -26,9 +22,9 @@ class Facility {
   final double ratingAvg;
   final int totalRating;
   final String state;
-  final int createdAt;
+  final DateTime registeredAt;
   final ManagerInfo managerInfo;
-  final Active activeAt; // Added Active field
+  final Active? activeAt;
 
   Facility({
     required this.id,
@@ -37,8 +33,6 @@ class Facility {
     required this.description,
     required this.policy,
     required this.userId,
-    required this.userImageUrl,
-    required this.facilityImageUrl,
     required this.facilityImages,
     required this.courtsAmount,
     required this.minPrice,
@@ -50,9 +44,9 @@ class Facility {
     required this.ratingAvg,
     required this.totalRating,
     required this.state,
-    required this.createdAt,
+    required this.registeredAt,
     required this.managerInfo,
-    required this.activeAt, // Include Active in the constructor
+    this.activeAt,
   });
 
   Facility copyWith({
@@ -62,8 +56,6 @@ class Facility {
     String? description,
     String? policy,
     String? userId,
-    String? userImageUrl,
-    String? facilityImageUrl,
     List<ImageCustom>? facilityImages,
     int? courtsAmount,
     int? minPrice,
@@ -75,9 +67,9 @@ class Facility {
     double? ratingAvg,
     int? totalRating,
     String? state,
-    int? createdAt,
+    DateTime? registeredAt,
     ManagerInfo? managerInfo,
-    Active? activeAt, // Add Active to copyWith
+    Active? activeAt,
   }) {
     return Facility(
       id: id ?? this.id,
@@ -86,8 +78,6 @@ class Facility {
       description: description ?? this.description,
       policy: policy ?? this.policy,
       userId: userId ?? this.userId,
-      userImageUrl: userImageUrl ?? this.userImageUrl,
-      facilityImageUrl: facilityImageUrl ?? this.facilityImageUrl,
       facilityImages: facilityImages ?? this.facilityImages,
       courtsAmount: courtsAmount ?? this.courtsAmount,
       minPrice: minPrice ?? this.minPrice,
@@ -99,66 +89,64 @@ class Facility {
       ratingAvg: ratingAvg ?? this.ratingAvg,
       totalRating: totalRating ?? this.totalRating,
       state: state ?? this.state,
-      createdAt: createdAt ?? this.createdAt,
+      registeredAt: registeredAt ?? this.registeredAt,
       managerInfo: managerInfo ?? this.managerInfo,
-      activeAt: activeAt ?? this.activeAt, // Include Active in copyWith
+      activeAt: activeAt ?? this.activeAt,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'facilityName': facilityName,
       'facebookUrl': facebookUrl,
       'description': description,
       'policy': policy,
       'userId': userId,
-      'userImageUrl': userImageUrl,
-      'facilityImageUrl': facilityImageUrl,
-      'facilityImages': facilityImages.map((img) => img.toMap()).toList(),
+      'photos': facilityImages.map((img) => img.toMap()).toList(),
       'courtsAmount': courtsAmount,
       'minPrice': minPrice,
       'maxPrice': maxPrice,
       'detailAddress': detailAddress,
       'province': province,
-      'lat': lat,
-      'lon': lon,
+      'location': {
+        'type': 'Point',
+        'coordinates': [lon, lat],
+      },
       'ratingAvg': ratingAvg,
-      'totalRating': totalRating,
+      'totalRatings': totalRating,
       'state': state,
-      'createdAt': createdAt,
+      'registeredAt': registeredAt.toUtc().toIso8601String(),
       'managerInfo': managerInfo.toMap(),
-      'activeAt': activeAt.toMap(), // Include Active in toMap
+      'activeAt': activeAt?.toMap(),
     };
   }
 
   factory Facility.fromMap(Map<String, dynamic> map) {
+    final coordinates = map['location']?['coordinates'] ?? [0.0, 0.0];
     return Facility(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       facilityName: map['facilityName'] ?? '',
       facebookUrl: map['facebookUrl'] ?? '',
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
       userId: map['userId'] ?? '',
-      userImageUrl: map['userImageUrl'] ?? '',
-      facilityImageUrl: map['facilityImageUrl'] ?? '',
       facilityImages: List<ImageCustom>.from(
-        (map['facilityImages'] ?? []).map((img) => ImageCustom.fromMap(img)),
+        (map['photos'] ?? []).map((img) => ImageCustom.fromMap(img)),
       ),
       courtsAmount: map['courtsAmount'] ?? 0,
       minPrice: map['minPrice'] ?? 0,
       maxPrice: map['maxPrice'] ?? 0,
       detailAddress: map['detailAddress'] ?? '',
       province: map['province'] ?? '',
-      lat: map['lat']?.toDouble() ?? 0.0,
-      lon: map['lon']?.toDouble() ?? 0.0,
+      lon: (coordinates[0] ?? 0.0).toDouble(),
+      lat: (coordinates[1] ?? 0.0).toDouble(),
       ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
-      totalRating: map['totalRating'] ?? 0,
+      totalRating: map['totalRatings'] ?? 0,
       state: map['state'] ?? '',
-      createdAt: map['createdAt'] ?? 0,
+      registeredAt: DateTime.tryParse(map['registeredAt'] ?? '') ?? DateTime.now(),
       managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
-      activeAt:
-          Active.fromMap(map['activeAt'] ?? {}), // Include Active in fromMap
+      activeAt: map['activeAt'] != null ? Active.fromMap(map['activeAt']) : null,
     );
   }
 
@@ -168,6 +156,6 @@ class Facility {
       Facility.fromMap(json.decode(source));
 
   bool hasDay(String day) {
-    return activeAt.schedule.containsKey(day.toLowerCase());
+    return activeAt?.schedule.containsKey(day.toLowerCase()) ?? false;
   }
 }
