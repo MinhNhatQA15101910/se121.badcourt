@@ -9,36 +9,40 @@ using SharedKernel.Exceptions;
 namespace FacilityService.Core.Application.Handlers.QueryHandlers;
 
 public class GetFacilitiesHandler(
-    IFacilityRepository facilityRepository,
-    IDistributedCache cache
+    IFacilityRepository facilityRepository
 ) : IQueryHandler<GetFacilitiesQuery, PagedList<FacilityDto>>
 {
     public async Task<PagedList<FacilityDto>> Handle(GetFacilitiesQuery request, CancellationToken cancellationToken)
     {
-        var cacheKey = GetCacheKey(request);
-        PagedList<FacilityDto> facilities;
-
-        var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
-        if (!string.IsNullOrEmpty(cachedData))
-        {
-            var settings = new JsonSerializerSettings();
-            settings.Converters.Add(new PagedListConverter<FacilityDto>());
-
-            facilities = JsonConvert.DeserializeObject<PagedList<FacilityDto>>(cachedData, settings)
-                ?? throw new BadRequestException($"Failed to deserialize cached data: {cacheKey}");
-        }
-        else
-        {
-            facilities = await facilityRepository.GetFacilitiesAsync(request.FacilityParams, cancellationToken);
-            var serializedData = JsonConvert.SerializeObject(facilities, Formatting.Indented);
-            await cache.SetStringAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(5)
-            }, cancellationToken);
-        }
-
-        return facilities;
+        return await facilityRepository.GetFacilitiesAsync(request.FacilityParams, cancellationToken);
     }
+
+    // public async Task<PagedList<FacilityDto>> Handle(GetFacilitiesQuery request, CancellationToken cancellationToken)
+    // {
+    //     var cacheKey = GetCacheKey(request);
+    //     PagedList<FacilityDto> facilities;
+
+    //     var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
+    //     if (!string.IsNullOrEmpty(cachedData))
+    //     {
+    //         var settings = new JsonSerializerSettings();
+    //         settings.Converters.Add(new PagedListConverter<FacilityDto>());
+
+    //         facilities = JsonConvert.DeserializeObject<PagedList<FacilityDto>>(cachedData, settings)
+    //             ?? throw new BadRequestException($"Failed to deserialize cached data: {cacheKey}");
+    //     }
+    //     else
+    //     {
+    //         facilities = await facilityRepository.GetFacilitiesAsync(request.FacilityParams, cancellationToken);
+    //         var serializedData = JsonConvert.SerializeObject(facilities, Formatting.Indented);
+    //         await cache.SetStringAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
+    //         {
+    //             SlidingExpiration = TimeSpan.FromMinutes(5)
+    //         }, cancellationToken);
+    //     }
+
+    //     return facilities;
+    // }
 
     private static string GetCacheKey(GetFacilitiesQuery request)
     {

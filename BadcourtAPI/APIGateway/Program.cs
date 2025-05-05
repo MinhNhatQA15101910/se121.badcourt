@@ -12,6 +12,6 @@ builder.Services.AddOcelot();
 var app = builder.Build();
 
 // Use Ocelot as middleware
-app.UseOcelot().Wait();
+await app.UseOcelot();
 
 app.Run();

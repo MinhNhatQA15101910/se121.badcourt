@@ -14,8 +14,8 @@ public class Court
     public string Description { get; set; } = string.Empty;
     public decimal PricePerHour { get; set; }
     public string State { get; set; } = string.Empty;
-    public IEnumerable<TimePeriod> OrderPeriods { get; set; } = [];
-    public IEnumerable<TimePeriod> InactivePeriods { get; set; } = [];
+    public IEnumerable<DateTimePeriod> OrderPeriods { get; set; } = [];
+    public IEnumerable<DateTimePeriod> InactivePeriods { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

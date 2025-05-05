@@ -9,6 +9,7 @@ using AuthService.Infrastructure.Persistence.Repositories;
 using AuthService.Infrastructure.Services;
 using AuthService.Presentation.Middlewares;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
@@ -40,7 +41,6 @@ public static class ApplicationServiceExtensions
         // Services
         services.AddSingleton<PincodeStore>();
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IFileService, FileService>();
 
         // Middleware
@@ -61,6 +61,12 @@ public static class ApplicationServiceExtensions
 
         services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(config["RedisCacheSettings:Configuration"]!));
+
+        // MassTransit and RabbitMQ
+        services.AddMassTransit(x =>
+        {
+            x.UsingRabbitMq();
+        });
 
         // Others
         services.AddAutoMapper(applicationAssembly);

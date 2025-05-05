@@ -9,36 +9,40 @@ using SharedKernel.Exceptions;
 namespace CourtService.Core.Application.Handlers.QueryHandlers;
 
 public class GetCourtsHandler(
-    ICourtRepository courtRepository,
-    IDistributedCache cache
+    ICourtRepository courtRepository
 ) : IQueryHandler<GetCourtsQuery, PagedList<CourtDto>>
 {
     public async Task<PagedList<CourtDto>> Handle(GetCourtsQuery request, CancellationToken cancellationToken)
     {
-        var cacheKey = GetCacheKey(request);
-        PagedList<CourtDto> courts;
-
-        var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
-        if (!string.IsNullOrEmpty(cachedData))
-        {
-            var settings = new JsonSerializerSettings();
-            settings.Converters.Add(new PagedListConverter<CourtDto>());
-
-            courts = JsonConvert.DeserializeObject<PagedList<CourtDto>>(cachedData, settings)
-                ?? throw new BadRequestException($"Failed to deserialize cached data: {cacheKey}");
-        }
-        else
-        {
-            courts = await courtRepository.GetCourtsAsync(request.CourtParams, cancellationToken);
-            var serializedData = JsonConvert.SerializeObject(courts, Formatting.Indented);
-            await cache.SetStringAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(5)
-            }, cancellationToken);
-        }
-
-        return courts;
+        return await courtRepository.GetCourtsAsync(request.CourtParams, cancellationToken);
     }
+
+    // public async Task<PagedList<CourtDto>> Handle(GetCourtsQuery request, CancellationToken cancellationToken)
+    // {
+    //     var cacheKey = GetCacheKey(request);
+    //     PagedList<CourtDto> courts;
+
+    //     var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
+    //     if (!string.IsNullOrEmpty(cachedData))
+    //     {
+    //         var settings = new JsonSerializerSettings();
+    //         settings.Converters.Add(new PagedListConverter<CourtDto>());
+
+    //         courts = JsonConvert.DeserializeObject<PagedList<CourtDto>>(cachedData, settings)
+    //             ?? throw new BadRequestException($"Failed to deserialize cached data: {cacheKey}");
+    //     }
+    //     else
+    //     {
+    //         courts = await courtRepository.GetCourtsAsync(request.CourtParams, cancellationToken);
+    //         var serializedData = JsonConvert.SerializeObject(courts, Formatting.Indented);
+    //         await cache.SetStringAsync(cacheKey, serializedData, new DistributedCacheEntryOptions
+    //         {
+    //             SlidingExpiration = TimeSpan.FromMinutes(5)
+    //         }, cancellationToken);
+    //     }
+
+    //     return courts;
+    // }
 
     private static string GetCacheKey(GetCourtsQuery request)
     {
