@@ -10,7 +10,7 @@ public class Order
     public string Address { get; set; } = string.Empty;
     public DateTimePeriod DateTimePeriod { get; set; } = null!;
     public decimal Price { get; set; }
-    public OrderState State { get; set; }
+    public OrderState State { get; set; } = OrderState.NotPlay;
     public Photo Image { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

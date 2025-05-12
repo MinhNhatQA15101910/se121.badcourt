@@ -113,7 +113,7 @@
       "UpstreamPathTemplate": "/gateway/facilities/update-active/{id}",
       "UpstreamHttpMethod": ["Put"]
     },
-    
+
     {
       "DownstreamPathTemplate": "/api/courts/{id}",
       "DownstreamScheme": "http",
@@ -141,6 +141,14 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 3000 }],
       "UpstreamPathTemplate": "/gateway/courts/update-inactive/{id}",
       "UpstreamHttpMethod": ["Put"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders",
+      "UpstreamHttpMethod": ["Post"]
     }
   ],
   "GlobalConfiguration": {

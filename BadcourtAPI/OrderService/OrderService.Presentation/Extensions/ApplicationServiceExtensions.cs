@@ -1,4 +1,5 @@
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Core.Application;
@@ -37,8 +38,18 @@ public static class ApplicationServiceExtensions
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddValidatorsFromAssembly(applicationAssembly);
 
+        // AutoMapper
+        services.AddAutoMapper(applicationAssembly);
+
         // Api Repositories
+        services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();
         services.AddHttpClient<ICourtApiRepository, CourtApiRepository>();
+
+        // MassTransit
+        services.AddMassTransit(x =>
+        {
+            x.UsingRabbitMq();
+        });
 
         // Configuration
         services.Configure<ApiEndpoints>(config.GetSection(nameof(ApiEndpoints)));
