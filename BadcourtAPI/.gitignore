@@ -486,3 +486,7 @@ $RECYCLE.BIN/
 AuthService/AuthService.Presentation/BadCourt_Auth.db
 AuthService/AuthService.Presentation/BadCourt_Auth.db-shm
 AuthService/AuthService.Presentation/BadCourt_Auth.db-wal
+
+OrderService/OrderService.Presentation/BadCourt_Orders.db
+OrderService/OrderService.Presentation/BadCourt_Orders.db-shm
+OrderService/OrderService.Presentation/BadCourt_Orders.db-wal
