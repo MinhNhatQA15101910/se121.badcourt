@@ -14,4 +14,9 @@ public class OrderRepository(DataContext context) : IOrderRepository
     {
         return await context.SaveChangesAsync(cancellationToken) > 0;
     }
+
+    public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await context.Orders.FindAsync([id, cancellationToken], cancellationToken: cancellationToken);
+    }
 }

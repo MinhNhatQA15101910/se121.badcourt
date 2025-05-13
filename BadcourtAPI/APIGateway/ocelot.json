@@ -149,6 +149,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
       "UpstreamPathTemplate": "/gateway/orders",
       "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/{id}",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {
