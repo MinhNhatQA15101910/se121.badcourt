@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.Core.Application.Commands.CheckConflict;
 using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
@@ -39,5 +40,13 @@ public class OrdersController(IMediator mediator) : ControllerBase
     {
         var order = await mediator.Send(new CreateOrderCommand(createOrderDto));
         return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+    }
+
+    [HttpPost("check-conflict")]
+    [Authorize]
+    public async Task<IActionResult> CheckConflict(CreateOrderDto checkConflictDto)
+    {
+        await mediator.Send(new CheckConflictCommand(checkConflictDto));
+        return Ok();
     }
 }

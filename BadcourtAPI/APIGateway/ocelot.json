@@ -163,6 +163,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
       "UpstreamPathTemplate": "/gateway/orders",
       "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/check-conflict",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/check-conflict",
+      "UpstreamHttpMethod": ["Post"]
     }
   ],
   "GlobalConfiguration": {
