@@ -1,8 +1,8 @@
 using System.Text.Json;
-using CourtService.Presentation.Models;
+using OrderService.Presentation.Helpers;
 using SharedKernel;
 
-namespace CourtService.Presentation.Extensions;
+namespace OrderService.Presentation.Extensions;
 
 public static class HttpExtensions
 {
