@@ -26,7 +26,7 @@ class Court {
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'courtName': courtName,
       'description': description,
       'pricePerHour': pricePerHour,
@@ -38,7 +38,7 @@ class Court {
 
   factory Court.fromMap(Map<String, dynamic> map) {
     return Court(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       courtName: map['courtName'] ?? '',
       description: map['description'] ?? '',
       pricePerHour: map['pricePerHour'] ?? 0,
