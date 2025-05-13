@@ -10,8 +10,7 @@ namespace FacilityService.Core.Application.Handlers.CommandHandlers;
 
 public class UpdateActiveHandler(
     IFacilityRepository facilityRepository,
-    IMapper mapper,
-    IMediator mediator
+    IMapper mapper
 ) : ICommandHandler<UpdateActiveCommand, bool>
 {
     public async Task<bool> Handle(UpdateActiveCommand request, CancellationToken cancellationToken)
@@ -27,7 +26,7 @@ public class UpdateActiveHandler(
         await facilityRepository.UpdateFacilityAsync(facility, cancellationToken);
 
         // Publish notification after updating the facility
-        await mediator.Publish(new FacilityUpdatedNotification(facility), cancellationToken);
+        // await mediator.Publish(new FacilityUpdatedNotification(facility), cancellationToken);
 
         return true;
     }
