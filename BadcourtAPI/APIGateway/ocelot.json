@@ -178,6 +178,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
       "UpstreamPathTemplate": "/gateway/posts",
       "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/{id}",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {
