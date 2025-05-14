@@ -28,4 +28,13 @@ public class PostRepository : IPostRepository
     {
         await _posts.InsertOneAsync(post, cancellationToken: cancellationToken);
     }
+
+    public async Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default)
+    {
+        await _posts.ReplaceOneAsync(
+            p => p.Id == post.Id,
+            post,
+            cancellationToken: cancellationToken
+        );
+    }
 }

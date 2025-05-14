@@ -8,14 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\PostService.Application\PostService.Application.csproj" />
+    <ProjectReference Include="..\PostService.Infrastructure.ExternalServices\PostService.Infrastructure.ExternalServices.csproj" />
     <ProjectReference Include="..\PostService.Infrastructure.Persistence\PostService.Infrastructure.Persistence.csproj" />
   </ItemGroup>
 

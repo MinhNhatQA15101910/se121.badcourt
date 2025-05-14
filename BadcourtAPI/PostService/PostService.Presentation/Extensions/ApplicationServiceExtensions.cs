@@ -1,7 +1,10 @@
 using FluentValidation;
 using MediatR;
 using PostService.Application;
+using PostService.Application.Interfaces;
 using PostService.Domain.Interfaces;
+using PostService.Infrastructure.ExternalServices.Configurations;
+using PostService.Infrastructure.ExternalServices.Services;
 using PostService.Infrastructure.Persistence.Configurations;
 using PostService.Infrastructure.Persistence.Repositories;
 using PostService.Presentation.Middlewares;
@@ -18,6 +21,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ExceptionHandlingMiddleware>();
 
         return services.AddPersistence(config)
+            .AddExternalServices(config)
             .AddApplication();
     }
 
@@ -38,6 +42,15 @@ public static class ApplicationServiceExtensions
         services.AddValidatorsFromAssembly(applicationAssembly);
 
         services.AddAutoMapper(applicationAssembly);
+
+        return services;
+    }
+
+    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<CloudinarySettings>(config.GetSection(nameof(CloudinarySettings)));
+
+        services.AddScoped<IFileService, FileService>();
 
         return services;
     }

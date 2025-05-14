@@ -87,6 +87,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostService.Infrastructure.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostService.Application", "PostService\PostService.Application\PostService.Application.csproj", "{1B3C346E-9C9E-45AF-8307-5971988E0157}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostService.Infrastructure.ExternalServices", "PostService\PostService.Infrastructure.ExternalServices\PostService.Infrastructure.ExternalServices.csproj", "{B33965EE-C703-41E1-8098-E3FB6610C268}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -445,6 +447,18 @@ Global
 		{1B3C346E-9C9E-45AF-8307-5971988E0157}.Release|x64.Build.0 = Release|Any CPU
 		{1B3C346E-9C9E-45AF-8307-5971988E0157}.Release|x86.ActiveCfg = Release|Any CPU
 		{1B3C346E-9C9E-45AF-8307-5971988E0157}.Release|x86.Build.0 = Release|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Debug|x64.Build.0 = Debug|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Debug|x86.Build.0 = Debug|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x64.ActiveCfg = Release|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x64.Build.0 = Release|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x86.ActiveCfg = Release|Any CPU
+		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -484,5 +498,6 @@ Global
 		{98F73284-2306-4F54-AC16-1F7541CC8F5B} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
 		{8B584698-2C1E-40C2-8E26-25760B2BE160} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
 		{1B3C346E-9C9E-45AF-8307-5971988E0157} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
+		{B33965EE-C703-41E1-8098-E3FB6610C268} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
 	EndGlobalSection
 EndGlobal

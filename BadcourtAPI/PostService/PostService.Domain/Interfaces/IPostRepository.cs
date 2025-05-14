@@ -5,4 +5,5 @@ namespace PostService.Domain.Interfaces;
 public interface IPostRepository
 {
     Task CreatePostAsync(Post post, CancellationToken cancellationToken = default);
+    Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default);
 }
