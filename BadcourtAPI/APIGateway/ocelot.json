@@ -170,6 +170,35 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
       "UpstreamPathTemplate": "/gateway/orders/check-conflict",
       "UpstreamHttpMethod": ["Post"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/posts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/{id}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts/toggle-like/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/toggle-like/{id}",
+      "UpstreamHttpMethod": ["Post"]
     }
   ],
   "GlobalConfiguration": {
