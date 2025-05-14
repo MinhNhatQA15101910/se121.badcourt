@@ -42,8 +42,10 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
       if (periodTime != null) {
         setState(() {
-          _startTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourFrom);
-          _endTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourTo);
+          final dateFormat = DateFormat.Hm(); // Hms = "HH:mm:ss"
+
+          _startTime = dateFormat.parse(periodTime.hourFrom);
+          _endTime = dateFormat.parse(periodTime.hourTo);
         });
       }
     }

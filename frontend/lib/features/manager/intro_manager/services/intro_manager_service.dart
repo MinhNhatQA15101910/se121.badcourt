@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;

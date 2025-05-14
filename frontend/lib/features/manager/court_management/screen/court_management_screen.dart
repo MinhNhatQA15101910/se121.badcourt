@@ -49,10 +49,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     if (newCourt != null) {
       _courts.add(newCourt);
 
-      final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-        context,
-        listen: false,
-      );
+      final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
       final currentFacility = currentFacilityProvider.currentFacility;
       if (currentFacilityProvider.currentFacility.courtsAmount == 0) {
         currentFacilityProvider.setFacility(
@@ -81,10 +78,10 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   }
 
   String _timeString(int hour, int minute) {
-  final formattedHour = hour.toString().padLeft(2, '0');
-  final formattedMinute = minute.toString().padLeft(2, '0');
-  return '$formattedHour:$formattedMinute';
-}
+    final formattedHour = hour.toString().padLeft(2, '0');
+    final formattedMinute = minute.toString().padLeft(2, '0');
+    return '$formattedHour:$formattedMinute';
+  }
 
   String _getDayName(int day) {
     switch (day) {
@@ -108,33 +105,37 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   }
 
   void _updateActiveSchedule() async {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
+    final currentFacilityProvider = context.read<CurrentFacilityProvider>();
+    final facilityId = currentFacilityProvider.currentFacility.id;
 
     Map<String, dynamic> activeSchedule = {};
-    _selectedDays.forEach((day) {
-      String dayName = _getDayName(day); // e.g., "monday", "tuesday", etc.
-
+    for (int day in _selectedDays) {
+      String dayName = _getDayName(day);
       activeSchedule[dayName] = {
         'hourFrom': _timeString(_startHour, _startMinute),
         'hourTo': _timeString(_endHour, _endMinute),
       };
-    });
+    }
 
     await _courtManagementService.updateActiveSchedule(
       context,
-      currentFacilityProvider.currentFacility.id,
+      facilityId,
       activeSchedule,
     );
+
+    // 👉 Fetch lại facility sau khi cập nhật lịch
+    final updatedFacility = await _courtManagementService.fetchFacilityById(
+      context: context,
+      facilityId: facilityId,
+    );
+
+    if (updatedFacility != null) {
+      currentFacilityProvider.setFacility(updatedFacility);
+    }
   }
 
   void _deleteCourt(int index) async {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
     final currentFacility = await _courtManagementService.fetchFacilityById(
       context: context,
@@ -194,10 +195,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   }
 
   void _fetchCourtByFacilityId() async {
-    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
-      context,
-      listen: false,
-    );
+    final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
     final currentFacility = currentFacilityProvider.currentFacility;
     final schedule = currentFacility.activeAt?.schedule;
@@ -205,22 +203,23 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     if (schedule != null && schedule.isNotEmpty) {
       final firstDaySchedule = schedule.values.first;
 
-      final startTime =
-          DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourFrom);
-      final endTime =
-          DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourTo);
+      final startTime = firstDaySchedule.hourFrom;
+      final endTime = firstDaySchedule.hourTo;
 
       setState(() {
-        _startHour = startTime.hour;
-        _startMinute = startTime.minute;
-        _endHour = endTime.hour;
-        _endMinute = endTime.minute;
+        List<String> startTimeParts = startTime.split(':');
+        List<String> endTimeParts = endTime.split(':');
+
+        _startHour = int.parse(startTimeParts[0]);
+        _startMinute = int.parse(startTimeParts[1]);
+        _endHour = int.parse(endTimeParts[0]);
+        _endMinute = int.parse(endTimeParts[1]);
       });
     } else {
       setState(() {
-        _startHour = 9;
+        _startHour = 0;
         _startMinute = 0;
-        _endHour = 17;
+        _endHour = 0;
         _endMinute = 0;
       });
     }
@@ -243,7 +242,6 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
-
     return Scaffold(
       body: Stack(
         children: [
@@ -389,6 +387,12 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _fetchCourtByFacilityId();
   }
 
   Widget _interRegular18(String text, Color color, int maxLines) {

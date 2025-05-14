@@ -98,9 +98,9 @@ class FacilityDetailService {
 
     final requestBody = {
       "courtId": courtId,
-      "timePeriod": {
-        "hourFrom": startTime.toUtc().toIso8601String(),
-        "hourTo": endTime.toUtc().toIso8601String(),
+      "dateTimePeriod": {
+        "hourFrom": startTime.toIso8601String(),
+        "hourTo": endTime.toIso8601String(),
       }
     };
 
@@ -150,9 +150,9 @@ class FacilityDetailService {
         body: jsonEncode(
           {
             "courtId": courtId,
-            "timePeriod": {
-              "hourFrom": startTime.toUtc().toIso8601String(),
-              "hourTo": endTime.toUtc().toIso8601String(),
+            "dateTimePeriod": {
+              "hourFrom": startTime.toIso8601String(),
+              "hourTo": endTime.toIso8601String(),
             },
           },
         ),

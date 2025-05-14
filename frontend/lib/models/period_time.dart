@@ -1,6 +1,6 @@
 class PeriodTime {
-  final int hourFrom;
-  final int hourTo;
+  final String hourFrom;
+  final String hourTo;
 
   PeriodTime({
     required this.hourFrom,
@@ -8,16 +8,22 @@ class PeriodTime {
   });
 
   factory PeriodTime.fromMap(Map<String, dynamic> map) {
-    final dynamic fromRaw = map['hourFrom'];
-    final dynamic toRaw = map['hourTo'];
-
-    if (fromRaw == null || toRaw == null) {
+    // Kiểm tra dữ liệu đầu vào hợp lệ
+    if (map['hourFrom'] == null || map['hourTo'] == null) {
       throw ArgumentError('hourFrom and hourTo are required fields.');
     }
 
+    String formatTime(String time) {
+      List<String> parts = time.split(':');
+      if (parts.length >= 2) {
+        return '${parts[0]}:${parts[1]}';
+      }
+      return time;
+    }
+
     return PeriodTime(
-      hourFrom: int.tryParse(fromRaw.toString()) ?? 0,
-      hourTo: int.tryParse(toRaw.toString()) ?? 0,
+      hourFrom: formatTime(map['hourFrom'].toString()),
+      hourTo: formatTime(map['hourTo'].toString()),
     );
   }
 
@@ -32,8 +38,8 @@ class PeriodTime {
   String toString() => 'PeriodTime(hourFrom: $hourFrom, hourTo: $hourTo)';
 
   PeriodTime copyWith({
-    int? hourFrom,
-    int? hourTo,
+    String? hourFrom,
+    String? hourTo,
   }) {
     return PeriodTime(
       hourFrom: hourFrom ?? this.hourFrom,
