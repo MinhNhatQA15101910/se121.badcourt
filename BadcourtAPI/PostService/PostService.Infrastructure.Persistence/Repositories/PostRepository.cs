@@ -40,7 +40,7 @@ public class PostRepository : IPostRepository
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<PagedList<PostDto>> GetPostsAsync(PostParams postParams, CancellationToken cancellationToken = default)
+    public async Task<PagedList<PostDto>> GetPostsAsync(PostParams postParams, string? currentUserId, CancellationToken cancellationToken = default)
     {
         var pipeline = new List<BsonDocument>();
 
@@ -75,7 +75,19 @@ public class PostRepository : IPostRepository
             cancellationToken
         );
 
-        return PagedList<PostDto>.Map(posts, _mapper);
+        var postDtos = PagedList<PostDto>.Map(posts, _mapper);
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            for (int i = 0; i < postDtos.Count; i++)
+            {
+                if (posts[i].LikedUsers.Contains(currentUserId))
+                {
+                    postDtos[i].IsLiked = true;
+                }
+            }
+        }
+
+        return postDtos;
     }
 
     public async Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default)

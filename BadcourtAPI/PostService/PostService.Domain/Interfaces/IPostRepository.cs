@@ -9,6 +9,6 @@ public interface IPostRepository
 {
     Task CreatePostAsync(Post post, CancellationToken cancellationToken = default);
     Task<Post?> GetPostByIdAsync(string postId, CancellationToken cancellationToken = default);
-    Task<PagedList<PostDto>> GetPostsAsync(PostParams postParams, CancellationToken cancellationToken = default);
+    Task<PagedList<PostDto>> GetPostsAsync(PostParams postParams, string? currentUserId, CancellationToken cancellationToken = default);
     Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default);
 }
