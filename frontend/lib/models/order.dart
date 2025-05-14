@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/order_period.dart';
 
@@ -28,9 +27,9 @@ class Order {
       'facilityName': facilityName,
       'address': address,
       'price': price,
-      'createdAt': createdAt.millisecondsSinceEpoch,
+      'createdAt': createdAt.toIso8601String(),
       'image': image.toMap(),
-      'timePeriod': timePeriod.toMap(),
+      'dateTimePeriod': timePeriod.toMap(), // 🔄 key changed here
     };
   }
 
@@ -39,12 +38,10 @@ class Order {
       id: map['id'] ?? '',
       facilityName: map['facilityName'] ?? '',
       address: map['address'] ?? '',
-      price: map['price']?.toDouble() ?? 0.0,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        map['createdAt']?.toInt() ?? 0,
-      ),
+      price: (map['price'] ?? 0).toDouble(),
+      createdAt: DateTime.parse(map['createdAt']),
       image: ImageCustom.fromMap(map['image'] ?? {}),
-      timePeriod: OrderPeriod.fromMap(map['timePeriod']),
+      timePeriod: OrderPeriod.fromMap(map['dateTimePeriod'] ?? {}),
     );
   }
 
