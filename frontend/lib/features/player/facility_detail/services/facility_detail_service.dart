@@ -99,14 +99,14 @@ class FacilityDetailService {
     final requestBody = {
       "courtId": courtId,
       "timePeriod": {
-        "hourFrom": startTime.millisecondsSinceEpoch,
-        "hourTo": endTime.millisecondsSinceEpoch,
+        "hourFrom": startTime.toUtc().toIso8601String(),
+        "hourTo": endTime.toUtc().toIso8601String(),
       }
     };
 
     try {
       final response = await http.post(
-        Uri.parse('$uri/api/orders'),
+        Uri.parse('$uri/gateway/orders'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -146,13 +146,13 @@ class FacilityDetailService {
     );
     try {
       final response = await http.post(
-        Uri.parse('$uri/api/orders/check-intersect'),
+        Uri.parse('$uri/gateway/orders/check-conflict'),
         body: jsonEncode(
           {
             "courtId": courtId,
             "timePeriod": {
-              "hourFrom": startTime.millisecondsSinceEpoch,
-              "hourTo": endTime.millisecondsSinceEpoch,
+              "hourFrom": startTime.toUtc().toIso8601String(),
+              "hourTo": endTime.toUtc().toIso8601String(),
             },
           },
         ),

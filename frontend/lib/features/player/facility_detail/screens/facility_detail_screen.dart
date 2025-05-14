@@ -129,7 +129,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         currentFacility
-                            .facilityImages.length, // Số lượng hình ảnh
+                            .facilityImages.length,
                         (index) {
                           return Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),

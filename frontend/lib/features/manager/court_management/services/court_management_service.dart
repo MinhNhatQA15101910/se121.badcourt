@@ -282,15 +282,16 @@ class CourtManagementService {
     }
   }
 
-  Future<void> updateActiveSchedule(BuildContext context, String facilityId,
-      Map<String, dynamic> activeSchedule) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
+  Future<void> updateActiveSchedule(
+    BuildContext context,
+    String facilityId,
+    Map<String, dynamic> activeSchedule,
+  ) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     try {
       // Khởi tạo requestBody rỗng
-      Map<String, dynamic> requestBody = {"active": {}};
+      Map<String, dynamic> requestBody = {};
 
       // Lặp qua từng ngày trong activeSchedule
       activeSchedule.forEach((day, schedule) {
@@ -305,7 +306,7 @@ class CourtManagementService {
       });
 
       // Gửi request PATCH
-      final response = await http.patch(
+      final response = await http.put(
         Uri.parse('$uri/gateway/facilities/update-active/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -328,7 +329,7 @@ class CourtManagementService {
     } catch (error) {
       IconSnackBar.show(
         context,
-        label: error.toString(),
+        label: 'Failed to update active schedule',
         snackBarType: SnackBarType.fail,
       );
     }

@@ -26,15 +26,12 @@ class _DayPickerState extends State<DayPicker> {
     // Lấy danh sách ngày từ provider
     final currentFacilityProvider =
         Provider.of<CurrentFacilityProvider>(context, listen: false);
-    final scheduleKeys = currentFacilityProvider.currentFacility.activeAt?.schedule.keys;
+    final scheduleKeys =
+        currentFacilityProvider.currentFacility.activeAt?.schedule.keys;
 
-selectedDays = scheduleKeys != null
-    ? scheduleKeys
-        .map(_getDayNumber)
-        .whereType<int>()
-        .toList()
-    : [];
-
+    selectedDays = scheduleKeys != null
+        ? scheduleKeys.map(_getDayNumber).whereType<int>().toList()
+        : [];
   }
 
   int? _getDayNumber(String dayName) {

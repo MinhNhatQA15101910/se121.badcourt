@@ -6,7 +6,10 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
 import 'package:frontend/features/manager/home/screens/home_screen.dart';
+import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
+import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -31,6 +34,22 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
     const PostScreen(),
     const ManagerAccountScreen(),
   ];
+
+  Future<void> onPageChanged(int index) async {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    Facility facility = currentFacilityProvider.currentFacility;
+    IntroManagerService introManagerService = new IntroManagerService();
+    facility = (await introManagerService.fetchFacilityById(
+        context: context, facilityId: facility.id))!;
+    currentFacilityProvider.setFacility(facility);
+  }
 
   @override
   void initState() {
@@ -125,27 +144,13 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
             selectedIndex: _selectedIndex,
             onTabChange: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
+              onPageChanged(index); // Gọi async handler
             },
             tabs: const [
-              GButton(
-                icon: Icons.home,
-                text: 'Home',
-              ),
-              GButton(
-                icon: Icons.vertical_split_outlined,
-                text: 'Courts',
-              ),
-              GButton(
-                icon: Icons.dashboard,
-                text: 'Post',
-              ),
-              GButton(
-                icon: Icons.account_circle,
-                text: 'Account',
-              ),
+              GButton(icon: Icons.home, text: 'Home'),
+              GButton(icon: Icons.vertical_split_outlined, text: 'Courts'),
+              GButton(icon: Icons.dashboard, text: 'Post'),
+              GButton(icon: Icons.account_circle, text: 'Account'),
             ],
           ),
         ),

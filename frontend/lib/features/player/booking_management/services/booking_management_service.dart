@@ -22,7 +22,7 @@ class BookingManagementService {
 
     try {
       http.Response response = await http.get(
-        Uri.parse('$uri/api/orders'),
+        Uri.parse('$uri/gateway/orders'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

@@ -18,12 +18,10 @@ class FullScreenImageView extends StatefulWidget {
 }
 
 class _FullScreenImageViewState extends State<FullScreenImageView> {
-  late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
   }
 
   @override
@@ -56,7 +54,6 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
         pageController: PageController(initialPage: widget.initialIndex),
         onPageChanged: (index) {
           setState(() {
-            _currentIndex = index;
           });
         },
         backgroundDecoration: const BoxDecoration(color: Colors.black),

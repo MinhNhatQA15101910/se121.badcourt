@@ -80,11 +80,11 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     }
   }
 
-  int _hourMinuteToMilliseconds(int hour, int minute) {
-    DateTime baseDate = DateTime(2000, 1, 1);
-    DateTime time = baseDate.add(Duration(hours: hour, minutes: minute));
-    return time.millisecondsSinceEpoch;
-  }
+  String _timeString(int hour, int minute) {
+  final formattedHour = hour.toString().padLeft(2, '0');
+  final formattedMinute = minute.toString().padLeft(2, '0');
+  return '$formattedHour:$formattedMinute';
+}
 
   String _getDayName(int day) {
     switch (day) {
@@ -115,12 +115,14 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
 
     Map<String, dynamic> activeSchedule = {};
     _selectedDays.forEach((day) {
-      String dayName = _getDayName(day); // Helper function to get day name
+      String dayName = _getDayName(day); // e.g., "monday", "tuesday", etc.
+
       activeSchedule[dayName] = {
-        'hourFrom': _hourMinuteToMilliseconds(_startHour, _startMinute),
-        'hourTo': _hourMinuteToMilliseconds(_endHour, _endMinute),
+        'hourFrom': _timeString(_startHour, _startMinute),
+        'hourTo': _timeString(_endHour, _endMinute),
       };
     });
+
     await _courtManagementService.updateActiveSchedule(
       context,
       currentFacilityProvider.currentFacility.id,

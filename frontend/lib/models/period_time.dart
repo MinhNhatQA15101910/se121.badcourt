@@ -8,14 +8,16 @@ class PeriodTime {
   });
 
   factory PeriodTime.fromMap(Map<String, dynamic> map) {
-    // Kiểm tra dữ liệu đầu vào hợp lệ
-    if (map['hourFrom'] == null || map['hourTo'] == null) {
+    final dynamic fromRaw = map['hourFrom'];
+    final dynamic toRaw = map['hourTo'];
+
+    if (fromRaw == null || toRaw == null) {
       throw ArgumentError('hourFrom and hourTo are required fields.');
     }
 
     return PeriodTime(
-      hourFrom: map['hourFrom'],
-      hourTo: map['hourTo'],
+      hourFrom: int.tryParse(fromRaw.toString()) ?? 0,
+      hourTo: int.tryParse(toRaw.toString()) ?? 0,
     );
   }
 

@@ -6,7 +6,6 @@ import 'package:frontend/models/booking.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/models/order_period.dart';
-import 'package:frontend/models/period_time.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -38,17 +37,16 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
     final schedule = widget.facility.activeAt?.schedule;
 
-if (schedule != null && schedule.containsKey(day)) {
-  final periodTime = schedule[day];
+    if (schedule != null && schedule.containsKey(day)) {
+      final periodTime = schedule[day];
 
-  if (periodTime != null) {
-    setState(() {
-      _startTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourFrom);
-      _endTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourTo);
-    });
-  }
-}
-
+      if (periodTime != null) {
+        setState(() {
+          _startTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourFrom);
+          _endTime = DateTime.fromMillisecondsSinceEpoch(periodTime.hourTo);
+        });
+      }
+    }
   }
 
   void _getOrderPeriodsByDate() {

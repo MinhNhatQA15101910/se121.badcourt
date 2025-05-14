@@ -9,15 +9,15 @@ class OrderPeriod {
 
   Map<String, dynamic> toMap() {
     return {
-      'hourFrom': hourFrom.millisecondsSinceEpoch,
-      'hourTo': hourTo.millisecondsSinceEpoch,
+      'hourFrom': hourFrom.toUtc().toIso8601String(),
+      'hourTo': hourTo.toUtc().toIso8601String(),
     };
   }
 
   factory OrderPeriod.fromMap(Map<String, dynamic> map) {
     return OrderPeriod(
-      hourFrom: DateTime.fromMillisecondsSinceEpoch(map['hourFrom'] ?? 0),
-      hourTo: DateTime.fromMillisecondsSinceEpoch(map['hourTo'] ?? 0),
+      hourFrom: DateTime.parse(map['hourFrom'] ?? DateTime.now().toUtc().toIso8601String()),
+      hourTo: DateTime.parse(map['hourTo'] ?? DateTime.now().toUtc().toIso8601String()),
     );
   }
 }
