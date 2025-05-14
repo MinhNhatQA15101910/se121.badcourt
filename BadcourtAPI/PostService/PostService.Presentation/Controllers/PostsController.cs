@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Application.Commands.CreatePost;
 using PostService.Application.Queries.GetPostById;
+using PostService.Application.Queries.GetPosts;
+using PostService.Presentation.Extensions;
+using SharedKernel;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace PostService.Presentation.Controllers;
 
@@ -16,6 +20,16 @@ public class PostsController(IMediator mediator) : ControllerBase
     {
         var post = await mediator.Send(new GetPostByIdQuery(id));
         return post;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<PagedList<PostDto>>> GetPosts([FromQuery] PostParams postParams)
+    {
+        var posts = await mediator.Send(new GetPostsQuery(postParams));
+
+        Response.AddPaginationHeader(posts);
+
+        return Ok(posts);
     }
 
     [HttpPost]

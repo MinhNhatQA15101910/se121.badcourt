@@ -1,9 +1,13 @@
 using AutoMapper;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using PostService.Domain.Entities;
 using PostService.Domain.Interfaces;
 using PostService.Infrastructure.Persistence.Configurations;
+using SharedKernel;
+using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace PostService.Infrastructure.Persistence.Repositories;
 
@@ -34,6 +38,44 @@ public class PostRepository : IPostRepository
         return await _posts
             .Find(p => p.Id == postId)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<PagedList<PostDto>> GetPostsAsync(PostParams postParams, CancellationToken cancellationToken = default)
+    {
+        var pipeline = new List<BsonDocument>();
+
+        switch (postParams.OrderBy)
+        {
+            case "category":
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("Category", postParams.SortBy == "asc" ? 1 : -1)));
+                break;
+            case "createdAt":
+            default:
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("CreatedAt", postParams.SortBy == "asc" ? 1 : -1)));
+                break;
+        }
+
+        // Filter by user id
+        if (!string.IsNullOrEmpty(postParams.UserId))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("UserId", postParams.UserId)));
+        }
+
+        // Filter by category
+        if (!string.IsNullOrEmpty(postParams.Category))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("Category", postParams.Category)));
+        }
+
+        var posts = await PagedList<Post>.CreateAsync(
+            _posts,
+            pipeline,
+            postParams.PageNumber,
+            postParams.PageSize,
+            cancellationToken
+        );
+
+        return PagedList<PostDto>.Map(posts, _mapper);
     }
 
     public async Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default)

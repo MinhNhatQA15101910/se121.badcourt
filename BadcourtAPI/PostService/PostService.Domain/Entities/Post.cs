@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using PostService.Domain.Enums;
 
 namespace PostService.Domain.Entities;
 
@@ -13,6 +14,9 @@ public class Post
     public Guid UserId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+
+    [BsonRepresentation(BsonType.String)]
+    public PostCategory Category { get; set; } = PostCategory.Sharing;
     public IEnumerable<File> Resources { get; set; } = [];
     public int LikesCount { get; set; }
     public IEnumerable<string> LikedUsers { get; set; } = [];

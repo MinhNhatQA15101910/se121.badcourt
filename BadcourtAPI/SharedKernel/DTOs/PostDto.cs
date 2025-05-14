@@ -6,6 +6,7 @@ public class PostDto
     public Guid UserId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
     public IEnumerable<FileDto> Resources { get; set; } = [];
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
