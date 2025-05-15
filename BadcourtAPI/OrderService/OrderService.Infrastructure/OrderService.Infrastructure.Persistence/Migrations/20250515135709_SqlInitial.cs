@@ -23,9 +23,7 @@ public partial class SqlInitial : Migration
                 DateTimePeriod_HourTo = table.Column<DateTime>(type: "TEXT", nullable: false),
                 Price = table.Column<decimal>(type: "TEXT", nullable: false),
                 State = table.Column<int>(type: "INTEGER", nullable: false),
-                Image_Url = table.Column<string>(type: "TEXT", nullable: false),
-                Image_PublicId = table.Column<string>(type: "TEXT", nullable: true),
-                Image_IsMain = table.Column<bool>(type: "INTEGER", nullable: false),
+                ImageUrl = table.Column<string>(type: "TEXT", nullable: false),
                 CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
             },

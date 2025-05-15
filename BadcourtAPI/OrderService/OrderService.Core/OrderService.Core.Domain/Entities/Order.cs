@@ -12,7 +12,7 @@ public class Order
     public DateTimePeriod DateTimePeriod { get; set; } = null!;
     public decimal Price { get; set; }
     public OrderState State { get; set; } = OrderState.NotPlay;
-    public Photo Image { get; set; } = null!;
+    public string ImageUrl { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

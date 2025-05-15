@@ -9,7 +9,6 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<DateTimePeriod, DateTimePeriodDto>().ReverseMap();
-        CreateMap<Photo, PhotoDto>();
         CreateMap<Order, OrderDto>();
     }
 }

@@ -13,8 +13,5 @@ public class DataContext(DbContextOptions options) : DbContext(options)
 
         modelBuilder.Entity<Order>()
             .OwnsOne(o => o.DateTimePeriod);
-
-        modelBuilder.Entity<Order>()
-            .OwnsOne(o => o.Image);
     }
 }
