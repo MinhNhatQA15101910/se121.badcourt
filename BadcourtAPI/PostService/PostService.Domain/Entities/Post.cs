@@ -11,7 +11,9 @@ public class Post
     public string Id { get; set; } = null!;
 
     [BsonRepresentation(BsonType.String)]
-    public Guid UserId { get; set; }
+    public Guid PublisherId { get; set; }
+    public string PublisherUsername { get; set; } = string.Empty;
+    public string PublisherImageUrl { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
 

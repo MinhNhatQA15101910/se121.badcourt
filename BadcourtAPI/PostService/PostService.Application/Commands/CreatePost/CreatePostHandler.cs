@@ -1,5 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using MongoDB.Bson;
+using PostService.Application.ApiRepositories;
 using PostService.Application.Extensions;
 using PostService.Application.Interfaces;
 using PostService.Domain.Entities;
@@ -14,6 +16,7 @@ public class CreatePostHandler(
     IHttpContextAccessor httpContextAccessor,
     IFileService fileService,
     IPostRepository postRepository,
+    IUserApiRepository userApiRepository,
     IMapper mapper
 ) : ICommandHandler<CreatePostCommand, PostDto>
 {
@@ -23,9 +26,14 @@ public class CreatePostHandler(
     public async Task<PostDto> Handle(CreatePostCommand request, CancellationToken cancellationToken)
     {
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
-        request.CreatePostDto.UserId = userId.ToString();
+        request.CreatePostDto.PublisherId = userId.ToString();
 
         var post = mapper.Map<Post>(request.CreatePostDto);
+
+        var user = await userApiRepository.GetUserByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+        post.PublisherUsername = user.Username;
+        post.PublisherImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url ?? string.Empty;
 
         await postRepository.CreatePostAsync(post, cancellationToken);
 
@@ -42,6 +50,7 @@ public class CreatePostHandler(
 
                 file = new Domain.Entities.File
                 {
+                    Id = ObjectId.GenerateNewId().ToString(),
                     Url = uploadResult.SecureUrl.AbsoluteUri,
                     PublicId = uploadResult.PublicId,
                     IsMain = isMain,
@@ -56,6 +65,7 @@ public class CreatePostHandler(
 
                 file = new Domain.Entities.File
                 {
+                    Id = ObjectId.GenerateNewId().ToString(),
                     Url = uploadResult.SecureUrl.AbsoluteUri,
                     PublicId = uploadResult.PublicId,
                     IsMain = isMain,

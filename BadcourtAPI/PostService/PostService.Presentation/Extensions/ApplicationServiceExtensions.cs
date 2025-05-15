@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using PostService.Application;
+using PostService.Application.ApiRepositories;
 using PostService.Application.Interfaces;
 using PostService.Domain.Interfaces;
 using PostService.Infrastructure.ExternalServices.Configurations;
@@ -22,7 +23,7 @@ public static class ApplicationServiceExtensions
 
         return services.AddPersistence(config)
             .AddExternalServices(config)
-            .AddApplication();
+            .AddApplication(config);
     }
 
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration config)
@@ -34,7 +35,7 @@ public static class ApplicationServiceExtensions
         return services;
     }
 
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration config)
     {
         var applicationAssembly = typeof(AssemblyReference).Assembly;
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
@@ -42,6 +43,10 @@ public static class ApplicationServiceExtensions
         services.AddValidatorsFromAssembly(applicationAssembly);
 
         services.AddAutoMapper(applicationAssembly);
+
+        services.Configure<ApiEndpoints>(config.GetSection(nameof(ApiEndpoints)));
+
+        services.AddHttpClient<IUserApiRepository, UserApiRepository>();
 
         return services;
     }
