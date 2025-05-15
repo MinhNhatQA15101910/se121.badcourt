@@ -1,5 +1,6 @@
 using CourtService.Core.Application;
 using CourtService.Core.Application.ApiRepositories;
+using CourtService.Core.Application.Consumers;
 using CourtService.Core.Application.Validators;
 using CourtService.Core.Domain.Repositories;
 using CourtService.Infrastructure.Configuration;
@@ -51,7 +52,15 @@ public static class ApplicationServiceExtensions
         // MassTransit
         services.AddMassTransit(x =>
         {
-            x.UsingRabbitMq();
+            x.AddConsumer<OrderCreatedConsumer>();
+
+            x.UsingRabbitMq((ctx, cfg) =>
+            {
+                cfg.ReceiveEndpoint("order-created-queue", e =>
+                {
+                    e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
+                });
+            });
         });
 
         // Others
