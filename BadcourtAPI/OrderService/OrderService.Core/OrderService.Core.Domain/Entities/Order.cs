@@ -7,6 +7,7 @@ public class Order
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string CourtId { get; set; } = null!;
+    public string FacilityName { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public DateTimePeriod DateTimePeriod { get; set; } = null!;
     public decimal Price { get; set; }

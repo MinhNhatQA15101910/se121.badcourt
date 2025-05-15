@@ -34,6 +34,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Property<DateTime>("CreatedAt")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("FacilityName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<decimal>("Price")
                     .HasColumnType("TEXT");
 
