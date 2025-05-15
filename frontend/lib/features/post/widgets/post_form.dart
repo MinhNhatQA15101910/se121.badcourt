@@ -102,9 +102,8 @@ class _PostFormWidgetState extends State<PostFormWidget> {
     }
   }
 
-  String formatDate(int createdAt) {
-    DateTime commentDate = DateTime.fromMillisecondsSinceEpoch(createdAt);
-    return DateFormat('MMM dd, yyyy').format(commentDate);
+  String formatDate(DateTime createdAt) {
+    return DateFormat('MMM dd, yyyy').format(createdAt);
   }
 
   @override
@@ -128,15 +127,19 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               // Avatar
               CustomAvatar(
                 radius: 20,
-                imageUrl: widget.currentPost.publisherImageUrl,
-                userId: widget.currentPost.publisherId,
+                // imageUrl: widget.currentPost.publisherImageUrl,
+                imageUrl: 'https://placehold.co/400',
+                userId: widget.currentPost.userId,
               ),
               const SizedBox(width: 12),
-              Text(
-                widget.currentPost.publisherUsername,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              Expanded(
+                child: Text(
+                  // widget.currentPost.publisherUsername,
+                  widget.currentPost.userId,
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
@@ -154,7 +157,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
           const SizedBox(height: 12),
 
           _customText(
-            widget.currentPost.description,
+            widget.currentPost.content,
             14,
             FontWeight.w400,
             GlobalVariables.blackGrey,
@@ -180,10 +183,14 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                     itemBuilder: (context, index, realIndex) {
                       return GestureDetector(
                         onTap: () {
+                          List<String> resourceUrls = widget
+                              .currentPost.resources
+                              .map((resource) => resource.url)
+                              .toList();
                           Navigator.of(context).pushNamed(
                             FullScreenImageView.routeName,
                             arguments: {
-                              'imageUrls': widget.currentPost.resources,
+                              'imageUrls': resourceUrls,
                               'initialIndex': index,
                             },
                           );
@@ -194,7 +201,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.network(
-                              widget.currentPost.resources[index],
+                              widget.currentPost.resources[index].url,
                               fit: BoxFit.cover,
                               width: MediaQuery.of(context).size.width,
                               height: MediaQuery.of(context).size.width,
@@ -343,7 +350,8 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                 username: comment.publisherUsername,
                 userId: comment.publisherId,
                 commentText: comment.content,
-                date: formatDate(comment.createdAt),
+                // date: formatDate(comment.createdAt),
+                date: 'Null',
                 initialLikesCount: 0,
                 commentsCount: 0,
               );

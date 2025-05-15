@@ -1,74 +1,62 @@
 import 'dart:convert';
-import 'package:frontend/models/comment.dart';
+import 'package:frontend/models/post_resource.dart';
 
 class Post {
   final String id;
-  final String publisherId;
-  final String publisherUsername;
-  final String publisherImageUrl;
+  final String userId;
   final String title;
-  final String description;
+  final String content;
   final String category;
-  final List<String> resources;
-  final int createdAt;
-  final List<Comment> comments; // New field
-  final int commentsCount; // New field for comment count
-  final int likesCount; // New field for likes count
+  final List<PostResource> resources;
+  final int likesCount;
+  final int commentsCount;
+  final bool isLiked;
+  final DateTime createdAt;
 
   const Post({
     required this.id,
-    required this.publisherId,
-    required this.publisherUsername,
-    required this.publisherImageUrl,
+    required this.userId,
     required this.title,
-    required this.description,
+    required this.content,
     required this.category,
     required this.resources,
-    required this.createdAt,
-    required this.comments,
-    required this.commentsCount,
     required this.likesCount,
+    required this.commentsCount,
+    required this.isLiked,
+    required this.createdAt,
   });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'publisherId': publisherId,
-      'publisherUsername': publisherUsername,
-      'publisherImageUrl': publisherImageUrl,
-      'title': title,
-      'description': description,
-      'category': category,
-      'resources': resources,
-      'createdAt': createdAt,
-      'comments': comments
-          .map((comment) => comment.toMap())
-          .toList(), // Convert each comment to a map
-      'commentsCount': commentsCount, // Add comments count to map
-      'likesCount': likesCount, // Add likes count to map
-    };
-  }
 
   factory Post.fromMap(Map<String, dynamic> map) {
     return Post(
       id: map['id'] ?? '',
-      publisherId: map['publisherId'] ?? '',
-      publisherUsername: map['publisherUsername'] ?? '',
-      publisherImageUrl: map['publisherImageUrl'] ?? '',
+      userId: map['userId'] ?? '',
       title: map['title'] ?? '',
-      description: map['description'] ?? '',
+      content: map['content'] ?? '',
       category: map['category'] ?? '',
-      resources: List<String>.from(map['resources'] ?? []),
-      createdAt: map['createdAt'] ?? 0,
-      comments: map['comments'] != null
-          ? List<Comment>.from(
-              (map['comments'] as List)
-                  .map((comment) => Comment.fromMap(comment)),
-            )
+      resources: map['resources'] != null
+          ? List<PostResource>.from(
+              map['resources'].map((r) => PostResource.fromMap(r)))
           : [],
-      commentsCount: map['commentsCount'] != null ? map['commentsCount'] : 0,
-      likesCount: map['likesCount'] != null ? map['likesCount'] : 0,
+      likesCount: map['likesCount'] ?? 0,
+      commentsCount: map['commentsCount'] ?? 0,
+      isLiked: map['isLiked'] ?? false,
+      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'title': title,
+      'content': content,
+      'category': category,
+      'resources': resources.map((r) => r.toMap()).toList(),
+      'likesCount': likesCount,
+      'commentsCount': commentsCount,
+      'isLiked': isLiked,
+      'createdAt': createdAt.toIso8601String(),
+    };
   }
 
   String toJson() => json.encode(toMap());
