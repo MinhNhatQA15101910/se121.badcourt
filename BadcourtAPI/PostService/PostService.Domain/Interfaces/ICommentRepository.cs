@@ -1,9 +1,13 @@
 using PostService.Domain.Entities;
+using SharedKernel;
+using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace PostService.Domain.Interfaces;
 
 public interface ICommentRepository
 {
-    Task CreateCommentAsync(Comment comment, CancellationToken cancellationToken);
-    Task UpdateCommentAsync(Comment comment, CancellationToken cancellationToken);
+    Task CreateCommentAsync(Comment comment, CancellationToken cancellationToken = default);
+    Task<PagedList<CommentDto>> GetCommentsAsync(CommentParams commentParams, string? currentUserId, CancellationToken cancellationToken = default);
+    Task UpdateCommentAsync(Comment comment, CancellationToken cancellationToken = default);
 }

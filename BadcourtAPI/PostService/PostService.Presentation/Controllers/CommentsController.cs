@@ -2,7 +2,11 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Application.Commands.CreateComment;
+using PostService.Application.Queries.GetComments;
+using PostService.Presentation.Extensions;
+using SharedKernel;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace PostService.Presentation.Controllers;
 
@@ -16,5 +20,15 @@ public class CommentsController(IMediator mediator) : ControllerBase
     {
         var comment = await mediator.Send(new CreateCommentCommand(createCommentDto));
         return comment;
+    }
+
+    [HttpGet]
+    public async Task<PagedList<CommentDto>> GetComments([FromQuery] CommentParams commentParams)
+    {
+        var comments = await mediator.Send(new GetCommentsQuery(commentParams));
+
+        Response.AddPaginationHeader(comments);
+
+        return comments;
     }
 }

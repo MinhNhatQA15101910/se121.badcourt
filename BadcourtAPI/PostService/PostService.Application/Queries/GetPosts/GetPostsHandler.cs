@@ -20,7 +20,7 @@ public class GetPostsHandler(
         }
         catch (Exception)
         {
-            return await postRepository.GetPostsAsync(request.PostParams, null, cancellationToken: cancellationToken);
+            return await postRepository.GetPostsAsync(request.PostParams, null, cancellationToken);
         }
     }
 }
