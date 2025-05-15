@@ -33,6 +33,13 @@ public class CommentRepository : ICommentRepository
         await _comments.InsertOneAsync(comment, cancellationToken: cancellationToken);
     }
 
+    public async Task<Comment?> GetCommentByIdAsync(string commentId, CancellationToken cancellationToken)
+    {
+        return await _comments
+            .Find(c => c.Id == commentId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<PagedList<CommentDto>> GetCommentsAsync(CommentParams commentParams, string? currentUserId, CancellationToken cancellationToken = default)
     {
         var pipeline = new List<BsonDocument>();

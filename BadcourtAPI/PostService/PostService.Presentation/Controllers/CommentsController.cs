@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Application.Commands.CreateComment;
+using PostService.Application.Commands.ToggleLikeComment;
 using PostService.Application.Queries.GetComments;
 using PostService.Presentation.Extensions;
 using SharedKernel;
@@ -30,5 +31,13 @@ public class CommentsController(IMediator mediator) : ControllerBase
         Response.AddPaginationHeader(comments);
 
         return comments;
+    }
+
+    [HttpPost("toggle-like/{id}")]
+    [Authorize]
+    public async Task<IActionResult> ToggleLikeComment(string id)
+    {
+        await mediator.Send(new ToggleLikeCommentCommand(id));
+        return NoContent();
     }
 }
