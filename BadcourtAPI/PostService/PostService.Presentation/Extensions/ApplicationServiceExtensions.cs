@@ -31,6 +31,7 @@ public static class ApplicationServiceExtensions
         services.Configure<PostDatabaseSettings>(config.GetSection(nameof(PostDatabaseSettings)));
 
         services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
 
         return services;
     }
