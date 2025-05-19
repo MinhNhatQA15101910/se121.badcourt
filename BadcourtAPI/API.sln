@@ -89,6 +89,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostService.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostService.Infrastructure.ExternalServices", "PostService\PostService.Infrastructure.ExternalServices\PostService.Infrastructure.ExternalServices.csproj", "{B33965EE-C703-41E1-8098-E3FB6610C268}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RealtimeService", "RealtimeService", "{239EDCB7-BD9B-1413-3844-B4B6432D9DA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealtimeService.Presentation", "RealtimeService\RealtimeService.Presentation\RealtimeService.Presentation.csproj", "{57B0370A-DFF3-46A9-BF90-DB389E18CB76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -459,6 +463,18 @@ Global
 		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x64.Build.0 = Release|Any CPU
 		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x86.ActiveCfg = Release|Any CPU
 		{B33965EE-C703-41E1-8098-E3FB6610C268}.Release|x86.Build.0 = Release|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Debug|x64.Build.0 = Debug|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Debug|x86.Build.0 = Debug|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Release|x64.ActiveCfg = Release|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Release|x64.Build.0 = Release|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Release|x86.ActiveCfg = Release|Any CPU
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -499,5 +515,6 @@ Global
 		{8B584698-2C1E-40C2-8E26-25760B2BE160} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
 		{1B3C346E-9C9E-45AF-8307-5971988E0157} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
 		{B33965EE-C703-41E1-8098-E3FB6610C268} = {BB429665-CFE0-863B-50AA-9F7CFC15E9B0}
+		{57B0370A-DFF3-46A9-BF90-DB389E18CB76} = {239EDCB7-BD9B-1413-3844-B4B6432D9DA8}
 	EndGlobalSection
 EndGlobal
