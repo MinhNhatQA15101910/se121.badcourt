@@ -21,10 +21,10 @@ export function UserAvatar({ user, size = "md", showStatus = false, showBorder =
   return (
     <div className="relative">
       <Avatar className={`${sizeClasses[size]} ${borderClass}`}>
-        <AvatarImage src={user.avatar} alt={user.name} />
+        <AvatarImage src={user.email} alt={user.username} />
         <AvatarFallback>
-          {user.name.charAt(0)}
-          {user.name.split(" ").pop()?.charAt(0)}
+          {user.username.charAt(0)}
+          {user.username.split(" ").pop()?.charAt(0)}
         </AvatarFallback>
       </Avatar>
 

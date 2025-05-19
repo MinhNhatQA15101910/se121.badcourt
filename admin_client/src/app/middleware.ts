@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
 // Define valid routes for the application
-const VALID_ROUTES = [
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password"]
+
+const PROTECTED_ROUTES = [
   "/dashboard",
   "/facility-confirm",
   "/facility-owners",
@@ -11,10 +13,7 @@ const VALID_ROUTES = [
   "/post",
   "/message",
   "/setting",
-  "/login",
-  "/facility-owners-detail/", // Allow dynamic paths under this route
-  // Add any other valid routes here
-];
+]
 
 // Special paths that should be excluded from middleware processing
 const EXCLUDED_PATHS = [
@@ -24,63 +23,79 @@ const EXCLUDED_PATHS = [
   "/images/",
   "/logo",
   // Add any other excluded paths here
-];
+]
+
+// Dynamic route patterns (using regex)
+const DYNAMIC_ROUTES = [
+  /^\/facility-owners-detail\/[\w-]+$/,
+  // Add other dynamic route patterns here
+]
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname } = request.nextUrl
 
   // Skip middleware for excluded paths
   if (EXCLUDED_PATHS.some((path) => pathname.startsWith(path))) {
-    return NextResponse.next();
+    return NextResponse.next()
   }
 
+  // Get the JWT token from the request
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
-  });
-  const isAuthPage = pathname === "/login";
-  const isRootPage = pathname === "/";
+  })
 
-  // Check if the current path is valid
-  const isValidRoute = VALID_ROUTES.some(
-    (route) =>
-      pathname === route ||
-      (route !== "/login" && pathname.startsWith(`${route}/`)) ||
-      /^\/facility-owners-detail\/[\w\d]+$/.test(pathname) // Cho phép động
-  );
-  console.log("Path:", pathname);
-console.log("IsValidRoute:", isValidRoute);
-console.log("Token exists:", !!token);
-  
+  const isAuthenticated = !!token
+  const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+  const isRootPage = pathname === "/"
 
-  // If at root path, redirect to dashboard or login based on auth status
+  // Check if the current path is a valid protected route
+  const isProtectedRoute =
+    PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`)) ||
+    DYNAMIC_ROUTES.some((pattern) => pattern.test(pathname))
+
+  // Check if user has Admin role
+  const isAdmin = token?.roles?.includes("Admin") || false
+
+  // 1. Root path handling
   if (isRootPage) {
-    return token
+    return isAuthenticated
       ? NextResponse.redirect(new URL("/dashboard", request.url))
-      : NextResponse.redirect(new URL("/login", request.url));
+      : NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // If on login page and authenticated, redirect to dashboard
-  if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // 2. Public route handling
+  if (isPublicRoute) {
+    // If authenticated and on a public route (like login), redirect to dashboard
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL("/dashboard", request.url))
+    }
+    // Otherwise, allow access to public routes
+    return NextResponse.next()
   }
 
-  // If not authenticated and not on login page, redirect to login
-  if (!token && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  // 3. Protected route handling
+  if (isProtectedRoute) {
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL("/login", request.url))
+    }
+
+    // Role-based access control
+    // Only allow admins to access /customers
+    if (pathname.startsWith("/customers") && !isAdmin) {
+      return NextResponse.redirect(new URL("/unauthorized", request.url))
+    }
+
+    // User is authenticated and authorized, allow access
+    return NextResponse.next()
   }
 
-  // If authenticated but on an invalid route, redirect to dashboard
-  if (token && !isValidRoute) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  // If not authenticated and on an invalid route, redirect to login
-  if (!token && !isValidRoute) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return NextResponse.next();
+  // 4. Invalid route handling
+  // If we get here, the route is neither public nor protected
+  return isAuthenticated
+    ? NextResponse.redirect(new URL("/dashboard", request.url))
+    : NextResponse.redirect(new URL("/login", request.url))
 }
 
 // Add the paths that should be processed by middleware
@@ -91,4 +106,4 @@ export const config = {
      */
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
-};
+}

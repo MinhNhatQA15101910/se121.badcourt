@@ -33,7 +33,7 @@ export default function CommentItem({ comment, postId, onLike }: CommentItemProp
       <div className="flex-1">
         <div className="bg-[#f0f2f5] rounded-lg p-3 relative group">
           <div className="flex justify-between">
-            <span className="font-semibold text-[#0b0f19]">{comment.author.name}</span>
+            <span className="font-semibold text-[#0b0f19]">{comment.author.username}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -91,7 +91,7 @@ export default function CommentItem({ comment, postId, onLike }: CommentItemProp
                     <UserAvatar user={reply.author} size="xs" />
                     <div className="flex-1">
                       <div className="bg-[#f0f2f5] rounded-lg p-2">
-                        <div className="font-semibold text-[#0b0f19] text-sm">{reply.author.name}</div>
+                        <div className="font-semibold text-[#0b0f19] text-sm">{reply.author.username}</div>
                         <p className="text-[#0b0f19] text-sm">{reply.content}</p>
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs">

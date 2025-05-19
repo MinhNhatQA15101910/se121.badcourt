@@ -134,7 +134,7 @@ export default function PostItem({
           <UserAvatar user={post.author} size="md" showStatus={post.author.isOnline} />
           <div>
             <div className="flex items-center gap-1">
-              <span className="font-semibold text-[#0b0f19]">{post.author.name}</span>
+              <span className="font-semibold text-[#0b0f19]">{post.author.username}</span>
               {post.author.verified && (
                 <TooltipProvider>
                   <Tooltip>
@@ -230,7 +230,7 @@ export default function PostItem({
                     d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
                   />
                 </svg>
-                Unfollow @{post.author.name.split(" ")[0].toLowerCase()}
+                Unfollow @{post.author.username.split(" ")[0].toLowerCase()}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer text-red-500">

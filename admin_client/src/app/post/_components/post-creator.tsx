@@ -85,13 +85,13 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
               className={`flex-1 bg-[#f0f2f5] rounded-full px-4 py-3 text-[#565973] cursor-text ${isExpanded ? "hidden" : "block"}`}
               onClick={handleFocus}
             >
-              What on your mind, {currentUser.name.split(" ")[0]}?
+              What on your mind, {currentUser.username.split(" ")[0]}?
             </div>
             {isExpanded && (
               <div className="flex-1">
                 <textarea
                   className="w-full bg-[#f0f2f5] rounded-lg px-4 py-3 text-[#0b0f19] placeholder-[#565973] focus:outline-none focus:ring-2 focus:ring-[#23c16b] resize-none min-h-[120px]"
-                  placeholder={`What's on your mind, ${currentUser.name.split(" ")[0]}?`}
+                  placeholder={`What's on your mind, ${currentUser.username.split(" ")[0]}?`}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   autoFocus

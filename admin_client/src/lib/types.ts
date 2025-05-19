@@ -39,14 +39,32 @@ export interface Owner {
     searchTerm: string
   }
 
-  export interface User {
-    id: string
-    name: string
-    avatar: string
-    role?: string
-    isOnline?: boolean
-    verified?: boolean
-  }
+// Định nghĩa User interface
+export interface User {
+  id: string
+  username: string
+  email: string
+  token: string
+  roles: string[] // Chỉ giữ lại mảng roles
+  photoUrl: string
+  isOnline?: boolean
+  verified?: boolean
+}
+
+// Type cho các tham số cập nhật user
+export type UpdateUserParams = Partial<Omit<User, "id" | "token">>
+
+// Type cho thông tin đăng nhập
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+// Type cho response đăng nhập
+export interface LoginResponse extends User {
+  // Có thể thêm các trường khác nếu cần
+}
+
   
   export interface Comment {
     id: string
