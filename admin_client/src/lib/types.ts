@@ -60,11 +60,6 @@ export interface LoginCredentials {
   password: string
 }
 
-// Type cho response đăng nhập
-export interface LoginResponse extends User {
-  // Có thể thêm các trường khác nếu cần
-}
-
   
   export interface Comment {
     id: string

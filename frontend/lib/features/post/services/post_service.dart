@@ -121,7 +121,7 @@ class PostService {
 
     try {
       var response = await http.post(
-        Uri.parse('$uri/api/comments'),
+        Uri.parse('$uri/gateway/comments'),
         headers: {
           'Authorization': 'Bearer ${userProvider.user.token}',
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ class PostService {
 
     try {
       final Uri uriWithParams =
-          Uri.parse('$uri/api/comments').replace(queryParameters: {
+          Uri.parse('$uri/gateway/comments').replace(queryParameters: {
         'postId': postId,
         'pageNumber': pageNumber.toString(),
         'pageSize': pageSize.toString(),
