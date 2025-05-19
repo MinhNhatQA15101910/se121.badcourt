@@ -6,6 +6,9 @@ namespace PostService.Domain.Entities;
 
 public class File
 {
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; } = null!;
     public string Url { get; set; } = string.Empty;
     public string? PublicId { get; set; }
     public bool IsMain { get; set; }

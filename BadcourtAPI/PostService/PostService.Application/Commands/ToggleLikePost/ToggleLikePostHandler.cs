@@ -4,14 +4,14 @@ using PostService.Application.Extensions;
 using PostService.Domain.Interfaces;
 using SharedKernel.Exceptions;
 
-namespace PostService.Application.Commands.ToggleLike;
+namespace PostService.Application.Commands.ToggleLikePost;
 
-public class ToggleLikeHandler(
+public class ToggleLikePostHandler(
     IHttpContextAccessor httpContextAccessor,
     IPostRepository postRepository
-) : ICommandHandler<ToggleLikeCommand, bool>
+) : ICommandHandler<ToggleLikePostCommand, bool>
 {
-    public async Task<bool> Handle(ToggleLikeCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(ToggleLikePostCommand request, CancellationToken cancellationToken)
     {
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
 

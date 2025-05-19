@@ -1,50 +1,58 @@
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 using PostService.Application.ApiRepositories;
 using PostService.Application.Extensions;
 using PostService.Application.Interfaces;
+using PostService.Application.Notifications;
 using PostService.Domain.Entities;
 using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;
 using SharedKernel.DTOs;
 using SharedKernel.Exceptions;
 
-namespace PostService.Application.Commands.CreatePost;
+namespace PostService.Application.Commands.CreateComment;
 
-public class CreatePostHandler(
+public class CreateCommentHandler(
     IHttpContextAccessor httpContextAccessor,
-    IFileService fileService,
     IPostRepository postRepository,
+    ICommentRepository commentRepository,
     IUserApiRepository userApiRepository,
-    IMapper mapper
-) : ICommandHandler<CreatePostCommand, PostDto>
+    IFileService fileService,
+    IMapper mapper,
+    IMediator mediator
+) : ICommandHandler<CreateCommentCommand, CommentDto>
 {
     private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"];
     private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"];
 
-    public async Task<PostDto> Handle(CreatePostCommand request, CancellationToken cancellationToken)
+    public async Task<CommentDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
     {
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
-        request.CreatePostDto.PublisherId = userId.ToString();
 
-        var post = mapper.Map<Post>(request.CreatePostDto);
+        var post = await postRepository.GetPostByIdAsync(request.CreateCommentDto.PostId, cancellationToken)
+            ?? throw new PostNotFoundExceptions(request.CreateCommentDto.PostId);
+
+        var comment = mapper.Map<Comment>(request.CreateCommentDto);
 
         var user = await userApiRepository.GetUserByIdAsync(userId)
             ?? throw new UserNotFoundException(userId);
-        post.PublisherUsername = user.Username;
-        post.PublisherImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url ?? string.Empty;
 
-        await postRepository.CreatePostAsync(post, cancellationToken);
+        comment.PublisherId = userId;
+        comment.PublisherUsername = user.Username;
+        comment.PublisherImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url ?? string.Empty;
+
+        await commentRepository.CreateCommentAsync(comment, cancellationToken);
 
         var isMain = true;
-        foreach (var resource in request.CreatePostDto.Resources)
+        foreach (var resource in request.CreateCommentDto.Resources)
         {
             var fileType = GetFileType(resource);
             Domain.Entities.File file;
             if (fileType == FileType.Image)
             {
-                var uploadResult = await fileService.UploadPhotoAsync($"posts/{post.Id}", resource);
+                var uploadResult = await fileService.UploadPhotoAsync($"comments/{comment.Id}", resource);
                 if (uploadResult.Error != null)
                     throw new BadRequestException(uploadResult.Error.Message);
 
@@ -59,7 +67,7 @@ public class CreatePostHandler(
             }
             else if (fileType == FileType.Video)
             {
-                var uploadResult = await fileService.UploadVideoAsync($"posts/{post.Id}", resource);
+                var uploadResult = await fileService.UploadVideoAsync($"comments/{comment.Id}", resource);
                 if (uploadResult.Error != null)
                     throw new BadRequestException(uploadResult.Error.Message);
 
@@ -77,16 +85,20 @@ public class CreatePostHandler(
                 throw new BadRequestException("Unsupported file type");
             }
 
-            post.Resources = [.. post.Resources, file];
+            comment.Resources = [.. comment.Resources, file];
 
             isMain = false;
         }
 
-        post.UpdatedAt = DateTime.UtcNow;
+        comment.UpdatedAt = DateTime.UtcNow;
+        await commentRepository.UpdateCommentAsync(comment, cancellationToken);
 
-        await postRepository.UpdatePostAsync(post, cancellationToken);
+        await mediator.Publish(
+            new CommentCreatedNotification(comment.PostId, userId.ToString()),
+            cancellationToken
+        );
 
-        return mapper.Map<PostDto>(post);
+        return mapper.Map<CommentDto>(comment);
     }
 
     public static FileType GetFileType(IFormFile file)

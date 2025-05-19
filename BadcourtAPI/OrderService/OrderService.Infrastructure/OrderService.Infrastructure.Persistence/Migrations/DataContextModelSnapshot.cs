@@ -34,6 +34,14 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Property<DateTime>("CreatedAt")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("FacilityName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("ImageUrl")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<decimal>("Price")
                     .HasColumnType("TEXT");
 
@@ -72,33 +80,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
                             .HasForeignKey("OrderId");
                     });
 
-                b.OwnsOne("OrderService.Core.Domain.Entities.Photo", "Image", b1 =>
-                    {
-                        b1.Property<Guid>("OrderId")
-                            .HasColumnType("TEXT");
-
-                        b1.Property<bool>("IsMain")
-                            .HasColumnType("INTEGER");
-
-                        b1.Property<string>("PublicId")
-                            .HasColumnType("TEXT");
-
-                        b1.Property<string>("Url")
-                            .IsRequired()
-                            .HasColumnType("TEXT");
-
-                        b1.HasKey("OrderId");
-
-                        b1.ToTable("Orders");
-
-                        b1.WithOwner()
-                            .HasForeignKey("OrderId");
-                    });
-
                 b.Navigation("DateTimePeriod")
-                    .IsRequired();
-
-                b.Navigation("Image")
                     .IsRequired();
             });
 #pragma warning restore 612, 618

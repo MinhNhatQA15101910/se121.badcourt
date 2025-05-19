@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Application.Commands.CreatePost;
-using PostService.Application.Commands.ToggleLike;
+using PostService.Application.Commands.ToggleLikePost;
 using PostService.Application.Queries.GetPostById;
 using PostService.Application.Queries.GetPosts;
 using PostService.Presentation.Extensions;
@@ -45,7 +45,7 @@ public class PostsController(IMediator mediator) : ControllerBase
     [Authorize]
     public async Task<IActionResult> ToggleLike(string id)
     {
-        await mediator.Send(new ToggleLikeCommand(id));
+        await mediator.Send(new ToggleLikePostCommand(id));
         return NoContent();
     }
 }

@@ -102,14 +102,11 @@ public class CreateOrderHandler(
         {
             UserId = httpContextAccessor.HttpContext.User.GetUserId(),
             CourtId = request.CreateOrderDto.CourtId,
+            FacilityName = facility.FacilityName,
             Address = facility.DetailAddress,
             DateTimePeriod = mapper.Map<DateTimePeriod>(request.CreateOrderDto.DateTimePeriod),
             Price = court.PricePerHour * (decimal)(request.CreateOrderDto.DateTimePeriod.HourTo - request.CreateOrderDto.DateTimePeriod.HourFrom).TotalHours,
-            Image = new Photo
-            {
-                Url = facilityMainPhoto?.Url ?? string.Empty,
-                IsMain = true
-            },
+            ImageUrl = facilityMainPhoto?.Url ?? string.Empty,
         };
 
         orderRepository.AddOrder(order);
