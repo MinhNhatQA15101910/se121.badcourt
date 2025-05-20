@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
@@ -9,6 +10,7 @@ using SharedKernel.DTOs;
 
 namespace RealtimeService.Presentation.SignalR;
 
+[Authorize]
 public class MessageHub(
     IMessageRepository messageRepository,
     IUserApiRepository userApiRepository,
