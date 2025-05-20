@@ -31,7 +31,7 @@ import * as signalR from "@microsoft/signalr";
 const otherUserId = "recipient-user-id";
 
 const connection = new signalR.HubConnectionBuilder()
-  .withUrl(`https://your-api.com/hubs/message?user=${otherUserId}`, {
+  .withUrl(`http://localhost:7000/hubs/message?user=${otherUserId}`, {
     accessTokenFactory: () => getAccessToken(), // Replace with your auth logic
   })
   .withAutomaticReconnect()
