@@ -14,4 +14,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RealtimeService.Infrastructure.Persistence\RealtimeService.Infrastructure.Persistence.csproj" />
+  </ItemGroup>
+
 </Project>
