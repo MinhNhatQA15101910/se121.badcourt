@@ -27,6 +27,11 @@ public class MessageRepository : IMessageRepository
         _mapper = mapper;
     }
 
+    public async Task AddMessageAsync(Message message, CancellationToken cancellationToken = default)
+    {
+        await _messages.InsertOneAsync(message, cancellationToken: cancellationToken);
+    }
+
     public async Task<IEnumerable<MessageDto>> GetMessageThreadAsync(
         string currentUserId,
         string recipientId,
