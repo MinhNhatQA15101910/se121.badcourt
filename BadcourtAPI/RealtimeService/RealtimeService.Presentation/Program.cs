@@ -1,3 +1,4 @@
+using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.Extensions;
 using RealtimeService.Presentation.SignalR;
 
