@@ -19,5 +19,8 @@ public class AutoMapperProfile : Profile
         CreateMap<CreateCommentDto, Comment>()
             .ForMember(dest => dest.Resources, opt => opt.Ignore());
         CreateMap<Comment, CommentDto>();
+        CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+        CreateMap<DateTime?, DateTime?>()
+            .ConvertUsing(d => d.HasValue ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);
     }
 }

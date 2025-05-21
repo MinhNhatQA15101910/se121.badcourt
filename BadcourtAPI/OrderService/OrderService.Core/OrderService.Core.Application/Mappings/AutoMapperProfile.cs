@@ -10,5 +10,8 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<DateTimePeriod, DateTimePeriodDto>().ReverseMap();
         CreateMap<Order, OrderDto>();
+        CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+        CreateMap<DateTime?, DateTime?>()
+            .ConvertUsing(d => d.HasValue ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);
     }
 }
