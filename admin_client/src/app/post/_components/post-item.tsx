@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import type { Post, User, Comment } from "@/lib/types"
 import CommentList from "./comment-list"
 import CommentInput from "./comment-input"
-import { Heart, MessageCircle, Share2, MoreHorizontal, Globe } from "lucide-react"
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Globe } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,13 +37,13 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
 
   // Fetch comments when needed
   useEffect(() => {
-    if (isCommentInputFocused || showAllComments) {
-      fetchComments()
-    }
-  }, [isCommentInputFocused, showAllComments, post.id])
+    // Fetch comments ngay khi component được mount
+    fetchComments()
+  }, [post.id])
 
   const fetchComments = async () => {
-    if (loadingComments || comments.length > 0) return
+    // Chỉ return nếu đang loading để tránh fetch nhiều lần
+    if (loadingComments) return
 
     try {
       setLoadingComments(true)
@@ -269,7 +269,7 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
             {post.likesCount > 0 && (
               <>
                 <div className="bg-[#23c16b] rounded-full p-1">
-                  <Heart className="h-3 w-3 text-white fill-white" />
+                  <ThumbsUp className="h-3 w-3 text-white fill-white" />
                 </div>
                 <span>{post.likesCount}</span>
               </>
@@ -289,7 +289,7 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
             className={`flex-1 rounded-md gap-2 ${post.isLiked ? "text-[#23c16b]" : "text-[#565973]"}`}
             onClick={handleLike}
           >
-            <Heart className={`h-5 w-5 ${post.isLiked ? "fill-[#23c16b] text-[#23c16b]" : ""}`} />
+            <ThumbsUp className={`h-5 w-5 ${post.isLiked ? "fill-[#23c16b] text-[#23c16b]" : ""}`} />
             Like
           </Button>
           <Button variant="ghost" className="flex-1 rounded-md gap-2 text-[#565973]" onClick={handleFocusCommentInput}>
@@ -322,15 +322,21 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
         </div>
       )}
 
-      {!loadingComments && comments.length > 0 && (
+      {!loadingComments && (
         <div className="p-4 space-y-4">
-          {hiddenCommentsCount > 0 && (
-            <button className="text-[#565973] text-sm font-medium ml-12" onClick={handleShowComments}>
-              View {hiddenCommentsCount} more {hiddenCommentsCount === 1 ? "comment" : "comments"}
-            </button>
-          )}
+          {comments.length > 0 ? (
+            <>
+              {hiddenCommentsCount > 0 && (
+                <button className="text-[#565973] text-sm font-medium ml-12" onClick={handleShowComments}>
+                  View {hiddenCommentsCount} more {hiddenCommentsCount === 1 ? "comment" : "comments"}
+                </button>
+              )}
 
-          <CommentList comments={visibleComments} postId={post.id} onLikeComment={handleLikeComment} />
+              <CommentList comments={visibleComments} postId={post.id} onLikeComment={handleLikeComment} />
+            </>
+          ) : (
+            <div className="text-[#565973] text-sm ml-12">No comments yet. Be the first to comment!</div>
+          )}
         </div>
       )}
 

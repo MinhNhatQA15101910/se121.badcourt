@@ -2,7 +2,7 @@
 import { formatDistanceToNow } from "date-fns"
 import { UserAvatar } from "./user-avatar"
 import type { Comment } from "@/lib/types"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, ThumbsUp } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,10 +81,11 @@ export default function CommentItem({ comment, onLike }: CommentItemProps) {
         </div>
         <div className="flex items-center gap-4 mt-1 ml-2 text-xs">
           <button
-            className={`font-medium ${comment.isLiked ? "text-[#23c16b]" : "text-[#565973]"}`}
+            className={`flex items-center font-medium ${comment.isLiked ? "text-[#23c16b]" : "text-[#565973]"}`}
             onClick={handleLike}
           >
-            Like
+            <ThumbsUp className={`h-3.5 w-3.5 mr-1 ${comment.isLiked ? "fill-[#23c16b]" : ""}`} />
+            <span>Like</span>
             {comment.likesCount > 0 && <span className="ml-1">· {comment.likesCount}</span>}
           </button>
           <span className="text-[#565973]">
