@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import NextImage from 'next/image'
 
 interface ImageViewerProps {
   images: string[]
@@ -54,11 +55,15 @@ export default function ImageViewer({ images, currentIndex, onClose, onNext, onP
           </div>
         )}
 
-        <img
-          src={images[currentIndex] || "/placeholder.svg"}
-          alt="Full size"
-          className={`max-w-full max-h-[90vh] object-contain transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"}`}
-        />
+<div className="relative w-full h-[90vh]">
+  <Image
+    src={images[currentIndex] || "/placeholder.svg"}
+    alt="Full size"
+    fill
+    className={`object-contain transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"}`}
+    sizes="100vw"
+  />
+</div>
 
         {images.length > 1 && (
           <>
@@ -100,4 +105,3 @@ export default function ImageViewer({ images, currentIndex, onClose, onNext, onP
     </div>
   )
 }
-

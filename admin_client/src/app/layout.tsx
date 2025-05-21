@@ -8,11 +8,13 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased min-h-screen w-screen overflow-hidden`}
+        className={`${inter.className} antialiased min-h-screen w-screen overflow-hidden`}
       >
         <Providers>
           <AppContent>{children}</AppContent>

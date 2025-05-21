@@ -8,6 +8,8 @@ import type { Post, User, Comment } from "@/lib/types"
 import CommentList from "./comment-list"
 import CommentInput from "./comment-input"
 import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Globe } from "lucide-react"
+import Image from 'next/image';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { commentService } from "@/services/commentService"
+import ImageViewer from "./image-viewer2"
 
 interface PostItemProps {
   post: Post
@@ -30,31 +33,32 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
   const [showAllComments, setShowAllComments] = useState(false)
   const [isCommentInputFocused, setIsCommentInputFocused] = useState(false)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
-  // Đã xóa biến isImageViewerOpen không sử dụng
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [loadingComments, setLoadingComments] = useState(false)
   const commentInputRef = useRef<HTMLInputElement>(null)
+  const hasFetchedRef = useRef(false)
 
-  // Fetch comments when needed
+  // Fetch comments when component mounts
   useEffect(() => {
-    // Fetch comments ngay khi component được mount
-    fetchComments()
-  }, [post.id])
+    // Chỉ fetch comments một lần khi component mount
+    if (!hasFetchedRef.current) {
+      const fetchComments = async () => {
+        try {
+          setLoadingComments(true)
+          const fetchedComments = await commentService.getComments(post.id)
+          setComments(fetchedComments)
+        } catch (err) {
+          console.error("Failed to fetch comments:", err)
+        } finally {
+          setLoadingComments(false)
+        }
+      }
 
-  const fetchComments = async () => {
-    // Chỉ return nếu đang loading để tránh fetch nhiều lần
-    if (loadingComments) return
-
-    try {
-      setLoadingComments(true)
-      const fetchedComments = await commentService.getComments(post.id)
-      setComments(fetchedComments)
-    } catch (err) {
-      console.error("Failed to fetch comments:", err)
-    } finally {
-      setLoadingComments(false)
+      fetchComments()
+      hasFetchedRef.current = true
     }
-  }
+  }, [post.id])
 
   const visibleComments = showAllComments ? comments : comments.slice(Math.max(0, comments.length - 3))
   const hiddenCommentsCount = comments.length - visibleComments.length
@@ -106,6 +110,24 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
   const mediaUrls = post.resources
     ? post.resources.filter((resource) => resource.fileType === "Image").map((resource) => resource.url)
     : []
+
+  const handleOpenImageViewer = () => {
+    if (mediaUrls.length > 0) {
+      setIsImageViewerOpen(true)
+    }
+  }
+
+  const handleCloseImageViewer = () => {
+    setIsImageViewerOpen(false)
+  }
+
+  const handleNextImage = () => {
+    setCurrentMediaIndex((prev) => (prev + 1) % mediaUrls.length)
+  }
+
+  const handlePreviousImage = () => {
+    setCurrentMediaIndex((prev) => (prev - 1 + mediaUrls.length) % mediaUrls.length)
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -202,12 +224,19 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
         )}
 
         {mediaUrls.length > 0 && (
-          <div className="relative mb-4 rounded-xl overflow-hidden bg-[#f0f2f5] cursor-pointer">
-            <img
-              src={mediaUrls[currentMediaIndex] || "/placeholder.svg"}
-              alt="Post media"
-              className="w-full object-cover max-h-[500px]"
-            />
+          <div
+            className="relative mb-4 rounded-xl overflow-hidden bg-[#f0f2f5] cursor-pointer"
+            onClick={handleOpenImageViewer}
+          >
+            <div className="relative w-full max-h-[500px] h-[500px]">
+  <Image
+    src={mediaUrls[currentMediaIndex] || "/placeholder.svg"}
+    alt="Post media"
+    fill
+    className="object-cover"
+    sizes="100vw"
+  />
+</div>
 
             {mediaUrls.length > 1 && (
               <>
@@ -350,6 +379,16 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
             inputRef={commentInputRef}
           />
         </div>
+      )}
+
+      {isImageViewerOpen && mediaUrls.length > 0 && (
+        <ImageViewer
+          images={mediaUrls}
+          currentIndex={currentMediaIndex}
+          onClose={handleCloseImageViewer}
+          onNext={handleNextImage}
+          onPrevious={handlePreviousImage}
+        />
       )}
     </div>
   )
