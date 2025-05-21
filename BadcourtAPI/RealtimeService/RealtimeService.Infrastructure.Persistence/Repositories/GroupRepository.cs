@@ -29,10 +29,10 @@ public class GroupRepository : IGroupRepository
         await _groups.InsertOneAsync(group, cancellationToken: cancellationToken);
     }
 
-    public async Task<Group?> GetGroupByIdAsync(string groupId, CancellationToken cancellationToken = default)
+    public async Task<Group?> GetGroupByNameAsync(string groupName, CancellationToken cancellationToken = default)
     {
         return await _groups
-            .Find(g => g.Id == groupId)
-            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            .Find(g => g.Name == groupName)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

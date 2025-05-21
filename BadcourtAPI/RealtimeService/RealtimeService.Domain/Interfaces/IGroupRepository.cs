@@ -5,5 +5,5 @@ namespace RealtimeService.Domain.Interfaces;
 public interface IGroupRepository
 {
     Task AddGroupAsync(Group group, CancellationToken cancellationToken = default);
-    Task<Group?> GetGroupByIdAsync(string groupId, CancellationToken cancellationToken = default);
+    Task<Group?> GetGroupByNameAsync(string groupName, CancellationToken cancellationToken = default);
 }

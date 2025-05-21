@@ -13,6 +13,7 @@ namespace RealtimeService.Presentation.SignalR;
 [Authorize]
 public class MessageHub(
     IMessageRepository messageRepository,
+    IGroupRepository groupRepository,
     IUserApiRepository userApiRepository,
     IMapper mapper
 ) : Hub
@@ -74,6 +75,23 @@ public class MessageHub(
         var group = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
         await Clients.Group(group).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
     }
+
+    // private async Task<bool> AddToGroupAsync(string groupName)
+    // {
+    //     var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
+    //     var group = await groupRepository.GetGroupByNameAsync(groupName);
+    //     var connection = new Connection
+    //     {
+    //         ConnectionId = Context.ConnectionId,
+    //         UserId = userId.ToString()
+    //     };
+
+    //     group ??= new Group
+    //     {
+    //         Name = groupName,
+    //     };
+    //     group.Connections.Add(connection);
+    // }
 
     private static string GetGroupName(string caller, string? other)
     {
