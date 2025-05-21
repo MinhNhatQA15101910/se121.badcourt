@@ -45,4 +45,12 @@ public class PresenceTracker
             return Task.FromResult(OnlineUsers.Keys.ToArray());
         }
     }
+
+    public static Task<List<string>> GetConnectionsForUser(string userId)
+    {
+        lock (OnlineUsers)
+        {
+            return Task.FromResult(OnlineUsers.TryGetValue(userId, out List<string>? value) ? value : []);
+        }
+    }
 }

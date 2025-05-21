@@ -16,7 +16,8 @@ public class MessageHub(
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
     IUserApiRepository userApiRepository,
-    IMapper mapper
+    IMapper mapper,
+    IHubContext<PresenceHub> presenceHub
 ) : Hub
 {
     public override async Task OnConnectedAsync()
@@ -79,6 +80,17 @@ public class MessageHub(
         if (group != null && group.Connections.Any(x => x.UserId == recipient.Id.ToString()))
         {
             message.DateRead = DateTime.UtcNow;
+        }
+        else
+        {
+            var connections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
+            if (connections != null && connections?.Count != null)
+            {
+                await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", new
+                {
+                    userId = sender.Id.ToString(),
+                });
+            }
         }
 
         await messageRepository.AddMessageAsync(message);
