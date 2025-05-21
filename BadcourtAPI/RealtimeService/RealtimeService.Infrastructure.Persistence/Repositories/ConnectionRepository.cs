@@ -24,6 +24,19 @@ public class ConnectionRepository : IConnectionRepository
         _mapper = mapper;
     }
 
+    public async Task AddConnectionAsync(Connection connection, CancellationToken cancellationToken = default)
+    {
+        await _connections.InsertOneAsync(connection, cancellationToken: cancellationToken);
+    }
+
+    public async Task DeleteAllAsync(CancellationToken cancellationToken = default)
+    {
+        await _connections.DeleteManyAsync(
+            Builders<Connection>.Filter.Empty,
+            cancellationToken: cancellationToken
+        );
+    }
+
     public async Task DeleteConnectionAsync(string connectionId, CancellationToken cancellationToken = default)
     {
         await _connections.DeleteOneAsync(

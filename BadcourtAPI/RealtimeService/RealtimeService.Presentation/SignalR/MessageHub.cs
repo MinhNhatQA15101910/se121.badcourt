@@ -14,6 +14,7 @@ namespace RealtimeService.Presentation.SignalR;
 public class MessageHub(
     IMessageRepository messageRepository,
     IGroupRepository groupRepository,
+    IConnectionRepository connectionRepository,
     IUserApiRepository userApiRepository,
     IMapper mapper
 ) : Hub
@@ -30,6 +31,7 @@ public class MessageHub(
 
         var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUser);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        await AddToGroupAsync(groupName);
 
         var messages = await messageRepository.GetMessageThreadAsync(
             Context.User.GetUserId().ToString(),
@@ -38,9 +40,10 @@ public class MessageHub(
         await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        return base.OnDisconnectedAsync(exception);
+        await RemoveFromGroupAsync();
+        await base.OnDisconnectedAsync(exception);
     }
 
     public async Task SendMessage(CreateMessageDto createMessageDto)
@@ -70,28 +73,51 @@ public class MessageHub(
             Content = createMessageDto.Content,
         };
 
+        var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
+        var group = await groupRepository.GetGroupByNameAsync(groupName);
+
+        if (group != null && group.Connections.Any(x => x.UserId == recipient.Id.ToString()))
+        {
+            message.DateRead = DateTime.UtcNow;
+        }
+
         await messageRepository.AddMessageAsync(message);
 
-        var group = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
-        await Clients.Group(group).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
+        await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
     }
 
-    // private async Task<bool> AddToGroupAsync(string groupName)
-    // {
-    //     var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
-    //     var group = await groupRepository.GetGroupByNameAsync(groupName);
-    //     var connection = new Connection
-    //     {
-    //         ConnectionId = Context.ConnectionId,
-    //         UserId = userId.ToString()
-    //     };
+    private async Task AddToGroupAsync(string groupName)
+    {
+        var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
+        var group = await groupRepository.GetGroupByNameAsync(groupName);
 
-    //     group ??= new Group
-    //     {
-    //         Name = groupName,
-    //     };
-    //     group.Connections.Add(connection);
-    // }
+        var connection = new Connection
+        {
+            ConnectionId = Context.ConnectionId,
+            UserId = userId.ToString()
+        };
+        await connectionRepository.AddConnectionAsync(connection);
+
+        if (group == null)
+        {
+            group = new Group
+            {
+                Name = groupName,
+            };
+            await groupRepository.AddGroupAsync(group);
+        }
+        group.Connections.Add(connection);
+        await groupRepository.UpdateGroupAsync(group);
+    }
+
+    private async Task RemoveFromGroupAsync()
+    {
+        var connection = await connectionRepository.GetConnectionByIdAsync(Context.ConnectionId);
+        if (connection != null)
+        {
+            await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
+        }
+    }
 
     private static string GetGroupName(string caller, string? other)
     {

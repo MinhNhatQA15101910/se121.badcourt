@@ -35,4 +35,13 @@ public class GroupRepository : IGroupRepository
             .Find(g => g.Name == groupName)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
+    {
+        await _groups.ReplaceOneAsync(
+            g => g.Id == group.Id,
+            group,
+            cancellationToken: cancellationToken
+        );
+    }
 }
