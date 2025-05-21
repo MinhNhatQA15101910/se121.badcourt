@@ -70,26 +70,33 @@ class _CommentWidgetState extends State<CommentWidget> {
 
               // Name and date in a column
               Expanded(
-                child: Text(
-                  widget.username,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.username,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                    ),
+                    Text(
+                      widget.date,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[500],
+                      ),
+                      maxLines: 1,
+                    ),
+                  ],
                 ),
-              ),
-              Text(
-                widget.date,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-                maxLines: 1,
               ),
             ],
           ),
-
+          SizedBox(
+            height: 8,
+          ),
           // Comment text
           Container(
             margin: EdgeInsets.only(

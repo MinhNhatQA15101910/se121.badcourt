@@ -12,54 +12,55 @@ import 'package:provider/provider.dart';
 
 class PostService {
   Future<void> createPost(
-  BuildContext context,
-  List<File> postFiles,
-  String description,
-  String title,
-) async {
-  final userProvider = Provider.of<UserProvider>(context, listen: false);
+    BuildContext context,
+    List<File> postFiles,
+    String description,
+    String title,
+  ) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-  try {
-    var request = http.MultipartRequest('POST', Uri.parse('$uri/gateway/posts'));
-    request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
+    try {
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$uri/gateway/posts'));
+      request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
 
-    request.fields['title'] = title;
-    request.fields['content'] = description; // <-- sửa từ 'description' thành 'content'
+      request.fields['title'] = title;
+      request.fields['content'] =
+          description; // <-- sửa từ 'description' thành 'content'
 
-    for (File file in postFiles) {
-      var multipartFile = await http.MultipartFile.fromPath(
-        'resources', // <-- đúng key
-        file.path,
-      );
-      request.files.add(multipartFile);
-    }
+      for (File file in postFiles) {
+        var multipartFile = await http.MultipartFile.fromPath(
+          'resources', // <-- đúng key
+          file.path,
+        );
+        request.files.add(multipartFile);
+      }
 
-    var response = await request.send();
+      var response = await request.send();
 
-    if (response.statusCode == 201) {
-      IconSnackBar.show(
-        context,
-        label: 'Post created successfully',
-        snackBarType: SnackBarType.success,
-      );
-    } else {
-      response.stream.transform(utf8.decoder).listen((value) {
+      if (response.statusCode == 201) {
         IconSnackBar.show(
           context,
-          label: 'Error: $value',
-          snackBarType: SnackBarType.fail,
+          label: 'Post created successfully',
+          snackBarType: SnackBarType.success,
         );
-      });
+      } else {
+        response.stream.transform(utf8.decoder).listen((value) {
+          IconSnackBar.show(
+            context,
+            label: 'Error: $value',
+            snackBarType: SnackBarType.fail,
+          );
+        });
+      }
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
     }
-  } catch (e) {
-    IconSnackBar.show(
-      context,
-      label: 'Error: ${e.toString()}',
-      snackBarType: SnackBarType.fail,
-    );
   }
-}
-
 
   Future<Map<String, dynamic>> fetchAllPosts({
     required BuildContext context,
@@ -120,17 +121,16 @@ class PostService {
     );
 
     try {
-      var response = await http.post(
-        Uri.parse('$uri/gateway/comments'),
-        headers: {
-          'Authorization': 'Bearer ${userProvider.user.token}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'postId': postId,
-          'content': content,
-        }),
-      );
+      final uriObj = Uri.parse('$uri/gateway/comments');
+      final request = http.MultipartRequest('POST', uriObj);
+
+      request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
+
+      request.fields['postId'] = postId;
+      request.fields['content'] = content;
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       httpErrorHandler(
         response: response,

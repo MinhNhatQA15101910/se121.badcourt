@@ -111,6 +111,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
     super.initState();
     _fetchCommentByPostId();
     _likeCount = widget.currentPost.likesCount;
+    _isLiked = widget.currentPost.isLiked;
   }
 
   @override
@@ -127,15 +128,13 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               // Avatar
               CustomAvatar(
                 radius: 20,
-                // imageUrl: widget.currentPost.publisherImageUrl,
-                imageUrl: 'https://placehold.co/400',
-                userId: widget.currentPost.userId,
+                imageUrl: widget.currentPost.publisherImageUrl,
+                userId: widget.currentPost.publisherId,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  // widget.currentPost.publisherUsername,
-                  widget.currentPost.userId,
+                  widget.currentPost.publisherUsername,
                   style: TextStyle(
                     fontWeight: FontWeight.normal,
                     fontSize: 14,
@@ -147,7 +146,8 @@ class _PostFormWidgetState extends State<PostFormWidget> {
           const SizedBox(height: 12),
 
           _customText(
-            widget.currentPost.title,
+            // widget.currentPost.title,
+            "Title",
             15,
             FontWeight.w700,
             GlobalVariables.blackGrey,
@@ -287,27 +287,25 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                   Row(
                     children: [
                       GestureDetector(
-                        onTap: _toggleLike, // Toggle the like state when tapped
-                        child: Row(
-                          children: [
-                            Icon(
-                              _isLiked
-                                  ? Icons.thumb_up_alt // Filled like icon
-                                  : Icons
-                                      .thumb_up_alt_outlined, // Outlined like icon
-                              color: _isLiked
-                                  ? GlobalVariables
-                                      .green // Change color when liked
-                                  : GlobalVariables
-                                      .darkGrey, // Default color when not liked
-                              size: 18, // Icon size
-                            ),
-                            const SizedBox(width: 4),
-                            _customText('$_likeCount', 14, FontWeight.w500,
-                                GlobalVariables.darkGrey, 1),
-                          ],
-                        ),
-                      ),
+  onTap: _toggleLike,
+  child: Row(
+    children: [
+      Icon(
+        _isLiked
+            ? Icons.thumb_up_alt          // Nếu liked thì icon filled
+            : Icons.thumb_up_alt_outlined, // Nếu chưa like thì icon outlined
+        color: _isLiked
+            ? GlobalVariables.green       // Nếu liked thì màu xanh
+            : GlobalVariables.darkGrey,   // Nếu chưa like thì màu xám
+        size: 18,
+      ),
+      const SizedBox(width: 4),
+      _customText('$_likeCount', 14, FontWeight.w500,
+          GlobalVariables.darkGrey, 1),
+    ],
+  ),
+),
+
                     ],
                   ),
                   const SizedBox(width: 16),
@@ -321,7 +319,8 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                       ),
                       SizedBox(width: 4),
                       _customText(
-                        widget.currentPost.commentsCount.toString(),
+                        // widget.currentPost.commentsCount.toString(),
+                        "-1",
                         14,
                         FontWeight.w500,
                         GlobalVariables.darkGrey,
@@ -350,8 +349,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                 username: comment.publisherUsername,
                 userId: comment.publisherId,
                 commentText: comment.content,
-                // date: formatDate(comment.createdAt),
-                date: 'Null',
+                date: formatDate(comment.createdAt),
                 initialLikesCount: 0,
                 commentsCount: 0,
               );

@@ -5,21 +5,22 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "./user-avatar"
-import { Image, MapPin, Smile, X, Tag } from "lucide-react"
+import { ImageIcon, MapPin, Smile, X, Tag } from "lucide-react"
 import type { User } from "@/lib/types"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface PostCreatorProps {
-  onCreatePost: (content: string, mediaUrls: string[], category?: string) => void
-  currentUser: User
+  onCreatePost: (content: string, files: File[], category?: string) => void
+  currentUser: Partial<User>
 }
 
 export default function PostCreator({ onCreatePost, currentUser }: PostCreatorProps) {
   const [content, setContent] = useState("")
   const [isExpanded, setIsExpanded] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [mediaUrls, setMediaUrls] = useState<string[]>([])
+  const [files, setFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState("post")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -28,12 +29,13 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
   }
 
   const handleSubmit = () => {
-    if (content.trim() || (activeTab === "photo" && mediaUrls.length > 0)) {
-      onCreatePost(content, mediaUrls, selectedCategory || undefined)
+    if (content.trim() || (activeTab === "photo" && files.length > 0)) {
+      onCreatePost(content, files, selectedCategory || undefined)
       setContent("")
       setIsExpanded(false)
       setSelectedCategory(null)
-      setMediaUrls([])
+      setFiles([])
+      setPreviews([])
       setActiveTab("post")
     }
   }
@@ -43,27 +45,33 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      // In a real app, you would upload the file to a server
-      // For this demo, we'll just use a placeholder
-      const newMediaUrls = Array.from(files).map(
-        (_, index) => `/placeholder.svg?height=${300 + index * 50}&width=${400 + index * 50}`,
-      )
-      setMediaUrls([...mediaUrls, ...newMediaUrls])
+    const selectedFiles = e.target.files
+    if (selectedFiles && selectedFiles.length > 0) {
+      const newFiles = Array.from(selectedFiles)
+      setFiles([...files, ...newFiles])
+
+      // Create previews for the files
+      const newPreviews = Array.from(selectedFiles).map((file) => URL.createObjectURL(file))
+      setPreviews([...previews, ...newPreviews])
     }
   }
 
-  const removeMedia = (index: number) => {
-    setMediaUrls(mediaUrls.filter((_, i) => i !== index))
+  const removeFile = (index: number) => {
+    const newFiles = [...files]
+    newFiles.splice(index, 1)
+    setFiles(newFiles)
+
+    const newPreviews = [...previews]
+    URL.revokeObjectURL(newPreviews[index]) // Clean up the URL
+    newPreviews.splice(index, 1)
+    setPreviews(newPreviews)
   }
 
   const categories = [
-    { id: "technology", name: "Technology" },
-    { id: "design", name: "Design" },
-    { id: "marketing", name: "Marketing" },
-    { id: "business", name: "Business" },
-    { id: "lifestyle", name: "Lifestyle" },
+    { id: "Sharing", name: "Sharing" },
+    { id: "Question", name: "Question" },
+    { id: "News", name: "News" },
+    { id: "Event", name: "Event" },
   ]
 
   return (
@@ -85,13 +93,13 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
               className={`flex-1 bg-[#f0f2f5] rounded-full px-4 py-3 text-[#565973] cursor-text ${isExpanded ? "hidden" : "block"}`}
               onClick={handleFocus}
             >
-              What on your mind, {currentUser.username.split(" ")[0]}?
+              What on your mind, {currentUser.username?.split(" ")[0] || "there"}?
             </div>
             {isExpanded && (
               <div className="flex-1">
                 <textarea
                   className="w-full bg-[#f0f2f5] rounded-lg px-4 py-3 text-[#0b0f19] placeholder-[#565973] focus:outline-none focus:ring-2 focus:ring-[#23c16b] resize-none min-h-[120px]"
-                  placeholder={`What's on your mind, ${currentUser.username.split(" ")[0]}?`}
+                  placeholder={`What's on your mind, ${currentUser.username?.split(" ")[0] || "there"}?`}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   autoFocus
@@ -100,14 +108,14 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
             )}
           </div>
 
-          {isExpanded && mediaUrls.length > 0 && (
+          {isExpanded && previews.length > 0 && (
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
-              {mediaUrls.map((src, index) => (
+              {previews.map((src, index) => (
                 <div key={index} className="relative rounded-lg overflow-hidden aspect-video bg-[#f0f2f5]">
                   <img src={src || "/placeholder.svg"} alt="Media" className="h-full w-full object-cover" />
                   <button
                     className="absolute top-2 right-2 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
-                    onClick={() => removeMedia(index)}
+                    onClick={() => removeFile(index)}
                   >
                     <X className="h-4 w-4 text-white" />
                   </button>
@@ -126,7 +134,7 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
                   className="h-9 w-9 rounded-full hover:bg-[#e4e6eb]"
                   onClick={handleFileSelect}
                 >
-                  <Image className="h-5 w-5 text-[#f3425f]" />
+                  <ImageIcon className="h-5 w-5 text-[#f3425f]" />
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -183,7 +191,8 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
                     setIsExpanded(false)
                     setContent("")
                     setSelectedCategory(null)
-                    setMediaUrls([])
+                    setFiles([])
+                    setPreviews([])
                   }}
                 >
                   Cancel
@@ -192,7 +201,7 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
                 <Button
                   className="rounded-lg bg-[#23c16b] hover:bg-[#23c16b]/90 text-white px-6"
                   onClick={handleSubmit}
-                  disabled={!content.trim()}
+                  disabled={!content.trim() && files.length === 0}
                 >
                   Post
                 </Button>
@@ -220,7 +229,7 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
           >
             <div className="flex flex-col items-center">
               <div className="h-12 w-12 rounded-full bg-[#f0f2f5] flex items-center justify-center mb-3">
-                <Image className="h-6 w-6 text-[#565973]" />
+                <ImageIcon className="h-6 w-6 text-[#565973]" />
               </div>
               <p className="text-[#0b0f19] font-medium">Add Photos</p>
               <p className="text-[#565973] text-sm mt-1">or drag and drop</p>
@@ -235,14 +244,14 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
             </div>
           </div>
 
-          {mediaUrls.length > 0 && (
+          {previews.length > 0 && (
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
-              {mediaUrls.map((src, index) => (
+              {previews.map((src, index) => (
                 <div key={index} className="relative rounded-lg overflow-hidden aspect-video bg-[#f0f2f5]">
                   <img src={src || "/placeholder.svg"} alt="Media" className="h-full w-full object-cover" />
                   <button
                     className="absolute top-2 right-2 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
-                    onClick={() => removeMedia(index)}
+                    onClick={() => removeFile(index)}
                   >
                     <X className="h-4 w-4 text-white" />
                   </button>
@@ -255,7 +264,7 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
             <Button
               className="rounded-lg bg-[#23c16b] hover:bg-[#23c16b]/90 text-white px-6"
               onClick={handleSubmit}
-              disabled={mediaUrls.length === 0}
+              disabled={files.length === 0}
             >
               Post Photos
             </Button>
@@ -265,4 +274,3 @@ export default function PostCreator({ onCreatePost, currentUser }: PostCreatorPr
     </div>
   )
 }
-

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Smile, Image, Send } from "lucide-react"
+import { Smile, ImageIcon, Send } from "lucide-react"
 
 interface CommentInputProps {
   onAddComment: (content: string) => void
@@ -56,7 +56,7 @@ export default function CommentInput({ onAddComment, isFocused, onFocusChange, i
           <Smile className="h-5 w-5" />
         </Button>
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-[#565973] hover:bg-[#e4e6eb]">
-          <Image className="h-5 w-5" />
+          <ImageIcon className="h-5 w-5" />
         </Button>
         <Button
           variant="ghost"
@@ -71,4 +71,3 @@ export default function CommentInput({ onAddComment, isFocused, onFocusChange, i
     </div>
   )
 }
-

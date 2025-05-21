@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { User } from "@/lib/types"
 
 interface UserAvatarProps {
-  user: User
+  user: Partial<User>
   size?: "xs" | "sm" | "md" | "lg"
   showStatus?: boolean
   showBorder?: boolean
@@ -18,26 +18,48 @@ export function UserAvatar({ user, size = "md", showStatus = false, showBorder =
 
   const borderClass = showBorder ? "border-2 border-[#23c16b]" : ""
 
+  // Get initials from username
+  const getInitials = () => {
+    if (!user.username) return "U"
+    const nameParts = user.username.split(" ")
+    if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase()
+    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase()
+  }
+
+  // Determine status indicator size based on avatar size
+  const getStatusSize = () => {
+    switch (size) {
+      case "xs":
+        return { width: "6px", height: "6px" }
+      case "sm":
+        return { width: "8px", height: "8px" }
+      case "md":
+        return { width: "10px", height: "10px" }
+      case "lg":
+        return { width: "12px", height: "12px" }
+      default:
+        return { width: "10px", height: "10px" }
+    }
+  }
+
+  const statusSize = getStatusSize()
+
   return (
     <div className="relative">
       <Avatar className={`${sizeClasses[size]} ${borderClass}`}>
-        <AvatarImage src={user.email} alt={user.username} />
-        <AvatarFallback>
-          {user.username.charAt(0)}
-          {user.username.split(" ").pop()?.charAt(0)}
-        </AvatarFallback>
+        <AvatarImage src={user.photoUrl || "/placeholder.svg"} alt={user.username || "User"} />
+        <AvatarFallback>{getInitials()}</AvatarFallback>
       </Avatar>
 
       {showStatus && (
         <div
           className={`absolute bottom-0 right-0 rounded-full border-2 border-white ${user.isOnline ? "bg-[#23c16b]" : "bg-[#9397ad]"}`}
           style={{
-            width: size === "xs" ? "6px" : size === "sm" ? "8px" : size === "md" ? "10px" : "12px",
-            height: size === "xs" ? "6px" : size === "sm" ? "8px" : size === "md" ? "10px" : "12px",
+            width: statusSize.width,
+            height: statusSize.height,
           }}
-        ></div>
+        />
       )}
     </div>
   )
 }
-

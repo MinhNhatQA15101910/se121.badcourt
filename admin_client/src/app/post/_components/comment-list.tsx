@@ -4,7 +4,7 @@ import CommentItem from "./comment-item"
 interface CommentListProps {
   comments: Comment[]
   postId: string
-  onLikeComment: (postId: string, commentId: string) => void
+  onLikeComment: (commentId: string) => void
 }
 
 export default function CommentList({ comments, postId, onLikeComment }: CommentListProps) {
@@ -16,4 +16,3 @@ export default function CommentList({ comments, postId, onLikeComment }: Comment
     </div>
   )
 }
-
