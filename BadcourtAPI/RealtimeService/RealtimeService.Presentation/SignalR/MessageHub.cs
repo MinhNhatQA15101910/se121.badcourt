@@ -32,18 +32,20 @@ public class MessageHub(
 
         var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUser);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        await AddToGroupAsync(groupName);
+        var group = await AddToGroupAsync(groupName);
+        await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
         var messages = await messageRepository.GetMessageThreadAsync(
             Context.User.GetUserId().ToString(),
             otherUser!
         );
-        await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+        await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        await RemoveFromGroupAsync();
+        var group = await RemoveFromGroupAsync();
+        await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -98,7 +100,7 @@ public class MessageHub(
         await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
     }
 
-    private async Task AddToGroupAsync(string groupName)
+    private async Task<Group> AddToGroupAsync(string groupName)
     {
         var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
         var group = await groupRepository.GetGroupByNameAsync(groupName);
@@ -119,16 +121,27 @@ public class MessageHub(
             await groupRepository.AddGroupAsync(group);
         }
         group.Connections.Add(connection);
+
         await groupRepository.UpdateGroupAsync(group);
+
+        return group;
     }
 
-    private async Task RemoveFromGroupAsync()
+    private async Task<Group> RemoveFromGroupAsync()
     {
-        var connection = await connectionRepository.GetConnectionByIdAsync(Context.ConnectionId);
-        if (connection != null)
+        var group = await groupRepository.GetGroupForConnectionAsync(Context.ConnectionId);
+        var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+        if (connection != null && group != null)
         {
             await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
+
+            group.Connections.Remove(connection);
+            await groupRepository.UpdateGroupAsync(group);
+
+            return group;
         }
+
+        throw new HubException("Group not found");
     }
 
     private static string GetGroupName(string caller, string? other)

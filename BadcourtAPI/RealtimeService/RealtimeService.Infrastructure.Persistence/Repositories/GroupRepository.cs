@@ -36,6 +36,13 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<Group?> GetGroupForConnectionAsync(string connectionId, CancellationToken cancellationToken = default)
+    {
+        return await _groups
+            .Find(g => g.Connections.Any(c => c.ConnectionId == connectionId))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
     {
         await _groups.ReplaceOneAsync(
