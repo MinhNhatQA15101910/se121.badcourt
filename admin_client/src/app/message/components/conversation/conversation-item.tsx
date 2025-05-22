@@ -21,7 +21,7 @@ export default function ConversationItem({ conversation, isActive, onClick }: Co
       <div className="flex gap-3">
         <div className="relative">
           <Avatar className="w-12 h-12 border border-[#e2e8f0]">
-            <AvatarImage src={conversation.avatar} alt={conversation.name} />
+            <AvatarImage src={conversation.avatar || "/placeholder.svg"} alt={conversation.name} />
             <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
           </Avatar>
           {conversation.online && (
@@ -51,4 +51,3 @@ export default function ConversationItem({ conversation, isActive, onClick }: Co
     </div>
   )
 }
-

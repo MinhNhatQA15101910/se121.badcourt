@@ -169,4 +169,3 @@ export default function MessageInput({ message, setMessage, onSendMessage, onKey
     </div>
   )
 }
-

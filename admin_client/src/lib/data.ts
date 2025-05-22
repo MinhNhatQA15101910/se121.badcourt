@@ -400,7 +400,7 @@ export function formatDate(dateString: string): string {
 }
 
 
-export const conversationsData: ConversationType[] = [
+export const conversations: ConversationType[] = [
   {
     id: 1,
     name: "Ammi Watts",

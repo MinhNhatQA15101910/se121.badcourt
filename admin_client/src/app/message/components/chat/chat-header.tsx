@@ -19,7 +19,7 @@ export default function ChatHeader({ conversation, onBackClick }: ChatHeaderProp
           <ArrowLeft className="w-5 h-5 text-[#64748b]" />
         </Button>
         <Avatar className="w-10 h-10 border border-[#e2e8f0]">
-          <AvatarImage src={conversation.avatar} alt={conversation.name} />
+          <AvatarImage src={conversation.avatar || "/placeholder.svg"} alt={conversation.name} />
           <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
@@ -75,4 +75,3 @@ export default function ChatHeader({ conversation, onBackClick }: ChatHeaderProp
     </div>
   )
 }
-

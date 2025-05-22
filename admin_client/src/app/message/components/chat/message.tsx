@@ -20,7 +20,7 @@ export default function Message({ message, conversationName, conversationAvatar 
       <div className={`flex gap-2 max-w-[80%] ${message.sent ? "flex-row-reverse" : ""}`}>
         {!message.sent && (
           <Avatar className="w-8 h-8 mt-1">
-            <AvatarImage src={conversationAvatar} alt={conversationName} />
+            <AvatarImage src={conversationAvatar || "/placeholder.svg"} alt={conversationName} />
             <AvatarFallback>{conversationName.charAt(0)}</AvatarFallback>
           </Avatar>
         )}
@@ -71,4 +71,3 @@ export default function Message({ message, conversationName, conversationAvatar 
     </div>
   )
 }
-

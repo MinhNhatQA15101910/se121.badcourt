@@ -29,4 +29,3 @@ export default function ConversationTabs({ activeTab, onTabChange }: Conversatio
     </div>
   )
 }
-

@@ -10,7 +10,8 @@ interface MessageListProps {
   messages: MessageType[]
   conversationName: string
   conversationAvatar: string
-  messagesEndRef: React.RefObject<HTMLDivElement | null>}
+  messagesEndRef: React.RefObject<HTMLDivElement | null>
+}
 
 export default function MessageList({
   messages,
@@ -52,9 +53,9 @@ export default function MessageList({
             ))}
           </div>
         ))}
+
         <div ref={messagesEndRef} />
       </div>
     </div>
   )
 }
-

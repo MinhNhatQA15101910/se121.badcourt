@@ -79,7 +79,7 @@ export default function ConversationList({
               key={conversation.id}
               conversation={conversation}
               isActive={conversation.id === activeConversationId}
-              onClick={() => onSelectConversation(conversation.id)}
+              onClick={() => onSelectConversation(Number(conversation.id))}
             />
           ))
         )}
@@ -87,4 +87,3 @@ export default function ConversationList({
     </div>
   )
 }
-

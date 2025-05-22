@@ -113,24 +113,61 @@ export interface CreateCommentParams {
   resources?: File[]; // Sử dụng File cho upload
 }
 
-export interface ConversationType {
-  id: number;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  time: string;
-  unread: number;
-  online: boolean;
-  isActive: boolean;
-  starred: boolean;
-  messages: MessageType[];
+export interface MessageType {
+  id: string | number
+  text: string
+  time: string
+  sent: boolean
+  imageUrl?: string
+  hasImage?: boolean
+  recipientId?: string
+  senderId?: string
 }
 
-export interface MessageType {
-  id: number;
-  text: string;
-  sent: boolean;
-  time: string;
-  hasImage?: boolean;
-  imageUrl?: string;
+export interface ConversationType {
+  id: string | number
+  name: string
+  avatar: string
+  lastMessage: string
+  time: string
+  unread: number
+  online: boolean
+  starred?: boolean
+  messages: MessageType[]
+  userId?: string
 }
+
+export interface SignalRMessage {
+  id: string
+  senderId: string
+  recipientId: string
+  content: string
+  dateRead?: string
+  messageSent: string
+  senderUsername?: string
+  senderPhotoUrl?: string
+}
+
+// New interfaces for SignalR message thread
+export interface SignalRMessageThread {
+  messages: SignalRMessage[]
+  pagination?: {
+    currentPage: number
+    itemsPerPage: number
+    totalItems: number
+    totalPages: number
+  }
+}
+
+// Type for SignalR callbacks
+export interface PresenceCallbacks {
+  onUserOnline?: (userId: string) => void
+  onUserOffline?: (userId: string) => void
+  onOnlineUsers?: (users: string[]) => void
+}
+
+export interface MessageCallbacks {
+  onReceiveMessageThread?: (messages: SignalRMessageThread) => void
+  onNewMessage?: (message: SignalRMessage) => void
+}
+
