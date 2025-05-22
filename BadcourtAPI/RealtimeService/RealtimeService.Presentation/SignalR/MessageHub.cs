@@ -13,8 +13,11 @@ namespace RealtimeService.Presentation.SignalR;
 [Authorize]
 public class MessageHub(
     IMessageRepository messageRepository,
+    IGroupRepository groupRepository,
+    IConnectionRepository connectionRepository,
     IUserApiRepository userApiRepository,
-    IMapper mapper
+    IMapper mapper,
+    IHubContext<PresenceHub> presenceHub
 ) : Hub
 {
     public override async Task OnConnectedAsync()
@@ -29,17 +32,21 @@ public class MessageHub(
 
         var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUser);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        var group = await AddToGroupAsync(groupName);
+        await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
         var messages = await messageRepository.GetMessageThreadAsync(
             Context.User.GetUserId().ToString(),
             otherUser!
         );
-        await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+        await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        return base.OnDisconnectedAsync(exception);
+        var group = await RemoveFromGroupAsync();
+        await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
+        await base.OnDisconnectedAsync(exception);
     }
 
     public async Task SendMessage(CreateMessageDto createMessageDto)
@@ -69,10 +76,72 @@ public class MessageHub(
             Content = createMessageDto.Content,
         };
 
+        var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
+        var group = await groupRepository.GetGroupByNameAsync(groupName);
+
+        if (group != null && group.Connections.Any(x => x.UserId == recipient.Id.ToString()))
+        {
+            message.DateRead = DateTime.UtcNow;
+        }
+        else
+        {
+            var connections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
+            if (connections != null && connections?.Count != null)
+            {
+                await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", new
+                {
+                    userId = sender.Id.ToString(),
+                });
+            }
+        }
+
         await messageRepository.AddMessageAsync(message);
 
-        var group = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
-        await Clients.Group(group).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
+        await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
+    }
+
+    private async Task<Group> AddToGroupAsync(string groupName)
+    {
+        var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
+        var group = await groupRepository.GetGroupByNameAsync(groupName);
+
+        var connection = new Connection
+        {
+            ConnectionId = Context.ConnectionId,
+            UserId = userId.ToString()
+        };
+        await connectionRepository.AddConnectionAsync(connection);
+
+        if (group == null)
+        {
+            group = new Group
+            {
+                Name = groupName,
+            };
+            await groupRepository.AddGroupAsync(group);
+        }
+        group.Connections.Add(connection);
+
+        await groupRepository.UpdateGroupAsync(group);
+
+        return group;
+    }
+
+    private async Task<Group> RemoveFromGroupAsync()
+    {
+        var group = await groupRepository.GetGroupForConnectionAsync(Context.ConnectionId);
+        var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+        if (connection != null && group != null)
+        {
+            await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
+
+            group.Connections.Remove(connection);
+            await groupRepository.UpdateGroupAsync(group);
+
+            return group;
+        }
+
+        throw new HubException("Group not found");
     }
 
     private static string GetGroupName(string caller, string? other)

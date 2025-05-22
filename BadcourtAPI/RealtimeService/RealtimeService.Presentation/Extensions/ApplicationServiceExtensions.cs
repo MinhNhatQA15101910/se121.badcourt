@@ -10,6 +10,17 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy.WithOrigins("http://192.168.1.83:4000")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
         services.AddSignalR();
 
         services.AddSingleton<PresenceTracker>();
@@ -38,6 +49,8 @@ public static class ApplicationServiceExtensions
         );
 
         services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IConnectionRepository, ConnectionRepository>();
+        services.AddScoped<IGroupRepository, GroupRepository>();
 
         return services;
     }
