@@ -10,4 +10,7 @@ public class Group
     public string Id { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
     public List<Connection> Connections { get; set; } = [];
+    public List<string> UserIds { get; set; } = [];
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

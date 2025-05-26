@@ -16,6 +16,7 @@ app.UseAuthorization();
 
 app.MapHub<PresenceHub>("hubs/presence");
 app.MapHub<MessageHub>("hubs/message");
+app.MapHub<GroupHub>("hubs/group");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;

@@ -50,10 +50,24 @@ public class MessageRepository : IMessageRepository
         ).ToList();
         if (unreadMessages.Count != 0)
         {
+            foreach (var message in unreadMessages)
+            {
+                message.DateRead = DateTime.UtcNow;
+                await UpdateMessageAsync(message, cancellationToken);
+            }
             unreadMessages.ForEach(m => m.DateRead = DateTime.UtcNow);
         }
 
         return await query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+    }
+
+    private async Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default)
+    {
+        await _messages.ReplaceOneAsync(
+            m => m.Id == message.Id,
+            message,
+            cancellationToken: cancellationToken
+        );
     }
 }

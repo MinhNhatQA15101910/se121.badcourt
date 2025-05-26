@@ -43,6 +43,13 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<List<Group>> GetGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        return await _groups
+            .Find(g => g.UserIds.Contains(userId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
     {
         await _groups.ReplaceOneAsync(
