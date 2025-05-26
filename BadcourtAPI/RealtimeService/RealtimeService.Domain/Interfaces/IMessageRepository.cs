@@ -10,6 +10,7 @@ public interface IMessageRepository
         CancellationToken cancellationToken = default
     );
     Task<Message?> GetLastMessageAsync(string groupId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<object>> GetMessagesByGroupIdAsync(string id);
     Task<IEnumerable<MessageDto>> GetMessageThreadAsync(
         string currentUserId,
         string recipientId,
