@@ -14,7 +14,7 @@ public static class ApplicationServiceExtensions
         {
             options.AddPolicy("CorsPolicy", policy =>
             {
-                policy.AllowAnyOrigin()
+                policy.WithOrigins("http://192.168.1.83:4000")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

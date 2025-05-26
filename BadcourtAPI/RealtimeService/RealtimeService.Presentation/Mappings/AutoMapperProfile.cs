@@ -9,6 +9,9 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<Message, MessageDto>();
+        CreateMap<Group, GroupDto>()
+            .ForMember(dest => dest.Users, opt => opt.Ignore())
+            .ForMember(dest => dest.LastMessage, opt => opt.Ignore());
         CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
         CreateMap<DateTime?, DateTime?>()
             .ConvertUsing(d => d.HasValue ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);

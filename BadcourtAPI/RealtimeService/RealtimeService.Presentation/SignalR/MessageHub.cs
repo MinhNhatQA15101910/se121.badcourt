@@ -1,12 +1,8 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.ApiRepositories;
-using RealtimeService.Presentation.DTOs;
-using RealtimeService.Presentation.Extensions;
-using SharedKernel.DTOs;
 
 namespace RealtimeService.Presentation.SignalR;
 
@@ -20,133 +16,133 @@ public class MessageHub(
     IHubContext<PresenceHub> presenceHub
 ) : Hub
 {
-    public override async Task OnConnectedAsync()
-    {
-        var httpContext = Context.GetHttpContext();
-        var otherUser = httpContext?.Request.Query["user"];
+    // public override async Task OnConnectedAsync()
+    // {
+    //     var httpContext = Context.GetHttpContext();
+    //     var otherUser = httpContext?.Request.Query["user"];
 
-        if (Context.User == null || string.IsNullOrEmpty(otherUser))
-        {
-            throw new HubException("Cannot join group");
-        }
+    //     if (Context.User == null || string.IsNullOrEmpty(otherUser))
+    //     {
+    //         throw new HubException("Cannot join group");
+    //     }
 
-        var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUser);
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        var group = await AddToGroupAsync(groupName);
-        await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
+    //     var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUser);
+    //     await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+    //     var group = await AddToGroupAsync(groupName);
+    //     await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
-        var messages = await messageRepository.GetMessageThreadAsync(
-            Context.User.GetUserId().ToString(),
-            otherUser!
-        );
-        await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
-    }
+    //     var messages = await messageRepository.GetMessageThreadAsync(
+    //         Context.User.GetUserId().ToString(),
+    //         otherUser!
+    //     );
+    //     await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
+    // }
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        var group = await RemoveFromGroupAsync();
-        await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
-        await base.OnDisconnectedAsync(exception);
-    }
+    // public override async Task OnDisconnectedAsync(Exception? exception)
+    // {
+    //     var group = await RemoveFromGroupAsync();
+    //     await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
+    //     await base.OnDisconnectedAsync(exception);
+    // }
 
-    public async Task SendMessage(CreateMessageDto createMessageDto)
-    {
-        var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
+    // public async Task SendMessage(CreateMessageDto createMessageDto)
+    // {
+    //     var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
 
-        if (userId.ToString() == createMessageDto.RecipientId)
-        {
-            throw new HubException("You cannot send messages to yourself");
-        }
+    //     if (userId.ToString() == createMessageDto.RecipientId)
+    //     {
+    //         throw new HubException("You cannot send messages to yourself");
+    //     }
 
-        var sender = await userApiRepository.GetUserByIdAsync(userId);
-        var recipient = await userApiRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
-        if (sender == null || recipient == null)
-        {
-            throw new HubException("Cannot send message");
-        }
+    //     var sender = await userApiRepository.GetUserByIdAsync(userId);
+    //     var recipient = await userApiRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
+    //     if (sender == null || recipient == null)
+    //     {
+    //         throw new HubException("Cannot send message");
+    //     }
 
-        var message = new Message
-        {
-            SenderId = sender.Id.ToString(),
-            SenderUsername = sender.Username,
-            SenderImageUrl = sender.PhotoUrl ?? string.Empty,
-            RecipientId = recipient.Id.ToString(),
-            RecipientUsername = recipient.Username,
-            RecipientImageUrl = recipient.PhotoUrl ?? string.Empty,
-            Content = createMessageDto.Content,
-        };
+    //     var message = new Message
+    //     {
+    //         SenderId = sender.Id.ToString(),
+    //         SenderUsername = sender.Username,
+    //         SenderImageUrl = sender.PhotoUrl ?? string.Empty,
+    //         RecipientId = recipient.Id.ToString(),
+    //         RecipientUsername = recipient.Username,
+    //         RecipientImageUrl = recipient.PhotoUrl ?? string.Empty,
+    //         Content = createMessageDto.Content,
+    //     };
 
-        var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
-        var group = await groupRepository.GetGroupByNameAsync(groupName);
+    //     var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
+    //     var group = await groupRepository.GetGroupByNameAsync(groupName);
 
-        if (group != null && group.Connections.Any(x => x.UserId == recipient.Id.ToString()))
-        {
-            message.DateRead = DateTime.UtcNow;
-        }
-        else
-        {
-            var connections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
-            if (connections != null && connections?.Count != null)
-            {
-                await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", new
-                {
-                    userId = sender.Id.ToString(),
-                });
-            }
-        }
+    //     if (group != null && group.Connections.Any(x => x.UserId == recipient.Id.ToString()))
+    //     {
+    //         message.DateRead = DateTime.UtcNow;
+    //     }
+    //     else
+    //     {
+    //         var connections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
+    //         if (connections != null && connections?.Count != null)
+    //         {
+    //             await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", new
+    //             {
+    //                 userId = sender.Id.ToString(),
+    //             });
+    //         }
+    //     }
 
-        await messageRepository.AddMessageAsync(message);
+    //     await messageRepository.AddMessageAsync(message);
 
-        await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
-    }
+    //     await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
+    // }
 
-    private async Task<Group> AddToGroupAsync(string groupName)
-    {
-        var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
-        var group = await groupRepository.GetGroupByNameAsync(groupName);
+    // private async Task<Group> AddToGroupAsync(string groupName)
+    // {
+    //     var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
+    //     var group = await groupRepository.GetGroupByNameAsync(groupName);
 
-        var connection = new Connection
-        {
-            ConnectionId = Context.ConnectionId,
-            UserId = userId.ToString()
-        };
-        await connectionRepository.AddConnectionAsync(connection);
+    //     var connection = new Connection
+    //     {
+    //         ConnectionId = Context.ConnectionId,
+    //         UserId = userId.ToString()
+    //     };
+    //     await connectionRepository.AddConnectionAsync(connection);
 
-        if (group == null)
-        {
-            group = new Group
-            {
-                Name = groupName,
-            };
-            await groupRepository.AddGroupAsync(group);
-        }
-        group.Connections.Add(connection);
+    //     if (group == null)
+    //     {
+    //         group = new Group
+    //         {
+    //             Name = groupName,
+    //         };
+    //         await groupRepository.AddGroupAsync(group);
+    //     }
+    //     group.Connections.Add(connection);
 
-        await groupRepository.UpdateGroupAsync(group);
+    //     await groupRepository.UpdateGroupAsync(group);
 
-        return group;
-    }
+    //     return group;
+    // }
 
-    private async Task<Group> RemoveFromGroupAsync()
-    {
-        var group = await groupRepository.GetGroupForConnectionAsync(Context.ConnectionId);
-        var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
-        if (connection != null && group != null)
-        {
-            await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
+    // private async Task<Group> RemoveFromGroupAsync()
+    // {
+    //     var group = await groupRepository.GetGroupForConnectionAsync(Context.ConnectionId);
+    //     var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+    //     if (connection != null && group != null)
+    //     {
+    //         await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
 
-            group.Connections.Remove(connection);
-            await groupRepository.UpdateGroupAsync(group);
+    //         group.Connections.Remove(connection);
+    //         await groupRepository.UpdateGroupAsync(group);
 
-            return group;
-        }
+    //         return group;
+    //     }
 
-        throw new HubException("Group not found");
-    }
+    //     throw new HubException("Group not found");
+    // }
 
-    private static string GetGroupName(string caller, string? other)
-    {
-        var stringCompare = string.CompareOrdinal(caller, other) < 0;
-        return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
-    }
+    // private static string GetGroupName(string caller, string? other)
+    // {
+    //     var stringCompare = string.CompareOrdinal(caller, other) < 0;
+    //     return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
+    // }
 }
