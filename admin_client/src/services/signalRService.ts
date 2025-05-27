@@ -17,6 +17,9 @@ const messageConnections: Map<string, signalR.HubConnection> = new Map()
 let presenceCallbacks: PresenceCallbacks = {}
 const messageCallbacksMap: Map<string, MessageCallbacks> = new Map()
 
+// Biến để theo dõi trạng thái kết nối
+let isPresenceConnected = false
+
 /**
  * Khởi tạo kết nối với PresenceHub
  */
@@ -67,23 +70,28 @@ export async function startPresenceConnection(
     // Đăng ký các sự kiện kết nối
     presenceConnection.onreconnecting((error) => {
       console.log(`[SignalR] Đang kết nối lại PresenceHub: ${error}`)
+      isPresenceConnected = false
     })
 
     presenceConnection.onreconnected((connectionId) => {
       console.log(`[SignalR] Đã kết nối lại PresenceHub. ID: ${connectionId}`)
+      isPresenceConnected = true
     })
 
     presenceConnection.onclose((error) => {
       console.log(`[SignalR] Kết nối PresenceHub đã đóng: ${error}`)
+      isPresenceConnected = false
     })
 
     // Bắt đầu kết nối
     await presenceConnection.start()
     console.log("[SignalR] Đã kết nối với PresenceHub")
+    isPresenceConnected = true
 
     return presenceConnection
   } catch (error) {
     console.error("[SignalR] Lỗi khi kết nối với PresenceHub:", error)
+    isPresenceConnected = false
     return null
   }
 }
@@ -96,10 +104,40 @@ export async function stopPresenceConnection(): Promise<void> {
     try {
       await presenceConnection.stop()
       presenceConnection = null
+      isPresenceConnected = false
       console.log("[SignalR] Đã ngắt kết nối với PresenceHub")
     } catch (error) {
       console.error("[SignalR] Lỗi khi ngắt kết nối với PresenceHub:", error)
     }
+  }
+}
+
+/**
+ * Kiểm tra xem PresenceHub có đang kết nối không
+ */
+export function isPresenceHubConnected(): boolean {
+  return isPresenceConnected
+}
+
+/**
+ * Lấy trạng thái kết nối của PresenceHub
+ */
+export function getPresenceConnectionState(): string {
+  if (!presenceConnection) return "Disconnected (No Connection)"
+
+  switch (presenceConnection.state) {
+    case signalR.HubConnectionState.Connected:
+      return "Connected"
+    case signalR.HubConnectionState.Connecting:
+      return "Connecting"
+    case signalR.HubConnectionState.Disconnected:
+      return "Disconnected"
+    case signalR.HubConnectionState.Disconnecting:
+      return "Disconnecting"
+    case signalR.HubConnectionState.Reconnecting:
+      return "Reconnecting"
+    default:
+      return "Unknown"
   }
 }
 
@@ -231,6 +269,7 @@ export async function stopAllConnections(): Promise<void> {
     if (presenceConnection) {
       await presenceConnection.stop()
       presenceConnection = null
+      isPresenceConnected = false
     }
 
     // Dừng tất cả các kết nối MessageHub

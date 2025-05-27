@@ -8,9 +8,14 @@ interface CommentListProps {
 }
 
 export default function CommentList({ comments, postId, onLikeComment }: CommentListProps) {
+  // Sort comments by creation date (oldest first)
+  const sortedComments = [...comments].sort((a, b) => {
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  })
+
   return (
     <div className="space-y-4">
-      {comments.map((comment) => (
+      {sortedComments.map((comment) => (
         <CommentItem key={comment.id} comment={comment} postId={postId} onLike={onLikeComment} />
       ))}
     </div>

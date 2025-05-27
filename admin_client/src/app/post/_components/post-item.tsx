@@ -8,7 +8,7 @@ import type { Post, User, Comment } from "@/lib/types"
 import CommentList from "./comment-list"
 import CommentInput from "./comment-input"
 import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Globe } from "lucide-react"
-import Image from 'next/image';
+import Image from "next/image"
 
 import {
   DropdownMenu,
@@ -67,12 +67,34 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
     onLike(post.id)
   }
 
-  const handleAddComment = async (content: string) => {
+  const handleAddComment = async (content: string, resources?: File[]): Promise<void> => {
     try {
-      const newComment = await onAddComment(post.id, content)
-      setComments([...comments, newComment])
+      let newComment: Comment
+
+      // If there are no resources, use the original onAddComment function
+      if (!resources || resources.length === 0) {
+        newComment = await onAddComment(post.id, content)
+      } else {
+        // If there are resources, use the commentService directly
+        const commentData = {
+          postId: post.id,
+          content,
+          resources: resources,
+        }
+        newComment = await commentService.createComment(commentData)
+      }
+
+      // Add the new comment to the list
+      setComments((prevComments) => [...prevComments, newComment])
+
+      // If we're only showing the last 3 comments, make sure to show all comments
+      // when a new one is added so the user can see their comment
+      if (!showAllComments && comments.length >= 3) {
+        setShowAllComments(true)
+      }
     } catch (err) {
       console.error("Failed to add comment:", err)
+      throw err
     }
   }
 
@@ -229,14 +251,14 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
             onClick={handleOpenImageViewer}
           >
             <div className="relative w-full max-h-[500px] h-[500px]">
-  <Image
-    src={mediaUrls[currentMediaIndex] || "/placeholder.svg"}
-    alt="Post media"
-    fill
-    className="object-cover"
-    sizes="100vw"
-  />
-</div>
+              <Image
+                src={mediaUrls[currentMediaIndex] || "/placeholder.svg"}
+                alt="Post media"
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+            </div>
 
             {mediaUrls.length > 1 && (
               <>
@@ -363,9 +385,7 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
 
               <CommentList comments={visibleComments} postId={post.id} onLikeComment={handleLikeComment} />
             </>
-          ) : (
-            <div className="text-[#565973] text-sm ml-12">No comments yet. Be the first to comment!</div>
-          )}
+          ) : null}
         </div>
       )}
 

@@ -19,6 +19,7 @@ export default function SocialFeed() {
   const [apiStatus, setApiStatus] = useState<"checking" | "connected" | "disconnected">("checking")
   const [useMockData, setUseMockDataState] = useState(false)
   const { user } = useAuth()
+  const [isCreatingPost, setIsCreatingPost] = useState(false)
 
   // Kiểm tra kết nối API khi component mount
   useEffect(() => {
@@ -87,6 +88,12 @@ export default function SocialFeed() {
 
   const handleCreatePost = async (content: string, files: File[] = [], category?: string) => {
     try {
+      setIsCreatingPost(true)
+      console.log("Creating post, isCreatingPost set to true")
+
+      // Thêm độ trễ giả lập để kiểm tra loading indicator
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
       const newPostData = {
         title: content.split(" ").slice(0, 7).join(" ") + (content.split(" ").length > 7 ? "..." : ""),
         content,
@@ -96,9 +103,14 @@ export default function SocialFeed() {
 
       const newPost = await postService.createPost(newPostData)
       setPosts([newPost, ...posts])
+      return Promise.resolve()
     } catch (err) {
       console.error("Failed to create post:", err)
       // You could add a toast notification here
+      return Promise.reject(err)
+    } finally {
+      setIsCreatingPost(false)
+      console.log("Post creation completed, isCreatingPost set to false")
     }
   }
 
@@ -273,7 +285,7 @@ export default function SocialFeed() {
         </Alert>
       )}
 
-      {user && <PostCreator onCreatePost={handleCreatePost} currentUser={user} />}
+      {user && <PostCreator onCreatePost={handleCreatePost} currentUser={user} isCreatingPost={isCreatingPost} />}
 
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-[#0b0f19]">Recent Posts</h2>

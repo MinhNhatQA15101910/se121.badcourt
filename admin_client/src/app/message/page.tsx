@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { conversations } from "@/lib/data"
 import type { ConversationType, MessageType } from "@/lib/types"
-import { startPresenceConnection, stopPresenceConnection } from "@/services/signalRService"
+import { startPresenceConnection } from "@/services/signalRService"
 import ConversationList from "./components/conversation/conversation-list"
 import ChatArea from "./components/chat/chat-area"
 
@@ -27,11 +27,13 @@ export default function ChatPage() {
         await startPresenceConnection({
           onUserOnline: (userId) => {
             console.log(`User ${userId} is online`)
-            setOnlineUsers((prev) => [...prev, userId])
+            setOnlineUsers((prev) => [...prev.filter((id) => id !== userId), userId])
 
             // Update conversation online status
             setAllConversations((prevConversations) =>
-              prevConversations.map((conv) => (conv.userId === userId ? { ...conv, online: true } : conv)),
+              prevConversations.map((conv) =>
+                typeof conv.userId === "string" && conv.userId === userId ? { ...conv, online: true } : conv,
+              ),
             )
           },
           onUserOffline: (userId) => {
@@ -40,7 +42,9 @@ export default function ChatPage() {
 
             // Update conversation online status
             setAllConversations((prevConversations) =>
-              prevConversations.map((conv) => (conv.userId === userId ? { ...conv, online: false } : conv)),
+              prevConversations.map((conv) =>
+                typeof conv.userId === "string" && conv.userId === userId ? { ...conv, online: false } : conv,
+              ),
             )
           },
           onOnlineUsers: (users) => {
@@ -51,7 +55,7 @@ export default function ChatPage() {
             setAllConversations((prevConversations) =>
               prevConversations.map((conv) => ({
                 ...conv,
-                online: conv.userId ? users.includes(conv.userId) : conv.online,
+                online: typeof conv.userId === "string" && users.includes(conv.userId) ? true : conv.online,
               })),
             )
           },
@@ -63,9 +67,9 @@ export default function ChatPage() {
 
     connectToPresenceHub()
 
-    // Disconnect when component unmounts
+    // Cleanup function
     return () => {
-      stopPresenceConnection()
+      // We don't disconnect here anymore, as SignalRManager handles this
     }
   }, [session?.user?.id])
 
