@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
+using RealtimeService.Presentation.ApiRepositories;
+using RealtimeService.Presentation.DTOs;
 using RealtimeService.Presentation.Extensions;
 using SharedKernel.DTOs;
 
@@ -13,6 +15,8 @@ public class MessageHub(
     IMessageRepository messageRepository,
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
+    IUserApiRepository userApiRepository,
+    IHubContext<GroupHub> groupHub,
     IMapper mapper
 ) : Hub
 {
@@ -81,80 +85,66 @@ public class MessageHub(
         await base.OnDisconnectedAsync(exception);
     }
 
-    // public override async Task OnDisconnectedAsync(Exception? exception)
-    // {
-    //     var group = await RemoveFromGroupAsync();
-    //     await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
-    //     await base.OnDisconnectedAsync(exception);
-    // }
+    public async Task SendMessage(CreateMessageDto createMessageDto)
+    {
+        var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
 
-    // public async Task SendMessage(CreateMessageDto createMessageDto)
-    // {
-    //     var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
+        if (userId.ToString() == createMessageDto.RecipientId)
+        {
+            throw new HubException("You cannot send messages to yourself");
+        }
 
-    //     if (userId.ToString() == createMessageDto.RecipientId)
-    //     {
-    //         throw new HubException("You cannot send messages to yourself");
-    //     }
+        var sender = await userApiRepository.GetUserByIdAsync(userId);
+        var recipient = await userApiRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
+        if (sender == null || recipient == null)
+        {
+            throw new HubException("Cannot send message");
+        }
 
-    //     var sender = await userApiRepository.GetUserByIdAsync(userId);
-    //     var recipient = await userApiRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
-    //     if (sender == null || recipient == null)
-    //     {
-    //         throw new HubException("Cannot send message");
-    //     }
+        var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
+        var group = await groupRepository.GetGroupByNameAsync(groupName)
+            ?? throw new HubException("Group not found");
 
-    //     var message = new Message
-    //     {
-    //         SenderId = sender.Id.ToString(),
-    //         SenderUsername = sender.Username,
-    //         SenderImageUrl = sender.PhotoUrl ?? string.Empty,
-    //         RecipientId = recipient.Id.ToString(),
-    //         RecipientUsername = recipient.Username,
-    //         RecipientImageUrl = recipient.PhotoUrl ?? string.Empty,
-    //         Content = createMessageDto.Content,
-    //     };
+        var message = new Message
+        {
+            SenderId = sender.Id.ToString(),
+            SenderUsername = sender.Username,
+            SenderImageUrl = sender.PhotoUrl ?? string.Empty,
+            GroupId = group.Id,
+            Content = createMessageDto.Content,
+        };
+        await messageRepository.AddMessageAsync(message);
 
-    //     var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
-    //     var group = await groupRepository.GetGroupByNameAsync(groupName);
+        var groupConnections = await connectionRepository.GetConnectionsByGroupIdAsync(group.Id);
+        if (groupConnections.Any(x => x.UserId == recipient.Id.ToString()))
+        {
+            message.DateRead = DateTime.UtcNow;
+        }
+        else
+        {
+            var userConnections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
+            if (userConnections != null && userConnections?.Count != null)
+            {
+                var groupDto = mapper.Map<GroupDto>(group);
+                groupDto.Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
+                foreach (var userIdInGroup in group.UserIds)
+                {
+                    var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
+                        ?? throw new HubException($"User with ID {userId} not found");
+                    groupDto.Users.Add(userDto);
+                }
+                groupDto.LastMessage = mapper.Map<MessageDto>(message);
+                groupDto.UpdatedAt = DateTime.UtcNow;
 
-    //     if (group != null && group.Connections.Any(x => x.UserId == recipient.Id.ToString()))
-    //     {
-    //         message.DateRead = DateTime.UtcNow;
-    //     }
-    //     else
-    //     {
-    //         var connections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
-    //         if (connections != null && connections?.Count != null)
-    //         {
-    //             await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", new
-    //             {
-    //                 userId = sender.Id.ToString(),
-    //             });
-    //         }
-    //     }
+                await groupHub.Clients.Clients(userConnections).SendAsync("NewMessageReceived", groupDto);
+            }
+        }
 
-    //     await messageRepository.AddMessageAsync(message);
+        group.UpdatedAt = DateTime.UtcNow;
+        await groupRepository.UpdateGroupAsync(group);
 
-    //     await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
-    // }
-
-    // private async Task<Group> RemoveFromGroupAsync()
-    // {
-    //     var group = await groupRepository.GetGroupForConnectionAsync(Context.ConnectionId);
-    //     var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
-    //     if (connection != null && group != null)
-    //     {
-    //         await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
-
-    //         group.Connections.Remove(connection);
-    //         await groupRepository.UpdateGroupAsync(group);
-
-    //         return group;
-    //     }
-
-    //     throw new HubException("Group not found");
-    // }
+        await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
+    }
 
     private static string GetGroupName(string caller, string? other)
     {
