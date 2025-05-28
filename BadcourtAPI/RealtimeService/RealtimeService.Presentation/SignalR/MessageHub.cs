@@ -42,16 +42,43 @@ public class MessageHub(
             await groupRepository.AddGroupAsync(group);
         }
 
-        group.Connections.Add(new Connection
+        var connection = new Connection
         {
             ConnectionId = Context.ConnectionId,
             GroupId = group.Id,
             UserId = Context.User.GetUserId().ToString()
-        });
-        await groupRepository.UpdateGroupAsync(group);
+        };
+        await connectionRepository.AddConnectionAsync(connection);
 
-        var messages = await messageRepository.GetMessagesByGroupIdAsync(group.Id);
+        var groupDto = mapper.Map<GroupDto>(group);
+        groupDto.Connections.Add(mapper.Map<ConnectionDto>(connection));
+
+        await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
+
+        var messages = await messageRepository.GetMessagesByGroupIdAsync(
+            Context.User.GetUserId().ToString(), group.Id);
         await Clients.Caller.SendAsync("ReceiveMessageThread", messages.Select(mapper.Map<MessageDto>).ToList());
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var connection = await connectionRepository.GetConnectionByIdAsync(Context.ConnectionId)
+            ?? throw new HubException("Connection not found");
+        var group = await groupRepository.GetGroupForConnectionAsync(Context.ConnectionId)
+            ?? throw new HubException("Group not found for connection");
+
+        if (connection != null && group != null)
+        {
+            await connectionRepository.DeleteConnectionAsync(connection.ConnectionId);
+
+            var groupDto = mapper.Map<GroupDto>(group);
+            groupDto.Connections.RemoveAll(c => c.ConnectionId == Context.ConnectionId);
+
+            // Notify other clients in the group about the updated group
+            await Clients.Group(group.Name).SendAsync("UpdatedGroup", groupDto);
+        }
+
+        await base.OnDisconnectedAsync(exception);
     }
 
     // public override async Task OnDisconnectedAsync(Exception? exception)
@@ -111,33 +138,6 @@ public class MessageHub(
 
     //     await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
     // }
-
-    private async Task<Group> AddToGroupAsync(string groupName)
-    {
-        var userId = Context.User?.GetUserId() ?? throw new Exception("Could not get user");
-        var group = await groupRepository.GetGroupByNameAsync(groupName);
-
-        var connection = new Connection
-        {
-            ConnectionId = Context.ConnectionId,
-            UserId = userId.ToString()
-        };
-        await connectionRepository.AddConnectionAsync(connection);
-
-        if (group == null)
-        {
-            group = new Group
-            {
-                Name = groupName,
-            };
-            await groupRepository.AddGroupAsync(group);
-        }
-        group.Connections.Add(connection);
-
-        await groupRepository.UpdateGroupAsync(group);
-
-        return group;
-    }
 
     // private async Task<Group> RemoveFromGroupAsync()
     // {

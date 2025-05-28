@@ -6,14 +6,9 @@ namespace RealtimeService.Domain.Interfaces;
 public interface IMessageRepository
 {
     Task AddMessageAsync(
-        Message message,
-        CancellationToken cancellationToken = default
-    );
-    Task<Message?> GetLastMessageAsync(string groupId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<object>> GetMessagesByGroupIdAsync(string id);
-    Task<IEnumerable<MessageDto>> GetMessageThreadAsync(
-        string currentUserId,
-        string recipientId,
-        CancellationToken cancellationToken = default
-    );
+        Message message, CancellationToken cancellationToken = default);
+    Task<Message?> GetLastMessageAsync(
+        string groupId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<MessageDto>> GetMessagesByGroupIdAsync(
+        string currentUserId, string groupId, CancellationToken cancellationToken = default);
 }

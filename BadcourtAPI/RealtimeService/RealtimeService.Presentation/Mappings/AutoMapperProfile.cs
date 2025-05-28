@@ -12,6 +12,7 @@ public class AutoMapperProfile : Profile
         CreateMap<Group, GroupDto>()
             .ForMember(dest => dest.Users, opt => opt.Ignore())
             .ForMember(dest => dest.LastMessage, opt => opt.Ignore());
+        CreateMap<Connection, ConnectionDto>();
         CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
         CreateMap<DateTime?, DateTime?>()
             .ConvertUsing(d => d.HasValue ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);
