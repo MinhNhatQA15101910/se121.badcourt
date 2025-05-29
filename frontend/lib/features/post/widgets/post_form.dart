@@ -13,7 +13,6 @@ import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-// Assuming this is custom
 
 class PostFormWidget extends StatefulWidget {
   final Post currentPost;
@@ -31,6 +30,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
   int _activeIndex = 0;
   bool _isLiked = false;
   bool _isLoading = false;
+  bool _isLikeLoading = false; // Add loading state for like button
   int _likeCount = 0;
   int _currentPage = 1;
   int _totalPages = 1;
@@ -81,24 +81,45 @@ class _PostFormWidgetState extends State<PostFormWidget> {
   }
 
   Future<void> _toggleLike() async {
+    // Prevent multiple rapid taps
+    if (_isLikeLoading) return;
+
+    setState(() {
+      _isLikeLoading = true;
+    });
+
+    // Optimistic update - update UI immediately
+    final previousLikedState = _isLiked;
+    final previousLikeCount = _likeCount;
+
+    setState(() {
+      if (_isLiked) {
+        _likeCount--;
+      } else {
+        _likeCount++;
+      }
+      _isLiked = !_isLiked;
+    });
+
     try {
       await _postService.toggleLike(
         context: context,
         postId: widget.currentPost.id,
       );
-
-      setState(() {
-        if (_isLiked) {
-          _likeCount--;
-        } else {
-          _likeCount++;
-        }
-        _isLiked = !_isLiked;
-      });
     } catch (error) {
+      // Revert changes if API call fails
+      setState(() {
+        _isLiked = previousLikedState;
+        _likeCount = previousLikeCount;
+      });
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to toggle like. Please try again.')),
       );
+    } finally {
+      setState(() {
+        _isLikeLoading = false;
+      });
     }
   }
 
@@ -110,6 +131,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
   void initState() {
     super.initState();
     _fetchCommentByPostId();
+    // Initialize like state from the post model
     _likeCount = widget.currentPost.likesCount;
     _isLiked = widget.currentPost.isLiked;
   }
@@ -145,27 +167,19 @@ class _PostFormWidgetState extends State<PostFormWidget> {
           ),
           const SizedBox(height: 12),
 
-          _customText(
-            // widget.currentPost.title,
-            "Title",
-            15,
-            FontWeight.w700,
-            GlobalVariables.blackGrey,
-            10,
-          ),
+          // Only show title if it exists and is not empty
+          if (widget.currentPost.content.isNotEmpty) ...[
+            _customText(
+              widget.currentPost.content,
+              14,
+              FontWeight.w400,
+              GlobalVariables.blackGrey,
+              10,
+            ),
+            const SizedBox(height: 12),
+          ],
 
-          const SizedBox(height: 12),
-
-          _customText(
-            widget.currentPost.content,
-            14,
-            FontWeight.w400,
-            GlobalVariables.blackGrey,
-            10,
-          ),
-
-          const SizedBox(height: 12),
-          // Post image
+          // Post images
           if (widget.currentPost.resources.isNotEmpty)
             Container(
               child: Stack(
@@ -237,36 +251,38 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                       );
                     },
                   ),
-                  Positioned(
-                    bottom: 8,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        imageCount,
-                        (index) {
-                          return Container(
-                            margin: EdgeInsets.symmetric(horizontal: 4),
-                            width: 8, // Kích thước hình tròn
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _activeIndex == index
-                                  ? GlobalVariables.green
-                                  : GlobalVariables.grey,
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                  // Image indicators (only show if more than 1 image)
+                  if (imageCount > 1)
+                    Positioned(
+                      bottom: 8,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          imageCount,
+                          (index) {
+                            return Container(
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _activeIndex == index
+                                    ? GlobalVariables.green
+                                    : GlobalVariables.grey,
+                                boxShadow: [
+                                  BoxShadow(
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -284,32 +300,49 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               ),
               Row(
                 children: [
-                  Row(
-                    children: [
-                      GestureDetector(
-  onTap: _toggleLike,
-  child: Row(
-    children: [
-      Icon(
-        _isLiked
-            ? Icons.thumb_up_alt          // Nếu liked thì icon filled
-            : Icons.thumb_up_alt_outlined, // Nếu chưa like thì icon outlined
-        color: _isLiked
-            ? GlobalVariables.green       // Nếu liked thì màu xanh
-            : GlobalVariables.darkGrey,   // Nếu chưa like thì màu xám
-        size: 18,
-      ),
-      const SizedBox(width: 4),
-      _customText('$_likeCount', 14, FontWeight.w500,
-          GlobalVariables.darkGrey, 1),
-    ],
-  ),
-),
-
-                    ],
+                  // Like button with improved visual feedback
+                  GestureDetector(
+                    onTap: _toggleLike,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        children: [
+                          _isLikeLoading
+                              ? SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      GlobalVariables.green,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  _isLiked
+                                      ? Icons.thumb_up_alt // Filled icon when liked
+                                      : Icons.thumb_up_alt_outlined, // Outlined when not liked
+                                  color: _isLiked
+                                      ? GlobalVariables.green // Green when liked
+                                      : GlobalVariables.darkGrey, // Gray when not liked
+                                  size: 18,
+                                ),
+                          const SizedBox(width: 4),
+                          _customText(
+                            '$_likeCount',
+                            14,
+                            FontWeight.w500,
+                            _isLiked 
+                                ? GlobalVariables.green // Green text when liked
+                                : GlobalVariables.darkGrey, // Gray text when not liked
+                            1,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 16),
-                  // Comment icon and count (static)
+                  // Comment icon and count
                   Row(
                     children: [
                       Icon(
@@ -319,8 +352,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                       ),
                       SizedBox(width: 4),
                       _customText(
-                        // widget.currentPost.commentsCount.toString(),
-                        "-1",
+                        widget.currentPost.commentsCount.toString(),
                         14,
                         FontWeight.w500,
                         GlobalVariables.darkGrey,
@@ -332,9 +364,7 @@ class _PostFormWidgetState extends State<PostFormWidget> {
               ),
             ],
           ),
-          SizedBox(
-            height: 16,
-          ),
+          SizedBox(height: 16),
           InputCommentWidget(
               postId: widget.currentPost.id,
               onCommentCreated: _refreshComments),
@@ -350,8 +380,8 @@ class _PostFormWidgetState extends State<PostFormWidget> {
                 userId: comment.publisherId,
                 commentText: comment.content,
                 date: formatDate(comment.createdAt),
-                initialLikesCount: 0,
-                commentsCount: 0,
+                initialLikesCount: comment.likesCount,
+                resources: comment.resources,
               );
             },
           ),

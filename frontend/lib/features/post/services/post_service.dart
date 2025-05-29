@@ -67,6 +67,8 @@ class PostService {
     required int pageNumber,
     int pageSize = 10,
   }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     List<Post> postList = [];
     int totalPages = 0;
 
@@ -77,7 +79,13 @@ class PostService {
         'pageSize': pageSize.toString(),
       });
 
-      http.Response res = await http.get(uriWithParams);
+      http.Response res = await http.get(
+        uriWithParams,
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
 
       httpErrorHandler(
         response: res,
@@ -114,6 +122,7 @@ class PostService {
     BuildContext context,
     String postId,
     String content,
+    List<File> images, // Add images parameter
   ) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -128,6 +137,15 @@ class PostService {
 
       request.fields['postId'] = postId;
       request.fields['content'] = content;
+
+      // Add images to the request
+      for (File image in images) {
+        var multipartFile = await http.MultipartFile.fromPath(
+          'resources', // Use the same field name as your API expects
+          image.path,
+        );
+        request.files.add(multipartFile);
+      }
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
@@ -214,6 +232,41 @@ class PostService {
     try {
       http.Response response = await http.post(
         Uri.parse('$uri/gateway/posts/toggle-like/$postId'),
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {},
+      );
+      return true;
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+
+      return false;
+    }
+  }
+
+  Future<bool> toggleCommentLike({
+    required BuildContext context,
+    required String commentId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      http.Response response = await http.post(
+        Uri.parse('$uri/gateway/comments/toggle-like/$commentId'),
         headers: {
           'Authorization': 'Bearer ${userProvider.user.token}',
           'Content-Type': 'application/json',

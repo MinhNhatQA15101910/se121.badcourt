@@ -409,7 +409,6 @@ export const conversations: ConversationType[] = [
     time: "06:32 PM",
     unread: 0,
     online: true,
-    isActive: true,
     starred: false,
     messages: [
       { id: 1, text: "Hello there", sent: false, time: "06:32 PM" },
@@ -432,7 +431,6 @@ export const conversations: ConversationType[] = [
     time: "05:30 PM",
     unread: 1,
     online: false,
-    isActive: false,
     starred: true,
     messages: [
       { id: 1, text: "Hi there! How's the project coming along?", sent: false, time: "05:25 PM" },
@@ -447,7 +445,6 @@ export const conversations: ConversationType[] = [
     time: "05:30 PM",
     unread: 0,
     online: true,
-    isActive: false,
     starred: false,
     messages: [
       { id: 1, text: "Hey! Did you finish the Hi-Fi wireframes for flora app design?", sent: false, time: "05:30 PM" },
@@ -461,7 +458,6 @@ export const conversations: ConversationType[] = [
     time: "04:15 PM",
     unread: 2,
     online: true,
-    isActive: false,
     starred: true,
     messages: [
       { id: 1, text: "Hello, I'd like to ask about badminton court prices", sent: true, time: "04:10 PM" },
@@ -490,7 +486,6 @@ export const conversations: ConversationType[] = [
     time: "Yesterday",
     unread: 0,
     online: false,
-    isActive: false,
     starred: false,
     messages: [
       {
