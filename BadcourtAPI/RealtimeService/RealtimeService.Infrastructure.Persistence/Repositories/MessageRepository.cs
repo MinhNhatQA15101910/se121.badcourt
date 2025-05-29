@@ -32,28 +32,44 @@ public class MessageRepository : IMessageRepository
         await _messages.InsertOneAsync(message, cancellationToken: cancellationToken);
     }
 
-    public async Task<IEnumerable<MessageDto>> GetMessageThreadAsync(
-        string currentUserId,
-        string recipientId,
-        CancellationToken cancellationToken = default
-    )
+    public Task<Message?> GetLastMessageAsync(string groupId, CancellationToken cancellationToken = default)
+    {
+        return _messages.AsQueryable()
+            .Where(m => m.GroupId == groupId)
+            .OrderByDescending(m => m.MessageSent)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<MessageDto>> GetMessagesByGroupIdAsync(string currentUserId, string groupId, CancellationToken cancellationToken = default)
     {
         var query = _messages.AsQueryable()
-            .Where(m =>
-                (m.RecipientId == currentUserId && !m.RecipientDeleted && m.SenderId == recipientId) ||
-                (m.SenderId == currentUserId && !m.SenderDeleted && m.RecipientId == recipientId))
-            .OrderBy(m => m.MessageSent);
+            .Where(m => m.GroupId == groupId)
+            .OrderByDescending(m => m.MessageSent);
 
         var unreadMessages = query.Where(m =>
             m.DateRead == null &&
-            m.RecipientId == currentUserId
+            m.SenderId != currentUserId
         ).ToList();
         if (unreadMessages.Count != 0)
         {
+            foreach (var message in unreadMessages)
+            {
+                message.DateRead = DateTime.UtcNow;
+                await UpdateMessageAsync(message, cancellationToken);
+            }
             unreadMessages.ForEach(m => m.DateRead = DateTime.UtcNow);
         }
 
         return await query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+    }
+
+    private async Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default)
+    {
+        await _messages.ReplaceOneAsync(
+            m => m.Id == message.Id,
+            message,
+            cancellationToken: cancellationToken
+        );
     }
 }

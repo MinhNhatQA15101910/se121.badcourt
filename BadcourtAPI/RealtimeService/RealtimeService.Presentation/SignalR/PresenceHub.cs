@@ -4,6 +4,10 @@ using RealtimeService.Presentation.Extensions;
 
 namespace RealtimeService.Presentation.SignalR;
 
+/// <summary>
+/// This hub will be connected when user is logged in and disconnected when user is logged out.
+/// </summary>
+/// <param name="presenceTracker"></param>
 [Authorize]
 public class PresenceHub(PresenceTracker presenceTracker) : Hub
 {

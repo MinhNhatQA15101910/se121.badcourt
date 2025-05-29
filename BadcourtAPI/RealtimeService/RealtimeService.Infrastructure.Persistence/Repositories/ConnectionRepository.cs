@@ -51,4 +51,11 @@ public class ConnectionRepository : IConnectionRepository
             .Find(c => c.ConnectionId == connectionId)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }
+
+    public async Task<List<Connection>> GetConnectionsByGroupIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        return await _connections
+            .Find(c => c.GroupId == id)
+            .ToListAsync(cancellationToken: cancellationToken);
+    }
 }

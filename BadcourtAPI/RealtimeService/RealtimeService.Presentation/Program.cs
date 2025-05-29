@@ -27,14 +27,18 @@ app.UseAuthorization();
 
 app.MapHub<PresenceHub>("hubs/presence");
 app.MapHub<MessageHub>("hubs/message");
+app.MapHub<GroupHub>("hubs/group");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 try
 {
     var connectionRepository = services.GetRequiredService<IConnectionRepository>();
+    var groupRepository = services.GetRequiredService<IGroupRepository>();
+    var messageRepository = services.GetRequiredService<IMessageRepository>();
 
     await connectionRepository.DeleteAllAsync();
+    // await groupRepository.DeleteAllConnectionsAsync();
 }
 catch (Exception ex)
 {
