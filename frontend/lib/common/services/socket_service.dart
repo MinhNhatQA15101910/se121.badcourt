@@ -1,4 +1,3 @@
-import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/message_room.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -16,46 +15,11 @@ class SocketService {
   IO.Socket? get socket => _socket;
 
   void connect(String token, String userId) {
-    if (_socket == null || !_socket!.connected) {
-      _socket = IO.io('ws://${ipconfig}:3000', <String, dynamic>{
-        'transports': ['websocket'],
-        'extraHeaders': {'Authorization': 'Bearer $token'},
-      });
-
-      _socket?.onConnect((_) {
-        print('Connected to socket server');
-        _socket?.emit('login', userId);
-        print('Socket sent login');
-      });
-
-      _socket?.onDisconnect((_) {
-        print('Disconnected from socket server');
-      });
-
-      _socket?.onError((error) {
-        print('Socket error: $error');
-      });
-
-      _socket?.onReconnect((_) {
-        print('Reconnected to socket server');
-      });
-
-      _socket?.onReconnectAttempt((_) {
-        print('Attempting to reconnect to socket server');
-      });
-
-      _socket?.on('invokeEnterRoom', (roomId) {
-        print('Socket Received invokeEnterRoom event with roomId: $roomId');
-        socket?.emit("enterRoom", roomId);
-      });
-    } else {
-      print('Socket already connected');
-    }
+    
   }
 
   void disconnect() {
-    _socket?.disconnect();
-    print('Socket disconnected manually');
+    
   }
 
   void enterRoom(String roomId) {

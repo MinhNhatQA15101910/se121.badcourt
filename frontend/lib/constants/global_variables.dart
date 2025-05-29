@@ -10,8 +10,9 @@ import 'package:frontend/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-String ipconfig = '192.168.1.111';
+String ipconfig = '192.168.1.32';
 String uri = 'http://${ipconfig}:5000';
+String signalrUri = 'http://${ipconfig}:7000';
 
 List<SingleChildWidget> providers = [
   ChangeNotifierProvider(

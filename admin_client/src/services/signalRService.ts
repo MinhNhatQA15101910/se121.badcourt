@@ -3,7 +3,7 @@ import { getSession } from "next-auth/react"
 import type { PresenceCallbacks, MessageCallbacks, SignalRMessageThread, SignalRMessage } from "@/lib/types"
 
 // Lấy API URL từ biến môi trường
-const API_URL = "http://localhost:7000"
+const API_URL = "http://192.168.1.32:7000"
 
 // Định nghĩa các URL của hub
 const PRESENCE_HUB_URL = `${API_URL}/hubs/presence`
