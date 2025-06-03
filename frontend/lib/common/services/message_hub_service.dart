@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:frontend/constants/global_variables.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:frontend/models/group_dto.dart';
+import 'package:frontend/models/create_message_dto.dart';
 
 class MessageHubService {
   static final MessageHubService _instance = MessageHubService._internal();
@@ -25,7 +28,7 @@ class MessageHubService {
     try {
       final hubUrl = '$signalrUri/hubs/message?user=$otherUserId';
       print('[MessageHub] Connecting to: $hubUrl');
-      
+
       final connection = HubConnectionBuilder()
           .withUrl(
             hubUrl,
@@ -49,7 +52,8 @@ class MessageHubService {
               final group = GroupDto.fromJson(groupData);
               onUpdatedGroup?.call(group);
             } else {
-              print('[MessageHub] UpdatedGroup data is not Map<String, dynamic>: ${groupData.runtimeType}');
+              print(
+                  '[MessageHub] UpdatedGroup data is not Map<String, dynamic>: ${groupData.runtimeType}');
             }
           } catch (e) {
             print('[MessageHub] Error parsing UpdatedGroup: $e');
@@ -73,7 +77,8 @@ class MessageHubService {
               onReceiveMessageThread?.call(messages);
               print('[MessageHub] Received ${messages.length} messages');
             } else {
-              print('[MessageHub] ReceiveMessageThread data is not List: ${messagesData.runtimeType}');
+              print(
+                  '[MessageHub] ReceiveMessageThread data is not List: ${messagesData.runtimeType}');
             }
           } catch (e) {
             print('[MessageHub] Error parsing message thread: $e');
@@ -90,7 +95,8 @@ class MessageHubService {
               final message = MessageDto.fromJson(messageData);
               onNewMessage?.call(message);
             } else {
-              print('[MessageHub] NewMessage data is not Map<String, dynamic>: ${messageData.runtimeType}');
+              print(
+                  '[MessageHub] NewMessage data is not Map<String, dynamic>: ${messageData.runtimeType}');
             }
           } catch (e) {
             print('[MessageHub] Error parsing new message: $e');
@@ -107,7 +113,8 @@ class MessageHubService {
               final group = GroupDto.fromJson(groupData);
               onNewMessageReceived?.call(group);
             } else {
-              print('[MessageHub] NewMessageReceived data is not Map<String, dynamic>: ${groupData.runtimeType}');
+              print(
+                  '[MessageHub] NewMessageReceived data is not Map<String, dynamic>: ${groupData.runtimeType}');
             }
           } catch (e) {
             print('[MessageHub] Error parsing NewMessageReceived: $e');
@@ -120,7 +127,6 @@ class MessageHubService {
       _connections[otherUserId] = connection;
       _connectionStates[otherUserId] = true;
       print('✅ [MessageHub] Connected to user: $otherUserId');
-      
     } catch (e) {
       print('❌ [MessageHub] Connection failed for user $otherUserId: $e');
       _connectionStates[otherUserId] = false;
@@ -137,7 +143,8 @@ class MessageHubService {
         _connectionStates[otherUserId] = false;
         print('[MessageHub] Disconnected from user: $otherUserId');
       } catch (e) {
-        print('[MessageHub] Error stopping connection for user $otherUserId: $e');
+        print(
+            '[MessageHub] Error stopping connection for user $otherUserId: $e');
       }
     }
   }
@@ -149,19 +156,36 @@ class MessageHubService {
     print('[MessageHub] All connections stopped');
   }
 
-  Future<bool> sendMessage(String otherUserId, String content) async {
+  Future<bool> sendMessage(String otherUserId, String content,
+      {String? attachmentUrl}) async {
     final connection = _connections[otherUserId];
-    if (connection == null || !(_connectionStates[otherUserId] ?? false)) {
+
+    if (connection == null) {
       print('[MessageHub] No connection to user: $otherUserId');
       return false;
+    }
+
+    if (connection.state != HubConnectionState.Connected) {
+      print(
+          '[MessageHub] Connection to user $otherUserId is not active (state: ${connection.state}). Attempting to reconnect...');
+      try {
+        await connection.start();
+        _connectionStates[otherUserId] = true;
+        print('✅ [MessageHub] Reconnected to user: $otherUserId');
+      } catch (e) {
+        print('❌ [MessageHub] Reconnection failed for user $otherUserId: $e');
+        _connectionStates[otherUserId] = false;
+        return false;
+      }
     }
 
     try {
       final createMessageDto = CreateMessageDto(
         recipientId: otherUserId,
         content: content,
+        attachmentUrl: attachmentUrl,
       );
-
+print('Dữ liệu JSON sẽ gửi đi là: ' + jsonEncode(createMessageDto.toJson()));
       await connection.invoke('SendMessage', args: [createMessageDto.toJson()]);
       print('[MessageHub] Message sent to user: $otherUserId');
       return true;
@@ -179,4 +203,19 @@ class MessageHubService {
       .where((entry) => entry.value)
       .map((entry) => entry.key)
       .toList();
+
+  // Get connection state for a specific user
+  String getConnectionState(String otherUserId) {
+    final connection = _connections[otherUserId];
+    if (connection == null) return 'Not initialized';
+    return connection.state.toString();
+  }
+
+  // Check if any connections are active
+  bool get hasActiveConnections =>
+      _connectionStates.values.any((state) => state);
+
+  // Get count of active connections
+  int get activeConnectionsCount =>
+      _connectionStates.values.where((state) => state).length;
 }

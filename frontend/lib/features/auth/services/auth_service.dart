@@ -2,15 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:frontend/common/services/presence_service_hub.dart';
+import 'package:frontend/common/services/signalr_manager_service.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
+import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -18,7 +20,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final PresenceService _signalRService = PresenceService();
+  // Replace the individual service instances with SignalRManagerService
+  final SignalRManagerService _signalRManager = SignalRManagerService();
 
   Future<bool> validateSignUp({
     required BuildContext context,
@@ -147,35 +150,26 @@ class AuthService {
     }
   }
 
-  // Log in user with SignalR integration
+  // Log in user with SignalR and GroupHub integration
   Future<bool> logInUser({
     required BuildContext context,
     required String email,
     required String password,
   }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-    final authProvider = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    );
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    Provider.of<GroupProvider>(context, listen: false);
 
     try {
       print('Starting login process...');
 
       http.Response response = await http.post(
-        Uri.parse(
-          '$uri/gateway/auth/login',
-        ),
-        body: jsonEncode(
-          {
-            'email': email,
-            'password': password,
-            if (!authProvider.isPlayer) 'role': 'manager',
-          },
-        ),
+        Uri.parse('$uri/gateway/auth/login'),
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          if (!authProvider.isPlayer) 'role': 'manager',
+        }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -189,26 +183,23 @@ class AuthService {
 
           SharedPreferences prefs = await SharedPreferences.getInstance();
           final token = jsonDecode(response.body)['token'];
-          await prefs.setString('Authorization', 'Bearer $token');
+          await prefs.setString('x-auth-token', token);
 
           userProvider.setUser(response.body);
           print('User data set in provider');
 
-          // Connect to SignalR immediately after successful login
+          // Connect to all SignalR services
           try {
-            print('Attempting to connect to SignalR...');
-            String baseUrl = signalrUri;
-            if (baseUrl.isNotEmpty && token != null) {
-              await _signalRService.startConnection(token);
-              print('SignalR connected successfully after login');
-            } else {
-              print('Missing baseUrl or token for SignalR connection');
+            print('Attempting to connect to all SignalR services...');
+            if (token != null) {
+              await _signalRManager.startAllConnections(token);
+              print('All SignalR services connected successfully after login');
             }
           } catch (signalRError) {
-            print('Error connecting to SignalR: $signalRError');
-            // Don't fail the login if SignalR connection fails
+            print('Error connecting to SignalR services: $signalRError');
           }
 
+          // Navigate based on role
           final data = jsonDecode(response.body) as Map<String, dynamic>;
           final roles = (data['roles'] as List<dynamic>).cast<String>();
 
@@ -219,7 +210,7 @@ class AuthService {
             );
           } else if (roles.isNotEmpty && roles[0] == 'Manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              IntroManagerScreen.routeName,
+              ManagerBottomBar.routeName,
               (route) => false,
             );
           }
@@ -232,12 +223,7 @@ class AuthService {
         },
       );
 
-      if (response.statusCode != 200) {
-        print('Login failed with status code: ${response.statusCode}');
-        return false;
-      }
-
-      return true;
+      return response.statusCode == 200;
     } catch (error) {
       print('Login error: $error');
       IconSnackBar.show(
@@ -245,16 +231,20 @@ class AuthService {
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
-
       return false;
     }
   }
 
-// Log in user with google and SignalR integration
+  // Log in user with google and SignalR integration
   Future<bool> logInWithGoogle({
     required BuildContext context,
     required GoogleSignInAccount account,
   }) async {
+    Provider.of<GroupProvider>(
+      context,
+      listen: false,
+    );
+
     try {
       print('Starting Google login process...');
 
@@ -286,16 +276,15 @@ class AuthService {
           Provider.of<UserProvider>(context, listen: false)
               .setUser(response.body);
 
-          // Connect to SignalR immediately after successful Google login
+          // Connect to PresenceHub immediately after successful Google login
           try {
-            print('Attempting to connect to SignalR after Google login...');
-            String baseUrl = signalrUri;
-            if (baseUrl.isNotEmpty && token != null) {
-              await _signalRService.startConnection(token);
-              print('SignalR connected successfully after Google login');
+            print('Attempting to connect to PresenceHub after Google login...');
+            if (token != null) {
+              await _signalRManager.startAllConnections(token);
+              print('All SignalR services connected successfully after Google login');
             }
           } catch (signalRError) {
-            print('Error connecting to SignalR: $signalRError');
+            print('Error connecting to SignalR services: $signalRError');
           }
 
           Navigator.of(context).pushNamedAndRemoveUntil(
@@ -467,13 +456,12 @@ class AuthService {
     }
   }
 
-  // Get user data with SignalR auto-connect for existing sessions
+  // Get user data with SignalR and GroupHub auto-connect for existing sessions
   Future<void> getUserData(BuildContext context) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('x-auth-token');
-      print(
-          'Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
+      print('Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
 
       if (token == null) {
         await prefs.setString('x-auth-token', '');
@@ -500,24 +488,16 @@ class AuthService {
           },
         );
 
-        Provider.of<UserProvider>(
-          context,
-          listen: false,
-        ).setUser(userRes.body);
-
+        Provider.of<UserProvider>(context, listen: false).setUser(userRes.body);
         print('User data loaded successfully');
 
-        // Auto-connect to SignalR if user is already logged in
+        // Auto-connect to all SignalR services
         try {
-          String baseUrl = signalrUri;
-          if (baseUrl.isNotEmpty && !_signalRService.isConnected) {
-            String cleanToken =
-                token.startsWith('Bearer ') ? token.substring(7) : token;
-            await _signalRService.startConnection(cleanToken);
-            print('SignalR auto-connected for existing user session');
-          }
+          String cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
+          await _signalRManager.startAllConnections(cleanToken);
+          print('All SignalR services auto-connected for existing user session');
         } catch (signalRError) {
-          print('Error auto-connecting to SignalR: $signalRError');
+          print('Error auto-connecting to SignalR services: $signalRError');
         }
       }
     } catch (error) {
@@ -530,12 +510,12 @@ class AuthService {
     }
   }
 
-  // Add logout method with SignalR disconnect
+  // Add logout method with SignalR and GroupHub disconnect
   Future<void> logOutUser(BuildContext context) async {
     try {
-      // Disconnect from SignalR
-      await _signalRService.stopConnection();
-      print('SignalR disconnected on logout');
+      // Disconnect from all SignalR services
+      await _signalRManager.stopAllConnections();
+      print('All SignalR services disconnected on logout');
 
       // Clear stored tokens
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -547,7 +527,7 @@ class AuthService {
 
       // Navigate to auth screen
       Navigator.of(context).pushNamedAndRemoveUntil(
-        '/auth', // Replace with your auth route
+        AuthOptionsScreen.routeName,
         (route) => false,
       );
 
@@ -566,6 +546,6 @@ class AuthService {
     }
   }
 
-  // Get SignalR service instance for external use
-  PresenceService get signalRService => _signalRService;
+  // Get SignalR manager service instance
+  SignalRManagerService get signalRManager => _signalRManager;
 }

@@ -1,6 +1,7 @@
 import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
+import 'package:frontend/models/group_dto.dart';
 
 class SignalRManagerService {
   static final SignalRManagerService _instance = SignalRManagerService._internal();
@@ -12,7 +13,7 @@ class SignalRManagerService {
   final MessageHubService _messageHubService = MessageHubService();
 
   // Start all SignalR connections
-  Future<void> startAllConnections(String baseUrl, String accessToken) async {
+  Future<void> startAllConnections(String accessToken) async {
     try {
       print('[SignalRManager] Starting all SignalR connections...');
       
@@ -45,7 +46,7 @@ class SignalRManagerService {
   }
 
   // Connect to a specific user for messaging
-  Future<void> connectToUser(String baseUrl, String accessToken, String otherUserId) async {
+  Future<void> connectToUser(String accessToken, String otherUserId) async {
     try {
       await _messageHubService.startConnection(accessToken, otherUserId);
     } catch (e) {
@@ -60,8 +61,18 @@ class SignalRManagerService {
   }
 
   // Send message to a user
-  Future<bool> sendMessage(String otherUserId, String content) async {
-    return await _messageHubService.sendMessage(otherUserId, content);
+  Future<bool> sendMessage(String otherUserId, String content, {String? attachmentUrl}) async {
+    return await _messageHubService.sendMessage(otherUserId, content, attachmentUrl: attachmentUrl);
+  }
+
+  // Send message to group
+  Future<bool> sendMessageToGroup(String groupId, String content, {String? attachmentUrl}) async {
+    return await _groupHubService.sendMessage(groupId, content, attachmentUrl: attachmentUrl);
+  }
+
+  // Mark group as read
+  Future<bool> markGroupAsRead(String groupId) async {
+    return await _groupHubService.markGroupAsRead(groupId);
   }
 
   // Getters for individual services
@@ -75,4 +86,24 @@ class SignalRManagerService {
   bool isConnectedToUser(String userId) => _messageHubService.isConnectedToUser(userId);
   
   List<String> get connectedUsers => _messageHubService.connectedUsers;
+
+  // Initialize all services with callbacks
+  void initializeCallbacks({
+    Function(String userId)? onUserOnline,
+    Function(String userId)? onUserOffline,
+    Function(List<String> users)? onOnlineUsersReceived,
+    Function(List<GroupDto> groups)? onReceiveGroups,
+    Function(MessageDto message)? onNewMessage,
+    Function(GroupDto group)? onGroupUpdated,
+  }) {
+    // Set presence callbacks
+    _presenceService.onUserOnline = onUserOnline;
+    _presenceService.onUserOffline = onUserOffline;
+    _presenceService.onOnlineUsersReceived = onOnlineUsersReceived;
+
+    // Set group hub callbacks
+    _groupHubService.onReceiveGroups = onReceiveGroups;
+    _groupHubService.onNewMessage = onNewMessage;
+    _groupHubService.onGroupUpdated = onGroupUpdated;
+  }
 }

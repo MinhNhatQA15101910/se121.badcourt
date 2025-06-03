@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/services/socket_service.dart';
 import 'package:frontend/common/widgets/message_button.dart';
 import 'package:frontend/common/widgets/notification_button.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -26,8 +25,7 @@ class ManagerBottomBar extends StatefulWidget {
 class _ManagerBottomBarState extends State<ManagerBottomBar> {
   int _selectedIndex = 0;
   String userId = "";
-  int _unreadMessages = 0; // Lưu số tin nhắn chưa đọc
-  final SocketService _socketService = SocketService();
+  
   final List<Widget> _pages = [
     const HomeScreen(),
     const CourtManagementScreen(),
@@ -45,7 +43,7 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
       listen: false,
     );
     Facility facility = currentFacilityProvider.currentFacility;
-    IntroManagerService introManagerService = new IntroManagerService();
+    IntroManagerService introManagerService = IntroManagerService();
     facility = (await introManagerService.fetchFacilityById(
         context: context, facilityId: facility.id))!;
     currentFacilityProvider.setFacility(facility);
@@ -60,32 +58,21 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
     );
     final id = userProvider.user.id;
     if (id.isNotEmpty) {
-      _socketService.connect(userProvider.user.token, userProvider.user.id);
-
       setState(() {
         userId = id;
-      });
-
-      // Lắng nghe sự kiện newMessage
-      _socketService.onNewMessage((data) {
-        setState(() {
-          _unreadMessages++; // Tăng số tin nhắn chưa đọc
-        });
       });
     }
   }
 
-  // Callback function để reset index và unreadMessages
+  // Callback function để reset index
   void _resetIndex() {
     setState(() {
       _selectedIndex = 0; // Chuyển về tab đầu tiên (Home)
-      _unreadMessages = 0; // Reset số tin nhắn chưa đọc
     });
   }
 
   @override
   void dispose() {
-    _socketService.disconnect();
     super.dispose();
   }
 
@@ -119,11 +106,10 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
                 ),
               ),
               NotificationButton(userId: userId),
-              // Pass the callback to reset index
+              // Sử dụng MessageButton mới không cần truyền unreadMessages
               MessageButton(
                 userId: userId,
-                unreadMessages: _unreadMessages,
-                onMessageButtonPressed: _resetIndex, // Truyền callback để reset
+                onMessageButtonPressed: _resetIndex,
               ),
             ],
           ),

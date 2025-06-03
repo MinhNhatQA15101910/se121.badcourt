@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend/common/services/socket_service.dart';
+import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/message_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,8 +22,11 @@ class MessageDetailScreen extends StatefulWidget {
 class _MessageDetailScreenState extends State<MessageDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
-  final _messageService = MessageService();
-  final SocketService _socketService = SocketService();
+  // Remove the MessageService instance
+  // final _messageService = MessageService();
+
+  // Add SignalR services
+  final MessageHubService _messageHubService = MessageHubService();
   late String? userId;
 
   final ImagePicker _picker = ImagePicker();
@@ -35,10 +37,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   bool _hasMoreMessages = true;
   bool _isSendingMessage = false;
 
-  int _pageNumber = 1;
-  final int _pageSize = 10;
-
-  String roomId = "";
+  String groupId = "";
 
   final ScrollController _scrollController = ScrollController();
 
@@ -64,36 +63,40 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    // Disconnect from MessageHub for this user
+    if (userId != null) {
+      _messageHubService.stopConnection(userId!);
+    }
     super.dispose();
   }
 
+  // Update _initializeServices method
   Future<void> _initializeServices() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
-      roomId = await _messageService.getOrCreatePersonalMessageRoom(
-        context: context,
-        userId: userId ?? "",
+      // Connect to MessageHub for this specific user
+      await _messageHubService.startConnection(
+        userProvider.user.token,
+        userId ?? "",
       );
-      _socketService.onNewMessage((data) {
-        print('Received new message: $data');
-
+      
+      // Set up message callbacks
+      _messageHubService.onNewMessage = (message) {
+        print('Received new message: $message');
         setState(() {
-          // Parse và thêm tin nhắn vào danh sách
           _messages.insert(0, {
-            'isSender': data['senderId'] == userProvider.user.id,
-            'message': data['content'] ?? '',
-            'time': data['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
-            'resources': (data['resources'] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toList(),
-            'senderImageUrl': data['senderImageUrl'],
+            'isSender': message.senderId == userProvider.user.id,
+            'message': message.content,
+            'time': message.messageSent.millisecondsSinceEpoch,
+            'resources': [],
+            'senderImageUrl': message.senderPhotoUrl,
           });
-
           _isSendingMessage = false;
         });
-      });
+      };
 
+      // Request message thread
       await _fetchMessages();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,33 +118,33 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     }
 
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      Provider.of<UserProvider>(context, listen: false);
 
-      final messages = await _messageService.getMessages(
-        roomId: roomId,
-        context: context,
-        pageNumber: _pageNumber,
-        pageSize: _pageSize,
-      );
+      // final messages = await _messageService.getMessages(
+      //   groupId: groupId, // Sửa từ roomId thành groupId
+      //   context: context,
+      //   pageNumber: _pageNumber,
+      //   pageSize: _pageSize,
+      // );
 
-      setState(() {
-        if (messages.isEmpty || messages.length < _pageSize) {
-          _hasMoreMessages = false;
-        } else {
-          _pageNumber++;
-        }
+      // setState(() {
+      //   if (messages.isEmpty || messages.length < _pageSize) {
+      //     _hasMoreMessages = false;
+      //   } else {
+      //     _pageNumber++;
+      //   }
 
-        final newMessages = messages.map<Map<String, dynamic>>((msg) {
-          return {
-            'isSender': msg['senderId'] == userProvider.user.id,
-            'message': msg['content'] ?? '',
-            'time': msg['createdAt'] as int? ?? 0,
-            'resources': msg['resources'] ?? [],
-          };
-        }).toList();
+      //   final newMessages = messages.map<Map<String, dynamic>>((msg) {
+      //     return {
+      //       'isSender': msg['senderId'] == userProvider.user.id,
+      //       'message': msg['content'] ?? '',
+      //       'time': msg['createdAt'] as int? ?? 0,
+      //       'resources': msg['resources'] ?? [],
+      //     };
+      //   }).toList();
 
-        _messages.addAll(newMessages);
-      });
+      //   _messages.addAll(newMessages);
+      // });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching messages: $e')),
@@ -174,6 +177,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     }
   }
 
+  // Update _sendMessage method
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty && _imageFiles!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -185,26 +189,25 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     final content = _messageController.text.trim();
     _messageController.clear();
 
-    final List<File> imagesToSend = List<File>.from(_imageFiles!);
-
     setState(() {
       _imageFiles = [];
-      _isSendingMessage = false; // Bắt đầu trạng thái loading
+      _isSendingMessage = true;
     });
 
     try {
-      await _messageService.sendMessageToRoom(
-        roomId: roomId,
-        content: content,
-        imageFiles: imagesToSend,
-        context: context,
-      );
-
-      _socketService.sendMessageWithImages(
-        roomId,
+      // Send message via MessageHubService
+      final success = await _messageHubService.sendMessage(
+        userId ?? "",
         content,
-        imagesToSend.map((file) => file.path).toList(),
       );
+      
+      if (!success) {
+        throw Exception('Failed to send message via SignalR');
+      }
+      
+      setState(() {
+        _isSendingMessage = false;
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send message: $e')),

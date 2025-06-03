@@ -1,72 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_screen.dart';
+import 'package:frontend/providers/group_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
-class MessageButton extends StatelessWidget {
+class MessageButton extends StatefulWidget {
   final String userId;
-  final int unreadMessages; // Nhận số tin nhắn chưa đọc từ bên ngoài
-  final VoidCallback onMessageButtonPressed; // Callback khi nhấn vào nút
+  final VoidCallback? onMessageButtonPressed;
 
   const MessageButton({
     Key? key,
     required this.userId,
-    required this.unreadMessages,
-    required this.onMessageButtonPressed, // Thêm tham số này
+    this.onMessageButtonPressed,
   }) : super(key: key);
 
-  void _navigateToMessageScreen(BuildContext context) {
-    Navigator.of(context)
-        .pushNamed(
-      MessageScreen.routeName,
-      arguments: userId,
-    )
-        .then((_) {
-      // Gọi callback để reset số tin nhắn chưa đọc khi quay lại
-      onMessageButtonPressed(); // Reset index và unreadMessages
+  @override
+  State<MessageButton> createState() => _MessageButtonState();
+}
+
+class _MessageButtonState extends State<MessageButton> {
+  @override
+  void initState() {
+    super.initState();
+    // Kết nối GroupHub khi widget được khởi tạo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeGroupHub();
     });
+  }
+
+  // Khởi tạo kết nối GroupHub
+  Future<void> _initializeGroupHub() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    
+    if (userProvider.user.token.isNotEmpty && !groupProvider.isConnected) {
+      try {
+        await groupProvider.initializeGroupHub(
+          userProvider.user.token,
+        );
+        print('[MessageButton] GroupHub initialized');
+      } catch (e) {
+        print('[MessageButton] Error initializing GroupHub: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        IconButton(
-          onPressed: () {
-            _navigateToMessageScreen(context);
-          },
-          iconSize: 24,
-          icon: const Icon(
-            Icons.message_outlined,
-            color: GlobalVariables.white,
-          ),
-        ),
-        if (unreadMessages > 0) // Hiển thị khi có tin nhắn chưa đọc
-          Positioned(
-            right: 6,
-            bottom: 4,
-            child: Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
+    return Consumer<GroupProvider>(
+      builder: (context, groupProvider, _) {
+        final unreadCount = groupProvider.unreadMessageCount;
+        
+        return Stack(
+          children: [
+            IconButton(
+              onPressed: () {
+                // Gọi callback nếu có
+                if (widget.onMessageButtonPressed != null) {
+                  widget.onMessageButtonPressed!();
+                }
+                
+                // Chuyển đến màn hình tin nhắn
+                Navigator.pushNamed(
+                  context, 
+                  MessageScreen.routeName,
+                );
+              },
+              icon: const Icon(
+                Icons.message_outlined,
+                color: Colors.white,
               ),
-              constraints: const BoxConstraints(
-                minWidth: 12,
-                minHeight: 12,
-              ),
-              child: Center(
-                child: Text(
-                  '$unreadMessages', // Hiển thị số tin nhắn chưa đọc
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+            ),
+            
+            // Badge hiển thị số tin nhắn chưa đọc
+            if (unreadCount > 0)
+              Positioned(
+                right: 5,
+                top: 5,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 1,
+                    ),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
+                  child: Text(
+                    unreadCount > 99 ? '99+' : unreadCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
-            ),
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

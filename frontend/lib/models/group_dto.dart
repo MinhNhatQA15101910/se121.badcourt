@@ -3,8 +3,9 @@ class GroupDto {
   final String name;
   final List<String> userIds;
   final List<UserDto> users;
-  final List<ConnectionDto> connections;
+  final List<String> connections;
   final MessageDto? lastMessage;
+  final String? lastMessageAttachment; // Thêm trường này
   final bool hasMessage;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +17,7 @@ class GroupDto {
     required this.users,
     required this.connections,
     this.lastMessage,
+    this.lastMessageAttachment, // Thêm parameter này
     required this.hasMessage,
     required this.createdAt,
     required this.updatedAt,
@@ -26,68 +28,38 @@ class GroupDto {
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       userIds: List<String>.from(json['userIds'] ?? []),
-      users: (json['users'] as List?)?.map((user) => UserDto.fromJson(user)).toList() ?? [],
-      connections: (json['connections'] as List?)?.map((conn) => ConnectionDto.fromJson(conn)).toList() ?? [],
-      lastMessage: json['lastMessage'] != null ? MessageDto.fromJson(json['lastMessage']) : null,
+      users: (json['users'] as List<dynamic>?)
+              ?.map((user) => UserDto.fromJson(user))
+              .toList() ??
+          [],
+      connections: List<String>.from(json['connections'] ?? []),
+      lastMessage: json['lastMessage'] != null
+          ? MessageDto.fromJson(json['lastMessage'])
+          : null,
+      lastMessageAttachment: json['lastMessageAttachment'], // Parse từ JSON
       hasMessage: json['hasMessage'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.now(),
     );
   }
-}
 
-class MessageDto {
-  final String id;
-  final String groupId;
-  final String senderId;
-  final String senderUsername;
-  final String senderImageUrl;
-  final String content;
-  final DateTime? dateRead;
-  final DateTime messageSent;
-
-  MessageDto({
-    required this.id,
-    required this.groupId,
-    required this.senderId,
-    required this.senderUsername,
-    required this.senderImageUrl,
-    required this.content,
-    this.dateRead,
-    required this.messageSent,
-  });
-
-  factory MessageDto.fromJson(Map<String, dynamic> json) {
-    return MessageDto(
-      id: json['id'] ?? '',
-      groupId: json['groupId'] ?? '',
-      senderId: json['senderId'] ?? '',
-      senderUsername: json['senderUsername'] ?? '',
-      senderImageUrl: json['senderImageUrl'] ?? '',
-      content: json['content'] ?? '',
-      dateRead: json['dateRead'] != null ? DateTime.parse(json['dateRead']) : null,
-      messageSent: DateTime.parse(json['messageSent']),
-    );
-  }
-}
-
-class ConnectionDto {
-  final String connectionId;
-  final String groupId;
-  final String userId;
-
-  ConnectionDto({
-    required this.connectionId,
-    required this.groupId,
-    required this.userId,
-  });
-
-  factory ConnectionDto.fromJson(Map<String, dynamic> json) {
-    return ConnectionDto(
-      connectionId: json['connectionId'] ?? '',
-      groupId: json['groupId'] ?? '',
-      userId: json['userId'] ?? '',
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'userIds': userIds,
+      'users': users.map((user) => user.toJson()).toList(),
+      'connections': connections,
+      'lastMessage': lastMessage?.toJson(),
+      'lastMessageAttachment': lastMessageAttachment,
+      'hasMessage': hasMessage,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
   }
 }
 
@@ -96,12 +68,14 @@ class UserDto {
   final String username;
   final String email;
   final String? photoUrl;
+  final String role;
 
   UserDto({
     required this.id,
     required this.username,
     required this.email,
     this.photoUrl,
+    required this.role,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
@@ -110,23 +84,64 @@ class UserDto {
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       photoUrl: json['photoUrl'],
+      role: json['role'] ?? '',
     );
   }
-}
-
-class CreateMessageDto {
-  final String recipientId;
-  final String content;
-
-  CreateMessageDto({
-    required this.recipientId,
-    required this.content,
-  });
 
   Map<String, dynamic> toJson() {
     return {
-      'recipientId': recipientId,
-      'content': content,
+      'id': id,
+      'username': username,
+      'email': email,
+      'photoUrl': photoUrl,
+      'role': role,
     };
   }
 }
+
+class MessageDto {
+  final String id;
+  final String senderId;
+  final String groupId; // Thêm trường groupId
+  final String content;
+  final DateTime messageSent;
+  final String? senderUsername;
+  final String? senderPhotoUrl;
+
+  MessageDto({
+    required this.id,
+    required this.senderId,
+    required this.groupId, // Thêm vào constructor
+    required this.content,
+    required this.messageSent,
+    this.senderUsername,
+    this.senderPhotoUrl,
+  });
+
+  factory MessageDto.fromJson(Map<String, dynamic> json) {
+    return MessageDto(
+      id: json['id'] ?? '',
+      senderId: json['senderId'] ?? '',
+      groupId: json['groupId'] ?? '', // Parse từ JSON
+      content: json['content'] ?? '',
+      messageSent: json['messageSent'] != null
+          ? DateTime.parse(json['messageSent'])
+          : DateTime.now(),
+      senderUsername: json['senderUsername'],
+      senderPhotoUrl: json['senderPhotoUrl'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'senderId': senderId,
+      'groupId': groupId, // Thêm vào JSON
+      'content': content,
+      'messageSent': messageSent.toIso8601String(),
+      'senderUsername': senderUsername,
+      'senderPhotoUrl': senderPhotoUrl,
+    };
+  }
+}
+

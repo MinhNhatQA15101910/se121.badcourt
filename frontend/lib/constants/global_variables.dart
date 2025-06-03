@@ -4,13 +4,15 @@ import 'package:frontend/features/manager/add_facility/providers/new_facility_pr
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:frontend/providers/filter_provider.dart';
+import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/message_hub_provider.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-String ipconfig = '192.168.1.32';
+String ipconfig = '192.168.1.237';
 String uri = 'http://${ipconfig}:5000';
 String signalrUri = 'http://${ipconfig}:7000';
 
@@ -39,6 +41,8 @@ List<SingleChildWidget> providers = [
   ChangeNotifierProvider(
     create: (context) => AddressProvider(),
   ),
+  ChangeNotifierProvider(create: (context) => GroupProvider()),
+  ChangeNotifierProvider(create: (context) => MessageHubProvider())
 ];
 
 class GlobalVariables {
