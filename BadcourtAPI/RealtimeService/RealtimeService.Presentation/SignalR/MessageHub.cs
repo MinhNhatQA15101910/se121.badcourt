@@ -57,7 +57,7 @@ public class MessageHub(
         var groupDto = mapper.Map<GroupDto>(group);
         groupDto.Connections.Add(mapper.Map<ConnectionDto>(connection));
 
-        await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
+        await Clients.Group(groupName).SendAsync("UpdatedGroup", groupDto);
 
         var messages = await messageRepository.GetMessagesByGroupIdAsync(
             Context.User.GetUserId().ToString(), group.Id);
@@ -140,6 +140,7 @@ public class MessageHub(
             }
         }
 
+        if (!group.HasMessage) group.HasMessage = true;
         group.UpdatedAt = DateTime.UtcNow;
         await groupRepository.UpdateGroupAsync(group);
 

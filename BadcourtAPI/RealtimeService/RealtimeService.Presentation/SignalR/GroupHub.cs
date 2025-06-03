@@ -10,6 +10,7 @@ namespace RealtimeService.Presentation.SignalR;
 public class GroupHub(
     IGroupRepository groupRepository,
     IMessageRepository messageRepository,
+    IConnectionRepository connectionRepository,
     IUserApiRepository userApiRepository,
     IMapper mapper
 ) : Hub
@@ -29,6 +30,10 @@ public class GroupHub(
 
         for (var i = 0; i < groups.Count; i++)
         {
+            // Set connections
+            var groupConnections = await connectionRepository.GetConnectionsByGroupIdAsync(groups[i].Id);
+            groupDtos[i].Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
+
             // Set users
             foreach (var userIdInGroup in groups[i].UserIds)
             {
