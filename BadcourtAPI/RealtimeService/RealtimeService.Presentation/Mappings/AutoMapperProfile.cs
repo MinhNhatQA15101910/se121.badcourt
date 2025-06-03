@@ -14,6 +14,9 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.LastMessage, opt => opt.Ignore())
             .ForMember(dest => dest.Connections, opt => opt.Ignore());
         CreateMap<Connection, ConnectionDto>();
+        CreateMap<Notification, NotificationDto>()
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+        CreateMap<NotificationData, NotificationDataDto>();
         CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
         CreateMap<DateTime?, DateTime?>()
             .ConvertUsing(d => d.HasValue ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);

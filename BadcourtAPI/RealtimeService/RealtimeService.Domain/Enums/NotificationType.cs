@@ -7,5 +7,6 @@ public enum NotificationType
     CourtBookingCancelled,
     PostLiked,
     PostCommented,
+    CommentLiked,
     FacilityRated,
 }
