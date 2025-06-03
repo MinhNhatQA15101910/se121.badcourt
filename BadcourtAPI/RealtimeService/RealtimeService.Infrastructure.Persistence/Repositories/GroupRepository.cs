@@ -57,7 +57,7 @@ public class GroupRepository : IGroupRepository
     public async Task<List<Group>> GetGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)
     {
         return await _groups
-            .Find(g => g.UserIds.Contains(userId))
+            .Find(g => g.UserIds.Contains(userId) && g.HasMessage)
             .ToListAsync(cancellationToken);
     }
 

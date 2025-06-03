@@ -32,11 +32,12 @@ public class MessageRepository : IMessageRepository
         await _messages.InsertOneAsync(message, cancellationToken: cancellationToken);
     }
 
-    public Task<Message?> GetLastMessageAsync(string groupId, CancellationToken cancellationToken = default)
+    public async Task<Message?> GetLastMessageAsync(string groupId, CancellationToken cancellationToken = default)
     {
-        return _messages.AsQueryable()
-            .Where(m => m.GroupId == groupId)
-            .OrderByDescending(m => m.MessageSent)
+        return await _messages
+            .Find(m => m.GroupId == groupId)
+            .SortByDescending(m => m.MessageSent)
+            .Limit(1)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -60,8 +61,7 @@ public class MessageRepository : IMessageRepository
             unreadMessages.ForEach(m => m.DateRead = DateTime.UtcNow);
         }
 
-        return await query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
-            .ToListAsync(cancellationToken);
+        return [.. query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider)];
     }
 
     private async Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default)

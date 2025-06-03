@@ -4,7 +4,9 @@ public enum NotificationType
 {
     None,
     CourtBookingCreated,
-    CourtBookingUpdated,
     CourtBookingCancelled,
-    MessageReceived,
+    PostLiked,
+    PostCommented,
+    CommentLiked,
+    FacilityRated,
 }

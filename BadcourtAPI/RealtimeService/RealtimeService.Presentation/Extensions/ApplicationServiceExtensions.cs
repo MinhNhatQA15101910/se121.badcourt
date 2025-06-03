@@ -51,6 +51,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IConnectionRepository, ConnectionRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         return services;
     }
