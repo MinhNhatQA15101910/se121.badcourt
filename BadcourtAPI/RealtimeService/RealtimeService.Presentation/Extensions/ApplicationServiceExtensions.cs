@@ -2,6 +2,9 @@ using RealtimeService.Domain.Interfaces;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using RealtimeService.Infrastructure.Persistence.Repositories;
 using RealtimeService.Presentation.ApiRepositories;
+using RealtimeService.Presentation.Configurations;
+using RealtimeService.Presentation.Interfaces;
+using RealtimeService.Presentation.Services;
 using RealtimeService.Presentation.SignalR;
 
 namespace RealtimeService.Presentation.Extensions;
@@ -26,6 +29,7 @@ public static class ApplicationServiceExtensions
         services.AddSingleton<PresenceTracker>();
 
         return services.AddPersistence(configuration)
+            .AddExternalServices(configuration)
             .AddApplication(configuration);
     }
 
@@ -52,6 +56,15 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IConnectionRepository, ConnectionRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<CloudinarySettings>(config.GetSection(nameof(CloudinarySettings)));
+
+        services.AddScoped<IFileService, FileService>();
 
         return services;
     }

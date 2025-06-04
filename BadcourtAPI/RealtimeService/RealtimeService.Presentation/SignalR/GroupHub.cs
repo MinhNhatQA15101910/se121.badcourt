@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.ApiRepositories;
@@ -7,6 +8,7 @@ using SharedKernel.DTOs;
 
 namespace RealtimeService.Presentation.SignalR;
 
+[Authorize]
 public class GroupHub(
     IGroupRepository groupRepository,
     IMessageRepository messageRepository,
