@@ -4,5 +4,5 @@ namespace RealtimeService.Domain.Interfaces;
 
 public interface INotificationRepository
 {
-    Task<List<Notification>> GetNotificationsAsync(string userId, CancellationToken cancellationToken = default);
+    Task<List<Notification>> GetNotificationsForUserAsync(string userId, CancellationToken cancellationToken = default);
 }

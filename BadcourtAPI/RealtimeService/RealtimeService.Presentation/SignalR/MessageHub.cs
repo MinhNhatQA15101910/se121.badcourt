@@ -9,7 +9,9 @@ using RealtimeService.Presentation.ApiRepositories;
 using RealtimeService.Presentation.DTOs;
 using RealtimeService.Presentation.Extensions;
 using RealtimeService.Presentation.Interfaces;
+using SharedKernel;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Presentation.SignalR;
 
@@ -66,9 +68,17 @@ public class MessageHub(
 
         await Clients.Group(groupName).SendAsync("UpdatedGroup", groupDto);
 
-        var messages = await messageRepository.GetMessagesByGroupIdAsync(
-            Context.User.GetUserId().ToString(), group.Id);
-        await Clients.Caller.SendAsync("ReceiveMessageThread", messages.Select(mapper.Map<MessageDto>).ToList());
+        var messages = await messageRepository.GetMessagesAsync(new MessageParams
+        {
+            CurrentUserId = Context.User.GetUserId().ToString(),
+            GroupId = group.Id,
+            PageNumber = 1,
+            PageSize = 20,
+        });
+
+        var pagedMessages = mapper.Map<PagedResult<MessageDto>>(messages);
+
+        await Clients.Caller.SendAsync("ReceiveMessageThread", pagedMessages);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

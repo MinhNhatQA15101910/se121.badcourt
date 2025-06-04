@@ -24,7 +24,7 @@ public class NotificationRepository : INotificationRepository
         _mapper = mapper;
     }
 
-    public async Task<List<Notification>> GetNotificationsAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<List<Notification>> GetNotificationsForUserAsync(string userId, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Notification>.Filter.Eq(n => n.UserId, userId);
         return await _notifications.Find(filter)

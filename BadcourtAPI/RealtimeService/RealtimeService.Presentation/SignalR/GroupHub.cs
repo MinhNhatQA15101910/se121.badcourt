@@ -52,6 +52,6 @@ public class GroupHub(
             }
         }
 
-        await Clients.Caller.SendAsync("ReceiveGroups", groups);
+        await Clients.Caller.SendAsync("ReceiveGroups", groupDtos);
     }
 }
