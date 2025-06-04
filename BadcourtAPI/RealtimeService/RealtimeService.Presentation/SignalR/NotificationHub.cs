@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.SignalR;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.Extensions;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Presentation.SignalR;
 
 [Authorize]
 public class NotificationHub(
-    INotificationRepository notificationRepository,
-    IMapper mapper
+    INotificationRepository notificationRepository
 ) : Hub
 {
     public override async Task OnConnectedAsync()
@@ -20,11 +20,12 @@ public class NotificationHub(
             throw new HubException("Cannot get current user claims");
         }
 
-        var userId = Context.User.GetUserId().ToString();
-
-        var notifications = await notificationRepository.GetNotificationsForUserAsync(userId);
-
-        var notificationDtos = notifications.Select(mapper.Map<NotificationDto>).ToList();
+        var notificationDtos = await notificationRepository.GetNotificationsAsync(new NotificationParams
+        {
+            UserId = Context.User.GetUserId().ToString(),
+            PageSize = 20,
+            PageNumber = 1
+        });
 
         await Clients.Caller.SendAsync("ReceiveNotifications", notificationDtos);
     }
