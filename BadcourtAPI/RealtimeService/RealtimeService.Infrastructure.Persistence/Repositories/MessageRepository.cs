@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
@@ -45,19 +46,40 @@ public class MessageRepository : IMessageRepository
 
     public async Task<PagedList<MessageDto>> GetMessagesAsync(MessageParams messageParams, CancellationToken cancellationToken = default)
     {
-        var query = _messages.AsQueryable()
-            .Where(m => m.GroupId == messageParams.GroupId);
 
-        if (messageParams.OrderBy == "messageSent")
+        var pipeline = new List<BsonDocument>
         {
-            query = messageParams.SortBy == "asc" ? query.OrderBy(m => m.MessageSent) : query.OrderByDescending(m => m.MessageSent);
+            new("$match", new BsonDocument("GroupId", messageParams.GroupId))
+        };
+
+        await UpdateUnreadMessagesAsync(messageParams.GroupId, messageParams.CurrentUserId, cancellationToken);
+
+        switch (messageParams.OrderBy)
+        {
+            case "messageSent":
+            default:
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("MessageSent", messageParams.SortBy == "asc" ? 1 : -1)));
+                break;
         }
 
-        var unreadMessages = query.Where(m =>
-            m.DateRead == null &&
-            m.SenderId != messageParams.CurrentUserId
-        ).ToList();
-        if (unreadMessages.Count != 0)
+        var messages = await PagedList<Message>.CreateAsync(
+            _messages,
+            pipeline,
+            messageParams.PageNumber,
+            messageParams.PageSize,
+            cancellationToken
+        );
+
+        return PagedList<MessageDto>.Map(messages, _mapper);
+    }
+
+    private async Task UpdateUnreadMessagesAsync(string groupId, string currentUserId, CancellationToken cancellationToken = default)
+    {
+        var unreadMessages = await _messages
+            .Find(m => m.GroupId == groupId && m.DateRead == null && m.SenderId != currentUserId)
+            .ToListAsync(cancellationToken);
+
+        if (unreadMessages.Count > 0)
         {
             foreach (var message in unreadMessages)
             {
@@ -65,10 +87,6 @@ public class MessageRepository : IMessageRepository
                 await UpdateMessageAsync(message, cancellationToken);
             }
         }
-
-        var messages = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
-
-        return await PagedList<MessageDto>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize, cancellationToken);
     }
 
     private async Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default)

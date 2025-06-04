@@ -2,6 +2,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
+import 'package:frontend/models/paginated_messages_dto.dart';
 import 'package:frontend/models/create_message_dto.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -14,9 +15,9 @@ class MessageHubService {
   final Map<String, HubConnection> _connections = {};
   final Map<String, bool> _connectionStates = {};
 
-  // Callbacks for message events
+  // Updated callbacks for paginated message events
   Function(GroupDto group)? onUpdatedGroup;
-  Function(List<MessageDto> messages)? onReceiveMessageThread;
+  Function(PaginatedMessagesDto paginatedMessages)? onReceiveMessageThread;
   Function(MessageDto message)? onNewMessage;
   Function(GroupDto group)? onNewMessageReceived;
 
@@ -70,86 +71,64 @@ class MessageHubService {
         
         if (arguments != null && arguments.isNotEmpty) {
           try {
-            final messagesData = arguments[0];
-            print('[MessageHub] Raw messages data type: ${messagesData.runtimeType}');
-            print('[MessageHub] Raw messages data: $messagesData');
+            final paginatedData = arguments[0];
+            print('[MessageHub] Raw paginated data type: ${paginatedData.runtimeType}');
+            print('[MessageHub] Raw paginated data: $paginatedData');
             
-            List<MessageDto> messages = [];
-            
-            if (messagesData is List) {
-              print('[MessageHub] Processing ${messagesData.length} messages');
+            if (paginatedData is Map<String, dynamic>) {
+              print('[MessageHub] Processing paginated message data...');
               
-              for (int i = 0; i < messagesData.length; i++) {
-                try {
-                  final msgData = messagesData[i];
-                  print('[MessageHub] Processing message $i: $msgData');
-                  
-                  Map<String, dynamic> msgJson;
-                  
-                  // Handle different data types
-                  if (msgData is Map<String, dynamic>) {
-                    msgJson = msgData;
-                  } else if (msgData is String) {
-                    // If it's a JSON string, parse it
-                    msgJson = jsonDecode(msgData);
-                  } else {
-                    print('[MessageHub] Unexpected message data type: ${msgData.runtimeType}');
-                    continue;
-                  }
-                  
-                  // Ensure required fields exist and have correct types
-                  final processedJson = {
-                    'id': msgJson['id']?.toString() ?? '',
-                    'senderId': msgJson['senderId']?.toString() ?? '',
-                    'groupId': msgJson['groupId']?.toString() ?? '',
-                    'content': msgJson['content']?.toString() ?? '',
-                    'messageSent': msgJson['messageSent']?.toString() ?? DateTime.now().toIso8601String(),
-                    'senderUsername': msgJson['senderUsername']?.toString(),
-                    'senderMessageUrl': msgJson['senderMessageUrl']?.toString(),
-                    'dateRead': msgJson['dateRead']?.toString(),
-                  };
-                  
-                  print('[MessageHub] Processed JSON for message $i: $processedJson');
-                  
-                  final message = MessageDto.fromJson(processedJson);
-                  messages.add(message);
-                  print('[MessageHub] Successfully parsed message $i: ${message.content}');
-                  
-                } catch (e, stackTrace) {
-                  print('[MessageHub] Error parsing message $i: $e');
-                  print('[MessageHub] Stack trace: $stackTrace');
-                  // Continue processing other messages even if one fails
-                }
+              // Parse the paginated messages
+              final paginatedMessages = PaginatedMessagesDto.fromJson(paginatedData);
+              print('[MessageHub] Successfully parsed ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}/${paginatedMessages.totalPages}');
+              
+              // Log each message for debugging
+              for (int i = 0; i < paginatedMessages.items.length; i++) {
+                final message = paginatedMessages.items[i];
+                print('[MessageHub] Message $i: ${message.content} from ${message.senderUsername}');
               }
               
-              print('[MessageHub] Successfully processed ${messages.length} out of ${messagesData.length} messages');
-              
-              // Call the callback with parsed messages
-              if (messages.isNotEmpty) {
-                onReceiveMessageThread?.call(messages);
-                print('[MessageHub] Called onReceiveMessageThread callback with ${messages.length} messages');
-              } else {
-                print('[MessageHub] No valid messages to display');
-                // Still call callback with empty list to stop loading indicator
-                onReceiveMessageThread?.call([]);
-              }
+              // Call the callback with paginated messages
+              onReceiveMessageThread?.call(paginatedMessages);
+              print('[MessageHub] Called onReceiveMessageThread callback with paginated data');
               
             } else {
-              print('[MessageHub] ReceiveMessageThread data is not List: ${messagesData.runtimeType}');
-              // Call callback with empty list to stop loading
-              onReceiveMessageThread?.call([]);
+              print('[MessageHub] ReceiveMessageThread data is not Map<String, dynamic>: ${paginatedData.runtimeType}');
+              // Call callback with empty paginated data to stop loading
+              final emptyPaginated = PaginatedMessagesDto(
+                currentPage: 1,
+                totalPages: 1,
+                pageSize: 20,
+                totalCount: 0,
+                items: [],
+              );
+              onReceiveMessageThread?.call(emptyPaginated);
             }
             
           } catch (e, stackTrace) {
-            print('[MessageHub] Error parsing message thread: $e');
+            print('[MessageHub] Error parsing paginated message thread: $e');
             print('[MessageHub] Stack trace: $stackTrace');
-            // Call callback with empty list to stop loading
-            onReceiveMessageThread?.call([]);
+            // Call callback with empty paginated data to stop loading
+            final emptyPaginated = PaginatedMessagesDto(
+              currentPage: 1,
+              totalPages: 1,
+              pageSize: 20,
+              totalCount: 0,
+              items: [],
+            );
+            onReceiveMessageThread?.call(emptyPaginated);
           }
         } else {
           print('[MessageHub] ReceiveMessageThread called with null or empty arguments');
-          // Call callback with empty list to stop loading
-          onReceiveMessageThread?.call([]);
+          // Call callback with empty paginated data to stop loading
+          final emptyPaginated = PaginatedMessagesDto(
+            currentPage: 1,
+            totalPages: 1,
+            pageSize: 20,
+            totalCount: 0,
+            items: [],
+          );
+          onReceiveMessageThread?.call(emptyPaginated);
         }
       });
 
@@ -173,18 +152,7 @@ class MessageHubService {
             }
             
             // Process the message data
-            final processedJson = {
-              'id': msgJson['id']?.toString() ?? '',
-              'senderId': msgJson['senderId']?.toString() ?? '',
-              'groupId': msgJson['groupId']?.toString() ?? '',
-              'content': msgJson['content']?.toString() ?? '',
-              'messageSent': msgJson['messageSent']?.toString() ?? DateTime.now().toIso8601String(),
-              'senderUsername': msgJson['senderUsername']?.toString(),
-              'senderMessageUrl': msgJson['senderMessageUrl']?.toString(),
-              'dateRead': msgJson['dateRead']?.toString(),
-            };
-            
-            final message = MessageDto.fromJson(processedJson);
+            final message = MessageDto.fromJson(msgJson);
             onNewMessage?.call(message);
             print('[MessageHub] NewMessage processed: ${message.content}');
             
@@ -327,6 +295,28 @@ class MessageHubService {
     }
     
     return false;
+  }
+
+  // Request specific page of messages
+  Future<bool> requestMessagePage(String otherUserId, int pageNumber, int pageSize) async {
+    final connection = _connections[otherUserId];
+    
+    if (connection == null || connection.state != HubConnectionState.Connected) {
+      print('[MessageHub] Not connected to user $otherUserId');
+      return false;
+    }
+
+    try {
+      print('[MessageHub] Requesting message page $pageNumber with size $pageSize for user $otherUserId');
+      
+      await connection.invoke('GetMessages', args: [pageNumber, pageSize]);
+      
+      print('[MessageHub] Message page request sent successfully');
+      return true;
+    } catch (e) {
+      print('[MessageHub] Error requesting message page: $e');
+      return false;
+    }
   }
 
   bool isConnectedToUser(String otherUserId) {

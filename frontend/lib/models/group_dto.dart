@@ -1,183 +1,192 @@
+import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/message_dto.dart';
+
 class GroupDto {
   final String id;
   final String name;
-  final List<String> userIds;
   final List<UserDto> users;
-  final List<String> connections;
   final MessageDto? lastMessage;
-  final String? lastMessageAttachment; // Thêm trường này
-  final bool hasMessage;
-  final DateTime createdAt;
+  final List<String> connections; // Changed from ConnectionDto to String
   final DateTime updatedAt;
 
   GroupDto({
     required this.id,
     required this.name,
-    required this.userIds,
     required this.users,
-    required this.connections,
     this.lastMessage,
-    this.lastMessageAttachment, // Thêm parameter này
-    required this.hasMessage,
-    required this.createdAt,
+    required this.connections,
     required this.updatedAt,
   });
 
-  factory GroupDto.fromJson(Map<String, dynamic> json) {
-    return GroupDto(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      userIds: List<String>.from(json['userIds'] ?? []),
-      users: (json['users'] as List<dynamic>?)
-              ?.map((user) => UserDto.fromJson(user))
-              .toList() ??
-          [],
-      connections: List<String>.from(json['connections'] ?? []),
-      lastMessage: json['lastMessage'] != null
-          ? MessageDto.fromJson(json['lastMessage'])
-          : null,
-      lastMessageAttachment: json['lastMessageAttachment'], // Parse từ JSON
-      hasMessage: json['hasMessage'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'userIds': userIds,
-      'users': users.map((user) => user.toJson()).toList(),
-      'connections': connections,
-      'lastMessage': lastMessage?.toJson(),
-      'lastMessageAttachment': lastMessageAttachment,
-      'hasMessage': hasMessage,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-}
-
-class UserDto {
-  final String id;
-  final String username;
-  final String email;
-  final String? photoUrl;
-  final String role;
-
-  UserDto({
-    required this.id,
-    required this.username,
-    required this.email,
-    this.photoUrl,
-    required this.role,
-  });
-
-  factory UserDto.fromJson(Map<String, dynamic> json) {
-    return UserDto(
-      id: json['id'] ?? '',
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
-      photoUrl: json['photoUrl'],
-      role: json['role'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'email': email,
-      'photoUrl': photoUrl,
-      'role': role,
-    };
+  // Computed properties for backward compatibility
+  List<String> get userIds => users.map((user) => user.id).toList();
+  
+  bool get hasMessage {
+    if (lastMessage == null) return false;
+    return lastMessage!.dateRead == null;
   }
   
-  @override
-  String toString() {
-    return 'UserDto{id: $id, username: $username, email: $email, role: $role}';
-  }
-}
+  DateTime get createdAt => updatedAt; // Use updatedAt as fallback
+  
+  String? get lastMessageAttachment => null; // Backend doesn't have this field
 
-
-class MessageDto {
-  final String id;
-  final String senderId;
-  final String groupId;
-  final String content;
-  final DateTime messageSent;
-  final String? senderUsername;
-  final String? senderPhotoUrl;
-  final DateTime? dateRead;
-
-  MessageDto({
-    required this.id,
-    required this.senderId,
-    required this.groupId,
-    required this.content,
-    required this.messageSent,
-    this.senderUsername,
-    this.senderPhotoUrl,
-    this.dateRead,
-  });
-
-  factory MessageDto.fromJson(Map<String, dynamic> json) {
+  factory GroupDto.fromJson(Map<String, dynamic> json) {
     try {
-      return MessageDto(
-        id: json['id']?.toString() ?? '',
-        senderId: json['senderId']?.toString() ?? '',
-        groupId: json['groupId']?.toString() ?? '',
-        content: json['content']?.toString() ?? '',
-        messageSent: json['messageSent'] != null
-            ? DateTime.parse(json['messageSent'].toString())
-            : DateTime.now(),
-        senderUsername: json['senderUsername']?.toString(),
-        senderPhotoUrl: json['senderMessageUrl']?.toString(), // Note: server uses 'senderMessageUrl'
-        dateRead: json['dateRead'] != null && json['dateRead'].toString().isNotEmpty
-            ? DateTime.parse(json['dateRead'].toString())
-            : null,
+      // Parse users list
+      final usersList = json['users'] as List<dynamic>? ?? [];
+      final users = usersList.map((userJson) {
+        if (userJson is Map<String, dynamic>) {
+          return UserDto.fromJson(userJson);
+        } else {
+          print('[GroupDto] Invalid user format: $userJson');
+          return null;
+        }
+      }).where((user) => user != null).cast<UserDto>().toList();
+
+      // Parse connections list - now as simple strings
+      final connectionsList = json['connections'] as List<dynamic>? ?? [];
+      final connections = connectionsList.map((conn) => conn.toString()).toList();
+
+      // Parse last message
+      MessageDto? lastMessage;
+      final lastMessageJson = json['lastMessage'];
+      if (lastMessageJson != null && lastMessageJson is Map<String, dynamic>) {
+        try {
+          lastMessage = MessageDto.fromJson(lastMessageJson);
+        } catch (e) {
+          print('[GroupDto] Error parsing lastMessage: $e');
+          lastMessage = null;
+        }
+      }
+
+      // Parse updatedAt
+      DateTime updatedAt;
+      try {
+        final updatedAtStr = json['updatedAt'] as String?;
+        if (updatedAtStr != null) {
+          updatedAt = DateTime.parse(updatedAtStr);
+        } else {
+          updatedAt = DateTime.now();
+        }
+      } catch (e) {
+        print('[GroupDto] Error parsing updatedAt: $e');
+        updatedAt = DateTime.now();
+      }
+
+      return GroupDto(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        users: users,
+        lastMessage: lastMessage,
+        connections: connections,
+        updatedAt: updatedAt,
       );
     } catch (e, stackTrace) {
-      print('Error parsing MessageDto from JSON: $e');
-      print('JSON data: $json');
-      print('Stack trace: $stackTrace');
-      
-      // Return a default MessageDto to prevent crashes
-      return MessageDto(
-        id: json['id']?.toString() ?? 'unknown',
-        senderId: json['senderId']?.toString() ?? 'unknown',
-        groupId: json['groupId']?.toString() ?? 'unknown',
-        content: json['content']?.toString() ?? 'Error loading message',
-        messageSent: DateTime.now(),
-        senderUsername: json['senderUsername']?.toString() ?? 'Unknown',
-        senderPhotoUrl: null,
-        dateRead: null,
-      );
+      print('[GroupDto] Error parsing JSON: $e');
+      print('[GroupDto] Stack trace: $stackTrace');
+      print('[GroupDto] JSON data: $json');
+      rethrow;
     }
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'senderId': senderId,
-      'groupId': groupId,
-      'content': content,
-      'messageSent': messageSent.toIso8601String(),
-      'senderUsername': senderUsername,
-      'senderMessageUrl': senderPhotoUrl, // Note: server expects 'senderMessageUrl'
-      'dateRead': dateRead?.toIso8601String(),
+      'name': name,
+      'users': users.map((user) => user.toJson()).toList(),
+      'lastMessage': lastMessage?.toJson(),
+      'connections': connections,
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
+
+  GroupDto copyWith({
+    String? id,
+    String? name,
+    List<UserDto>? users,
+    MessageDto? lastMessage,
+    List<String>? connections,
+    DateTime? updatedAt,
+  }) {
+    return GroupDto(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      users: users ?? this.users,
+      lastMessage: lastMessage ?? this.lastMessage,
+      connections: connections ?? this.connections,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'GroupDto(id: $id, name: $name, users: ${users.length}, hasLastMessage: ${lastMessage != null}, connections: ${connections.length}, updatedAt: $updatedAt)';
+  }
+}
+
+class PaginatedGroupsDto {
+  final int currentPage;
+  final int totalPages;
+  final int pageSize;
+  final int totalCount;
+  final List<GroupDto> items;
+
+  PaginatedGroupsDto({
+    required this.currentPage,
+    required this.totalPages,
+    required this.pageSize,
+    required this.totalCount,
+    required this.items,
+  });
+
+  factory PaginatedGroupsDto.fromJson(Map<String, dynamic> json) {
+    try {
+      return PaginatedGroupsDto(
+        currentPage: json['currentPage'] ?? 1,
+        totalPages: json['totalPages'] ?? 1,
+        pageSize: json['pageSize'] ?? 20,
+        totalCount: json['totalCount'] ?? 0,
+        items: (json['items'] as List<dynamic>?)
+                ?.map((item) {
+                  if (item is Map<String, dynamic>) {
+                    return GroupDto.fromJson(item);
+                  } else {
+                    print('[PaginatedGroupsDto] Invalid item data: $item');
+                    return null;
+                  }
+                })
+                .where((item) => item != null)
+                .cast<GroupDto>()
+                .toList() ??
+            [],
+      );
+    } catch (e, stackTrace) {
+      print('[PaginatedGroupsDto] Error parsing from JSON: $e');
+      print('[PaginatedGroupsDto] JSON data: $json');
+      print('[PaginatedGroupsDto] Stack trace: $stackTrace');
+      
+      return PaginatedGroupsDto(
+        currentPage: 1,
+        totalPages: 1,
+        pageSize: 20,
+        totalCount: 0,
+        items: [],
+      );
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'currentPage': currentPage,
+      'totalPages': totalPages,
+      'pageSize': pageSize,
+      'totalCount': totalCount,
+      'items': items.map((item) => item.toJson()).toList(),
     };
   }
 
   @override
   String toString() {
-    return 'MessageDto{id: $id, senderId: $senderId, groupId: $groupId, content: $content, messageSent: $messageSent, senderUsername: $senderUsername}';
+    return 'PaginatedGroupsDto{currentPage: $currentPage, totalPages: $totalPages, pageSize: $pageSize, totalCount: $totalCount, items: ${items.length}}';
   }
 }
-
-

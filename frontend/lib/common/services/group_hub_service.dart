@@ -1,5 +1,6 @@
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/group_dto.dart';
+import 'package:frontend/models/message_dto.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
 class GroupHubService {
@@ -10,8 +11,8 @@ class GroupHubService {
   HubConnection? _connection;
   bool _isConnected = false;
 
-  // Callbacks
-  Function(List<GroupDto> groups)? onReceiveGroups;
+  // Callbacks - Updated to handle paginated data
+  Function(PaginatedGroupsDto paginatedGroups)? onReceiveGroups;
   Function(MessageDto message)? onNewMessage;
   Function(GroupDto group)? onGroupUpdated;
 
@@ -45,23 +46,33 @@ class GroupHubService {
       // Set up event listeners
       _connection!.on('ReceiveGroups', (arguments) {
         print('[GroupHub] Received groups event');
+        print('[GroupHub] Arguments: $arguments');
+        
         if (arguments != null && arguments.isNotEmpty) {
           try {
-            final groupsData = arguments[0];
-            if (groupsData is List) {
-              final groups = groupsData.map((groupJson) {
-                if (groupJson is Map<String, dynamic>) {
-                  return GroupDto.fromJson(groupJson);
-                } else {
-                  throw Exception('Group data is not Map<String, dynamic>');
-                }
-              }).toList();
-              onReceiveGroups?.call(groups);
-              print('[GroupHub] Received ${groups.length} groups');
+            final paginatedData = arguments[0];
+            print('[GroupHub] Paginated data type: ${paginatedData.runtimeType}');
+            print('[GroupHub] Paginated data: $paginatedData');
+            
+            if (paginatedData is Map<String, dynamic>) {
+              final paginatedGroups = PaginatedGroupsDto.fromJson(paginatedData);
+              onReceiveGroups?.call(paginatedGroups);
+              print('[GroupHub] Received paginated groups: ${paginatedGroups.items.length} groups on page ${paginatedGroups.currentPage}/${paginatedGroups.totalPages}');
+              
+              // Log each group for debugging
+              for (int i = 0; i < paginatedGroups.items.length; i++) {
+                final group = paginatedGroups.items[i];
+                print('[GroupHub] Group $i: ${group.name} with ${group.users.length} users, lastMessage: ${group.lastMessage?.content}');
+              }
+            } else {
+              print('[GroupHub] Paginated data is not Map<String, dynamic>: ${paginatedData.runtimeType}');
             }
-          } catch (e) {
-            print('[GroupHub] Error parsing groups: $e');
+          } catch (e, stackTrace) {
+            print('[GroupHub] Error parsing paginated groups: $e');
+            print('[GroupHub] Stack trace: $stackTrace');
           }
+        } else {
+          print('[GroupHub] No paginated groups data received');
         }
       });
 
@@ -101,9 +112,6 @@ class GroupHubService {
       await _connection!.start();
       _isConnected = true;
       print('✅ [GroupHub] Connected successfully');
-      
-      // Note: Groups should be automatically sent by the server upon connection
-      // No need to explicitly request them
       
     } catch (e) {
       _isConnected = false;
@@ -165,6 +173,30 @@ class GroupHubService {
     }
   }
 
+  // Request specific page of groups
+  Future<bool> requestPage(int pageNumber, int pageSize) async {
+    if (!_isConnected || _connection == null) {
+      print('[GroupHub] Not connected - cannot request groups');
+      return false;
+    }
+
+    try {
+      print('[GroupHub] Requesting page $pageNumber with size $pageSize');
+      
+      // Check if the server supports the GetGroups method with pagination
+      await _connection!.invoke('GetGroups', args: [pageNumber, pageSize]);
+      
+      print('[GroupHub] Page request sent successfully');
+      return true;
+    } catch (e) {
+      print('[GroupHub] Error requesting page: $e');
+      
+      // Fallback to default method if pagination not supported
+      print('[GroupHub] Falling back to default method');
+      return await requestGroups();
+    }
+  }
+
   // Simplified method - just wait for automatic groups from server
   Future<bool> requestGroups() async {
     if (!_isConnected || _connection == null) {
@@ -172,9 +204,15 @@ class GroupHubService {
       return false;
     }
 
-    // Since the server methods don't exist, we'll just indicate that we're waiting
-    // for automatic group updates from the server
-    print('[GroupHub] Waiting for automatic group updates from server...');
-    return true;
+    try {
+      // Try to call GetGroups without parameters
+      await _connection!.invoke('GetGroups');
+      print('[GroupHub] GetGroups request sent');
+      return true;
+    } catch (e) {
+      print('[GroupHub] Error requesting groups: $e');
+      print('[GroupHub] Waiting for automatic group updates from server...');
+      return false;
+    }
   }
 }

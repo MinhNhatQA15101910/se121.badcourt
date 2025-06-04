@@ -3,6 +3,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/widgets/user_message_box.dart';
 import 'package:frontend/models/group_dto.dart';
+import 'package:frontend/models/user_dto.dart';
 import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,6 +24,9 @@ class _MessageScreenState extends State<MessageScreen> {
   List<GroupDto> groups = [];
   List<GroupDto> filteredGroups = [];
   bool _isLoading = true;
+  bool _hasMorePages = false;
+  int _currentPage = 1;
+  int _totalPages = 1;
 
   @override
   void initState() {
@@ -43,6 +47,9 @@ class _MessageScreenState extends State<MessageScreen> {
         // Already have groups
         setState(() {
           groups = groupProvider.groups;
+          _currentPage = groupProvider.currentPage;
+          _totalPages = groupProvider.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
           _updateFilteredGroups();
           _isLoading = false;
         });
@@ -53,6 +60,9 @@ class _MessageScreenState extends State<MessageScreen> {
         
         setState(() {
           groups = groupProvider.groups;
+          _currentPage = groupProvider.currentPage;
+          _totalPages = groupProvider.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
           _updateFilteredGroups();
           _isLoading = false;
         });
@@ -69,6 +79,9 @@ class _MessageScreenState extends State<MessageScreen> {
         
         setState(() {
           groups = groupProvider.groups;
+          _currentPage = groupProvider.currentPage;
+          _totalPages = groupProvider.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
           _updateFilteredGroups();
           _isLoading = false;
         });
@@ -129,6 +142,9 @@ class _MessageScreenState extends State<MessageScreen> {
       
       setState(() {
         groups = groupProvider.groups;
+        _currentPage = groupProvider.currentPage;
+        _totalPages = groupProvider.totalPages;
+        _hasMorePages = _currentPage < _totalPages;
         _updateFilteredGroups();
         _isLoading = false;
       });
@@ -147,6 +163,36 @@ class _MessageScreenState extends State<MessageScreen> {
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _loadMoreGroups() async {
+    if (!_hasMorePages) return;
+    
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    if (!groupProvider.isConnected) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      // Load next page
+      await groupProvider.loadNextPage();
+      
+      setState(() {
+        groups = groupProvider.groups;
+        _currentPage = groupProvider.currentPage;
+        _totalPages = groupProvider.totalPages;
+        _hasMorePages = _currentPage < _totalPages;
+        _updateFilteredGroups();
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('[MessageScreen] Error loading more groups: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -290,12 +336,15 @@ class _MessageScreenState extends State<MessageScreen> {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     setState(() {
                       groups = groupProvider.groups;
+                      _currentPage = groupProvider.currentPage;
+                      _totalPages = groupProvider.totalPages;
+                      _hasMorePages = _currentPage < _totalPages;
                       _updateFilteredGroups();
                     });
                   });
                 }
 
-                return _isLoading
+                return _isLoading && groups.isEmpty
                     ? const Expanded(
                         child: Center(
                           child: Column(
@@ -363,65 +412,97 @@ class _MessageScreenState extends State<MessageScreen> {
                         : Expanded(
                             child: RefreshIndicator(
                               onRefresh: _refreshGroups,
-                              child: ListView.builder(
-                                itemCount: filteredGroups.length,
-                                itemBuilder: (context, index) {
-                                  final group = filteredGroups[index];
-
-                                  // Lấy thông tin user hiện tại
-                                  final currentUserId =
-                                      Provider.of<UserProvider>(context, listen: false)
-                                          .user
-                                          .id;
-
-                                  // Tìm user khác với user hiện tại
-                                  final otherUser = group.users.firstWhere(
-                                    (u) => u.id != currentUserId,
-                                    orElse: () => UserDto(
-                                      id: 'default',
-                                      username: 'Default User',
-                                      email: 'default@example.com',
-                                      photoUrl: '',
-                                      role: 'Unknown',
-                                    ),
-                                  );
-
-                                  final hasUnread = _hasUnreadMessage(group);
-                                  
-                                  // Format last message time
-                                  String formattedTime = '';
-                                  if (group.lastMessage != null) {
-                                    formattedTime = _formatTimeAgo(group.lastMessage!.messageSent);
-                                  } else {
-                                    formattedTime = _formatTimeAgo(group.updatedAt);
+                              child: NotificationListener<ScrollNotification>(
+                                onNotification: (ScrollNotification scrollInfo) {
+                                  if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
+                                      _hasMorePages && !_isLoading) {
+                                    _loadMoreGroups();
+                                    return true;
                                   }
-
-                                  return GestureDetector(
-                                    onTap: () {
-                                      _onGroupTapped(group.id);
-                                      Navigator.of(context).pushNamed(
-                                        MessageDetailScreen.routeName,
-                                        arguments: otherUser.id,
-                                      );
-                                    },
-                                    child: UserMessageBox(
-                                      userName: otherUser.username,
-                                      lastMessage: group.lastMessage?.content ?? 
-                                                 (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
-                                      timestamp: formattedTime,
-                                      userImageUrl: otherUser.photoUrl ?? '',
-                                      role: otherUser.role,
-                                      userId: otherUser.id,
-                                      roomId: group.id,
-                                      hasUnreadMessage: hasUnread,
-                                    ),
-                                  );
+                                  return false;
                                 },
+                                child: ListView.builder(
+                                  itemCount: filteredGroups.length + (_hasMorePages ? 1 : 0),
+                                  itemBuilder: (context, index) {
+                                    // Show loading indicator at the bottom when loading more
+                                    if (index == filteredGroups.length) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                                        child: Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    }
+                                    
+                                    final group = filteredGroups[index];
+
+                                    // Lấy thông tin user hiện tại
+                                    final currentUserId =
+                                        Provider.of<UserProvider>(context, listen: false)
+                                            .user
+                                            .id;
+
+                                    // Tìm user khác với user hiện tại
+                                    final otherUser = group.users.firstWhere(
+                                      (u) => u.id != currentUserId,
+                                      orElse: () => UserDto(
+                                        id: 'default',
+                                        username: 'Default User',
+                                        email: 'default@example.com',
+                                        photoUrl: '',
+                                        role: 'Unknown',
+                                      ),
+                                    );
+
+                                    final hasUnread = _hasUnreadMessage(group);
+                                    
+                                    // Format last message time
+                                    String formattedTime = '';
+                                    if (group.lastMessage != null) {
+                                      formattedTime = _formatTimeAgo(group.lastMessage!.messageSent);
+                                    } else {
+                                      formattedTime = _formatTimeAgo(group.updatedAt);
+                                    }
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        _onGroupTapped(group.id);
+                                        Navigator.of(context).pushNamed(
+                                          MessageDetailScreen.routeName,
+                                          arguments: otherUser.id,
+                                        );
+                                      },
+                                      child: UserMessageBox(
+                                        userName: otherUser.username,
+                                        lastMessage: group.lastMessage?.content ?? 
+                                                   (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
+                                        timestamp: formattedTime,
+                                        userImageUrl: otherUser.photoUrl ?? '',
+                                        role: otherUser.role,
+                                        userId: otherUser.id,
+                                        roomId: group.id,
+                                        hasUnreadMessage: hasUnread,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           );
               },
             ),
+            // Pagination info
+            if (_totalPages > 1)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Page $_currentPage of $_totalPages',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

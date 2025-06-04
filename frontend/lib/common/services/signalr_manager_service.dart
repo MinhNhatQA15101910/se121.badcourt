@@ -2,6 +2,7 @@ import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
+import 'package:frontend/models/message_dto.dart';
 
 class SignalRManagerService {
   static final SignalRManagerService _instance = SignalRManagerService._internal();
@@ -87,12 +88,12 @@ class SignalRManagerService {
   
   List<String> get connectedUsers => _messageHubService.connectedUsers;
 
-  // Initialize all services with callbacks
+  // Initialize all services with callbacks - Updated to use PaginatedGroupsDto
   void initializeCallbacks({
     Function(String userId)? onUserOnline,
     Function(String userId)? onUserOffline,
     Function(List<String> users)? onOnlineUsersReceived,
-    Function(List<GroupDto> groups)? onReceiveGroups,
+    Function(PaginatedGroupsDto paginatedGroups)? onReceiveGroups,
     Function(MessageDto message)? onNewMessage,
     Function(GroupDto group)? onGroupUpdated,
   }) {
@@ -105,5 +106,20 @@ class SignalRManagerService {
     _groupHubService.onReceiveGroups = onReceiveGroups;
     _groupHubService.onNewMessage = onNewMessage;
     _groupHubService.onGroupUpdated = onGroupUpdated;
+  }
+
+  // Helper method to convert List<GroupDto> to PaginatedGroupsDto for backward compatibility
+  PaginatedGroupsDto createPaginatedGroups(List<GroupDto> groups, {
+    int currentPage = 1,
+    int totalPages = 1,
+    int pageSize = 20,
+  }) {
+    return PaginatedGroupsDto(
+      currentPage: currentPage,
+      totalPages: totalPages,
+      pageSize: pageSize,
+      totalCount: groups.length,
+      items: groups,
+    );
   }
 }

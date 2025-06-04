@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
+import 'package:frontend/models/paginated_messages_dto.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 
@@ -10,13 +11,26 @@ class MessageHubProvider with ChangeNotifier {
   
   List<MessageDto> _messages = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
   GroupDto? _currentGroup;
+  
+  // Pagination info
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _pageSize = 20;
+  int _totalCount = 0;
 
   List<MessageDto> get messages => _messages;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   GroupDto? get currentGroup => _currentGroup;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
+  int get pageSize => _pageSize;
+  int get totalCount => _totalCount;
+  bool get hasMorePages => _currentPage < _totalPages;
 
   MessageHubProvider() {
     _setupCallbacks();
@@ -28,14 +42,35 @@ class MessageHubProvider with ChangeNotifier {
       notifyListeners();
     };
 
-    _messageHubService.onReceiveMessageThread = (messages) {
-      _messages = messages;
+    _messageHubService.onReceiveMessageThread = (paginatedMessages) {
+      print('[MessageHubProvider] Received paginated messages: ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}');
+      
+      // Update pagination info
+      _currentPage = paginatedMessages.currentPage;
+      _totalPages = paginatedMessages.totalPages;
+      _pageSize = paginatedMessages.pageSize;
+      _totalCount = paginatedMessages.totalCount;
+      
+      // If loading more pages, append to existing messages
+      if (_isLoadingMore) {
+        // Add only new messages that don't already exist
+        final existingIds = _messages.map((m) => m.id).toSet();
+        final newMessages = paginatedMessages.items.where((m) => !existingIds.contains(m.id)).toList();
+        _messages.addAll(newMessages);
+        _isLoadingMore = false;
+      } else {
+        // Otherwise replace all messages
+        _messages = paginatedMessages.items;
+      }
+      
       _isLoading = false;
       notifyListeners();
+      
+      print('[MessageHubProvider] Updated with ${_messages.length} messages, total: $_totalCount, page: $_currentPage/$_totalPages');
     };
 
     _messageHubService.onNewMessage = (message) {
-      _messages.add(message);
+      _messages.insert(0, message);
       notifyListeners();
     };
 
@@ -81,6 +116,34 @@ class MessageHubProvider with ChangeNotifier {
       print('[MessageHubProvider] Error connecting to user $otherUserId: $e');
       _error = 'Failed to connect: $e';
       _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> loadMoreMessages(BuildContext context, String otherUserId) async {
+    if (!hasMorePages || _isLoadingMore) {
+      return false;
+    }
+    
+    try {
+      _isLoadingMore = true;
+      notifyListeners();
+      
+      final nextPage = _currentPage + 1;
+      print('[MessageHubProvider] Loading message page $nextPage for user $otherUserId');
+      
+      final success = await _messageHubService.requestMessagePage(otherUserId, nextPage, _pageSize);
+      
+      if (!success) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
+      
+      return success;
+    } catch (e) {
+      print('[MessageHubProvider] Error loading more messages: $e');
+      _isLoadingMore = false;
       notifyListeners();
       return false;
     }
@@ -133,13 +196,13 @@ class MessageHubProvider with ChangeNotifier {
 
   Future<void> disconnectFromUser(String otherUserId) async {
     await _messageHubService.stopConnection(otherUserId);
+    _clearMessages();
     notifyListeners();
   }
 
   Future<void> disconnectAll() async {
     await _messageHubService.stopAllConnections();
-    _messages.clear();
-    _currentGroup = null;
+    _clearAllData();
     notifyListeners();
   }
 
@@ -156,8 +219,23 @@ class MessageHubProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void clearMessages() {
+  void _clearMessages() {
     _messages.clear();
-    notifyListeners();
+    _currentPage = 1;
+    _totalPages = 1;
+    _pageSize = 20;
+    _totalCount = 0;
+  }
+
+  void _clearAllData() {
+    _messages.clear();
+    _currentGroup = null;
+    _currentPage = 1;
+    _totalPages = 1;
+    _pageSize = 20;
+    _totalCount = 0;
+    _error = null;
+    _isLoading = false;
+    _isLoadingMore = false;
   }
 }
