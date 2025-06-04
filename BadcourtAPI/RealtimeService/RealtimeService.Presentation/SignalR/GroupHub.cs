@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.SignalR;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.ApiRepositories;
 using RealtimeService.Presentation.Extensions;
+using SharedKernel;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Presentation.SignalR;
 
@@ -26,8 +28,12 @@ public class GroupHub(
 
         var userId = Context.User.GetUserId().ToString();
 
-        var groups = await groupRepository.GetGroupsForUserAsync(userId);
-
+        var groups = await groupRepository.GetGroupsRawAsync(new GroupParams
+        {
+            UserId = userId,
+            PageNumber = 1,
+            PageSize = 20
+        });
         var groupDtos = groups.Select(mapper.Map<GroupDto>).ToList();
 
         for (var i = 0; i < groups.Count; i++)
@@ -52,6 +58,15 @@ public class GroupHub(
             }
         }
 
-        await Clients.Caller.SendAsync("ReceiveGroups", groupDtos);
+        var pagedGroupDtos = new PagedResult<GroupDto>
+        {
+            CurrentPage = groups.CurrentPage,
+            TotalPages = groups.TotalPages,
+            PageSize = groups.PageSize,
+            TotalCount = groups.TotalCount,
+            Items = groupDtos
+        };
+
+        await Clients.Caller.SendAsync("ReceiveGroups", pagedGroupDtos);
     }
 }

@@ -24,8 +24,6 @@ var services = scope.ServiceProvider;
 try
 {
     var connectionRepository = services.GetRequiredService<IConnectionRepository>();
-    var groupRepository = services.GetRequiredService<IGroupRepository>();
-    var messageRepository = services.GetRequiredService<IMessageRepository>();
 
     await connectionRepository.DeleteAllAsync();
 }

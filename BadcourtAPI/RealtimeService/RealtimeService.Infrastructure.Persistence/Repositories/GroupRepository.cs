@@ -1,9 +1,14 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Infrastructure.Persistence.Configurations;
+using SharedKernel;
+using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Infrastructure.Persistence.Repositories;
 
@@ -52,6 +57,24 @@ public class GroupRepository : IGroupRepository
         return await _groups
             .Find(g => g.Id == connection.GroupId)
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<PagedList<Group>> GetGroupsRawAsync(GroupParams groupParams, CancellationToken cancellationToken = default)
+    {
+        var query = _groups.AsQueryable()
+            .Where(m => m.UserIds.Contains(groupParams.UserId));
+
+        if (groupParams.OrderBy == "updatedAt")
+        {
+            query = groupParams.SortBy == "asc" ? query.OrderBy(m => m.UpdatedAt) : query.OrderByDescending(m => m.UpdatedAt);
+        }
+        
+        return await PagedList<Group>.CreateAsync(
+            query,
+            groupParams.PageNumber,
+            groupParams.PageSize,
+            cancellationToken
+        );
     }
 
     public async Task<List<Group>> GetGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)

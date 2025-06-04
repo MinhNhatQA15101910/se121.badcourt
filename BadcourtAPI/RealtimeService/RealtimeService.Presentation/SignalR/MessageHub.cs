@@ -76,7 +76,14 @@ public class MessageHub(
             PageSize = 20,
         });
 
-        var pagedMessages = mapper.Map<PagedResult<MessageDto>>(messages);
+        var pagedMessages = new PagedResult<MessageDto>
+        {
+            CurrentPage = messages.CurrentPage,
+            TotalPages = messages.TotalPages,
+            PageSize = messages.PageSize,
+            TotalCount = messages.TotalCount,
+            Items = messages
+        };
 
         await Clients.Caller.SendAsync("ReceiveMessageThread", pagedMessages);
     }
