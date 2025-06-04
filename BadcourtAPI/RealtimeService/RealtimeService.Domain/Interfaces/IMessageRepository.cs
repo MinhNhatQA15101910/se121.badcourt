@@ -1,5 +1,7 @@
 using RealtimeService.Domain.Entities;
+using SharedKernel;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Domain.Interfaces;
 
@@ -9,6 +11,6 @@ public interface IMessageRepository
         Message message, CancellationToken cancellationToken = default);
     Task<Message?> GetLastMessageAsync(
         string groupId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<MessageDto>> GetMessagesByGroupIdAsync(
-        string currentUserId, string groupId, CancellationToken cancellationToken = default);
+    Task<PagedList<MessageDto>> GetMessagesAsync(
+        MessageParams messageParams, CancellationToken cancellationToken = default);
 }

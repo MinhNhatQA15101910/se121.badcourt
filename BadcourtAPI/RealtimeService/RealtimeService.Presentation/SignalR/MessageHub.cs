@@ -1,12 +1,17 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Bson;
 using RealtimeService.Domain.Entities;
+using RealtimeService.Domain.Enums;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.ApiRepositories;
 using RealtimeService.Presentation.DTOs;
 using RealtimeService.Presentation.Extensions;
+using RealtimeService.Presentation.Interfaces;
+using SharedKernel;
 using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Presentation.SignalR;
 
@@ -16,10 +21,14 @@ public class MessageHub(
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
     IUserApiRepository userApiRepository,
+    IFileService fileService,
     IHubContext<GroupHub> groupHub,
     IMapper mapper
 ) : Hub
 {
+    private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"];
+    private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"];
+
     public override async Task OnConnectedAsync()
     {
         // Get the user ID from the context
@@ -59,9 +68,24 @@ public class MessageHub(
 
         await Clients.Group(groupName).SendAsync("UpdatedGroup", groupDto);
 
-        var messages = await messageRepository.GetMessagesByGroupIdAsync(
-            Context.User.GetUserId().ToString(), group.Id);
-        await Clients.Caller.SendAsync("ReceiveMessageThread", messages.Select(mapper.Map<MessageDto>).ToList());
+        var messages = await messageRepository.GetMessagesAsync(new MessageParams
+        {
+            CurrentUserId = Context.User.GetUserId().ToString(),
+            GroupId = group.Id,
+            PageNumber = 1,
+            PageSize = 20,
+        });
+
+        var pagedMessages = new PagedResult<MessageDto>
+        {
+            CurrentPage = messages.CurrentPage,
+            TotalPages = messages.TotalPages,
+            PageSize = messages.PageSize,
+            TotalCount = messages.TotalCount,
+            Items = messages
+        };
+
+        await Clients.Caller.SendAsync("ReceiveMessageThread", pagedMessages);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -101,17 +125,72 @@ public class MessageHub(
             throw new HubException("Cannot send message");
         }
 
+        // Check if the message has content or resources
+        if (string.IsNullOrWhiteSpace(createMessageDto.Content) && createMessageDto.Resources.Count == 0)
+        {
+            throw new HubException("Message must have content or resources");
+        }
+
         var groupName = GetGroupName(sender.Id.ToString(), recipient.Id.ToString());
         var group = await groupRepository.GetGroupByNameAsync(groupName)
             ?? throw new HubException("Group not found");
 
+        var messageId = ObjectId.GenerateNewId().ToString();
+        var isMain = true;
+        var files = new List<Domain.Entities.File>();
+        foreach (var resource in createMessageDto.Resources)
+        {
+            var fileType = GetFileType(resource);
+            Domain.Entities.File file;
+            if (fileType == FileType.Image)
+            {
+                var uploadResult = await fileService.UploadPhotoAsync($"messages/{messageId}", resource);
+                if (uploadResult.Error != null)
+                    throw new HubException(uploadResult.Error.Message);
+
+                file = new Domain.Entities.File
+                {
+                    Id = ObjectId.GenerateNewId().ToString(),
+                    Url = uploadResult.SecureUrl.AbsoluteUri,
+                    PublicId = uploadResult.PublicId,
+                    IsMain = isMain,
+                    FileType = fileType
+                };
+            }
+            else if (fileType == FileType.Video)
+            {
+                var uploadResult = await fileService.UploadVideoAsync($"messages/{messageId}", resource);
+                if (uploadResult.Error != null)
+                    throw new HubException(uploadResult.Error.Message);
+
+                file = new Domain.Entities.File
+                {
+                    Id = ObjectId.GenerateNewId().ToString(),
+                    Url = uploadResult.SecureUrl.AbsoluteUri,
+                    PublicId = uploadResult.PublicId,
+                    IsMain = isMain,
+                    FileType = fileType
+                };
+            }
+            else
+            {
+                throw new HubException("Unsupported file type");
+            }
+
+            files.Add(file);
+
+            isMain = false;
+        }
+
         var message = new Message
         {
+            Id = ObjectId.GenerateNewId().ToString(),
             SenderId = sender.Id.ToString(),
             SenderUsername = sender.Username,
             SenderImageUrl = sender.PhotoUrl ?? string.Empty,
             GroupId = group.Id,
             Content = createMessageDto.Content,
+            Resources = files,
         };
         await messageRepository.AddMessageAsync(message);
 
@@ -151,5 +230,20 @@ public class MessageHub(
     {
         var stringCompare = string.CompareOrdinal(caller, other) < 0;
         return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
+    }
+
+    private static FileType GetFileType(IFormFile file)
+    {
+        if (file == null || string.IsNullOrEmpty(file.FileName))
+            return FileType.Unknown;
+
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        if (ImageExtensions.Contains(extension))
+            return FileType.Image;
+        if (VideoExtensions.Contains(extension))
+            return FileType.Video;
+
+        return FileType.Unknown;
     }
 }

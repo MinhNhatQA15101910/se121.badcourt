@@ -13,6 +13,7 @@ public class Message
     public string SenderUsername { get; set; } = string.Empty;
     public string SenderImageUrl { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
+    public List<File> Resources { get; set; } = [];
     public DateTime? DateRead { get; set; }
     public DateTime MessageSent { get; set; } = DateTime.UtcNow;
 }

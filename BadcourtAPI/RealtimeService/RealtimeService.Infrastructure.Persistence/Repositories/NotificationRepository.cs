@@ -1,9 +1,13 @@
 using AutoMapper;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Infrastructure.Persistence.Configurations;
+using SharedKernel;
+using SharedKernel.DTOs;
+using SharedKernel.Params;
 
 namespace RealtimeService.Infrastructure.Persistence.Repositories;
 
@@ -24,11 +28,29 @@ public class NotificationRepository : INotificationRepository
         _mapper = mapper;
     }
 
-    public async Task<List<Notification>> GetNotificationsAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<PagedList<NotificationDto>> GetNotificationsAsync(NotificationParams notificationParams, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<Notification>.Filter.Eq(n => n.UserId, userId);
-        return await _notifications.Find(filter)
-            .SortByDescending(n => n.CreatedAt)
-            .ToListAsync(cancellationToken);
+        var pipeline = new List<BsonDocument>
+        {
+            new("$match", new BsonDocument("UserId", notificationParams.UserId))
+        };
+
+        switch (notificationParams.OrderBy)
+        {
+            case "createdAt":
+            default:
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("CreatedAt", notificationParams.SortBy == "asc" ? 1 : -1)));
+                break;
+        }
+
+        var notifications = await PagedList<Notification>.CreateAsync(
+            _notifications,
+            pipeline,
+            notificationParams.PageNumber,
+            notificationParams.PageSize,
+            cancellationToken
+        );
+
+        return PagedList<NotificationDto>.Map(notifications, _mapper);
     }
 }
