@@ -17,47 +17,28 @@ class CustomAvatar extends StatelessWidget {
     required this.userId,
   }) : super(key: key);
 
-  Future<void> _createGroupAndNavigate(BuildContext context, String userId) async {
+  Future<void> _createGroupAndNavigate(
+      BuildContext context, String userId) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    final messageHubProvider = Provider.of<MessageHubProvider>(context, listen: false);
+    final messageHubProvider =
+        Provider.of<MessageHubProvider>(context, listen: false);
 
     try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
       // Connect to MessageHub for this specific user to start conversation
       await messageHubProvider.connectToUser(
-        userProvider.user.token,
+        context,
         userId,
       );
-
-      // Hide loading indicator
-      Navigator.of(context).pop();
 
       if (messageHubProvider.isConnectedToUser(userId)) {
         // Refresh groups in GroupProvider to include any new groups
         await groupProvider.requestGroups();
-        
+
         // Navigate to message detail screen
         Navigator.of(context).pushNamed(
           MessageDetailScreen.routeName,
           arguments: userId,
-        );
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Chat started successfully!'),
-            backgroundColor: Colors.green,
-          ),
         );
       } else {
         throw Exception('Failed to connect to user');
@@ -67,7 +48,7 @@ class CustomAvatar extends StatelessWidget {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to start chat: $e'),
@@ -86,7 +67,7 @@ class CustomAvatar extends StatelessWidget {
       context,
       listen: false,
     );
-    
+
     if (userId != userProvider.user.id) {
       showModalBottomSheet(
         context: context,
@@ -101,7 +82,8 @@ class CustomAvatar extends StatelessWidget {
               children: [
                 // Header with user info
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -155,7 +137,7 @@ class CustomAvatar extends StatelessWidget {
                   ),
                 ),
                 const Divider(),
-                
+
                 // Action items
                 ListTile(
                   leading: Container(
@@ -176,11 +158,12 @@ class CustomAvatar extends StatelessWidget {
                     _navigateToDetailMessageScreen(context, userId);
                   },
                 ),
-                
+
                 // Show connection status if already connected
                 Consumer<MessageHubProvider>(
                   builder: (context, messageHubProvider, _) {
-                    final isConnected = messageHubProvider.isConnectedToUser(userId);
+                    final isConnected =
+                        messageHubProvider.isConnectedToUser(userId);
                     if (isConnected) {
                       return ListTile(
                         leading: Container(
@@ -208,7 +191,7 @@ class CustomAvatar extends StatelessWidget {
                     return const SizedBox.shrink();
                   },
                 ),
-                
+
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -233,7 +216,7 @@ class CustomAvatar extends StatelessWidget {
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 10),
               ],
             ),

@@ -1,166 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
+import 'package:frontend/models/message_dto.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/user_provider.dart';
 
-class MessageHubProvider extends ChangeNotifier {
+class MessageHubProvider with ChangeNotifier {
   final MessageHubService _messageHubService = MessageHubService();
   
-  Map<String, List<MessageDto>> _messageThreads = {};
-  Map<String, GroupDto> _activeGroups = {};
-  Set<String> _connectedUsers = {};
+  List<MessageDto> _messages = [];
   bool _isLoading = false;
   String? _error;
+  GroupDto? _currentGroup;
 
-  // Getters
-  Map<String, List<MessageDto>> get messageThreads => _messageThreads;
-  Map<String, GroupDto> get activeGroups => _activeGroups;
-  Set<String> get connectedUsers => _connectedUsers;
+  List<MessageDto> get messages => _messages;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get hasActiveConnections => _messageHubService.hasActiveConnections;
-  int get activeConnectionsCount => _messageHubService.activeConnectionsCount;
+  GroupDto? get currentGroup => _currentGroup;
 
-  // Initialize MessageHub connection for a specific user
-  Future<void> connectToUser(String accessToken, String otherUserId) async {
-    try {
-      _setLoading(true);
-      _setError(null);
-
-      // Set up callbacks
-      _messageHubService.onUpdatedGroup = _onUpdatedGroup;
-      _messageHubService.onReceiveMessageThread = _onReceiveMessageThread;
-      _messageHubService.onNewMessage = _onNewMessage;
-      _messageHubService.onNewMessageReceived = _onNewMessageReceived;
-
-      // Start connection
-      await _messageHubService.startConnection(accessToken, otherUserId);
-      _connectedUsers.add(otherUserId);
-      
-      print('[MessageHubProvider] Connected to user: $otherUserId');
-    } catch (e) {
-      _setError('Failed to connect to user $otherUserId: $e');
-      print('[MessageHubProvider] Error connecting to user $otherUserId: $e');
-    } finally {
-      _setLoading(false);
-    }
+  MessageHubProvider() {
+    _setupCallbacks();
   }
 
-  // Disconnect from a specific user
-  Future<void> disconnectFromUser(String otherUserId) async {
-    try {
-      await _messageHubService.stopConnection(otherUserId);
-      _connectedUsers.remove(otherUserId);
-      _messageThreads.remove(otherUserId);
-      _activeGroups.remove(otherUserId);
+  void _setupCallbacks() {
+    _messageHubService.onUpdatedGroup = (group) {
+      _currentGroup = group;
       notifyListeners();
-      print('[MessageHubProvider] Disconnected from user: $otherUserId');
-    } catch (e) {
-      print('[MessageHubProvider] Error disconnecting from user $otherUserId: $e');
-    }
-  }
+    };
 
-  // Disconnect from all users
-  Future<void> disconnectAll() async {
-    try {
-      await _messageHubService.stopAllConnections();
-      _connectedUsers.clear();
-      _messageThreads.clear();
-      _activeGroups.clear();
+    _messageHubService.onReceiveMessageThread = (messages) {
+      _messages = messages;
+      _isLoading = false;
       notifyListeners();
-      print('[MessageHubProvider] Disconnected from all users');
-    } catch (e) {
-      print('[MessageHubProvider] Error disconnecting from all users: $e');
-    }
+    };
+
+    _messageHubService.onNewMessage = (message) {
+      _messages.add(message);
+      notifyListeners();
+    };
+
+    _messageHubService.onNewMessageReceived = (group) {
+      _currentGroup = group;
+      notifyListeners();
+    };
   }
 
-  // Send message to a user
-  Future<bool> sendMessage(String otherUserId, String content, {String? attachmentUrl}) async {
+  Future<bool> connectToUser(BuildContext context, String otherUserId) async {
     try {
-      final success = await _messageHubService.sendMessage(
-        otherUserId, 
-        content, 
-        attachmentUrl: attachmentUrl,
-      );
-      
-      if (success) {
-        print('[MessageHubProvider] Message sent to user: $otherUserId');
-      } else {
-        _setError('Failed to send message to user: $otherUserId');
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final accessToken = userProvider.user.token;
+
+      print('[MessageHubProvider] Connecting to user: $otherUserId');
+      print('[MessageHubProvider] Using token: ${accessToken.substring(0, 20)}...');
+
+      // Kiểm tra xem đã connected chưa
+      if (_messageHubService.isConnectionReady(otherUserId)) {
+        print('[MessageHubProvider] Already connected to user: $otherUserId');
+        _isLoading = false;
+        notifyListeners();
+        return true;
       }
+
+      await _messageHubService.startConnection(accessToken, otherUserId);
       
-      return success;
+      // Đợi một chút để connection ổn định
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      final isReady = _messageHubService.isConnectionReady(otherUserId);
+      print('[MessageHubProvider] Connection ready: $isReady');
+      
+      _isLoading = false;
+      notifyListeners();
+      
+      return isReady;
     } catch (e) {
-      _setError('Error sending message: $e');
+      print('[MessageHubProvider] Error connecting to user $otherUserId: $e');
+      _error = 'Failed to connect: $e';
+      _isLoading = false;
+      notifyListeners();
       return false;
     }
   }
 
-  // Callback methods
-  void _onUpdatedGroup(GroupDto group) {
-    print('[MessageHubProvider] Group updated: ${group.id}');
-    _activeGroups[group.id] = group;
-    notifyListeners();
-  }
+  Future<bool> sendMessage(BuildContext context, String otherUserId, String content) async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final accessToken = userProvider.user.token;
 
-  void _onReceiveMessageThread(List<MessageDto> messages) {
-    if (messages.isNotEmpty) {
-      // Assume all messages in thread are from same conversation
-      final firstMessage = messages.first;
-      final otherUserId = firstMessage.senderId; // This might need adjustment based on your logic
-      _messageThreads[otherUserId] = messages;
-      print('[MessageHubProvider] Received ${messages.length} messages for user: $otherUserId');
+      // Đảm bảo connection sẵn sàng trước khi gửi
+      if (!_messageHubService.isConnectionReady(otherUserId)) {
+        print('[MessageHubProvider] Connection not ready, attempting to connect...');
+        final connected = await connectToUser(context, otherUserId);
+        if (!connected) {
+          _error = 'Cannot establish connection to send message';
+          notifyListeners();
+          return false;
+        }
+        
+        // Đợi thêm một chút sau khi kết nối
+        await Future.delayed(Duration(milliseconds: 1000));
+      }
+
+      // Kiểm tra lại connection state
+      final connectionState = _messageHubService.getConnectionState(otherUserId);
+      print('[MessageHubProvider] Connection state before sending: $connectionState');
+
+      if (!_messageHubService.isConnectionReady(otherUserId)) {
+        _error = 'Connection not ready to send message';
+        notifyListeners();
+        return false;
+      }
+
+      final success = await _messageHubService.sendMessage(otherUserId, content);
+      
+      if (!success) {
+        _error = 'Failed to send message';
+        notifyListeners();
+      }
+      
+      return success;
+    } catch (e) {
+      print('[MessageHubProvider] Error sending message: $e');
+      _error = 'Error sending message: $e';
       notifyListeners();
+      return false;
     }
   }
 
-  void _onNewMessage(MessageDto message) {
-    print('[MessageHubProvider] New message received from: ${message.senderId}');
-    
-    // Add message to appropriate thread
-    final senderId = message.senderId;
-    if (_messageThreads.containsKey(senderId)) {
-      _messageThreads[senderId]!.add(message);
-    } else {
-      _messageThreads[senderId] = [message];
-    }
-    
+  Future<void> disconnectFromUser(String otherUserId) async {
+    await _messageHubService.stopConnection(otherUserId);
     notifyListeners();
   }
 
-  void _onNewMessageReceived(GroupDto group) {
-    print('[MessageHubProvider] New message received in group: ${group.id}');
-    _activeGroups[group.id] = group;
+  Future<void> disconnectAll() async {
+    await _messageHubService.stopAllConnections();
+    _messages.clear();
+    _currentGroup = null;
     notifyListeners();
   }
 
-  // Helper methods
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(String? error) {
-    _error = error;
-    notifyListeners();
-  }
-
-  // Check if connected to specific user
   bool isConnectedToUser(String otherUserId) {
-    return _messageHubService.isConnectedToUser(otherUserId);
+    return _messageHubService.isConnectionReady(otherUserId);
   }
 
-  // Get connection state for specific user
   String getConnectionState(String otherUserId) {
-    return _messageHubService.getConnectionState(otherUserId);
+    return _messageHubService.getConnectionStateString(otherUserId);
   }
 
-  // Get messages for specific user
-  List<MessageDto> getMessagesForUser(String otherUserId) {
-    return _messageThreads[otherUserId] ?? [];
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 
-  // Get group for specific user (if exists)
-  GroupDto? getGroupForUser(String otherUserId) {
-    return _activeGroups[otherUserId];
+  void clearMessages() {
+    _messages.clear();
+    notifyListeners();
   }
 }

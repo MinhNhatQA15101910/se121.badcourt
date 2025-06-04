@@ -33,6 +33,7 @@ class UserMessageBox extends StatelessWidget {
     if (roomId != null) {
       final groupProvider = Provider.of<GroupProvider>(context, listen: false);
       groupProvider.markGroupAsRead(roomId!); // Sửa từ markMessageRoomAsRead thành markGroupAsRead
+      groupProvider.markGroupAsReadViaSignalR(roomId!);
     }
 
     Navigator.of(context).pushNamed(
@@ -53,7 +54,7 @@ class UserMessageBox extends StatelessWidget {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Stack(
@@ -106,54 +107,68 @@ class UserMessageBox extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: _customText(
+                          child: Text(
                             userName,
-                            14,
-                            hasUnreadMessage 
-                                ? FontWeight.w700 
-                                : FontWeight.w600,
-                            hasUnreadMessage 
-                                ? GlobalVariables.darkGreen 
-                                : GlobalVariables.blackGrey,
-                            1,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: hasUnreadMessage 
+                                  ? FontWeight.w700 
+                                  : FontWeight.w600,
+                              color: hasUnreadMessage 
+                                  ? GlobalVariables.darkGreen 
+                                  : GlobalVariables.blackGrey,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _customText(
-                          role,
-                          12,
-                          FontWeight.w500,
-                          GlobalVariables.green,
-                          1,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: GlobalVariables.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            role,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: GlobalVariables.green,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 2),
-                    _customText(
-                      timestamp,
-                      10,
-                      FontWeight.w400,
-                      hasUnreadMessage 
-                          ? GlobalVariables.green 
-                          : GlobalVariables.darkGrey,
-                      1,
-                    ),
                     const SizedBox(height: 4),
+                    Text(
+                      timestamp,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: hasUnreadMessage 
+                            ? GlobalVariables.green 
+                            : GlobalVariables.darkGrey,
+                      ),
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Expanded(
-                          child: _customText(
-                            lastMessage.isNotEmpty 
-                                ? lastMessage 
-                                : 'No messages yet',
-                            12,
-                            hasUnreadMessage 
-                                ? FontWeight.w600 
-                                : FontWeight.w400,
-                            hasUnreadMessage 
-                                ? GlobalVariables.darkGreen 
-                                : GlobalVariables.darkGrey,
-                            1,
+                          child: Text(
+                            lastMessage,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: hasUnreadMessage 
+                                  ? FontWeight.w600 
+                                  : FontWeight.w400,
+                              color: hasUnreadMessage 
+                                  ? GlobalVariables.darkGreen 
+                                  : GlobalVariables.darkGrey,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         // Badge cho tin nhắn chưa đọc
@@ -175,21 +190,6 @@ class UserMessageBox extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _customText(
-      String text, double size, FontWeight weight, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: size,
-        fontWeight: weight,
       ),
     );
   }

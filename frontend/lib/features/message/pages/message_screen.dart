@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/widgets/user_message_box.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/providers/group_provider.dart';
@@ -57,15 +58,26 @@ class _MessageScreenState extends State<MessageScreen> {
         });
       }
     } else {
-      // Not connected yet, wait for connection
-      print('[MessageScreen] Waiting for GroupHub connection...');
-      await Future.delayed(const Duration(seconds: 3));
-      
-      setState(() {
-        groups = groupProvider.groups;
-        _updateFilteredGroups();
-        _isLoading = false;
-      });
+      // Not connected yet, try to initialize GroupHub
+      try {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await groupProvider.initializeGroupHub(userProvider.user.token);
+        print('[MessageScreen] Initialized GroupHub connection');
+        
+        // Wait for groups to load
+        await Future.delayed(const Duration(seconds: 3));
+        
+        setState(() {
+          groups = groupProvider.groups;
+          _updateFilteredGroups();
+          _isLoading = false;
+        });
+      } catch (e) {
+        print('[MessageScreen] Error initializing GroupHub: $e');
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -76,7 +88,8 @@ class _MessageScreenState extends State<MessageScreen> {
     } else {
       final currentUserId = Provider.of<UserProvider>(context, listen: false).user.id;
       filteredGroups = groups.where((group) {
-        final user = group.users.firstWhere(
+        // Find other user in the group
+        final otherUser = group.users.firstWhere(
           (u) => u.id != currentUserId,
           orElse: () => UserDto(
             id: 'unknown',
@@ -85,9 +98,19 @@ class _MessageScreenState extends State<MessageScreen> {
             role: 'Unknown',
           ),
         );
-        return user.username.toLowerCase().contains(searchQuery);
+        
+        // Search by username or last message content
+        return otherUser.username.toLowerCase().contains(searchQuery) ||
+               (group.lastMessage?.content.toLowerCase().contains(searchQuery) ?? false);
       }).toList();
     }
+    
+    // Sort groups by last message time (most recent first)
+    filteredGroups.sort((a, b) {
+      final aTime = a.lastMessage?.messageSent ?? a.updatedAt;
+      final bTime = b.lastMessage?.messageSent ?? b.updatedAt;
+      return bTime.compareTo(aTime); // Descending order
+    });
   }
 
   Future<void> _refreshGroups() async {
@@ -97,17 +120,34 @@ class _MessageScreenState extends State<MessageScreen> {
 
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     
-    // Just wait for automatic updates from the server
-    await groupProvider.refreshGroups();
-    
-    // Wait a bit for any updates
-    await Future.delayed(const Duration(milliseconds: 1000));
-    
-    setState(() {
-      groups = groupProvider.groups;
-      _updateFilteredGroups();
-      _isLoading = false;
-    });
+    try {
+      // Request groups refresh
+      await groupProvider.refreshGroups();
+      
+      // Wait a bit for any updates
+      await Future.delayed(const Duration(milliseconds: 1000));
+      
+      setState(() {
+        groups = groupProvider.groups;
+        _updateFilteredGroups();
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('[MessageScreen] Error refreshing groups: $e');
+      setState(() {
+        _isLoading = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error refreshing conversations: $e'),
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: _refreshGroups,
+          ),
+        ),
+      );
+    }
   }
 
   void _onGroupTapped(String groupId) {
@@ -190,6 +230,14 @@ class _MessageScreenState extends State<MessageScreen> {
             ),
           ],
         ),
+        actions: [
+          // Add refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshGroups,
+            tooltip: 'Refresh conversations',
+          ),
+        ],
       ),
       body: Container(
         color: GlobalVariables.defaultColor,
@@ -291,6 +339,23 @@ class _MessageScreenState extends State<MessageScreen> {
                                       color: Colors.grey[500],
                                     ),
                                   ),
+                                  if (!groupProvider.isConnected)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 24.0),
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          final userProvider = Provider.of<UserProvider>(
+                                            context, 
+                                            listen: false
+                                          );
+                                          await groupProvider.initializeGroupHub(
+                                            userProvider.user.token
+                                          );
+                                          _refreshGroups();
+                                        },
+                                        child: const Text('Connect'),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -310,7 +375,7 @@ class _MessageScreenState extends State<MessageScreen> {
                                           .id;
 
                                   // Tìm user khác với user hiện tại
-                                  final user = group.users.firstWhere(
+                                  final otherUser = group.users.firstWhere(
                                     (u) => u.id != currentUserId,
                                     orElse: () => UserDto(
                                       id: 'default',
@@ -322,18 +387,31 @@ class _MessageScreenState extends State<MessageScreen> {
                                   );
 
                                   final hasUnread = _hasUnreadMessage(group);
+                                  
+                                  // Format last message time
+                                  String formattedTime = '';
+                                  if (group.lastMessage != null) {
+                                    formattedTime = _formatTimeAgo(group.lastMessage!.messageSent);
+                                  } else {
+                                    formattedTime = _formatTimeAgo(group.updatedAt);
+                                  }
 
                                   return GestureDetector(
-                                    onTap: () => _onGroupTapped(group.id),
+                                    onTap: () {
+                                      _onGroupTapped(group.id);
+                                      Navigator.of(context).pushNamed(
+                                        MessageDetailScreen.routeName,
+                                        arguments: otherUser.id,
+                                      );
+                                    },
                                     child: UserMessageBox(
-                                      userName: user.username,
+                                      userName: otherUser.username,
                                       lastMessage: group.lastMessage?.content ?? 
-                                                 (group.lastMessageAttachment != null ? 'Attachment' : ''),
-                                      timestamp: _formatTimestamp(
-                                          group.updatedAt.millisecondsSinceEpoch),
-                                      userImageUrl: user.photoUrl ?? '',
-                                      role: user.role,
-                                      userId: user.id,
+                                                 (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
+                                      timestamp: formattedTime,
+                                      userImageUrl: otherUser.photoUrl ?? '',
+                                      role: otherUser.role,
+                                      userId: otherUser.id,
                                       roomId: group.id,
                                       hasUnreadMessage: hasUnread,
                                     ),
@@ -350,18 +428,22 @@ class _MessageScreenState extends State<MessageScreen> {
     );
   }
 
-  String _formatTimestamp(int? timestamp) {
-    if (timestamp == null) return '';
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+  String _formatTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-
-    if (difference.inDays > 0) {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    
+    if (difference.inDays > 365) {
+      return '${(difference.inDays / 365).floor()} year(s) ago';
+    } else if (difference.inDays > 30) {
+      return '${(difference.inDays / 30).floor()} month(s) ago';
+    } else if (difference.inDays > 7) {
+      return '${(difference.inDays / 7).floor()} week(s) ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} day(s) ago';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
+      return '${difference.inHours} hour(s) ago';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
+      return '${difference.inMinutes} minute(s) ago';
     } else {
       return 'Just now';
     }
