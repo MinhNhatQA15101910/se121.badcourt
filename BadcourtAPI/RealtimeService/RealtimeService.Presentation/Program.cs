@@ -1,5 +1,6 @@
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.Extensions;
+using RealtimeService.Presentation.Middlewares;
 using RealtimeService.Presentation.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ builder.Services.AddIdentityServices(builder.Configuration);
 var app = builder.Build();
 
 app.UseCors("CorsPolicy");
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

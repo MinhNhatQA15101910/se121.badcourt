@@ -8,6 +8,7 @@ using RealtimeService.Infrastructure.ExternalServices.Configurations;
 using RealtimeService.Infrastructure.ExternalServices.Services;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using RealtimeService.Infrastructure.Persistence.Repositories;
+using RealtimeService.Presentation.Middlewares;
 using RealtimeService.Presentation.SignalR;
 
 namespace RealtimeService.Presentation.Extensions;
@@ -30,6 +31,8 @@ public static class ApplicationServiceExtensions
         services.AddControllers();
         services.AddHttpContextAccessor();
         services.AddSignalR();
+
+        services.AddScoped<ExceptionHandlingMiddleware>();
 
         services.AddSingleton<PresenceTracker>();
 
