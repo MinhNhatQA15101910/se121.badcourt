@@ -41,12 +41,17 @@ public static class ApplicationServiceExtensions
         services.AddMassTransit(x =>
         {
             x.AddConsumer<OrderCreatedConsumer>();
+            x.AddConsumer<PostLikedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
                 cfg.ReceiveEndpoint("RealtimeService-order-created-queue", e =>
                 {
                     e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-post-liked-queue", e =>
+                {
+                    e.ConfigureConsumer<PostLikedConsumer>(ctx);
                 });
             });
         });

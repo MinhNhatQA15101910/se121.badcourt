@@ -1,4 +1,5 @@
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using PostService.Application;
 using PostService.Application.ApiRepositories;
@@ -20,6 +21,11 @@ public static class ApplicationServiceExtensions
         services.AddHttpContextAccessor();
 
         services.AddScoped<ExceptionHandlingMiddleware>();
+
+        services.AddMassTransit(x =>
+        {
+            x.UsingRabbitMq();
+        });
 
         return services.AddPersistence(config)
             .AddExternalServices(config)
