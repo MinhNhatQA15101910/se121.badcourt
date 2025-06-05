@@ -1,10 +1,16 @@
+using FluentValidation;
+using MassTransit;
+using MediatR;
+using RealtimeService.Application;
+using RealtimeService.Application.ApiRepositories;
+using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Interfaces;
+using RealtimeService.Infrastructure.ExternalServices.Configurations;
+using RealtimeService.Infrastructure.ExternalServices.Services;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using RealtimeService.Infrastructure.Persistence.Repositories;
-using RealtimeService.Presentation.ApiRepositories;
-using RealtimeService.Presentation.Configurations;
-using RealtimeService.Presentation.Interfaces;
-using RealtimeService.Presentation.Services;
+using RealtimeService.Presentation.Consumers;
+using RealtimeService.Presentation.Middlewares;
 using RealtimeService.Presentation.SignalR;
 
 namespace RealtimeService.Presentation.Extensions;
@@ -24,9 +30,41 @@ public static class ApplicationServiceExtensions
             });
         });
 
+        services.AddControllers();
+        services.AddHttpContextAccessor();
         services.AddSignalR();
 
+        services.AddScoped<ExceptionHandlingMiddleware>();
+
         services.AddSingleton<PresenceTracker>();
+
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<OrderCreatedConsumer>();
+            x.AddConsumer<PostLikedConsumer>();
+            x.AddConsumer<PostCommentedConsumer>();
+            x.AddConsumer<CommentLikedConsumer>();
+
+            x.UsingRabbitMq((ctx, cfg) =>
+            {
+                cfg.ReceiveEndpoint("RealtimeService-order-created-queue", e =>
+                {
+                    e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-post-liked-queue", e =>
+                {
+                    e.ConfigureConsumer<PostLikedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-post-commented-queue", e =>
+                {
+                    e.ConfigureConsumer<PostCommentedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-comment-liked-queue", e =>
+                {
+                    e.ConfigureConsumer<CommentLikedConsumer>(ctx);
+                });
+            });
+        });
 
         return services.AddPersistence(configuration)
             .AddExternalServices(configuration)
@@ -35,13 +73,17 @@ public static class ApplicationServiceExtensions
 
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<ApiEndpoints>(
-            configuration.GetSection(nameof(ApiEndpoints))
-        );
+        var applicationAssembly = typeof(AssemblyReference).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddValidatorsFromAssembly(applicationAssembly);
+
+        services.AddAutoMapper(applicationAssembly);
+
+        services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
         services.AddHttpClient<IUserApiRepository, UserApiRepository>();
-
-        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        services.AddHttpClient<ICourtApiRepository, CourtApiRepository>();
 
         return services;
     }

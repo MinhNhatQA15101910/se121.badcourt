@@ -1,4 +1,4 @@
-namespace RealtimeService.Presentation.Configurations;
+namespace RealtimeService.Infrastructure.ExternalServices.Configurations;
 
 public class CloudinarySettings
 {

@@ -2,13 +2,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using RealtimeService.Application.ApiRepositories;
+using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Enums;
 using RealtimeService.Domain.Interfaces;
-using RealtimeService.Presentation.ApiRepositories;
 using RealtimeService.Presentation.DTOs;
 using RealtimeService.Presentation.Extensions;
-using RealtimeService.Presentation.Interfaces;
 using SharedKernel;
 using SharedKernel.DTOs;
 using SharedKernel.Params;
@@ -68,13 +68,15 @@ public class MessageHub(
 
         await Clients.Group(groupName).SendAsync("UpdatedGroup", groupDto);
 
-        var messages = await messageRepository.GetMessagesAsync(new MessageParams
-        {
-            CurrentUserId = Context.User.GetUserId().ToString(),
-            GroupId = group.Id,
-            PageNumber = 1,
-            PageSize = 20,
-        });
+        var messages = await messageRepository.GetMessagesAsync(
+            Context.User.GetUserId().ToString(),
+            new MessageParams
+            {
+
+                GroupId = group.Id,
+                PageNumber = 1,
+                PageSize = 20,
+            });
 
         var pagedMessages = new PagedResult<MessageDto>
         {

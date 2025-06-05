@@ -28,11 +28,16 @@ public class NotificationRepository : INotificationRepository
         _mapper = mapper;
     }
 
-    public async Task<PagedList<NotificationDto>> GetNotificationsAsync(NotificationParams notificationParams, CancellationToken cancellationToken = default)
+    public async Task AddNotificationAsync(Notification notification, CancellationToken cancellationToken = default)
+    {
+        await _notifications.InsertOneAsync(notification, cancellationToken: cancellationToken);
+    }
+
+    public async Task<PagedList<NotificationDto>> GetNotificationsAsync(string userId, NotificationParams notificationParams, CancellationToken cancellationToken = default)
     {
         var pipeline = new List<BsonDocument>
         {
-            new("$match", new BsonDocument("UserId", notificationParams.UserId))
+            new("$match", new BsonDocument("UserId", userId))
         };
 
         switch (notificationParams.OrderBy)

@@ -1,10 +1,11 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using RealtimeService.Presentation.Configurations;
-using RealtimeService.Presentation.Interfaces;
+using RealtimeService.Application.Interfaces;
+using RealtimeService.Infrastructure.ExternalServices.Configurations;
 
-namespace RealtimeService.Presentation.Services;
+namespace RealtimeService.Infrastructure.ExternalServices.Services;
 
 public class FileService : IFileService
 {

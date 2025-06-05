@@ -97,10 +97,11 @@ public class CreateOrderHandler(
         }
 
         // Create order
+        var userId = httpContextAccessor.HttpContext.User.GetUserId();
         var facilityMainPhoto = facility.Photos.FirstOrDefault(p => p.IsMain);
         var order = new Order
         {
-            UserId = httpContextAccessor.HttpContext.User.GetUserId(),
+            UserId = userId,
             CourtId = request.CreateOrderDto.CourtId,
             FacilityName = facility.FacilityName,
             Address = facility.DetailAddress,
@@ -118,7 +119,11 @@ public class CreateOrderHandler(
 
         // Publish order created event
         await publishEndpoint.Publish(
-            new OrderCreatedEvent(request.CreateOrderDto.CourtId, request.CreateOrderDto.DateTimePeriod)
+            new OrderCreatedEvent(
+                order.Id.ToString(),
+                request.CreateOrderDto.CourtId,
+                userId.ToString(),
+                request.CreateOrderDto.DateTimePeriod)
             , cancellationToken
         );
 

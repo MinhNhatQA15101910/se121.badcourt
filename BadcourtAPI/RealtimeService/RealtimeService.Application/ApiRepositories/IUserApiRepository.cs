@@ -1,6 +1,6 @@
 using SharedKernel.DTOs;
 
-namespace RealtimeService.Presentation.ApiRepositories;
+namespace RealtimeService.Application.ApiRepositories;
 
 public interface IUserApiRepository
 {

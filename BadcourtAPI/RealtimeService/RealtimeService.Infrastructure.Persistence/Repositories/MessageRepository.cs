@@ -1,5 +1,4 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -44,7 +43,7 @@ public class MessageRepository : IMessageRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PagedList<MessageDto>> GetMessagesAsync(MessageParams messageParams, CancellationToken cancellationToken = default)
+    public async Task<PagedList<MessageDto>> GetMessagesAsync(string currentUserId, MessageParams messageParams, CancellationToken cancellationToken = default)
     {
 
         var pipeline = new List<BsonDocument>
@@ -52,7 +51,7 @@ public class MessageRepository : IMessageRepository
             new("$match", new BsonDocument("GroupId", messageParams.GroupId))
         };
 
-        await UpdateUnreadMessagesAsync(messageParams.GroupId, messageParams.CurrentUserId, cancellationToken);
+        await UpdateUnreadMessagesAsync(messageParams.GroupId, currentUserId, cancellationToken);
 
         switch (messageParams.OrderBy)
         {

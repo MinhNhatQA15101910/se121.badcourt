@@ -1,5 +1,6 @@
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.Extensions;
+using RealtimeService.Presentation.Middlewares;
 using RealtimeService.Presentation.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,8 @@ var app = builder.Build();
 
 app.UseCors("CorsPolicy");
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -29,6 +32,8 @@ app.MapHub<PresenceHub>("hubs/presence");
 app.MapHub<MessageHub>("hubs/message");
 app.MapHub<GroupHub>("hubs/group");
 app.MapHub<NotificationHub>("hubs/notification");
+
+app.MapControllers();
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;

@@ -1,8 +1,8 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Domain.Interfaces;
-using RealtimeService.Presentation.ApiRepositories;
 using RealtimeService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -28,9 +28,8 @@ public class GroupHub(
 
         var userId = Context.User.GetUserId().ToString();
 
-        var groups = await groupRepository.GetGroupsRawAsync(new GroupParams
+        var groups = await groupRepository.GetGroupsRawAsync(userId, new GroupParams
         {
-            UserId = userId,
             PageNumber = 1,
             PageSize = 20
         });
@@ -46,7 +45,7 @@ public class GroupHub(
             foreach (var userIdInGroup in groups[i].UserIds)
             {
                 var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
-                    ?? throw new HubException($"User with ID {userId} not found");
+                    ?? throw new HubException($"User with ID {userIdInGroup} not found");
                 groupDtos[i].Users.Add(userDto);
             }
 

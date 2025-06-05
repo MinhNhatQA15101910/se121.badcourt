@@ -21,9 +21,11 @@ public class OrderCreatedConsumer(
             ..court.OrderPeriods,
             mapper.Map<DateTimePeriod>(context.Message.DateTimePeriodDto)
         ];
-        
+
         court.UpdatedAt = DateTime.UtcNow;
 
         await courtRepository.UpdateCourtAsync(court);
+        
+        Console.WriteLine("Court updated with new order period.");
     }
 }

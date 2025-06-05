@@ -1,9 +1,8 @@
 using AutoMapper;
 using RealtimeService.Domain.Entities;
-using SharedKernel;
 using SharedKernel.DTOs;
 
-namespace RealtimeService.Presentation.Mappings;
+namespace RealtimeService.Application.Mappings;
 
 public class AutoMapperProfile : Profile
 {

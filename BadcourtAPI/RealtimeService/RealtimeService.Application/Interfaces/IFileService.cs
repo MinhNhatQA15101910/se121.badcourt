@@ -1,6 +1,7 @@
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Http;
 
-namespace RealtimeService.Presentation.Interfaces;
+namespace RealtimeService.Application.Interfaces;
 
 public interface IFileService
 {

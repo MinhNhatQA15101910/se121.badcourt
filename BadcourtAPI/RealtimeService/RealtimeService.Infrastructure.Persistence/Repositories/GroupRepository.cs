@@ -1,5 +1,4 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -8,7 +7,6 @@ using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using SharedKernel;
-using SharedKernel.DTOs;
 using SharedKernel.Params;
 
 namespace RealtimeService.Infrastructure.Persistence.Repositories;
@@ -60,13 +58,19 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PagedList<Group>> GetGroupsRawAsync(GroupParams groupParams, CancellationToken cancellationToken = default)
+    public async Task<PagedList<Group>> GetGroupsRawAsync(string userId, GroupParams groupParams, CancellationToken cancellationToken = default)
     {
         var pipeline = new List<BsonDocument>
         {
-            new("$match", new BsonDocument("UserIds", groupParams.UserId))
+            new("$match", new BsonDocument("UserIds", userId))
         };
 
+        switch (groupParams.OrderBy)
+        {
+            case "updatedAt":
+            default:
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", groupParams.SortBy == "asc" ? 1 : -1)));
+                break;
         switch (groupParams.OrderBy)
         {
             case "updatedAt":
