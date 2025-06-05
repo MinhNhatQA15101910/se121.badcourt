@@ -220,6 +220,14 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 6000 }],
       "UpstreamPathTemplate": "/gateway/comments/toggle-like/{id}",
       "UpstreamHttpMethod": ["Post"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/groups",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/groups",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {

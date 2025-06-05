@@ -1,4 +1,4 @@
-namespace RealtimeService.Presentation.ApiRepositories;
+namespace RealtimeService.Application.ApiRepositories;
 
 public class ApiEndpoints
 {

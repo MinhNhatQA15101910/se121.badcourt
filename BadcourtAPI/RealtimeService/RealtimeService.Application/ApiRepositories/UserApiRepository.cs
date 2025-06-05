@@ -1,7 +1,8 @@
+using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 using SharedKernel.DTOs;
 
-namespace RealtimeService.Presentation.ApiRepositories;
+namespace RealtimeService.Application.ApiRepositories;
 
 public class UserApiRepository(
     IOptions<ApiEndpoints> config,

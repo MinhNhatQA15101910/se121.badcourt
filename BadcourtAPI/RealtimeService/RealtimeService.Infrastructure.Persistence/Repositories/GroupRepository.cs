@@ -1,13 +1,12 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using SharedKernel;
-using SharedKernel.DTOs;
 using SharedKernel.Params;
 
 namespace RealtimeService.Infrastructure.Persistence.Repositories;
@@ -59,18 +58,24 @@ public class GroupRepository : IGroupRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PagedList<Group>> GetGroupsRawAsync(GroupParams groupParams, CancellationToken cancellationToken = default)
+    public async Task<PagedList<Group>> GetGroupsRawAsync(string userId, GroupParams groupParams, CancellationToken cancellationToken = default)
     {
-        var query = _groups.AsQueryable()
-            .Where(m => m.UserIds.Contains(groupParams.UserId));
-
-        if (groupParams.OrderBy == "updatedAt")
+        var pipeline = new List<BsonDocument>
         {
-            query = groupParams.SortBy == "asc" ? query.OrderBy(m => m.UpdatedAt) : query.OrderByDescending(m => m.UpdatedAt);
+            new("$match", new BsonDocument("UserIds", userId))
+        };
+
+        switch (groupParams.OrderBy)
+        {
+            case "updatedAt":
+            default:
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", groupParams.SortBy == "asc" ? 1 : -1)));
+                break;
         }
-        
+
         return await PagedList<Group>.CreateAsync(
-            query,
+            _groups,
+            pipeline,
             groupParams.PageNumber,
             groupParams.PageSize,
             cancellationToken

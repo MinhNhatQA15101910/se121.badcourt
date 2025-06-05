@@ -19,6 +19,8 @@ app.MapHub<MessageHub>("hubs/message");
 app.MapHub<GroupHub>("hubs/group");
 app.MapHub<NotificationHub>("hubs/notification");
 
+app.MapControllers();
+
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 try

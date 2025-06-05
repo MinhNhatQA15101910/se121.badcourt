@@ -12,5 +12,5 @@ public interface IMessageRepository
     Task<Message?> GetLastMessageAsync(
         string groupId, CancellationToken cancellationToken = default);
     Task<PagedList<MessageDto>> GetMessagesAsync(
-        MessageParams messageParams, CancellationToken cancellationToken = default);
+        string currentUserId, MessageParams messageParams, CancellationToken cancellationToken = default);
 }

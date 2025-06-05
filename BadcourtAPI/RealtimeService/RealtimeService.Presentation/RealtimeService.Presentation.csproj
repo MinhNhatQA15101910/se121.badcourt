@@ -8,14 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.27.5" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\RealtimeService.Infrastructure.ExternalServices\RealtimeService.Infrastructure.ExternalServices.csproj" />
     <ProjectReference Include="..\RealtimeService.Infrastructure.Persistence\RealtimeService.Infrastructure.Persistence.csproj" />
   </ItemGroup>
 

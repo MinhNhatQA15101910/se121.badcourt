@@ -6,5 +6,6 @@ namespace RealtimeService.Domain.Interfaces;
 
 public interface INotificationRepository
 {
-    Task<PagedList<NotificationDto>> GetNotificationsAsync(NotificationParams notificationParams, CancellationToken cancellationToken = default);
+    Task<PagedList<NotificationDto>> GetNotificationsAsync(
+        string userId, NotificationParams notificationParams, CancellationToken cancellationToken = default);
 }

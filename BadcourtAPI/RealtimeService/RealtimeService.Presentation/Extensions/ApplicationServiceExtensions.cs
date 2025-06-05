@@ -1,10 +1,13 @@
+using FluentValidation;
+using MediatR;
+using RealtimeService.Application;
+using RealtimeService.Application.ApiRepositories;
+using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Interfaces;
+using RealtimeService.Infrastructure.ExternalServices.Configurations;
+using RealtimeService.Infrastructure.ExternalServices.Services;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using RealtimeService.Infrastructure.Persistence.Repositories;
-using RealtimeService.Presentation.ApiRepositories;
-using RealtimeService.Presentation.Configurations;
-using RealtimeService.Presentation.Interfaces;
-using RealtimeService.Presentation.Services;
 using RealtimeService.Presentation.SignalR;
 
 namespace RealtimeService.Presentation.Extensions;
@@ -24,6 +27,8 @@ public static class ApplicationServiceExtensions
             });
         });
 
+        services.AddControllers();
+        services.AddHttpContextAccessor();
         services.AddSignalR();
 
         services.AddSingleton<PresenceTracker>();
@@ -35,13 +40,16 @@ public static class ApplicationServiceExtensions
 
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<ApiEndpoints>(
-            configuration.GetSection(nameof(ApiEndpoints))
-        );
+        var applicationAssembly = typeof(AssemblyReference).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddValidatorsFromAssembly(applicationAssembly);
+
+        services.AddAutoMapper(applicationAssembly);
+
+        services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
         services.AddHttpClient<IUserApiRepository, UserApiRepository>();
-
-        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         return services;
     }

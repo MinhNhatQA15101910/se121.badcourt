@@ -1,63 +1,54 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Http;
 using RealtimeService.Application.ApiRepositories;
+using RealtimeService.Application.Extensions;
 using RealtimeService.Domain.Interfaces;
-using RealtimeService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
-using SharedKernel.Params;
+using SharedKernel.Exceptions;
 
-namespace RealtimeService.Presentation.SignalR;
+namespace RealtimeService.Application.Queries.GetGroups;
 
-[Authorize]
-public class GroupHub(
+public class GetGroupsHandler(
+    IHttpContextAccessor httpContextAccessor,
     IGroupRepository groupRepository,
-    IMessageRepository messageRepository,
     IConnectionRepository connectionRepository,
+    IMessageRepository messageRepository,
     IUserApiRepository userApiRepository,
     IMapper mapper
-) : Hub
+) : IQueryHandler<GetGroupsQuery, PagedResult<GroupDto>>
 {
-    public override async Task OnConnectedAsync()
+    public async Task<PagedResult<GroupDto>> Handle(GetGroupsQuery request, CancellationToken cancellationToken)
     {
-        if (Context.User is null)
-        {
-            throw new HubException("Cannot get current user claims");
-        }
+        var userId = httpContextAccessor.HttpContext.User.GetUserId();
 
-        var userId = Context.User.GetUserId().ToString();
-
-        var groups = await groupRepository.GetGroupsRawAsync(userId, new GroupParams
-        {
-            PageNumber = 1,
-            PageSize = 20
-        });
+        var groups = await groupRepository
+            .GetGroupsRawAsync(userId, request.GroupParams, cancellationToken);
         var groupDtos = groups.Select(mapper.Map<GroupDto>).ToList();
 
         for (var i = 0; i < groups.Count; i++)
         {
             // Set connections
-            var groupConnections = await connectionRepository.GetConnectionsByGroupIdAsync(groups[i].Id);
+            var groupConnections = await connectionRepository.GetConnectionsByGroupIdAsync(groups[i].Id, cancellationToken);
             groupDtos[i].Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
 
             // Set users
             foreach (var userIdInGroup in groups[i].UserIds)
             {
                 var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
-                    ?? throw new HubException($"User with ID {userIdInGroup} not found");
+                    ?? throw new UserNotFoundException(Guid.Parse(userIdInGroup));
                 groupDtos[i].Users.Add(userDto);
             }
 
             // Set last message
-            var lastMessage = await messageRepository.GetLastMessageAsync(groups[i].Id);
+            var lastMessage = await messageRepository.GetLastMessageAsync(groups[i].Id, cancellationToken);
             if (lastMessage != null)
             {
                 groupDtos[i].LastMessage = mapper.Map<MessageDto>(lastMessage);
             }
         }
 
-        var pagedGroupDtos = new PagedResult<GroupDto>
+        return new PagedResult<GroupDto>
         {
             CurrentPage = groups.CurrentPage,
             TotalPages = groups.TotalPages,
@@ -65,7 +56,5 @@ public class GroupHub(
             TotalCount = groups.TotalCount,
             Items = groupDtos
         };
-
-        await Clients.Caller.SendAsync("ReceiveGroups", pagedGroupDtos);
     }
 }
