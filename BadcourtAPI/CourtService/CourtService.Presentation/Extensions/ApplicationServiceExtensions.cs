@@ -20,26 +20,8 @@ public static class ApplicationServiceExtensions
         services.AddControllers();
         services.AddHttpContextAccessor();
 
-        // Options pattern
-        services.Configure<CourtDatabaseSettings>(config.GetSection(nameof(CourtDatabaseSettings)));
-
-        // Repositories
-        services.AddScoped<ICourtRepository, CourtRepository>();
-
-        // Api Repositories
-        services.AddSingleton<ApiEndpoints>();
-        services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();
-
-        // Middleware
         services.AddScoped<ExceptionHandlingMiddleware>();
 
-        // MediatR
-        var applicationAssembly = typeof(AssemblyReference).Assembly;
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        services.AddValidatorsFromAssembly(applicationAssembly);
-
-        // Redis
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = config["RedisCacheSettings:Configuration"];
@@ -63,8 +45,30 @@ public static class ApplicationServiceExtensions
             });
         });
 
-        // Others
+        return services.AddPersistence(config).AddApplication(config);
+    }
+
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration config)
+    {
+        var applicationAssembly = typeof(AssemblyReference).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddValidatorsFromAssembly(applicationAssembly);
+
         services.AddAutoMapper(applicationAssembly);
+
+        services.AddSingleton<ApiEndpoints>();
+
+        services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<CourtDatabaseSettings>(config.GetSection(nameof(CourtDatabaseSettings)));
+
+        services.AddScoped<ICourtRepository, CourtRepository>();
 
         return services;
     }

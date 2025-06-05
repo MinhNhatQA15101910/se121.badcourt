@@ -83,6 +83,7 @@ public static class ApplicationServiceExtensions
         services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
         services.AddHttpClient<IUserApiRepository, UserApiRepository>();
+        services.AddHttpClient<ICourtApiRepository, CourtApiRepository>();
 
         return services;
     }
