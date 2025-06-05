@@ -10,20 +10,20 @@ using SharedKernel.Events;
 
 namespace RealtimeService.Presentation.Consumers;
 
-public class PostLikedConsumer(
+public class PostCommentedConsumer(
     INotificationRepository notificationRepository,
     IHubContext<NotificationHub> notificationHub,
     IMapper mapper
-) : IConsumer<PostLikedEvent>
+) : IConsumer<PostCommentedEvent>
 {
-    public async Task Consume(ConsumeContext<PostLikedEvent> context)
+    public async Task Consume(ConsumeContext<PostCommentedEvent> context)
     {
         var notification = new Notification
         {
             UserId = context.Message.PostOwnerId,
-            Type = NotificationType.PostLiked,
+            Type = NotificationType.PostCommented,
             Title = "Post Liked",
-            Content = $"{context.Message.LikedUserUsername} liked your post.",
+            Content = $"{context.Message.CommentedUserUsername} commented on your post: {context.Message.CommentContent}",
             Data = new NotificationData
             {
                 PostId = context.Message.PostId,
@@ -39,6 +39,6 @@ public class PostLikedConsumer(
             await notificationHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
         }
 
-        Console.WriteLine("Notification sent for post liked.");
+        Console.WriteLine("Notification sent for post commented.");
     }
 }
