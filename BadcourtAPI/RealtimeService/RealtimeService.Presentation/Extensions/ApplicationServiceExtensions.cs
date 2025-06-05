@@ -44,7 +44,7 @@ public static class ApplicationServiceExtensions
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
-                cfg.ReceiveEndpoint("order-created-queue", e =>
+                cfg.ReceiveEndpoint("RealtimeService-order-created-queue", e =>
                 {
                     e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
                 });

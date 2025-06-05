@@ -39,5 +39,7 @@ public class OrderCreatedConsumer(
             var notificationDto = mapper.Map<NotificationDto>(notification);
             await notificationHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
         }
+
+        Console.WriteLine("Notification sent for order creation.");
     }
 }
