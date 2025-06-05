@@ -25,21 +25,23 @@ public class ToggleLikePostHandler(
         {
             post.LikedUsers = [.. post.LikedUsers.Where(l => l != userId.ToString())];
             post.LikesCount--;
-
-            await postRepository.UpdatePostAsync(post, cancellationToken);
         }
         else
         {
             post.LikedUsers = [.. post.LikedUsers, userId.ToString()];
             post.LikesCount++;
 
-            await postRepository.UpdatePostAsync(post, cancellationToken);
-
-            await publishEndpoint.Publish(
-                new PostLikedEvent(post.Id, post.PublisherId.ToString(), httpContextAccessor.HttpContext.User.GetUsername()),
-                cancellationToken
-            );
+            if (userId.ToString() != post.PublisherId.ToString())
+            {
+                await publishEndpoint.Publish(
+                    new PostLikedEvent(post.Id, post.PublisherId.ToString(), httpContextAccessor.HttpContext.User.GetUsername()),
+                    cancellationToken
+                );
+            }
         }
+
+        post.UpdatedAt = DateTime.UtcNow;
+        await postRepository.UpdatePostAsync(post, cancellationToken);
 
         return true;
     }

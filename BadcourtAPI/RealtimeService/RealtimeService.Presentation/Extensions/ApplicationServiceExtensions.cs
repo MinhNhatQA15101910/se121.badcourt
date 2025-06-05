@@ -43,6 +43,7 @@ public static class ApplicationServiceExtensions
             x.AddConsumer<OrderCreatedConsumer>();
             x.AddConsumer<PostLikedConsumer>();
             x.AddConsumer<PostCommentedConsumer>();
+            x.AddConsumer<CommentLikedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
@@ -57,6 +58,10 @@ public static class ApplicationServiceExtensions
                 cfg.ReceiveEndpoint("RealtimeService-post-commented-queue", e =>
                 {
                     e.ConfigureConsumer<PostCommentedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-comment-liked-queue", e =>
+                {
+                    e.ConfigureConsumer<CommentLikedConsumer>(ctx);
                 });
             });
         });

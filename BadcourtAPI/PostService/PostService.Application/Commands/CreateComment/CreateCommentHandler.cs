@@ -101,10 +101,13 @@ public class CreateCommentHandler(
             cancellationToken
         );
 
-        await publishEndpoint.Publish(
-            new PostCommentedEvent(comment.PostId, post.PublisherId.ToString(), user.Username, request.CreateCommentDto.Content),
-            cancellationToken
-        );
+        if (userId.ToString() != post.PublisherId.ToString())
+        {
+            await publishEndpoint.Publish(
+                new PostCommentedEvent(comment.Id, post.PublisherId.ToString(), user.Username, request.CreateCommentDto.Content),
+                cancellationToken
+            );
+        }
 
         return mapper.Map<CommentDto>(comment);
     }
