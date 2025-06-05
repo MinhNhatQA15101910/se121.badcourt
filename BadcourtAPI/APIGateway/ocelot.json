@@ -228,6 +228,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/groups",
       "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/messages",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {
