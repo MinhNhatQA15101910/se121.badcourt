@@ -27,19 +27,53 @@ class MessageInputWidget extends StatefulWidget {
   State<MessageInputWidget> createState() => _MessageInputWidgetState();
 }
 
-class _MessageInputWidgetState extends State<MessageInputWidget> {
+class _MessageInputWidgetState extends State<MessageInputWidget> with SingleTickerProviderStateMixin {
   bool _hasText = false;
+  bool _isFocused = false;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<Color?> _borderColorAnimation;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _hasText = widget.messageController.text.trim().isNotEmpty;
     widget.messageController.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
+    
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.elasticOut,
+    ));
+
+    _borderColorAnimation = ColorTween(
+      begin: Colors.grey.withOpacity(0.2),
+      end: GlobalVariables.green.withOpacity(0.6),
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    if (_canSend) {
+      _animationController.forward();
+    }
   }
 
   @override
   void dispose() {
     widget.messageController.removeListener(_onTextChanged);
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -49,6 +83,26 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
       setState(() {
         _hasText = hasText;
       });
+      
+      _updateAnimations();
+    }
+  }
+
+  void _onFocusChanged() {
+    if (_isFocused != _focusNode.hasFocus) {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+      
+      _updateAnimations();
+    }
+  }
+
+  void _updateAnimations() {
+    if (_canSend || _isFocused) {
+      _animationController.forward();
+    } else {
+      _animationController.reverse();
     }
   }
 
@@ -57,159 +111,261 @@ class _MessageInputWidgetState extends State<MessageInputWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            width: 1,
-            color: GlobalVariables.grey,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+            spreadRadius: 0,
           ),
-        ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        child: Column(
-          children: [
-            if (widget.imageFiles.isNotEmpty)
-              _buildImagePreview(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: widget.isConnected ? widget.onPickImages : null,
-                    child: Icon(
-                      Icons.add_photo_alternate_outlined,
-                      color: widget.isConnected ? GlobalVariables.green : GlobalVariables.grey,
-                      size: 28,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    controller: widget.messageController,
-                    enabled: widget.isConnected,
-                    maxLines: 4,
-                    minLines: 1,
-                    decoration: InputDecoration(
-                      hintText: widget.isConnected 
-                          ? 'Type your message...' 
-                          : 'Connecting...',
-                      hintStyle: GoogleFonts.inter(
-                        color: GlobalVariables.darkGrey,
-                        fontSize: 14,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: GlobalVariables.lightGreen,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: GlobalVariables.lightGreen,
-                        ),
-                      ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: GlobalVariables.grey,
-                        ),
-                      ),
-                    ),
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: _canSend ? widget.onSendMessage : null,
-                    child: widget.isSendingMessage
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: GlobalVariables.green,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Icon(
-                            Icons.send,
-                            color: _canSend
-                                ? GlobalVariables.green
-                                : GlobalVariables.grey,
-                            size: 28,
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            children: [
+              if (widget.imageFiles.isNotEmpty)
+                _buildImagePreview(),
+              _buildInputRow(),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  Widget _buildInputRow() {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: widget.isConnected 
+                  ? _borderColorAnimation.value ?? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildImagePickerButton(),
+              const SizedBox(width: 8),
+              Expanded(child: _buildTextInput()),
+              const SizedBox(width: 8),
+              _buildSendButton(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImagePickerButton() {
+    return Container(
+      margin: const EdgeInsets.only(left: 4, bottom: 4),
+      decoration: BoxDecoration(
+        color: widget.isConnected 
+            ? GlobalVariables.green.withOpacity(0.1)
+            : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: widget.isConnected ? widget.onPickImages : null,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              Icons.add_circle_outline,
+              color: widget.isConnected ? GlobalVariables.green : Colors.grey.shade400,
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextInput() {
+    return Container(
+      constraints: const BoxConstraints(
+        minHeight: 36,
+        maxHeight: 120,
+      ),
+      child: TextFormField(
+        controller: widget.messageController,
+        focusNode: _focusNode,
+        enabled: widget.isConnected,
+        maxLines: null,
+        textAlignVertical: TextAlignVertical.center,
+        decoration: InputDecoration(
+          hintText: widget.isConnected 
+              ? 'Type a message...' 
+              : 'Connecting...',
+          hintStyle: GoogleFonts.inter(
+            color: Colors.grey.shade500,
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
+        style: GoogleFonts.inter(
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSendButton() {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Container(
+            margin: const EdgeInsets.only(right: 4, bottom: 4),
+            decoration: BoxDecoration(
+              color: _canSend ? GlobalVariables.green : Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: _canSend ? [
+                BoxShadow(
+                  color: GlobalVariables.green.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ] : null,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: _canSend ? widget.onSendMessage : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: widget.isSendingMessage
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Icon(
+                          Icons.send,
+                          color: _canSend ? Colors.white : Colors.grey.shade500,
+                          size: 24,
+                        ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildImagePreview() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 1,
         ),
-        itemCount: widget.imageFiles.length,
-        itemBuilder: (context, index) {
-          final imageFile = widget.imageFiles[index];
-          return Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Image.file(
-                    imageFile,
-                    fit: BoxFit.cover,
-                  ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${widget.imageFiles.length} image${widget.imageFiles.length > 1 ? 's' : ''} selected',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: widget.imageFiles.length,
+            itemBuilder: (context, index) => _buildImagePreviewItem(index),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreviewItem(int index) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Image.file(
+                widget.imageFiles[index],
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => widget.onRemoveImage(index),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  size: 14,
+                  color: Colors.white,
                 ),
               ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: GestureDetector(
-                  onTap: () => widget.onRemoveImage(index),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }

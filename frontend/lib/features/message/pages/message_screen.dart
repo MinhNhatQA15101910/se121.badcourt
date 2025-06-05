@@ -108,7 +108,7 @@ class _MessageScreenState extends State<MessageScreen> {
             id: 'unknown',
             username: 'Unknown User',
             email: 'unknown@example.com',
-            role: 'Unknown',
+            roles: const ['Unknown'], // Sử dụng roles thay vì role
           ),
         );
         
@@ -118,11 +118,9 @@ class _MessageScreenState extends State<MessageScreen> {
       }).toList();
     }
     
-    // Sort groups by last message time (most recent first)
+    // Sort groups by updatedAt time (most recent first)
     filteredGroups.sort((a, b) {
-      final aTime = a.lastMessage?.messageSent ?? a.updatedAt;
-      final bTime = b.lastMessage?.messageSent ?? b.updatedAt;
-      return bTime.compareTo(aTime); // Descending order
+      return b.updatedAt.compareTo(a.updatedAt); // Descending order
     });
   }
 
@@ -210,7 +208,7 @@ class _MessageScreenState extends State<MessageScreen> {
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     return groupProvider.hasUnreadMessage(group.id) || 
            group.hasMessage ||
-           (group.lastMessage != null && _isRecentMessage(group.lastMessage!.messageSent));
+           _isRecentMessage(group.updatedAt);
   }
 
   // Kiểm tra tin nhắn có gần đây không (trong vòng 1 giờ)
@@ -218,6 +216,27 @@ class _MessageScreenState extends State<MessageScreen> {
     final now = DateTime.now();
     final difference = now.difference(messageTime);
     return difference.inHours < 1;
+  }
+
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays > 365) {
+      return '${(difference.inDays / 365).floor()} year(s) ago';
+    } else if (difference.inDays > 30) {
+      return '${(difference.inDays / 30).floor()} month(s) ago';
+    } else if (difference.inDays > 7) {
+      return '${(difference.inDays / 7).floor()} week(s) ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} day(s) ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour(s) ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute(s) ago';
+    } else {
+      return 'Just now';
+    }
   }
 
   @override
@@ -236,54 +255,8 @@ class _MessageScreenState extends State<MessageScreen> {
                 color: GlobalVariables.white,
               ),
             ),
-            const Spacer(),
-            // Hiển thị số tin nhắn chưa đọc và trạng thái kết nối
-            Consumer<GroupProvider>(
-              builder: (context, groupProvider, _) {
-                final unreadCount = groupProvider.unreadMessageCount;
-                return Row(
-                  children: [
-                    if (unreadCount > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          unreadCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 8),
-                    // Hiển thị trạng thái kết nối GroupHub
-                    Icon(
-                      groupProvider.isConnected 
-                          ? Icons.cloud_done 
-                          : Icons.cloud_off,
-                      color: groupProvider.isConnected 
-                          ? Colors.white 
-                          : Colors.red[300],
-                      size: 20,
-                    ),
-                  ],
-                );
-              },
-            ),
           ],
         ),
-        actions: [
-          // Add refresh button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshGroups,
-            tooltip: 'Refresh conversations',
-          ),
-        ],
       ),
       body: Container(
         color: GlobalVariables.defaultColor,
@@ -450,19 +423,14 @@ class _MessageScreenState extends State<MessageScreen> {
                                         username: 'Default User',
                                         email: 'default@example.com',
                                         photoUrl: '',
-                                        role: 'Unknown',
+                                        roles: const ['Unknown'], // Sử dụng roles thay vì role
                                       ),
                                     );
 
                                     final hasUnread = _hasUnreadMessage(group);
                                     
-                                    // Format last message time
-                                    String formattedTime = '';
-                                    if (group.lastMessage != null) {
-                                      formattedTime = _formatTimeAgo(group.lastMessage!.messageSent);
-                                    } else {
-                                      formattedTime = _formatTimeAgo(group.updatedAt);
-                                    }
+                                    // Format last message time using updatedAt
+                                    String formattedTime = _formatTimeAgo(group.updatedAt);
 
                                     return GestureDetector(
                                       onTap: () {
@@ -478,7 +446,7 @@ class _MessageScreenState extends State<MessageScreen> {
                                                    (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
                                         timestamp: formattedTime,
                                         userImageUrl: otherUser.photoUrl ?? '',
-                                        role: otherUser.role,
+                                        role: otherUser.role, // Sử dụng getter role
                                         userId: otherUser.id,
                                         roomId: group.id,
                                         hasUnreadMessage: hasUnread,
@@ -507,27 +475,6 @@ class _MessageScreenState extends State<MessageScreen> {
         ),
       ),
     );
-  }
-
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 365) {
-      return '${(difference.inDays / 365).floor()} year(s) ago';
-    } else if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()} month(s) ago';
-    } else if (difference.inDays > 7) {
-      return '${(difference.inDays / 7).floor()} week(s) ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} day(s) ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour(s) ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute(s) ago';
-    } else {
-      return 'Just now';
-    }
   }
 
   @override

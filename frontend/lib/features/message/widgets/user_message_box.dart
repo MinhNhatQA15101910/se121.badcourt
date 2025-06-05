@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/providers/group_provider.dart';
+import 'package:frontend/providers/online_users_provider.dart';
 import 'package:provider/provider.dart';
 
 class UserMessageBox extends StatelessWidget {
@@ -12,8 +12,8 @@ class UserMessageBox extends StatelessWidget {
   final String userImageUrl;
   final String role;
   final String userId;
-  final String? roomId; // Thêm roomId để đánh dấu đã đọc
-  final bool hasUnreadMessage; // Thêm để hiển thị trạng thái chưa đọc
+  final String? roomId;
+  final bool hasUnreadMessage;
 
   const UserMessageBox({
     Key? key,
@@ -28,10 +28,9 @@ class UserMessageBox extends StatelessWidget {
   }) : super(key: key);
 
   void _navigateToMessageScreen(BuildContext context, String userId) {
-    // Đánh dấu tin nhắn đã đọc khi tap vào
     if (roomId != null) {
       final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-      groupProvider.markGroupAsRead(roomId!); // Sửa từ markMessageRoomAsRead thành markGroupAsRead
+      groupProvider.markGroupAsRead(roomId!);
       groupProvider.markGroupAsReadViaSignalR(roomId!);
     }
 
@@ -41,155 +40,218 @@ class UserMessageBox extends StatelessWidget {
     );
   }
 
+  String _getStatusText(bool isOnline, String timestamp) {
+    if (isOnline) {
+      return 'Online';
+    } else {
+      return timestamp;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _navigateToMessageScreen(context, userId),
-      child: CustomContainer(
-        child: Container(
-          decoration: BoxDecoration(
-            color: hasUnreadMessage 
-                ? GlobalVariables.lightGreen.withOpacity(0.1)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: GlobalVariables.lightGreen,
-                    backgroundImage: userImageUrl.isNotEmpty 
-                        ? NetworkImage(userImageUrl) 
-                        : null,
-                    child: userImageUrl.isEmpty 
-                        ? Text(
-                            userName.isNotEmpty 
-                                ? userName[0].toUpperCase() 
-                                : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          )
-                        : null,
+    return Consumer<OnlineUsersProvider>(
+      builder: (context, onlineUsersProvider, child) {
+        final bool isOnline = onlineUsersProvider.isUserOnline(userId);
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), // Giảm margin vertical
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _navigateToMessageScreen(context, userId),
+              borderRadius: BorderRadius.circular(12), // Giảm border radius
+              child: Container(
+                decoration: BoxDecoration(
+                  color: hasUnreadMessage 
+                      ? GlobalVariables.lightGreen.withOpacity(0.08)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: hasUnreadMessage 
+                        ? GlobalVariables.green.withOpacity(0.3) // Viền xanh nếu chưa đọc
+                        : const Color(0xFFE0E0E0), // Viền xám nếu đã đọc
+                    width: 1,
                   ),
-                  // Indicator cho tin nhắn chưa đọc
-                  if (hasUnreadMessage)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                padding: const EdgeInsets.all(12), // Giảm padding từ 16 xuống 12
+                child: Row(
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    // Avatar with online status dot
+                    Stack(
                       children: [
-                        Expanded(
-                          child: Text(
-                            userName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: hasUnreadMessage 
-                                  ? FontWeight.w700 
-                                  : FontWeight.w600,
-                              color: hasUnreadMessage 
-                                  ? GlobalVariables.darkGreen 
-                                  : GlobalVariables.blackGrey,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: GlobalVariables.green.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08), // Giảm shadow
+                                blurRadius: 6, // Giảm blur
+                                offset: const Offset(0, 1), // Giảm offset
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            role,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: GlobalVariables.green,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      timestamp,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: hasUnreadMessage 
-                            ? GlobalVariables.green 
-                            : GlobalVariables.darkGrey,
-                      ),
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            lastMessage,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: hasUnreadMessage 
-                                  ? FontWeight.w600 
-                                  : FontWeight.w400,
-                              color: hasUnreadMessage 
-                                  ? GlobalVariables.darkGreen 
-                                  : GlobalVariables.darkGrey,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: CircleAvatar(
+                            radius: 24, // Giảm từ 30 xuống 24
+                            backgroundColor: GlobalVariables.lightGreen,
+                            backgroundImage: userImageUrl.isNotEmpty 
+                                ? NetworkImage(userImageUrl) 
+                                : null,
+                            child: userImageUrl.isEmpty 
+                                ? Text(
+                                    userName.isNotEmpty 
+                                        ? userName[0].toUpperCase() 
+                                        : '?',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16, // Giảm font size
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
-                        // Badge cho tin nhắn chưa đọc
-                        if (hasUnreadMessage)
-                          Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: GlobalVariables.green,
+                        // Online status indicator
+                        Positioned(
+                          right: 1,
+                          bottom: 1,
+                          child: Container(
+                            width: 14, // Giảm từ 16 xuống 14
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: isOnline ? const Color(0xFF4CAF50) : const Color(0xFF9E9E9E),
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2, // Giảm border width
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
                       ],
+                    ),
+                    const SizedBox(width: 12), // Giảm spacing
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // User name and role badge row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  userName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600, // Luôn cố định
+                                    color: Color(0xFF1A1A1A), // Luôn cố định màu đen
+                                    letterSpacing: -0.1,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              // Role badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), // Giảm padding
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      GlobalVariables.green.withOpacity(0.1),
+                                      GlobalVariables.lightGreen.withOpacity(0.1),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12), // Giảm border radius
+                                  border: Border.all(
+                                    color: GlobalVariables.green.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  role,
+                                  style: TextStyle(
+                                    fontSize: 11, // Giảm từ 12 xuống 11
+                                    fontWeight: FontWeight.w600,
+                                    color: GlobalVariables.green,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3), // Giảm spacing
+                          // Online/Offline status text
+                          Text(
+                            _getStatusText(isOnline, timestamp),
+                            style: TextStyle(
+                              fontSize: 12, // Giảm từ 13 xuống 12
+                              fontWeight: FontWeight.w500,
+                              color: isOnline 
+                                  ? const Color(0xFF4CAF50)
+                                  : const Color(0xFF9E9E9E),
+                            ),
+                          ),
+                          const SizedBox(height: 4), // Giảm spacing
+                          // Last message
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  lastMessage,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400, // Luôn cố định
+                                    color: hasUnreadMessage 
+                                        ? GlobalVariables.green // Màu xanh nếu chưa đọc
+                                        : const Color(0xFF616161), // Màu xám nếu đã đọc
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 1, // Giảm từ 2 xuống 1 line
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              // Unread indicator dot
+                              if (hasUnreadMessage)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 8), // Giảm margin
+                                  width: 8, // Giảm size
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        GlobalVariables.green,
+                                        GlobalVariables.green.withOpacity(0.8),
+                                      ],
+                                    ),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: GlobalVariables.green.withOpacity(0.3),
+                                        blurRadius: 3, // Giảm blur
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

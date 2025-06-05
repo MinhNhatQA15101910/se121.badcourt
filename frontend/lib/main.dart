@@ -14,6 +14,7 @@ import 'package:frontend/providers/filter_provider.dart';
 import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/message_hub_provider.dart';
+import 'package:frontend/providers/online_users_provider.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
@@ -48,7 +49,8 @@ List<SingleChildWidget> providers = [
     create: (context) => AddressProvider(),
   ),
   ChangeNotifierProvider(create: (context) => GroupProvider()),
-  ChangeNotifierProvider(create: (context) => MessageHubProvider())
+  ChangeNotifierProvider(create: (context) => MessageHubProvider()),
+  ChangeNotifierProvider(create: (context) => OnlineUsersProvider()),
 ];
 
 void main() async {
@@ -76,7 +78,8 @@ class MyAppContent extends StatefulWidget {
   State<MyAppContent> createState() => _MyAppContentState();
 }
 
-class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver {
+class _MyAppContentState extends State<MyAppContent>
+    with WidgetsBindingObserver {
   final _authService = AuthService();
   final _signalRService = PresenceService();
   bool _isFirstLaunch = true;
@@ -103,13 +106,13 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
         print('User $userId came online');
       }
     };
-    
+
     _signalRService.onUserOffline = (userId) {
       if (mounted) {
         print('User $userId went offline');
       }
     };
-    
+
     _signalRService.onOnlineUsersReceived = (users) {
       if (mounted) {
         print('Online users: $users');
@@ -136,7 +139,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
     WidgetsBinding.instance.addObserver(this);
     getFirstLaunch();
     _initializeSignalRListeners();
-    
+
     // Load user data sau khi widget đã được build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _authService.getUserData(context);
@@ -153,11 +156,11 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     bool isLoggedIn = userProvider.user.token.isNotEmpty;
-    
+
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
@@ -172,7 +175,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
           }
         }
         break;
-        
+
       case AppLifecycleState.resumed:
         if (isLoggedIn) {
           if (!_signalRService.isConnected) {
@@ -187,7 +190,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
           }
         }
         break;
-        
+
       case AppLifecycleState.inactive:
       case AppLifecycleState.hidden:
         break;
@@ -201,14 +204,15 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
           // User đã đăng nhập - connect SignalR nếu chưa connect
           WidgetsBinding.instance.addPostFrameCallback((_) {
             connectSignalRWithToken(userProvider.user.token);
-            
+
             // Kết nối GroupHub
-            final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+            final groupProvider =
+                Provider.of<GroupProvider>(context, listen: false);
             if (!groupProvider.isConnected) {
               groupProvider.initializeGroupHub(userProvider.user.token);
             }
           });
-          
+
           // Phân biệt role để chuyển đến màn hình phù hợp
           if (userProvider.user.role == 'manager') {
             return const ManagerBottomBar();

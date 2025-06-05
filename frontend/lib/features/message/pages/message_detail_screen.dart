@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
+import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/widgets/message_app_bar.dart';
 import 'package:frontend/features/message/widgets/message_input_widget.dart';
@@ -10,6 +11,7 @@ import 'package:frontend/models/message_dto.dart';
 import 'package:frontend/models/paginated_messages_dto.dart';
 import 'package:frontend/models/user_dto.dart';
 import 'package:frontend/providers/group_provider.dart';
+import 'package:frontend/providers/online_users_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +29,7 @@ class MessageDetailScreen extends StatefulWidget {
   _MessageDetailScreenState createState() => _MessageDetailScreenState();
 }
 
-class _MessageDetailScreenState extends State<MessageDetailScreen> {
+class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
 
@@ -58,11 +60,16 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   final ScrollController _scrollController = ScrollController();
 
   Timer? _connectionHealthTimer;
+  late AnimationController _fadeController;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScrollListener);
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
   }
 
   @override
@@ -73,6 +80,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     if (userId != null) {
       _initializeServices();
       _loadOtherUserInfo();
+      
+      // Khởi tạo OnlineUsersProvider nếu chưa được khởi tạo
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
+      if (!PresenceService().isConnected) {
+        onlineUsersProvider.initialize(userProvider.user.token);
+      }
     } else {
       print('userId is null');
     }
@@ -101,6 +115,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     _connectionHealthTimer?.cancel();
+    _fadeController.dispose();
 
     // Disconnect from MessageHub for this user
     if (userId != null) {
@@ -126,13 +141,25 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         print('Received new message: ${message.content}');
         if (mounted) {
           setState(() {
-            _messages.insert(0, {
+            // Thêm tin nhắn mới vào cuối danh sách
+            _messages.add({
               'isSender': message.senderId == userProvider.user.id,
               'message': message.content,
               'time': message.messageSent.millisecondsSinceEpoch,
               'resources': [],
               'senderImageUrl': message.senderPhotoUrl,
             });
+          });
+          
+          // Tự động cuộn xuống cuối danh sách khi có tin nhắn mới
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
           });
         }
       };
@@ -152,8 +179,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             
             // If loading more, append messages
             if (_isLoadingMore) {
-              // Convert new messages to map format
-              final newMessages = paginatedMessages.items.map((message) => {
+              // Convert new messages to map format và đảo ngược thứ tự
+              final newMessages = paginatedMessages.items.reversed.map((message) => {
                 'isSender': message.senderId == userProvider.user.id,
                 'message': message.content,
                 'time': message.messageSent.millisecondsSinceEpoch,
@@ -161,11 +188,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                 'senderImageUrl': message.senderPhotoUrl,
               }).toList();
               
-              // Add to existing messages
-              _messages.addAll(newMessages);
+              // Add older messages to the beginning of the list
+              _messages.insertAll(0, newMessages);
               _isLoadingMore = false;
             } else {
-              // Otherwise replace all messages
+              // Otherwise replace all messages và đảo ngược thứ tự
               _messages.clear();
               for (var message in paginatedMessages.items.reversed) {
                 _messages.add({
@@ -176,9 +203,17 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                   'senderImageUrl': message.senderPhotoUrl,
                 });
               }
+              
+              // Cuộn xuống cuối danh sách sau khi tải tin nhắn ban đầu
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_scrollController.hasClients) {
+                  _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                }
+              });
             }
             
             _isLoading = false;
+            _fadeController.forward();
           });
           
           print('[MessageDetailScreen] Updated UI with ${_messages.length} messages, page $_currentPage/$_totalPages');
@@ -209,6 +244,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         if (mounted && _messages.isEmpty) {
           setState(() {
             _isLoading = false;
+            _fadeController.forward();
           });
           print('[MessageDetailScreen] No messages received, stopping loading indicator');
         }
@@ -216,13 +252,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
       if (!isReady) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to connect to user. Please try again.'),
-              action: SnackBarAction(
-                label: 'Retry',
-                onPressed: _initializeServices,
-              ),
+          _showSnackBar(
+            'Failed to connect to user. Please try again.',
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _initializeServices,
             ),
           );
         }
@@ -235,15 +269,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
           _isConnecting = false;
           _isLoading = false;
           _isConnected = false;
+          _fadeController.forward();
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Connection error: $e'),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: _initializeServices,
-            ),
+        _showSnackBar(
+          'Connection error: $e',
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: _initializeServices,
           ),
         );
       }
@@ -274,13 +307,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
           _isLoadingMore = false;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load more messages'),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: _loadMoreMessages,
-            ),
+        _showSnackBar(
+          'Failed to load more messages',
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: _loadMoreMessages,
           ),
         );
       }
@@ -302,13 +333,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
           _isLoadingMore = false;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading more messages: $e'),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: _loadMoreMessages,
-            ),
+        _showSnackBar(
+          'Error loading more messages: $e',
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: _loadMoreMessages,
           ),
         );
       }
@@ -344,9 +373,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   // Enhanced _sendMessage method với better retry logic
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty && _imageFiles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message cannot be empty')),
-      );
+      _showSnackBar('Message cannot be empty');
       return;
     }
 
@@ -443,16 +470,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       _messageController.text = content;
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send message: ${e.toString()}'),
-            duration: Duration(seconds: 5),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: () {
-                _sendMessage();
-              },
-            ),
+        _showSnackBar(
+          'Failed to send message: ${e.toString()}',
+          duration: Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: () {
+              _sendMessage();
+            },
           ),
         );
       }
@@ -464,10 +489,26 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       }
     }
   }
+  
+  void _showSnackBar(String message, {Duration? duration, SnackBarAction? action}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: duration ?? const Duration(seconds: 3),
+        action: action,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: MessageAppBar(
@@ -480,39 +521,53 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: GlobalVariables.green),
-                  SizedBox(height: 16),
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
+                      color: GlobalVariables.green,
+                      strokeWidth: 3,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Connecting to user...',
-                    style: GoogleFonts.inter(fontSize: 16),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: GlobalVariables.darkGreen,
+                    ),
                   ),
                 ],
               ),
             )
-          : Column(
-              children: [
-                Expanded(
-                  child: MessageListWidget(
-                    messages: _messages,
-                    isLoading: _isLoading,
-                    isLoadingMore: _isLoadingMore,
-                    hasMorePages: _hasMorePages,
-                    currentPage: _currentPage,
-                    totalPages: _totalPages,
-                    scrollController: _scrollController,
-                    onLoadMore: _loadMoreMessages,
+          : FadeTransition(
+              opacity: _fadeController,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: MessageListWidget(
+                      messages: _messages,
+                      isLoading: _isLoading,
+                      isLoadingMore: _isLoadingMore,
+                      hasMorePages: _hasMorePages,
+                      currentPage: _currentPage,
+                      totalPages: _totalPages,
+                      scrollController: _scrollController,
+                      onLoadMore: _loadMoreMessages,
+                    ),
                   ),
-                ),
-                MessageInputWidget(
-                  messageController: _messageController,
-                  imageFiles: _imageFiles,
-                  isConnected: _isConnected,
-                  isSendingMessage: _isSendingMessage,
-                  onPickImages: _pickImages,
-                  onRemoveImage: _removeImage,
-                  onSendMessage: _sendMessage,
-                ),
-              ],
+                  MessageInputWidget(
+                    messageController: _messageController,
+                    imageFiles: _imageFiles,
+                    isConnected: _isConnected,
+                    isSendingMessage: _isSendingMessage,
+                    onPickImages: _pickImages,
+                    onRemoveImage: _removeImage,
+                    onSendMessage: _sendMessage,
+                  ),
+                ],
+              ),
             ),
     );
   }
