@@ -1,4 +1,5 @@
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using RealtimeService.Application;
 using RealtimeService.Application.ApiRepositories;
@@ -8,6 +9,7 @@ using RealtimeService.Infrastructure.ExternalServices.Configurations;
 using RealtimeService.Infrastructure.ExternalServices.Services;
 using RealtimeService.Infrastructure.Persistence.Configurations;
 using RealtimeService.Infrastructure.Persistence.Repositories;
+using RealtimeService.Presentation.Consumers;
 using RealtimeService.Presentation.Middlewares;
 using RealtimeService.Presentation.SignalR;
 
@@ -35,6 +37,19 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ExceptionHandlingMiddleware>();
 
         services.AddSingleton<PresenceTracker>();
+
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<OrderCreatedConsumer>();
+
+            x.UsingRabbitMq((ctx, cfg) =>
+            {
+                cfg.ReceiveEndpoint("order-created-queue", e =>
+                {
+                    e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
+                });
+            });
+        });
 
         return services.AddPersistence(configuration)
             .AddExternalServices(configuration)
