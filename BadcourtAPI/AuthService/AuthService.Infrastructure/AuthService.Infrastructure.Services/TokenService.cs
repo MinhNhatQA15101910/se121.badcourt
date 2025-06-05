@@ -32,7 +32,8 @@ public class TokenService(
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email)
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Name, user.UserName ?? throw new Exception("User username is required to create a token"))
         };
 
         var roles = await userManager.GetRolesAsync(user);

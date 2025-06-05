@@ -4,8 +4,10 @@ using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
 using CourtService.Core.Domain.Entities;
 using CourtService.Core.Domain.Repositories;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.DTOs;
+using SharedKernel.Events;
 using SharedKernel.Exceptions;
 
 namespace CourtService.Core.Application.Handlers.CommandHandlers;
@@ -14,7 +16,8 @@ public class UpdateInactiveHandler(
     ICourtRepository courtRepository,
     IHttpContextAccessor httpContextAccessor,
     IFacilityApiRepository facilityApiRepository,
-    IMapper mapper
+    IMapper mapper,
+    IPublishEndpoint publishEndpoint
 ) : ICommandHandler<UpdateInactiveCommand, bool>
 {
     public async Task<bool> Handle(UpdateInactiveCommand request, CancellationToken cancellationToken)
@@ -53,6 +56,12 @@ public class UpdateInactiveHandler(
         court.UpdatedAt = DateTime.UtcNow;
 
         await courtRepository.UpdateCourtAsync(court, cancellationToken);
+
+        await publishEndpoint.Publish(
+            new CourtInactiveUpdatedEvent(request.CourtId, request.DateTimePeriodDto),
+            cancellationToken
+        );
+
         return true;
     }
 

@@ -56,9 +56,9 @@ public class PostRepository : IPostRepository
         }
 
         // Filter by user id
-        if (!string.IsNullOrEmpty(postParams.UserId))
+        if (!string.IsNullOrEmpty(postParams.PublisherId))
         {
-            pipeline.Add(new BsonDocument("$match", new BsonDocument("UserId", postParams.UserId)));
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("PublisherId", postParams.PublisherId)));
         }
 
         // Filter by category

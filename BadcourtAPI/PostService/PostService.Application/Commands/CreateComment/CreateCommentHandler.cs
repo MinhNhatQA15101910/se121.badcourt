@@ -1,4 +1,5 @@
 using AutoMapper;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
@@ -10,6 +11,7 @@ using PostService.Domain.Entities;
 using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;
 using SharedKernel.DTOs;
+using SharedKernel.Events;
 using SharedKernel.Exceptions;
 
 namespace PostService.Application.Commands.CreateComment;
@@ -21,7 +23,8 @@ public class CreateCommentHandler(
     IUserApiRepository userApiRepository,
     IFileService fileService,
     IMapper mapper,
-    IMediator mediator
+    IMediator mediator,
+    IPublishEndpoint publishEndpoint
 ) : ICommandHandler<CreateCommentCommand, CommentDto>
 {
     private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"];
@@ -97,6 +100,14 @@ public class CreateCommentHandler(
             new CommentCreatedNotification(comment.PostId, userId.ToString()),
             cancellationToken
         );
+
+        if (userId.ToString() != post.PublisherId.ToString())
+        {
+            await publishEndpoint.Publish(
+                new PostCommentedEvent(comment.Id, post.PublisherId.ToString(), user.Username, request.CreateCommentDto.Content),
+                cancellationToken
+            );
+        }
 
         return mapper.Map<CommentDto>(comment);
     }
