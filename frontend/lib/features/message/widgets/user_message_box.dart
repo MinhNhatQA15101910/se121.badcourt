@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/providers/group_provider.dart';
@@ -111,28 +112,37 @@ class UserMessageBox extends StatelessWidget {
                                 : null,
                           ),
                         ),
-                        // Online status indicator
+                        // Online status indicator - Updated with better positioning and debugging
                         Positioned(
-                          right: 1,
-                          bottom: 1,
-                          child: Container(
-                            width: 14, // Giảm từ 16 xuống 14
-                            height: 14,
-                            decoration: BoxDecoration(
-                              color: isOnline ? const Color(0xFF4CAF50) : const Color(0xFF9E9E9E),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2, // Giảm border width
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 1),
+                          right: 0,
+                          bottom: 0,
+                          child: Consumer<OnlineUsersProvider>(
+                            builder: (context, onlineUsersProvider, _) {
+                              final isOnline = onlineUsersProvider.isUserOnline(userId);
+                              print('[UserMessageBox] User $userId online status: $isOnline');
+                              
+                              return Container(
+                                width: 16, // Tăng size để dễ thấy hơn
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: isOnline ? const Color(0xFF4CAF50) : const Color(0xFF9E9E9E),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isOnline 
+                                          ? const Color(0xFF4CAF50).withOpacity(0.3)
+                                          : Colors.black.withOpacity(0.15),
+                                      blurRadius: isOnline ? 6 : 3,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                         ),
                       ],

@@ -6,7 +6,7 @@ class GroupDto {
   final String name;
   final List<UserDto> users;
   final MessageDto? lastMessage;
-  final List<String> connections; // Changed from ConnectionDto to String
+  final List<String> connections;
   final DateTime updatedAt;
 
   GroupDto({

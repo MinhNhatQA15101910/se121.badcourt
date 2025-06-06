@@ -71,12 +71,6 @@ public class GroupRepository : IGroupRepository
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", groupParams.SortBy == "asc" ? 1 : -1)));
                 break;
-        switch (groupParams.OrderBy)
-        {
-            case "updatedAt":
-            default:
-                pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", groupParams.SortBy == "asc" ? 1 : -1)));
-                break;
         }
 
         return await PagedList<Group>.CreateAsync(
