@@ -1,8 +1,8 @@
-class OrderPeriod {
+class TimePeriod {
   final DateTime hourFrom;
   final DateTime hourTo;
 
-  OrderPeriod({
+  TimePeriod({
     required this.hourFrom,
     required this.hourTo,
   });
@@ -14,8 +14,8 @@ class OrderPeriod {
     };
   }
 
-  factory OrderPeriod.fromMap(Map<String, dynamic> map) {
-    return OrderPeriod(
+  factory TimePeriod.fromMap(Map<String, dynamic> map) {
+    return TimePeriod(
       hourFrom: DateTime.parse(map['hourFrom'] ?? DateTime.now().toUtc().toIso8601String()),
       hourTo: DateTime.parse(map['hourTo'] ?? DateTime.now().toUtc().toIso8601String()),
     );

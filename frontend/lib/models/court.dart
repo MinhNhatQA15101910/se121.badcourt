@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:frontend/models/order_period.dart';
-
-
+import 'package:frontend/models/time_period.dart';
 
 class Court {
   final String id;
@@ -11,8 +9,8 @@ class Court {
   final int pricePerHour; // Giá mỗi giờ
   final String state; // Trạng thái sân
   final String createdAt; // Thời gian tạo
-  final List<OrderPeriod>
-      orderPeriods; // Danh sách các khoảng thời gian đặt sân
+  final List<TimePeriod> orderPeriods; // Danh sách các khoảng thời gian đặt sân
+  final List<TimePeriod> inactivePeriods;
 
   Court({
     required this.id,
@@ -22,6 +20,7 @@ class Court {
     required this.state,
     required this.createdAt,
     required this.orderPeriods,
+    required this.inactivePeriods,
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +32,8 @@ class Court {
       'state': state,
       'createdAt': createdAt,
       'orderPeriods': orderPeriods.map((period) => period.toMap()).toList(),
+      'inactivePeriods':
+          inactivePeriods.map((period) => period.toMap()).toList(),
     };
   }
 
@@ -44,9 +45,12 @@ class Court {
       pricePerHour: map['pricePerHour'] ?? 0,
       state: map['state'] ?? 'Inactive',
       createdAt: map['createdAt'] ?? 0,
-      orderPeriods: List<OrderPeriod>.from(
-        (map['orderPeriods'] ?? [])
-            .map((period) => OrderPeriod.fromMap(period)),
+      orderPeriods: List<TimePeriod>.from(
+        (map['orderPeriods'] ?? []).map((period) => TimePeriod.fromMap(period)),
+      ),
+      inactivePeriods: List<TimePeriod>.from(
+        (map['inactivePeriods'] ?? [])
+            .map((period) => TimePeriod.fromMap(period)),
       ),
     );
   }
@@ -55,15 +59,15 @@ class Court {
 
   factory Court.fromJson(String source) => Court.fromMap(json.decode(source));
 
-  Court copyWith({
-    String? id,
-    String? courtName,
-    String? description,
-    int? pricePerHour,
-    String? state,
-    String? createdAt,
-    List<OrderPeriod>? orderPeriods,
-  }) {
+  Court copyWith(
+      {String? id,
+      String? courtName,
+      String? description,
+      int? pricePerHour,
+      String? state,
+      String? createdAt,
+      List<TimePeriod>? orderPeriods,
+      List<TimePeriod>? inactivePeriods}) {
     return Court(
       id: id ?? this.id,
       courtName: courtName ?? this.courtName,
@@ -72,10 +76,11 @@ class Court {
       state: state ?? this.state,
       createdAt: createdAt ?? this.createdAt,
       orderPeriods: orderPeriods ?? this.orderPeriods,
+      inactivePeriods: inactivePeriods ?? this.inactivePeriods,
     );
   }
 
-  List<OrderPeriod> getOrderPeriodsByDate(DateTime date) {
+  List<TimePeriod> getTimePeriodsByDate(DateTime date) {
     return orderPeriods
         .where((period) =>
             period.hourFrom.year == date.year &&

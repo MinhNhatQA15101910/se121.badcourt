@@ -6,9 +6,10 @@ import 'package:frontend/features/player/facility_detail/widgets/time_selection_
 import 'package:frontend/models/booking_time.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
-import 'package:frontend/models/order_period.dart';
+import 'package:frontend/models/time_period.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:frontend/providers/player/selected_court_provider.dart';
+import 'package:frontend/providers/court_hub_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   DateTime _facilityEndTime = DateTime(2000, 1, 1, 22, 0);
   
   // Existing bookings
-  List<OrderPeriod> _orderPeriods = [];
+  List<TimePeriod> _orderPeriods = [];
   List<BookingTime> _bookingTimeListDisable = [];
   
   // Selected time
@@ -257,10 +258,14 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   
   void _bookTimeSlot() {
     final selectedCourtProvider = Provider.of<SelectedCourtProvider>(context, listen: false);
-    final court = selectedCourtProvider.selectedCourt;
+    final courtHubProvider = Provider.of<CourtHubProvider>(context, listen: false);
+    final originalCourt = selectedCourtProvider.selectedCourt;
     final selectedDate = selectedCourtProvider.selectedDate;
     
-    if (court == null || selectedDate == null) return;
+    if (originalCourt == null || selectedDate == null) return;
+    
+    // Use real-time court data for booking validation
+    final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
     
     if (_isTimeSlotAvailable()) {
       final checkoutProvider = Provider.of<CheckoutProvider>(context, listen: false);
@@ -284,7 +289,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
       
       checkoutProvider.startDate = startDate;
       checkoutProvider.endDate = endDate;
-      checkoutProvider.court = court;
+      checkoutProvider.court = court; // Use real-time court data
       
       Navigator.of(context).pushNamed(CheckoutScreen.routeName);
     } else {
@@ -398,13 +403,13 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SelectedCourtProvider>(
-      builder: (context, selectedCourtProvider, child) {
+    return Consumer2<SelectedCourtProvider, CourtHubProvider>(
+      builder: (context, selectedCourtProvider, courtHubProvider, child) {
         final facility = selectedCourtProvider.selectedFacility;
-        final court = selectedCourtProvider.selectedCourt;
+        final originalCourt = selectedCourtProvider.selectedCourt;
         final currentDateTime = selectedCourtProvider.selectedDate;
 
-        if (facility == null || court == null || currentDateTime == null) {
+        if (facility == null || originalCourt == null || currentDateTime == null) {
           return Container(
             padding: EdgeInsets.all(16),
             child: Center(
@@ -420,20 +425,25 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
           );
         }
 
-        // Update data when provider changes
+        // Use real-time court data if available, otherwise use original court
+        final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
+        final isConnected = courtHubProvider.isConnected(originalCourt.id);
+
+        // Update data when court changes (real-time updates)
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _getFacilityTimeRange(facility, currentDateTime);
-          _getOrderPeriodsByDate(court, currentDateTime);
+          _getOrderPeriodsByDate(court, currentDateTime); // Use real-time court data
         });
 
         return Column(
           children: [
+            
             // Booking timeline visualization
             BookingTimelineWidget(
               startTime: _facilityStartTime,
               endTime: _facilityEndTime,
               bookingTimeList: _bookingTimeListDisable,
-              court: court,
+              court: court, // Use real-time court data
               onRemoveBooking: _handleRemoveBooking,
             ),
             
@@ -452,7 +462,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
               getAllowedEndHours: _getAllowedEndHours,
               getAllowedEndMinutes: _getAllowedEndMinutes,
               onTimeChanged: _onTimeChanged,
-              court: court,
+              court: court, // Use real-time court data
               onBookPressed: _bookTimeSlot,
               errorMessage: _timeErrorMessage,
             ),

@@ -6,8 +6,10 @@ import 'package:frontend/features/player/facility_detail/widgets/date_tag_player
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/providers/court_hub_provider.dart';
 
 class CourtDetailScreen extends StatefulWidget {
   static const String routeName = '/courtDetail';
@@ -90,8 +92,17 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   }
 
   @override
+  void dispose() {
+    // Clean up any connections when leaving the screen
+    final courtHubProvider = Provider.of<CourtHubProvider>(context, listen: false);
+    courtHubProvider.disconnectFromAllCourts();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
+    final courtHubProvider = context.watch<CourtHubProvider>();
     final facility = currentFacilityProvider.currentFacility;
 
     return Scaffold(
@@ -177,9 +188,11 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                                 child: ListView.builder(
                                   itemCount: _courts.length,
                                   itemBuilder: (context, index) {
+                                    final court = _courts[index];
+                                    
                                     return CourtCardPlayer(
                                       facility: facility,
-                                      court: _courts[index],
+                                      court: court,
                                       selectedDate: _selectedDate,
                                     );
                                   },

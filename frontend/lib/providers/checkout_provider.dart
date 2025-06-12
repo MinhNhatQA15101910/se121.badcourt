@@ -9,7 +9,7 @@ class CheckoutProvider extends ChangeNotifier {
     pricePerHour: 100000,
     state: 'Active',
     createdAt: DateTime.now().toUtc().toIso8601String(),
-    orderPeriods: [],
+    orderPeriods: [], inactivePeriods: [],
   );
 
   DateTime _startDate = DateTime.now();
@@ -61,7 +61,7 @@ class CheckoutProvider extends ChangeNotifier {
       pricePerHour: 100000,
       state: 'Active',
       createdAt: DateTime.now().toUtc().toIso8601String(),
-      orderPeriods: [],
+      orderPeriods: [], inactivePeriods: [],
     );
     _startDate = DateTime.now();
     _endDate = DateTime.now();

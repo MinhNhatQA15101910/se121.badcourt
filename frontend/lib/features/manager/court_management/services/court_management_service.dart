@@ -105,7 +105,7 @@ class CourtManagementService {
             pricePerHour: pricePerHour,
             state: 'Active',
             createdAt: DateTime.now().toUtc().toIso8601String(),
-            orderPeriods: [],
+            orderPeriods: [], inactivePeriods: [],
           );
 
           IconSnackBar.show(

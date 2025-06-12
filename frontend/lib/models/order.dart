@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:frontend/models/image_custom.dart';
-import 'package:frontend/models/order_period.dart';
+import 'package:frontend/models/time_period.dart';
 
 class Order {
   final String id;
@@ -9,7 +9,7 @@ class Order {
   final double price;
   final DateTime createdAt;
   final ImageCustom image;
-  final OrderPeriod timePeriod;
+  final TimePeriod timePeriod;
 
   const Order({
     required this.id,
@@ -41,7 +41,7 @@ class Order {
       price: (map['price'] ?? 0).toDouble(),
       createdAt: DateTime.parse(map['createdAt']),
       image: ImageCustom.fromMap(map['image'] ?? {}),
-      timePeriod: OrderPeriod.fromMap(map['dateTimePeriod'] ?? {}),
+      timePeriod: TimePeriod.fromMap(map['dateTimePeriod'] ?? {}),
     );
   }
 

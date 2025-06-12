@@ -31,6 +31,7 @@ app.UseAuthorization();
 app.MapHub<PresenceHub>("hubs/presence");
 app.MapHub<MessageHub>("hubs/message");
 app.MapHub<GroupHub>("hubs/group");
+app.MapHub<CourtHub>("hubs/court");
 app.MapHub<NotificationHub>("hubs/notification");
 
 app.MapControllers();

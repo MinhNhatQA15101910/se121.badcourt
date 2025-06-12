@@ -4,6 +4,8 @@ import 'package:frontend/features/player/facility_detail/screens/single_court_de
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/player/selected_court_provider.dart';
+import 'package:frontend/providers/court_hub_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -19,13 +21,93 @@ class CourtCardPlayer extends StatelessWidget {
     required this.selectedDate,
   }) : super(key: key);
 
-  void _navigateToCourtDetail(BuildContext context) {
-    // Set selected court in provider
-    final selectedCourtProvider = Provider.of<SelectedCourtProvider>(context, listen: false);
-    selectedCourtProvider.setSelectedCourt(court, facility, selectedDate);
-        
-    // Navigate to single court detail
-    Navigator.of(context).pushNamed(SingleCourtDetailScreen.routeName);
+  void _navigateToCourtDetail(BuildContext context) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: GlobalVariables.green),
+                SizedBox(height: 16),
+                Text(
+                  'Connecting to court...',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Get providers
+      final courtHubProvider = Provider.of<CourtHubProvider>(context, listen: false);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final selectedCourtProvider = Provider.of<SelectedCourtProvider>(context, listen: false);
+
+      // Get access token
+      final accessToken = userProvider.user.token;
+      if (accessToken.isEmpty) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Authentication required. Please login again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Connect to court hub and get real-time court data
+      await courtHubProvider.connectToCourt(accessToken, court.id, initialCourt: court);
+      
+      // Wait a moment for the connection to establish and receive court data
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      // Get the updated court data from the hub
+      final updatedCourt = courtHubProvider.getCourt(court.id) ?? court;
+      
+      // Set selected court with updated data
+      selectedCourtProvider.setSelectedCourt(updatedCourt, facility, selectedDate);
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Navigate to single court detail
+      Navigator.of(context).pushNamed(SingleCourtDetailScreen.routeName);
+      
+      print('✅ [CourtCard] Successfully connected to court: ${court.id}');
+    } catch (e) {
+      // Close loading dialog if still open
+      Navigator.of(context).pop();
+      
+      print('❌ [CourtCard] Error connecting to court ${court.id}: $e');
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to connect to court. Using offline data.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      
+      // Fallback: use original court data
+      final selectedCourtProvider = Provider.of<SelectedCourtProvider>(context, listen: false);
+      selectedCourtProvider.setSelectedCourt(court, facility, selectedDate);
+      Navigator.of(context).pushNamed(SingleCourtDetailScreen.routeName);
+    }
   }
 
   @override

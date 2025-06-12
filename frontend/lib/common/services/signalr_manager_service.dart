@@ -4,6 +4,7 @@ import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
 import 'package:frontend/common/services/notification_hub_service.dart';
+import 'package:frontend/common/services/court_hub_service.dart';
 
 class SignalRManagerService {
   static final SignalRManagerService _instance = SignalRManagerService._internal();
@@ -14,6 +15,7 @@ class SignalRManagerService {
   final GroupHubService _groupHubService = GroupHubService();
   final MessageHubService _messageHubService = MessageHubService();
   final NotificationHubService _notificationHubService = NotificationHubService();
+  final CourtHubService _courtHubService = CourtHubService();
 
   // Start all SignalR connections
   Future<void> startAllConnections(String accessToken) async {
@@ -45,6 +47,7 @@ class SignalRManagerService {
       await _groupHubService.stopConnection();
       await _messageHubService.stopAllConnections();
       await _notificationHubService.stopConnection();
+      await _courtHubService.disconnectFromAllCourts(); // Add this line
       
       print('✅ [SignalRManager] All connections stopped');
     } catch (e) {
@@ -82,11 +85,32 @@ class SignalRManagerService {
     return await _groupHubService.markGroupAsRead(groupId);
   }
 
+  // Connect to a specific court for real-time updates
+  Future<void> connectToCourt(String accessToken, String courtId) async {
+    try {
+      await _courtHubService.connectToCourt(accessToken, courtId);
+    } catch (e) {
+      print('[SignalRManager] Error connecting to court $courtId: $e');
+      rethrow;
+    }
+  }
+
+  // Disconnect from a specific court
+  Future<void> disconnectFromCourt(String courtId) async {
+    await _courtHubService.disconnectFromCourt(courtId);
+  }
+
+  // Disconnect from all courts
+  Future<void> disconnectFromAllCourts() async {
+    await _courtHubService.disconnectFromAllCourts();
+  }
+
   // Getters for individual services
   PresenceService get presenceService => _presenceService;
   GroupHubService get groupHubService => _groupHubService;
   MessageHubService get messageHubService => _messageHubService;
   NotificationHubService get notificationHubService => _notificationHubService;
+  CourtHubService get courtHubService => _courtHubService;
 
   // Connection status
   bool get isPresenceConnected => _presenceService.isConnected;
@@ -95,6 +119,9 @@ class SignalRManagerService {
   bool get isNotificationHubConnected => _notificationHubService.isConnected;
   
   List<String> get connectedUsers => _messageHubService.connectedUsers;
+
+  bool isConnectedToCourt(String courtId) => _courtHubService.isConnectedToCourt(courtId);
+  List<String> get connectedCourts => _courtHubService.connectedCourts;
 
   // Initialize all services with callbacks - Updated to use PaginatedGroupsDto
   void initializeCallbacks({
