@@ -88,7 +88,10 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
                   ),
                 ),
               ),
-              NotificationButton(userId: userId),
+              NotificationButton(
+                userId: userId,
+                onNotificationButtonPressed: _resetIndex,
+              ),
               // Sử dụng MessageButton mới không cần truyền unreadMessages
               MessageButton(
                 userId: userId,

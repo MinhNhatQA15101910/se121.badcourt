@@ -6,110 +6,74 @@ import 'package:intl/intl.dart';
 class DateTagPlayer extends StatelessWidget {
   final DateTime datetime;
   final bool isActived;
-  final void Function() onPressed;
+  final VoidCallback onPressed;
 
   const DateTagPlayer({
-    super.key,
+    Key? key,
     required this.datetime,
     required this.isActived,
     required this.onPressed,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    String getDay(DateTime date) {
-      DateTime now = DateTime.now();
-      DateTime today = DateTime(now.year, now.month, now.day);
-      DateTime inputDate = DateTime(date.year, date.month, date.day);
+    final dayName = DateFormat('EEE').format(datetime);
+    final dayNumber = DateFormat('dd').format(datetime);
+    final monthName = DateFormat('MMM').format(datetime);
 
-      if (inputDate == today) {
-        return "Today";
-      } else {
-        return DateFormat('EEE').format(date);
-      }
-    }
-
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 48,
-        height: 62,
-        margin: EdgeInsets.only(right: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: isActived ? GlobalVariables.green : GlobalVariables.lightGreen,
-          border: Border.all(
-            color: isActived ? GlobalVariables.green : GlobalVariables.grey,
-            width: 1,
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isActived ? GlobalVariables.green : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isActived ? GlobalVariables.green : Colors.grey.shade300,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                dayName,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isActived ? Colors.white : Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                dayNumber,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: isActived ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                monthName,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
+                  color: isActived ? Colors.white : Colors.grey.shade600,
+                ),
+              ),
+            ],
           ),
         ),
-        child: Column(
-          children: [
-            Container(
-              height: 20,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-                color: GlobalVariables.white,
-                border: isActived
-                    ? null
-                    : Border(
-                        bottom: BorderSide(
-                          color: GlobalVariables.grey,
-                          width: 1,
-                        ),
-                      ),
-              ),
-              child: Center(
-                child: _InterRegular12(
-                  getDay(datetime),
-                  isActived ? GlobalVariables.green : GlobalVariables.darkGrey,
-                  1,
-                ),
-              ),
-            ),
-            Container(
-              height: 40,
-              child: Center(
-                child: _InterMedium18(
-                  datetime.day.toString(),
-                  isActived ? GlobalVariables.white : GlobalVariables.green,
-                  1,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _InterRegular12(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
-
-  Widget _InterMedium18(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
+import 'package:frontend/common/services/notification_hub_service.dart';
 
 class SignalRManagerService {
   static final SignalRManagerService _instance = SignalRManagerService._internal();
@@ -12,6 +13,7 @@ class SignalRManagerService {
   final PresenceService _presenceService = PresenceService();
   final GroupHubService _groupHubService = GroupHubService();
   final MessageHubService _messageHubService = MessageHubService();
+  final NotificationHubService _notificationHubService = NotificationHubService();
 
   // Start all SignalR connections
   Future<void> startAllConnections(String accessToken) async {
@@ -23,6 +25,9 @@ class SignalRManagerService {
       
       // Start group hub connection
       await _groupHubService.startConnection(accessToken);
+      
+      // Start notification hub connection
+      await _notificationHubService.startConnection(accessToken);
       
       print('✅ [SignalRManager] All connections started successfully');
     } catch (e) {
@@ -39,6 +44,7 @@ class SignalRManagerService {
       await _presenceService.stopConnection();
       await _groupHubService.stopConnection();
       await _messageHubService.stopAllConnections();
+      await _notificationHubService.stopConnection();
       
       print('✅ [SignalRManager] All connections stopped');
     } catch (e) {
@@ -80,11 +86,13 @@ class SignalRManagerService {
   PresenceService get presenceService => _presenceService;
   GroupHubService get groupHubService => _groupHubService;
   MessageHubService get messageHubService => _messageHubService;
+  NotificationHubService get notificationHubService => _notificationHubService;
 
   // Connection status
   bool get isPresenceConnected => _presenceService.isConnected;
   bool get isGroupHubConnected => _groupHubService.isConnected;
   bool isConnectedToUser(String userId) => _messageHubService.isConnectedToUser(userId);
+  bool get isNotificationHubConnected => _notificationHubService.isConnected;
   
   List<String> get connectedUsers => _messageHubService.connectedUsers;
 
@@ -96,6 +104,7 @@ class SignalRManagerService {
     Function(PaginatedGroupsDto paginatedGroups)? onReceiveGroups,
     Function(MessageDto message)? onNewMessage,
     Function(GroupDto group)? onGroupUpdated,
+    Function(GroupDto group)? onNewMessageReceived, // Thêm callback mới
   }) {
     // Set presence callbacks
     _presenceService.onUserOnline = onUserOnline;
@@ -106,6 +115,7 @@ class SignalRManagerService {
     _groupHubService.onReceiveGroups = onReceiveGroups;
     _groupHubService.onNewMessage = onNewMessage;
     _groupHubService.onGroupUpdated = onGroupUpdated;
+    _groupHubService.onNewMessageReceived = onNewMessageReceived; // Thêm callback mới
   }
 
   // Helper method to convert List<GroupDto> to PaginatedGroupsDto for backward compatibility

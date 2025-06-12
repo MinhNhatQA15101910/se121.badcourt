@@ -105,8 +105,10 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
                   ),
                 ),
               ),
-              NotificationButton(userId: userId),
-              // Sử dụng MessageButton mới không cần truyền unreadMessages
+              NotificationButton(
+                userId: userId,
+                onNotificationButtonPressed: _resetIndex,
+              ),              // Sử dụng MessageButton mới không cần truyền unreadMessages
               MessageButton(
                 userId: userId,
                 onMessageButtonPressed: _resetIndex,

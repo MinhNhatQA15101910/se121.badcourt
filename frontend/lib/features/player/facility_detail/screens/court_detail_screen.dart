@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
-import 'package:frontend/features/player/facility_detail/widgets/court_expand_player.dart';
+import 'package:frontend/features/player/facility_detail/widgets/court_card_player.dart';
 import 'package:frontend/features/player/facility_detail/widgets/date_tag_player.dart';
-import 'package:frontend/features/player/facility_detail/widgets/timepicker_player_btm_sheet.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
@@ -26,15 +23,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   List<DateTime> _dates = [];
   final _facilityDetailService = FacilityDetailService();
   List<Court> _courts = [];
-  Court _selectedCourt = Court(
-    id: '',
-    courtName: 'Default Court Name',
-    description: 'Default description for the court.',
-    pricePerHour: 100000,
-    state: 'Active',
-    createdAt: DateTime.now().toUtc().toIso8601String(),
-    orderPeriods: [],
-  );
+  bool _isLoading = true;
 
   void _removeInactiveDays(Facility facility) {
     const List<String> daysOfWeek = [
@@ -62,25 +51,23 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   }
 
   Future<void> _fetchCourtByFacilityId(Facility facility) async {
+    setState(() {
+      _isLoading = true;
+    });
+    
     _courts = await _facilityDetailService.fetchCourtByFacilityId(
       context,
       facility.id,
     );
-    setState(() {});
+    
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _handleDateTagPressed(DateTime selectedDate) {
     setState(() {
       _selectedDate = selectedDate;
-      for (int i = 0; i < _dates.length; i++) {
-        _dates[i] == selectedDate ? true : false;
-      }
-    });
-  }
-
-  void _handleCourtSelection(Court court) {
-    setState(() {
-      _selectedCourt = court;
     });
   }
 
@@ -117,7 +104,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Court detail',
+                  'Select Court',
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -150,133 +137,59 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
           ? Container(
               color: GlobalVariables.defaultColor,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Flexible(
+                  // Date selector
+                  Container(
+                    color: GlobalVariables.white,
+                    padding: EdgeInsets.only(top: 12, bottom: 16),
                     child: SingleChildScrollView(
-                      child: Column(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
                         children: [
-                          Container(
-                            color: GlobalVariables.white,
-                            padding: EdgeInsets.only(top: 12, bottom: 16),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 16),
-                                  for (DateTime date in _dates)
-                                    DateTagPlayer(
-                                      datetime: date,
-                                      isActived: date == _selectedDate,
-                                      onPressed: () {
-                                        _handleDateTagPressed(date);
-                                      },
-                                    ),
-                                  SizedBox(width: 8),
-                                ],
-                              ),
+                          SizedBox(width: 16),
+                          for (DateTime date in _dates)
+                            DateTagPlayer(
+                              datetime: date,
+                              isActived: date == _selectedDate,
+                              onPressed: () {
+                                _handleDateTagPressed(date);
+                              },
                             ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.only(
-                              left: 16,
-                              right: 16,
-                              bottom: 12,
-                            ),
-                            color: GlobalVariables.defaultColor,
-                            child: Column(
-                              children: List.generate(
-                                _courts.length,
-                                (index) => CourtExpandPlayer(
-                                  facility: facility,
-                                  court: _courts[index],
-                                  currentDateTime: _selectedDate,
-                                  onExpansionChanged: _handleCourtSelection,
-                                ),
-                              ),
-                            ),
-                          ),
+                          SizedBox(width: 8),
                         ],
                       ),
                     ),
                   ),
-                  Container(
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 40,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: GlobalVariables.grey,
-                                width: 1.0,
-                              ),
+                  // Courts list
+                  Expanded(
+                    child: _isLoading
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              color: GlobalVariables.green,
                             ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              _subTotalText('Selected court:'),
-                              _subTotalPriceText(_selectedCourt.courtName),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          color: GlobalVariables.white,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: CustomButton(
-                            onTap: () => {
-                              if (_selectedCourt.id == "")
-                                {
-                                  IconSnackBar.show(context,
-                                      label: 'No selected court',
-                                      snackBarType: SnackBarType.fail)
-                                }
-                              else
-                                {
-                                  showModalBottomSheet<dynamic>(
-                                    context: context,
-                                    useRootNavigator: true,
-                                    isScrollControlled: true,
-                                    builder: (BuildContext context) {
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(8),
-                                            topRight: Radius.circular(8),
-                                          ),
-                                        ),
-                                        child: TimePickerPlayerBottomSheet(
-                                          court: _selectedCourt,
-                                          dateTime: _selectedDate,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                }
-                            },
-                            buttonText: 'Add a time slot',
-                            borderColor: GlobalVariables.green,
-                            fillColor: GlobalVariables.green,
-                            textColor: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+                          )
+                        : _courts.isEmpty
+                            ? Center(
+                                child: _subTotalText('No courts available'),
+                              )
+                            : Container(
+                                padding: EdgeInsets.all(16),
+                                child: ListView.builder(
+                                  itemCount: _courts.length,
+                                  itemBuilder: (context, index) {
+                                    return CourtCardPlayer(
+                                      facility: facility,
+                                      court: _courts[index],
+                                      selectedDate: _selectedDate,
+                                    );
+                                  },
+                                ),
+                              ),
                   ),
                 ],
               ),
             )
-          : Center(child: _subTotalText('No data found')),
+          : Center(child: _subTotalText('No available dates')),
     );
   }
 
@@ -290,21 +203,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
         textStyle: const TextStyle(
           overflow: TextOverflow.ellipsis,
           fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _subTotalPriceText(String text) {
-    return Text(
-      text,
-      textAlign: TextAlign.center,
-      style: GoogleFonts.inter(
-        fontSize: 16,
-        color: Colors.black,
-        textStyle: const TextStyle(
-          overflow: TextOverflow.ellipsis,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );

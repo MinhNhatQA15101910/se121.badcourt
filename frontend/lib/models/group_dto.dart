@@ -6,7 +6,7 @@ class GroupDto {
   final String name;
   final List<UserDto> users;
   final MessageDto? lastMessage;
-  final List<String> connections;
+  final List<String> connections; // Changed from ConnectionDto to String
   final DateTime updatedAt;
 
   GroupDto({
@@ -21,9 +21,10 @@ class GroupDto {
   // Computed properties for backward compatibility
   List<String> get userIds => users.map((user) => user.id).toList();
   
+  // Sửa lại logic hasMessage để dựa vào dateRead
   bool get hasMessage {
     if (lastMessage == null) return false;
-    return lastMessage!.dateRead == null;
+    return lastMessage!.dateRead == null; // Tin nhắn chưa đọc nếu dateRead là null
   }
   
   DateTime get createdAt => updatedAt; // Use updatedAt as fallback
@@ -120,7 +121,7 @@ class GroupDto {
 
   @override
   String toString() {
-    return 'GroupDto(id: $id, name: $name, users: ${users.length}, hasLastMessage: ${lastMessage != null}, connections: ${connections.length}, updatedAt: $updatedAt)';
+    return 'GroupDto(id: $id, name: $name, users: ${users.length}, hasLastMessage: ${lastMessage != null}, hasUnreadMessage: $hasMessage, connections: ${connections.length}, updatedAt: $updatedAt)';
   }
 }
 

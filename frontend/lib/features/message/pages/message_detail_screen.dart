@@ -272,13 +272,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
           _fadeController.forward();
         });
         
-        _showSnackBar(
-          'Connection error: $e',
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: _initializeServices,
-          ),
-        );
+        // _showSnackBar(
+        //   'Connection error: $e',
+        //   action: SnackBarAction(
+        //     label: 'Retry',
+        //     onPressed: _initializeServices,
+        //   ),
+        // );
       }
     }
   }
@@ -307,13 +307,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
           _isLoadingMore = false;
         });
         
-        _showSnackBar(
-          'Failed to load more messages',
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: _loadMoreMessages,
-          ),
-        );
+        // _showSnackBar(
+        //   'Failed to load more messages',
+        //   action: SnackBarAction(
+        //     label: 'Retry',
+        //     onPressed: _loadMoreMessages,
+        //   ),
+        // );
       }
       
       // Wait for response via SignalR callback

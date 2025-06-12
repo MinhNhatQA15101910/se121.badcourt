@@ -15,6 +15,8 @@ class GroupHubService {
   Function(PaginatedGroupsDto paginatedGroups)? onReceiveGroups;
   Function(MessageDto message)? onNewMessage;
   Function(GroupDto group)? onGroupUpdated;
+  // Thêm callback cho NewMessageReceived
+  Function(GroupDto group)? onNewMessageReceived;
 
   // Getters
   bool get isConnected => _isConnected;
@@ -104,6 +106,25 @@ class GroupHubService {
             }
           } catch (e) {
             print('[GroupHub] Error parsing updated group: $e');
+          }
+        }
+      });
+
+      // Trong method startConnection, thêm listener cho NewMessageReceived
+      _connection!.on('NewMessageReceived', (arguments) {
+        print('[GroupHub] Received NewMessageReceived event');
+        print('[GroupHub] Arguments: $arguments');
+        
+        if (arguments != null && arguments.isNotEmpty) {
+          try {
+            final groupData = arguments[0];
+            if (groupData is Map<String, dynamic>) {
+              final group = GroupDto.fromJson(groupData);
+              onNewMessageReceived?.call(group);
+              print('[GroupHub] NewMessageReceived processed: Group ${group.id} with message from ${group.lastMessage?.senderUsername}');
+            }
+          } catch (e) {
+            print('[GroupHub] Error parsing NewMessageReceived: $e');
           }
         }
       });

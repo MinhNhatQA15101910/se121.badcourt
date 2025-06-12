@@ -39,7 +39,13 @@ class _MessageScreenState extends State<MessageScreen> {
       _isLoading = true;
     });
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+
+    // Set current user ID and calculate unread count
+    if (userProvider.user.id.isNotEmpty) {
+      groupProvider.setCurrentUserId(userProvider.user.id);
+    }
     
     // Check if GroupProvider is connected and has groups
     if (groupProvider.isConnected) {
@@ -70,9 +76,13 @@ class _MessageScreenState extends State<MessageScreen> {
     } else {
       // Not connected yet, try to initialize GroupHub
       try {
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
         await groupProvider.initializeGroupHub(userProvider.user.token);
         print('[MessageScreen] Initialized GroupHub connection');
+        
+        // Set user ID after connection
+        if (userProvider.user.id.isNotEmpty) {
+          groupProvider.setCurrentUserId(userProvider.user.id);
+        }
         
         // Wait for groups to load
         await Future.delayed(const Duration(seconds: 3));
@@ -134,6 +144,9 @@ class _MessageScreenState extends State<MessageScreen> {
     try {
       // Request groups refresh
       await groupProvider.refreshGroups();
+      
+      // Refresh unread count
+      groupProvider.refreshUnreadCount();
       
       // Wait a bit for any updates
       await Future.delayed(const Duration(milliseconds: 1000));
@@ -205,9 +218,11 @@ class _MessageScreenState extends State<MessageScreen> {
 
   // Kiểm tra xem group có tin nhắn chưa đọc không
   bool _hasUnreadMessage(GroupDto group) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    return groupProvider.hasUnreadMessage(group.id) || 
-           group.hasMessage ||
+    
+    // Use the updated hasUnreadMessage method with current user ID
+    return groupProvider.hasUnreadMessage(group.id, userProvider.user.id) || 
            _isRecentMessage(group.updatedAt);
   }
 
@@ -255,8 +270,54 @@ class _MessageScreenState extends State<MessageScreen> {
                 color: GlobalVariables.white,
               ),
             ),
+            const Spacer(),
+            // Hiển thị số tin nhắn chưa đọc và trạng thái kết nối
+            Consumer<GroupProvider>(
+              builder: (context, groupProvider, _) {
+                final unreadCount = groupProvider.unreadMessageCount;
+                return Row(
+                  children: [
+                    if (unreadCount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    // Hiển thị trạng thái kết nối GroupHub
+                    Icon(
+                      groupProvider.isConnected 
+                          ? Icons.cloud_done 
+                          : Icons.cloud_off,
+                      color: groupProvider.isConnected 
+                          ? Colors.white 
+                          : Colors.red[300],
+                      size: 20,
+                    ),
+                  ],
+                );
+              },
+            ),
           ],
         ),
+        actions: [
+          // Add refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshGroups,
+            tooltip: 'Refresh conversations',
+          ),
+        ],
       ),
       body: Container(
         color: GlobalVariables.defaultColor,

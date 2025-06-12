@@ -7,26 +7,27 @@ class TimespanPlayerContainer extends StatelessWidget {
   final BookingTime bookingTime;
   final double marginTop;
   final double height;
-  final void Function() onUnlockPress;
+  final VoidCallback onRemove;
 
   const TimespanPlayerContainer({
     Key? key,
     this.marginTop = 0.0,
     this.height = 100.0,
     required this.bookingTime,
-    required this.onUnlockPress,
+    required this.onRemove,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    bool isUserBooking = isValid(bookingTime);
+    
     return Container(
       margin: EdgeInsets.only(left: 40, top: marginTop + 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
-        color:
-            isValid(bookingTime) ? GlobalVariables.green : GlobalVariables.grey,
+        color: isUserBooking ? GlobalVariables.green : GlobalVariables.grey,
         border: Border.all(
-          color: isValid(bookingTime)
+          color: isUserBooking
               ? GlobalVariables.green
               : GlobalVariables.darkGrey,
           width: 1,
@@ -36,7 +37,7 @@ class TimespanPlayerContainer extends StatelessWidget {
       width: double.maxFinite,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: !isValid(bookingTime)
+        child: !isUserBooking
             ? SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,13 +80,21 @@ class TimespanPlayerContainer extends StatelessWidget {
                   ),
                   Positioned(
                     top: 4,
-                    right: 0,
+                    right: 4,
                     child: GestureDetector(
-                      onTap: () {},
-                      child: Icon(
-                        Icons.clear,
-                        color: Colors.white,
-                        size: 12,
+                      onTap: onRemove,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.clear,
+                          color: Colors.white,
+                          size: 12,
+                        ),
                       ),
                     ),
                   ),

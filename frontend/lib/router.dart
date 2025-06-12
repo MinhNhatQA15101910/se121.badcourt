@@ -23,6 +23,7 @@ import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
+import 'package:frontend/features/player/facility_detail/screens/single_court_detail_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
@@ -180,6 +181,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => NotificationScreen(),
+      );
+    case SingleCourtDetailScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const SingleCourtDetailScreen(),
       );
     default:
       return MaterialPageRoute(
