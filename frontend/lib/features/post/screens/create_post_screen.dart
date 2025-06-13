@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -26,8 +24,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final ImagePicker _picker = ImagePicker();
   List<File>? _imageFiles = [];
   bool _isLoading = false;
+  bool _canPost = false;
 
   Future<void> _createPost() async {
+    if (!_canPost) return;
+    
     setState(() {
       _isLoading = true;
     });
@@ -50,7 +51,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _pickImages() async {
-    final List<XFile>? selectedImages = await _picker.pickMultiImage();
+    final List<XFile>? selectedImages = await _picker.pickMultiImage(
+      imageQuality: 80,
+      maxWidth: 1920,
+      maxHeight: 1080,
+    );
+    
     if (selectedImages != null) {
       setState(() {
         // Calculate remaining slots available
@@ -65,6 +71,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 .toList(),
           );
         }
+        _updateCanPost();
       });
     }
   }
@@ -73,15 +80,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void initState() {
     super.initState();
     _descriptionController.addListener(_onTextChanged);
+    _titleController.addListener(_onTextChanged);
   }
 
   void _onTextChanged() {
-    setState(() {});
+    _updateCanPost();
+  }
+  
+  void _updateCanPost() {
+    setState(() {
+      _canPost = _titleController.text.trim().isNotEmpty || 
+                 _descriptionController.text.trim().isNotEmpty ||
+                 (_imageFiles != null && _imageFiles!.isNotEmpty);
+    });
   }
 
   @override
   void dispose() {
     _descriptionController.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -89,42 +106,75 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
 
-    return Stack(
-      children: [
-        SafeArea(
-          child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: GlobalVariables.green,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Create post',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.none,
-                      color: GlobalVariables.white,
-                    ),
+    return Scaffold(
+      backgroundColor: GlobalVariables.defaultColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: GlobalVariables.green,
+        title: Text(
+          'Create Post',
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: GlobalVariables.white,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.close, color: GlobalVariables.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          _isLoading
+            ? Container(
+                margin: const EdgeInsets.only(right: 16),
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : TextButton(
+                onPressed: _canPost ? _createPost : null,
+                child: Text(
+                  'Post',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _canPost ? Colors.white : Colors.white.withOpacity(0.5),
                   ),
-                  Container(
-                    width: 80,
-                    child: CustomButton(
-                      onTap: _createPost,
-                      buttonText: 'Post',
-                      borderColor: GlobalVariables.white,
-                      fillColor: GlobalVariables.white,
-                      textColor: GlobalVariables.green,
+                ),
+              ),
+        ],
+      ),
+      body: _isLoading
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Creating your post...',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: GlobalVariables.darkGrey,
                     ),
                   ),
                 ],
               ),
-            ),
-            body: SingleChildScrollView(
+            )
+          : SingleChildScrollView(
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.all(16),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // User info section
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -135,111 +185,131 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.green,
+                              color: GlobalVariables.green,
                               width: 2.0,
                             ),
                           ),
-                          child: CircleAvatar(
-                            backgroundImage: NetworkImage(
+                          child: ClipOval(
+                            child: Image.network(
                               userProvider.user.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Icon(
+                                Icons.person,
+                                size: 32,
+                                color: GlobalVariables.green,
+                              ),
                             ),
-                            radius: 25,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        _customText(
+                        Text(
                           userProvider.user.username,
-                          16,
-                          FontWeight.w700,
-                          GlobalVariables.black,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: GlobalVariables.blackGrey,
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
-                    TextField(
-                      controller: _titleController,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: GlobalVariables.blackGrey,
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Title field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      maxLines: null,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        hintText: 'Post title',
-                        hintStyle: TextStyle(
-                          fontSize: 14,
+                      padding: const EdgeInsets.all(16),
+                      child: TextField(
+                        controller: _titleController,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: GlobalVariables.darkGrey,
+                          color: GlobalVariables.blackGrey,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: GlobalVariables.green,
-                            width: 1.5,
+                        maxLines: null,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                          hintText: 'Add a title to your post',
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: GlobalVariables.darkGrey.withOpacity(0.7),
                           ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: GlobalVariables.green,
-                            width: 2.0,
-                          ),
-                        ),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Description field
                     Container(
-                      child: TextFormField(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: TextField(
                         controller: _descriptionController,
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           color: GlobalVariables.blackGrey,
                         ),
                         maxLines: null,
-                        minLines: 8,
+                        minLines: 5,
                         decoration: InputDecoration(
-                          hintText: 'Post description',
-                          hintStyle: TextStyle(
+                          hintText: 'What\'s on your mind?',
+                          hintStyle: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: GlobalVariables.darkGrey,
+                            color: GlobalVariables.darkGrey.withOpacity(0.7),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: GlobalVariables.grey,
-                              width: 1.5,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: GlobalVariables.grey,
-                              width: 1.5,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: GlobalVariables.darkGrey,
-                              width: 2.0,
-                            ),
-                          ),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Image counter
+                    if (_imageFiles != null && _imageFiles!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '${_imageFiles!.length}/10 images',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: GlobalVariables.darkGrey,
+                          ),
+                        ),
+                      ),
+                    
+                    // Image grid
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
@@ -248,65 +318,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       itemCount: (_imageFiles?.length ?? 0) + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          return GestureDetector(
-                            onTap: _pickImages,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF2F4F5),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  double iconSize = constraints.maxWidth * 0.6;
-                                  return Center(
-                                    child: Icon(
-                                      Icons.add_photo_alternate_outlined,
-                                      size: iconSize,
-                                      color: Colors.grey[700],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          );
+                          return _buildAddImageButton();
                         } else {
-                          final image = _imageFiles![index - 1];
-                          return Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: Image.file(
-                                  image,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _imageFiles?.removeAt(index - 1);
-                                    });
-                                  },
-                                  child: Container(
-                                    child: const Icon(
-                                      Icons.close,
-                                      shadows: <Shadow>[
-                                        Shadow(
-                                            color: Colors.black,
-                                            blurRadius: 15.0)
-                                      ],
-                                      size: 20,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
+                          return _buildImagePreview(index - 1);
                         }
                       },
                     ),
@@ -314,36 +328,94 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
               ),
             ),
-          ),
-        ),
-        // Loader overlay when _isLoading is true
-        if (_isLoading)
-          Stack(
-            children: [
-              Container(
-                color:
-                    Colors.black..withOpacity(0.3), // Semi-transparent barrier
-              ),
-              const Center(
-                child: Loader(),
-              ),
-            ],
-          ),
-      ],
     );
   }
 
-  Widget _customText(String text, double size, FontWeight weight, Color color) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: size,
-        fontWeight: weight,
+  Widget _buildAddImageButton() {
+    return GestureDetector(
+      onTap: _pickImages,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: GlobalVariables.green.withOpacity(0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              size: 32,
+              color: GlobalVariables.green,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Add Photos',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: GlobalVariables.green,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildImagePreview(int index) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              _imageFiles![index],
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _imageFiles?.removeAt(index);
+                _updateCanPost();
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

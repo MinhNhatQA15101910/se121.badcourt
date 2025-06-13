@@ -30,6 +30,7 @@ import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
+import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
@@ -193,6 +194,13 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const BookingSuccessScreen(),
       );
+case PostDetailScreen.routeName:
+  final postId = routeSettings.arguments as String;
+  return MaterialPageRoute(
+    settings: routeSettings,
+    builder: (_) => PostDetailScreen(postId: postId),
+  );
+
     default:
       return MaterialPageRoute(
         settings: routeSettings,

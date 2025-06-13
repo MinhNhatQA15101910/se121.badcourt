@@ -6,6 +6,7 @@ class Post {
   final String publisherId;
   final String publisherUsername;
   final String publisherImageUrl;
+  final String title;
   final String content;
   final List<PostResource> resources;
   final int likesCount;
@@ -18,6 +19,7 @@ class Post {
     required this.publisherId,
     required this.publisherUsername,
     required this.publisherImageUrl,
+    required this.title,
     required this.content,
     required this.resources,
     required this.likesCount,
@@ -32,6 +34,7 @@ class Post {
       publisherId: map['publisherId'] ?? '',
       publisherUsername: map['publisherUsername'] ?? '',
       publisherImageUrl: map['publisherImageUrl'] ?? '',
+      title: map['title'] ?? '',
       content: map['content'] ?? '',
       resources: map['resources'] != null
           ? List<PostResource>.from(
@@ -52,6 +55,7 @@ class Post {
       'publisherId': publisherId,
       'publisherUsername': publisherUsername,
       'publisherImageUrl': publisherImageUrl,
+      'title': title,
       'content': content,
       'resources': resources.map((r) => r.toMap()).toList(),
       'likesCount': likesCount,

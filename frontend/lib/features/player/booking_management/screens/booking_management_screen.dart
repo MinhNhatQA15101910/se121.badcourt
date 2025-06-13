@@ -21,29 +21,145 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
   final List<String> _viewOptions = ['All', 'Played', 'Pending'];
   int _selectedViewIndex = 0;
 
-  List<Order>? _orders;
-  List<Order>? _playedOrders;
-  List<Order>? _notPlayedOrders;
+  List<Order> _orders = [];
+  List<Order> _playedOrders = [];
+  List<Order> _notPlayedOrders = [];
 
-  void _fetchAllOrders() async {
-    _orders = await _bookingManagementService.fetchAllOrders(context: context);
-    _playedOrders = _orders!.where((order) {
-      DateTime now = DateTime.now();
-      DateTime playTime = order.timePeriod.hourFrom;
-      return now.isAfter(playTime);
-    }).toList();
-    _notPlayedOrders = _orders!.where((order) {
-      DateTime now = DateTime.now();
-      DateTime playTime = order.timePeriod.hourFrom;
-      return now.isBefore(playTime);
-    }).toList();
-    setState(() {});
-  }
+  int _ordersCount = 0;
+  int _playedOrdersCount = 0;
+  int _notPlayedOrdersCount = 0;
+
+  // Pagination variables
+  int _currentPage = 1;
+  final int _pageSize = 4;
+  bool _isLoading = false;
+  bool _hasMoreData = true;
+  
+  // Scroll controller for infinite scrolling
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    _fetchAllOrders();
+    
+    // Initialize the scroll controller
+    _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListener);
+    
+    // Check if there are arguments passed to determine the initial tab
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args != null && args is int) {
+        setState(() {
+          _selectedViewIndex = args;
+        });
+      }
+      _fetchOrders();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Scroll listener to detect when user reaches the bottom
+  void _scrollListener() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoading &&
+        _hasMoreData) {
+      _loadMoreOrders();
+    }
+  }
+
+  // Initial fetch of orders
+  void _fetchOrders() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    List<Order> newOrders = await _bookingManagementService.fetchAllOrders(
+      context: context,
+      pageNumber: _currentPage,
+      pageSize: _pageSize,
+    );
+
+    _processOrders(newOrders);
+
+    setState(() {
+      _isLoading = false;
+      _hasMoreData = newOrders.length == _pageSize;
+    });
+  }
+
+  // Load more orders when scrolling
+  void _loadMoreOrders() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+      _currentPage++;
+    });
+
+    List<Order> newOrders = await _bookingManagementService.fetchAllOrders(
+      context: context,
+      pageNumber: _currentPage,
+      pageSize: _pageSize,
+    );
+
+    _processOrders(newOrders);
+
+    setState(() {
+      _isLoading = false;
+      _hasMoreData = newOrders.length == _pageSize;
+    });
+  }
+
+  // Process and categorize orders
+  void _processOrders(List<Order> newOrders) {
+    if (newOrders.isEmpty) {
+      setState(() {
+        _hasMoreData = false;
+      });
+      return;
+    }
+
+    List<Order> playedOrders = [];
+    List<Order> notPlayedOrders = [];
+
+    for (var order in newOrders) {
+      DateTime now = DateTime.now();
+      DateTime playTime = order.timePeriod.hourFrom;
+      if (now.isAfter(playTime)) {
+        playedOrders.add(order);
+      } else {
+        notPlayedOrders.add(order);
+      }
+    }
+
+    setState(() {
+      _orders.addAll(newOrders);
+      _playedOrders.addAll(playedOrders);
+      _notPlayedOrders.addAll(notPlayedOrders);
+      
+      _ordersCount = _orders.length;
+      _playedOrdersCount = _playedOrders.length;
+      _notPlayedOrdersCount = _notPlayedOrders.length;
+    });
+  }
+
+  // Refresh all data
+  void _refreshData() {
+    setState(() {
+      _orders = [];
+      _playedOrders = [];
+      _notPlayedOrders = [];
+      _currentPage = 1;
+      _hasMoreData = true;
+    });
+    _fetchOrders();
   }
 
   void _selectView(int index) {
@@ -66,12 +182,11 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
             color: GlobalVariables.white,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: GlobalVariables.white),
-            onPressed: () {
-              _fetchAllOrders();
-            },
+            onPressed: _refreshData,
           ),
         ],
       ),
@@ -81,7 +196,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
           children: [
             _buildCustomTabSelector(),
             Expanded(
-              child: _orders == null
+              child: _orders.isEmpty && _isLoading
                   ? const Center(child: Loader())
                   : _buildBookingList(_selectedViewIndex),
             ),
@@ -140,12 +255,12 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
 
   Widget _buildBookingList(int viewIndex) {
     final List<Order> displayOrders = viewIndex == 0
-        ? _orders!
+        ? _orders
         : viewIndex == 1
-            ? _playedOrders!
-            : _notPlayedOrders!;
+            ? _playedOrders
+            : _notPlayedOrders;
             
-    return displayOrders.isEmpty
+    return displayOrders.isEmpty && !_isLoading
         ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -168,11 +283,25 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
             ),
           )
         : ListView.builder(
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: displayOrders.length,
+            itemCount: displayOrders.length + (_hasMoreData ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index == displayOrders.length) {
+                return _buildLoadingIndicator();
+              }
               return BookingDetailCard(order: displayOrders[index]);
             },
           );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      child: const CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+      ),
+    );
   }
 }

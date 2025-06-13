@@ -12,6 +12,8 @@ import 'package:provider/provider.dart';
 class BookingManagementService {
   Future<List<Order>> fetchAllOrders({
     required BuildContext context,
+    int pageNumber = 1,
+    int pageSize = 4,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -22,7 +24,7 @@ class BookingManagementService {
 
     try {
       http.Response response = await http.get(
-        Uri.parse('$uri/gateway/orders'),
+        Uri.parse('$uri/gateway/orders?pageSize=$pageSize&pageNumber=$pageNumber'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

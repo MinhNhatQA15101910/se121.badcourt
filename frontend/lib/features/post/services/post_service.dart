@@ -66,6 +66,7 @@ class PostService {
     required BuildContext context,
     required int pageNumber,
     int pageSize = 10,
+    required String searchQuery,
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -77,6 +78,7 @@ class PostService {
           Uri.parse('$uri/gateway/posts').replace(queryParameters: {
         'pageNumber': pageNumber.toString(),
         'pageSize': pageSize.toString(),
+        'query': searchQuery,
       });
 
       http.Response res = await http.get(
@@ -116,6 +118,45 @@ class PostService {
       'posts': postList,
       'totalPages': totalPages,
     };
+  }
+
+  Future<Post?> fetchPostById({
+    required BuildContext context,
+    required String postId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      final Uri currentUri = Uri.parse('$uri/gateway/posts/$postId');
+
+      http.Response res = await http.get(
+        currentUri,
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      Post? post;
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          final data = jsonDecode(res.body);
+          post = Post.fromMap(data);
+        },
+      );
+
+      return post;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
+    }
   }
 
   Future<void> createComment(
@@ -174,7 +215,7 @@ class PostService {
     required BuildContext context,
     required String postId,
     required int pageNumber,
-    int pageSize = 3,
+    int pageSize = 10,
   }) async {
     List<Comment> commentList = [];
     int totalPages = 0;
