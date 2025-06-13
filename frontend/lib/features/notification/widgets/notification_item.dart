@@ -21,11 +21,7 @@ class _NotificationItemState extends State<NotificationItem>
     with TickerProviderStateMixin {
   late AnimationController _thumbUpController;
   late AnimationController _pulseController;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _pulseAnimation;
-  late Animation<Color?> _colorAnimation;
 
-  bool _isLiked = false;
 
   @override
   void initState() {
@@ -42,33 +38,6 @@ class _NotificationItemState extends State<NotificationItem>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-
-    // Scale animation for thumb up
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.3,
-    ).animate(CurvedAnimation(
-      parent: _thumbUpController,
-      curve: Curves.elasticOut,
-    ));
-
-    // Pulse animation
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.5,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeOut,
-    ));
-
-    // Color animation
-    _colorAnimation = ColorTween(
-      begin: Colors.pink,
-      end: Colors.red,
-    ).animate(CurvedAnimation(
-      parent: _thumbUpController,
-      curve: Curves.easeInOut,
-    ));
   }
 
   @override
@@ -76,31 +45,6 @@ class _NotificationItemState extends State<NotificationItem>
     _thumbUpController.dispose();
     _pulseController.dispose();
     super.dispose();
-  }
-
-  void _onThumbUpTap() async {
-    if (_isLiked) return; // Prevent multiple taps
-
-    setState(() {
-      _isLiked = true;
-    });
-
-    // Start animations
-    _thumbUpController.forward();
-    _pulseController.forward();
-
-    // Reset pulse animation after completion
-    _pulseController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _pulseController.reset();
-      }
-    });
-
-    // Add haptic feedback
-    // HapticFeedback.lightImpact();
-
-    // TODO: Call API to like the post
-    // await _likePost();
   }
 
   String _formatTimeAgo(DateTime dateTime) {

@@ -19,7 +19,6 @@ class CustomAvatar extends StatelessWidget {
 
   Future<void> _createGroupAndNavigate(
       BuildContext context, String userId) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     final messageHubProvider =
         Provider.of<MessageHubProvider>(context, listen: false);

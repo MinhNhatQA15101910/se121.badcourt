@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -32,7 +31,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   final List<Map<String, dynamic>> _messages = [];
 
   // Add SignalR services
-  final GroupHubService _groupHubService = GroupHubService();
   final MessageHubService _messageHubService = MessageHubService();
   late String? userId;
   UserDto? _otherUser;
@@ -51,7 +49,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   int _currentPage = 1;
   int _totalPages = 1;
   int _pageSize = 20;
-  int _totalCount = 0;
 
   String groupId = "";
 
@@ -172,7 +169,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
             _currentPage = paginatedMessages.currentPage;
             _totalPages = paginatedMessages.totalPages;
             _pageSize = paginatedMessages.pageSize;
-            _totalCount = paginatedMessages.totalCount;
             _hasMorePages = _currentPage < _totalPages;
             
             // If loading more, append messages

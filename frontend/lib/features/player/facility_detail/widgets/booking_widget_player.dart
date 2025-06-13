@@ -41,12 +41,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   int _selectedEndHour = 9;
   int _selectedEndMinute = 0;
 
-  // Time constraints
-  int _minStartHour = 0;
-  int _minStartMinute = 0;
-  int _maxEndHour = 23;
-  int _maxEndMinute = 59;
-
   // Error message and validation state
   String? _timeErrorMessage;
   bool _isValidatingTime = false;
@@ -71,10 +65,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
       // Set constraints based on facility hours
       setState(() {
-        _minStartHour = _facilityStartTime.hour;
-        _minStartMinute = _facilityStartTime.minute;
-        _maxEndHour = _facilityEndTime.hour;
-        _maxEndMinute = _facilityEndTime.minute;
 
         // Set default start time to facility start time
         _selectedStartHour = _facilityStartTime.hour;
@@ -228,13 +218,11 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
       _timeErrorMessage = null;
 
       // STEP 1: Ensure start time is within facility hours
-      bool startTimeAdjusted = false;
       if (_selectedStartHour < _facilityStartTime.hour ||
           (_selectedStartHour == _facilityStartTime.hour &&
               _selectedStartMinute < _facilityStartTime.minute)) {
         _selectedStartHour = _facilityStartTime.hour;
         _selectedStartMinute = _facilityStartTime.minute;
-        startTimeAdjusted = true;
       }
 
       // STEP 2: Ensure start time is not beyond facility end time
@@ -244,19 +232,16 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         // This is an invalid state - start time can't be at or after facility end time
         _selectedStartHour = _facilityEndTime.hour - 1;
         _selectedStartMinute = 0;
-        startTimeAdjusted = true;
         _timeErrorMessage =
             "Start time cannot be at or after facility closing time";
       }
 
       // STEP 3: Ensure end time is after start time
-      bool endTimeAdjusted = false;
       if (_selectedEndHour < _selectedStartHour ||
           (_selectedEndHour == _selectedStartHour &&
               _selectedEndMinute <= _selectedStartMinute)) {
         _selectedEndHour = _selectedStartHour + 1;
         _selectedEndMinute = _selectedStartMinute;
-        endTimeAdjusted = true;
       }
 
       // STEP 4: Ensure end time is within facility hours
@@ -265,7 +250,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
               _selectedEndMinute > _facilityEndTime.minute)) {
         _selectedEndHour = _facilityEndTime.hour;
         _selectedEndMinute = _facilityEndTime.minute;
-        endTimeAdjusted = true;
       }
 
       // STEP 5: Check for booking conflicts (local validation)
@@ -303,7 +287,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
           _selectedStartMinute = startTime.minute;
         }
 
-        endTimeAdjusted = true;
       }
     });
 
@@ -328,31 +311,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     return false;
   }
 
-  bool _isTimeSlotAvailable() {
-    // Check local validation first
-    if (_isTimeSlotOverlapping()) {
-      return false;
-    }
-
-    // Check if times are within facility hours
-    DateTime facilityStart = DateTime(
-        2000, 1, 1, _facilityStartTime.hour, _facilityStartTime.minute);
-    DateTime facilityEnd =
-        DateTime(2000, 1, 1, _facilityEndTime.hour, _facilityEndTime.minute);
-    DateTime selectedStart =
-        DateTime(2000, 1, 1, _selectedStartHour, _selectedStartMinute);
-    DateTime selectedEnd =
-        DateTime(2000, 1, 1, _selectedEndHour, _selectedEndMinute);
-
-    if (selectedStart.isBefore(facilityStart) ||
-        selectedEnd.isAfter(facilityEnd) ||
-        selectedEnd.isAtSameMomentAs(selectedStart)) {
-      return false;
-    }
-
-    // Check server validation result
-    return _isTimeSlotValid && !_isValidatingTime;
-  }
 
   void _bookTimeSlot() async {
     final selectedCourtProvider =
@@ -590,7 +548,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         // Use real-time court data if available, otherwise use original court
         final court =
             courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
-        final isConnected = courtHubProvider.isConnected(originalCourt.id);
+        courtHubProvider.isConnected(originalCourt.id);
 
         // Update data when court changes (real-time updates)
         WidgetsBinding.instance.addPostFrameCallback((_) {

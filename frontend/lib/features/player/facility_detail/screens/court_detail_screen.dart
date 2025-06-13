@@ -101,7 +101,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
-    final courtHubProvider = context.watch<CourtHubProvider>();
+    context.watch<CourtHubProvider>();
     final facility = currentFacilityProvider.currentFacility;
 
     return Scaffold(

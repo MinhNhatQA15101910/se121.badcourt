@@ -158,7 +158,6 @@ class AuthService {
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
 
     try {
       print('Starting login process...');
@@ -193,16 +192,18 @@ class AuthService {
             print('Attempting to connect to all SignalR services...');
             if (token != null) {
               await _signalRManager.startAllConnections(token);
-              
+
               // Khởi tạo callbacks cho GroupProvider
-              final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+              final groupProvider =
+                  Provider.of<GroupProvider>(context, listen: false);
               _signalRManager.initializeCallbacks(
                 onReceiveGroups: groupProvider.groupHubService.onReceiveGroups,
                 onNewMessage: groupProvider.groupHubService.onNewMessage,
                 onGroupUpdated: groupProvider.groupHubService.onGroupUpdated,
-                onNewMessageReceived: groupProvider.groupHubService.onNewMessageReceived, // Thêm callback mới
+                onNewMessageReceived: groupProvider
+                    .groupHubService.onNewMessageReceived, // Thêm callback mới
               );
-              
+
               print('All SignalR services connected successfully after login');
             }
           } catch (signalRError) {
@@ -250,11 +251,6 @@ class AuthService {
     required BuildContext context,
     required GoogleSignInAccount account,
   }) async {
-    final groupProvider = Provider.of<GroupProvider>(
-      context,
-      listen: false,
-    );
-
     try {
       print('Starting Google login process...');
 
@@ -291,7 +287,8 @@ class AuthService {
             print('Attempting to connect to PresenceHub after Google login...');
             if (token != null) {
               await _signalRManager.startAllConnections(token);
-              print('All SignalR services connected successfully after Google login');
+              print(
+                  'All SignalR services connected successfully after Google login');
             }
           } catch (signalRError) {
             print('Error connecting to SignalR services: $signalRError');
@@ -471,7 +468,8 @@ class AuthService {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('x-auth-token');
-      print('Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
+      print(
+          'Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
 
       if (token == null) {
         await prefs.setString('x-auth-token', '');
@@ -503,9 +501,11 @@ class AuthService {
 
         // Auto-connect to all SignalR services
         try {
-          String cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
+          String cleanToken =
+              token.startsWith('Bearer ') ? token.substring(7) : token;
           await _signalRManager.startAllConnections(cleanToken);
-          print('All SignalR services auto-connected for existing user session');
+          print(
+              'All SignalR services auto-connected for existing user session');
         } catch (signalRError) {
           print('Error auto-connecting to SignalR services: $signalRError');
         }

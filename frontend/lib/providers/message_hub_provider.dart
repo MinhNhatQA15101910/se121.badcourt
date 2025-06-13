@@ -150,8 +150,7 @@ class MessageHubProvider with ChangeNotifier {
 
   Future<bool> sendMessage(BuildContext context, String otherUserId, String content) async {
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final accessToken = userProvider.user.token;
+      Provider.of<UserProvider>(context, listen: false);
 
       // Đảm bảo connection sẵn sàng trước khi gửi
       if (!_messageHubService.isConnectionReady(otherUserId)) {

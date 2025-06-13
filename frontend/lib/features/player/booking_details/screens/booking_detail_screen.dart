@@ -1,173 +1,184 @@
-// ignore_for_file: unused_element
-
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
-import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/booking_details/widgets/total_price.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-class BookingDetailScreen extends StatefulWidget {
+class BookingDetailScreen extends StatelessWidget {
   static const String routeName = '/booking-detail-screen';
   const BookingDetailScreen({Key? key}) : super(key: key);
 
   @override
-  State<BookingDetailScreen> createState() => _BookingDetailScreenState();
-}
-
-class _BookingDetailScreenState extends State<BookingDetailScreen> {
-  final titleStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    color: GlobalVariables.blackGrey,
-  );
-
-  final contentStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: GlobalVariables.blackGrey,
-  );
-
-  @override
   Widget build(BuildContext context) {
-    DateTime now = DateTime.now();
     final order = ModalRoute.of(context)!.settings.arguments as Order;
+    DateTime now = DateTime.now();
     DateTime playTime = order.timePeriod.hourFrom;
     bool isPlayed = now.isAfter(playTime);
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Datetime management',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: Container(
-          color: GlobalVariables.defaultColor,
-          child: SingleChildScrollView(
-            child: Container(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          // App Bar with Image
+          SliverAppBar(
+            expandedHeight: 200,
+            pinned: true,
+            backgroundColor: GlobalVariables.green,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  AspectRatio(
-                    aspectRatio: 2 / 1,
-                    child: Image(
-                      image: AssetImage('assets/images/demo_facility.png'),
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+                  // Court Image
+                  order.image.url.isNotEmpty
+                      ? Image.network(
+                          order.image.url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Image.asset(
+                            'assets/images/demo_facility.png',
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Image.asset(
+                          'assets/images/demo_facility.png',
+                          fit: BoxFit.cover,
+                        ),
+                  // Gradient overlay for better text visibility
                   Container(
-                    width: double.maxFinite,
-                    color: GlobalVariables.white,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: _InterMedium18(
-                      order.facilityName,
-                      GlobalVariables.blackGrey,
-                      2,
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(
-                      top: 12,
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: _InterBold16(
-                      'Booking detail',
-                      GlobalVariables.blackGrey,
-                      1,
-                    ),
-                  ),
-                  CustomContainer(
-                    child: Container(
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InterMedium14(
-                                  'Booking ID', GlobalVariables.blackGrey, 1),
-                              SizedBox(
-                                width: 8,
-                              ),
-                              Expanded(
-                                child: _InterBold14(
-                                    order.id, GlobalVariables.blackGrey, 1),
-                              ),
-                            ],
-                          ),
-                          Separator(color: GlobalVariables.darkGrey),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InterMedium14(
-                                  'Booking date', GlobalVariables.blackGrey, 1),
-                              _InterBold14(
-                                '${order.createdAt.hour}:${order.createdAt.minute}, ${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year}',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
-                            ],
-                          ),
-                          Separator(color: GlobalVariables.darkGrey),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InterMedium14(
-                                  'Order status', GlobalVariables.blackGrey, 1),
-                              _InterBold14(
-                                isPlayed ? 'Played' : 'Not played',
-                                isPlayed
-                                    ? GlobalVariables.darkGreen
-                                    : GlobalVariables.darkYellow,
-                                1,
-                              ),
-                            ],
-                          ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
                         ],
+                        stops: const [0.6, 1.0],
                       ),
                     ),
                   ),
+                  // Status badge
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: _buildStatusBadge(isPlayed),
+                  ),
+                ],
+              ),
+              title: Text(
+                'Booking Details',
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              titlePadding: const EdgeInsets.only(left: 72, bottom: 16),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          
+          // Content
+          SliverToBoxAdapter(
+            child: Container(
+              color: GlobalVariables.defaultColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Facility Name
                   Container(
-                    padding: EdgeInsets.only(
-                      top: 12,
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: _InterBold16(
-                      'Facility owner',
-                      GlobalVariables.blackGrey,
-                      1,
+                    width: double.infinity,
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          order.facilityName,
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: GlobalVariables.blackGrey,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: GlobalVariables.green,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                order.address,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: GlobalVariables.darkGrey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Booking Details Section
+                  _buildSectionHeader(context, 'Booking Details'),
+                  CustomContainer(
+                    child: Column(
+                      children: [
+                        _buildDetailRow(
+                          context,
+                          'Booking Date',
+                          _formatDateTime(order.createdAt),
+                          icon: Icons.event_note_outlined,
+                        ),
+                        _buildDivider(),
+                        _buildDetailRow(
+                          context,
+                          'Status',
+                          isPlayed ? 'Played' : 'Pending',
+                          valueColor: isPlayed
+                              ? GlobalVariables.darkGreen
+                              : GlobalVariables.darkYellow,
+                          icon: isPlayed
+                              ? Icons.check_circle_outline
+                              : Icons.schedule,
+                          iconColor: isPlayed
+                              ? GlobalVariables.darkGreen
+                              : GlobalVariables.darkYellow,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Facility Owner Section
+                  _buildSectionHeader(context, 'Facility Owner'),
                   CustomContainer(
                     child: Row(
                       children: [
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.grey,
-                              width: 0.5,
+                              color: GlobalVariables.lightGrey,
+                              width: 1,
                             ),
                           ),
                           child: ClipOval(
@@ -177,273 +188,281 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: 8,
-                        ),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _InterRegular14(
+                              Text(
                                 'Mai Hoàng Nhật Duy',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
-                              Container(
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.location_on_outlined,
-                                      color: GlobalVariables.darkGrey,
-                                      size: 20,
-                                    ),
-                                    _InterRegular12(
-                                      'TP Hồ Chí Minh',
-                                      GlobalVariables.darkGrey,
-                                      1,
-                                    )
-                                  ],
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: GlobalVariables.blackGrey,
                                 ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on_outlined,
+                                    size: 16,
+                                    color: GlobalVariables.darkGrey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'TP Hồ Chí Minh',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: GlobalVariables.darkGrey,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.message_outlined,
+                            color: GlobalVariables.green,
+                          ),
+                          onPressed: () {
+                            // Contact owner functionality
+                          },
+                        ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.only(
-                      top: 12,
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: _InterBold16(
-                      'Detail address',
-                      GlobalVariables.blackGrey,
-                      1,
-                    ),
-                  ),
-                  CustomContainer(
-                    child: Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            color: GlobalVariables.green,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Expanded(
-                            child: _InterBold14(
-                              order.address,
-                              GlobalVariables.blackGrey,
-                              4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(
-                      top: 12,
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: _InterBold16(
-                      'Booking info',
-                      GlobalVariables.blackGrey,
-                      1,
-                    ),
-                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Booking Info Section
+                  _buildSectionHeader(context, 'Booking Information'),
                   CustomContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _InterBold16(
-                          DateFormat('EEEE, dd/MM/yyyy')
-                              .format(order.timePeriod.hourFrom),
-                          GlobalVariables.blackGrey,
-                          1,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: GlobalVariables.green,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              DateFormat('EEEE, dd/MM/yyyy').format(order.timePeriod.hourFrom),
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: GlobalVariables.blackGrey,
+                              ),
+                            ),
+                          ],
                         ),
-                        Separator(color: GlobalVariables.darkGrey),
+                        const SizedBox(height: 12),
                         Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: GlobalVariables.green.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: GlobalVariables.green.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _InterBold14(
-                                'Court 1',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _InterRegular14(
-                                    DateFormat('hh:mm')
-                                            .format(order.timePeriod.hourFrom) +
-                                        ' to ' +
-                                        DateFormat('hh:mm')
-                                            .format(order.timePeriod.hourTo),
-                                    GlobalVariables.blackGrey,
-                                    1,
+                                  Text(
+                                    'Court 1',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: GlobalVariables.blackGrey,
+                                    ),
                                   ),
-                                  _InterSemiBold14(
-                                    order.price.toStringAsFixed(0) + ' đ',
-                                    GlobalVariables.blackGrey,
-                                    1,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: GlobalVariables.green.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Badminton',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: GlobalVariables.green,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                              Separator(color: GlobalVariables.darkGrey),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 16,
+                                    color: GlobalVariables.darkGrey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${DateFormat('HH:mm').format(order.timePeriod.hourFrom)} - ${DateFormat('HH:mm').format(order.timePeriod.hourTo)}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: GlobalVariables.darkGrey,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    NumberFormat.currency(
+                                      locale: 'vi_VN',
+                                      symbol: '₫',
+                                      decimalDigits: 0,
+                                    ).format(order.price),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: GlobalVariables.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Payment Summary
                   TotalPrice(promotionPrice: 0, subTotalPrice: order.price),
-                  SizedBox(
-                    height: 12,
-                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Action Buttons
+                  
                 ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _InterMedium18(String text, Color color, int maxLines) {
-    return Container(
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
+        title,
         style: GoogleFonts.inter(
-          color: color,
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterBold16(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
           fontSize: 16,
           fontWeight: FontWeight.w700,
+          color: GlobalVariables.blackGrey,
         ),
       ),
     );
   }
 
-  Widget _InterRegular16(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    IconData? icon,
+    Color? valueColor,
+    Color? iconColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 18,
+              color: iconColor ?? GlobalVariables.green,
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: GlobalVariables.darkGrey,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? GlobalVariables.blackGrey,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _InterRegular14(String text, Color color, int maxLines) {
+  Widget _buildDivider() {
     return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
+      height: 1,
+      color: GlobalVariables.lightGrey,
+    );
+  }
+
+  Widget _buildStatusBadge(bool isPlayed) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: EdgeInsets.only(top: 24),
+      decoration: BoxDecoration(
+        color: isPlayed
+            ? GlobalVariables.lightGreen.withOpacity(0.9)
+            : GlobalVariables.lightYellow.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isPlayed ? Icons.check_circle_outline : Icons.schedule,
+            size: 14,
+            color: isPlayed
+                ? GlobalVariables.darkGreen
+                : GlobalVariables.darkYellow,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isPlayed ? 'Played' : 'Pending',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isPlayed
+                  ? GlobalVariables.darkGreen
+                  : GlobalVariables.darkYellow,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _InterRegular12(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterMedium14(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterSemiBold14(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _InterBold14(String text, Color color, int maxLines) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}, ${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 }
