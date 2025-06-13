@@ -19,6 +19,8 @@ class TimeSelectionWidget extends StatelessWidget {
   final Court court;
   final VoidCallback onBookPressed;
   final String? errorMessage;
+  final bool isValidating;
+  final bool isTimeSlotValid;
 
   const TimeSelectionWidget({
     super.key,
@@ -36,6 +38,8 @@ class TimeSelectionWidget extends StatelessWidget {
     required this.court,
     required this.onBookPressed,
     this.errorMessage,
+    this.isValidating = false,
+    this.isTimeSlotValid = true,
   });
 
   void _showHourPicker(BuildContext context, {required bool isStartTime}) {
@@ -153,6 +157,8 @@ class TimeSelectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool canBook = isTimeSlotValid && !isValidating && errorMessage == null;
+    
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -184,6 +190,38 @@ class TimeSelectionWidget extends StatelessWidget {
             ],
           ),
           
+          // Validation status indicator
+          if (isValidating)
+            Container(
+              margin: EdgeInsets.only(top: 8),
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Validating time slot...',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          
+          // Error message
           if (errorMessage != null)
             Container(
               margin: EdgeInsets.only(top: 8),
@@ -203,6 +241,31 @@ class TimeSelectionWidget extends StatelessWidget {
                         fontSize: 12,
                         color: Colors.red,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          
+          // Success indicator
+          if (!isValidating && isTimeSlotValid && errorMessage == null)
+            Container(
+              margin: EdgeInsets.only(top: 8),
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: GlobalVariables.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_outline, color: GlobalVariables.green, size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    'Time slot is available',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: GlobalVariables.green,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -241,21 +304,14 @@ class TimeSelectionWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 color: GlobalVariables.white,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    selectedStartHour.toString().padLeft(2, '0'),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              child: Center(
+                                child: Text(
+                                  selectedStartHour.toString().padLeft(2, '0'),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -281,21 +337,14 @@ class TimeSelectionWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 color: GlobalVariables.white,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    selectedStartMinute.toString().padLeft(2, '0'),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              child: Center(
+                                child: Text(
+                                  selectedStartMinute.toString().padLeft(2, '0'),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -336,21 +385,14 @@ class TimeSelectionWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 color: GlobalVariables.white,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    selectedEndHour.toString().padLeft(2, '0'),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              child: Center(
+                                child: Text(
+                                  selectedEndHour.toString().padLeft(2, '0'),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -376,21 +418,14 @@ class TimeSelectionWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 color: GlobalVariables.white,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    selectedEndMinute.toString().padLeft(2, '0'),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              child: Center(
+                                child: Text(
+                                  selectedEndMinute.toString().padLeft(2, '0'),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -508,22 +543,44 @@ class TimeSelectionWidget extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: onBookPressed,
+              onPressed: canBook ? onBookPressed : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: GlobalVariables.green,
+                backgroundColor: canBook ? GlobalVariables.green : GlobalVariables.grey,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
-                'Book Now',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              child: isValidating 
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Validating...',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    canBook ? 'Book Now' : 'Time Slot Unavailable',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
             ),
           ),
         ],

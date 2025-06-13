@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
-import 'package:frontend/models/paginated_messages_dto.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 

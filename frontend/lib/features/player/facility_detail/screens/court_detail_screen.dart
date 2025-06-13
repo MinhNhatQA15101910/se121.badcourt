@@ -6,7 +6,6 @@ import 'package:frontend/features/player/facility_detail/widgets/date_tag_player
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
-import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/court_hub_provider.dart';
@@ -122,22 +121,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                     decoration: TextDecoration.none,
                     color: GlobalVariables.white,
                   ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
                 ),
               ),
             ],

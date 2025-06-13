@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/providers/group_provider.dart';

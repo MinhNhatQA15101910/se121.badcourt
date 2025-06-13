@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/common/widgets/custom_container.dart';
-import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_item.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_total_price.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
@@ -23,9 +23,10 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _facilityDetailService = FacilityDetailService();
+  bool _isBooking = false;
 
-  void _navigateToCourtDetailScreen() {
-    Navigator.of(context).pushReplacementNamed(FacilityDetailScreen.routeName);
+  void _navigateToSuccessScreen() {
+    Navigator.of(context).pushReplacementNamed(BookingSuccessScreen.routeName);
   }
 
   Future<void> bookCourt(
@@ -33,28 +34,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     DateTime startTime,
     DateTime endTime,
   ) async {
+    setState(() {
+      _isBooking = true;
+    });
+
     try {
-      _facilityDetailService.bookCourt(
+      await _facilityDetailService.bookCourt(
         context,
         id,
         startTime,
         endTime,
       );
-      _navigateToCourtDetailScreen();
-    } catch (e) {}
+      
+      // Navigate to success screen
+      _navigateToSuccessScreen();
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Booking failed. Please try again.',
+        snackBarType: SnackBarType.fail,
+      );
+      setState(() {
+        _isBooking = false;
+      });
+    }
   }
-
-  final titleStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    color: Colors.black,
-  );
-
-  final contentStyle = GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: Colors.black,
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -62,22 +66,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: GlobalVariables.defaultColor,
         appBar: AppBar(
+          elevation: 0,
           backgroundColor: GlobalVariables.green,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Checkout',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
           ),
+          title: Text(
+            'Checkout',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
         ),
         body: Consumer<CheckoutProvider>(
           builder: (context, checkoutProvider, child) {
@@ -88,314 +93,193 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final pricePerHour = court.pricePerHour;
             final totalPrice = durationHours * pricePerHour;
 
-            final DateFormat dateFormat =
-                DateFormat('EEEE, dd/MM/yyyy'); // Định dạng ngày
-
             return Column(
               children: [
                 Expanded(
-                  child: Container(
-                    color: GlobalVariables.defaultColor,
-                    child: SingleChildScrollView(
-                      child: Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 2 / 1,
-                              child: Image(
-                                image: NetworkImage(
-                                  currentFacilityProvider
-                                      .currentFacility.facilityImages.first.url,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Facility Image
+                        Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                            ),
+                            child: Image.network(
+                              currentFacilityProvider.currentFacility.facilityImages.first.url,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: GlobalVariables.lightGrey,
+                                  child: const Center(
+                                    child: Icon(Icons.image_not_supported, size: 50),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Facility Name
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: GlobalVariables.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                fit: BoxFit.fill,
+                                child: Icon(
+                                  Icons.location_city,
+                                  color: GlobalVariables.green,
+                                  size: 24,
+                                ),
                               ),
-                            ),
-                            Container(
-                              width: double.maxFinite,
-                              color: GlobalVariables.white,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              child: _interMedium18(
-                                currentFacilityProvider
-                                    .currentFacility.facilityName,
-                                GlobalVariables.blackGrey,
-                                2,
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.only(
-                                top: 12,
-                                left: 16,
-                                right: 16,
-                              ),
-                              child: _interBold16(
-                                'Facility owner',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
-                            ),
-                            CustomContainer(
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.grey,
-                                        width: 0.5,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      currentFacilityProvider.currentFacility.facilityName,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: GlobalVariables.blackGrey,
                                       ),
                                     ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        'assets/images/demo_facility.png',
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    const SizedBox(height: 4),
+                                    Row(
                                       children: [
-                                        _interRegular14(
-                                          currentFacilityProvider
-                                              .currentFacility
-                                              .managerInfo
-                                              .fullName,
-                                          GlobalVariables.blackGrey,
-                                          1,
+                                        Icon(
+                                          Icons.location_on,
+                                          size: 16,
+                                          color: GlobalVariables.darkGrey,
                                         ),
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.location_on_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 20,
-                                              ),
-                                              _interRegular12(
-                                                currentFacilityProvider
-                                                    .currentFacility.province,
-                                                GlobalVariables.darkGrey,
-                                                1,
-                                              )
-                                            ],
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            currentFacilityProvider.currentFacility.province,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                              color: GlobalVariables.darkGrey,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.only(
-                                top: 12,
-                                left: 16,
-                                right: 16,
-                              ),
-                              child: _interBold16(
-                                'Detail address',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
-                            ),
-                            CustomContainer(
-                              child: Container(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      Icons.location_on_outlined,
-                                      color: GlobalVariables.green,
-                                    ),
-                                    SizedBox(
-                                      width: 8,
-                                    ),
-                                    Expanded(
-                                      child: _interBold14(
-                                        currentFacilityProvider
-                                            .currentFacility.detailAddress,
-                                        GlobalVariables.blackGrey,
-                                        4,
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.only(
-                                top: 12,
-                                left: 16,
-                                right: 16,
-                              ),
-                              child: _interBold16(
-                                'Booking info',
-                                GlobalVariables.blackGrey,
-                                1,
-                              ),
-                            ),
-                            CustomContainer(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _interBold16(
-                                    dateFormat.format(startDate),
-                                    GlobalVariables.blackGrey,
-                                    1,
-                                  ),
-                                  Separator(color: GlobalVariables.darkGrey),
-                                  CheckoutItem(),
-                                ],
-                              ),
-                            ),
-                            CheckoutTotalPrice(
-                              promotionPrice: 0,
-                              subTotalPrice: totalPrice.toDouble(),
-                            ),
-                            SizedBox(
-                              height: 12,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+
+                        const SizedBox(height: 20),
+
+                        // Booking Details Section
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'Booking Details',
+                            style: GoogleFonts.inter(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: GlobalVariables.blackGrey,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Checkout Item
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: CheckoutItem(),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Total Price
+                        CheckoutTotalPrice(
+                          promotionPrice: 0,
+                          subTotalPrice: totalPrice.toDouble(),
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
                     ),
                   ),
                 ),
+
+                // Bottom Checkout Button
                 Container(
-                  color: GlobalVariables.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
                   ),
-                  child: CustomButton(
-                    buttonText: 'Checkout',
-                    borderColor: GlobalVariables.green,
-                    fillColor: GlobalVariables.green,
-                    textColor: Colors.white,
-                    onTap: () {
-                      bookCourt(
-                        court.id,
-                        startDate,
-                        endDate,
-                      );
-                    },
+                  child: SafeArea(
+                    child: CustomButton(
+                      buttonText: _isBooking ? 'Processing...' : 'Confirm Booking',
+                      borderColor: GlobalVariables.green,
+                      fillColor: _isBooking ? GlobalVariables.darkGrey : GlobalVariables.green,
+                      textColor: Colors.white,
+                      onTap: () {
+                        if (!_isBooking) {
+                          bookCourt(
+                            court.id,
+                            startDate,
+                            endDate,
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _interMedium18(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _interBold16(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _interRegular14(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _interRegular12(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _interBold14(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
         ),
       ),
     );

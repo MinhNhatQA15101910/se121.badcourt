@@ -140,32 +140,29 @@ class FacilityDetailService {
     DateTime startTime,
     DateTime endTime,
   ) async {
+    
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
     try {
+      final requestBody = {
+        "courtId": courtId,
+        "dateTimePeriod": {
+          "hourFrom": startTime.toIso8601String(),
+          "hourTo": endTime.toIso8601String(),
+        },
+      };
+      
+      print('🔍 [FacilityDetailService] Request body: ${jsonEncode(requestBody)}');
+      
       final response = await http.post(
         Uri.parse('$uri/gateway/orders/check-conflict'),
-        body: jsonEncode(
-          {
-            "courtId": courtId,
-            "dateTimePeriod": {
-              "hourFrom": startTime.toIso8601String(),
-              "hourTo": endTime.toIso8601String(),
-            },
-          },
-        ),
+        body: jsonEncode(requestBody),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
         },
-      );
-
-      httpErrorHandler(
-        response: response,
-        context: context,
-        onSuccess: () {},
       );
 
       if (response.statusCode == 200) {

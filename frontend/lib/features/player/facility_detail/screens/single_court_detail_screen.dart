@@ -162,31 +162,7 @@ class _SingleCourtDetailScreenState extends State<SingleCourtDetailScreen> with 
                   color: GlobalVariables.white,
                 ),
               ),
-              actions: [
-                // Connection status indicator
-                Container(
-                  margin: EdgeInsets.only(right: 8),
-                  child: Icon(
-                    isConnected ? Icons.wifi : Icons.wifi_off,
-                    color: isConnected ? GlobalVariables.white : Colors.orange,
-                    size: 20,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.notifications_outlined,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.message_outlined,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ],
+        
             ),
             body: Container(
               color: GlobalVariables.defaultColor,

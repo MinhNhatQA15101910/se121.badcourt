@@ -19,6 +19,7 @@ import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
 import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
 import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
@@ -186,6 +187,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const SingleCourtDetailScreen(),
+      );
+    case BookingSuccessScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const BookingSuccessScreen(),
       );
     default:
       return MaterialPageRoute(

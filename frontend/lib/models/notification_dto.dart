@@ -1,4 +1,3 @@
-import 'package:frontend/models/notification_data_dto.dart';
 
 class NotificationDto {
   final String id;

@@ -7,8 +7,6 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/widgets/message_app_bar.dart';
 import 'package:frontend/features/message/widgets/message_input_widget.dart';
 import 'package:frontend/features/message/widgets/message_list_widget.dart';
-import 'package:frontend/models/message_dto.dart';
-import 'package:frontend/models/paginated_messages_dto.dart';
 import 'package:frontend/models/user_dto.dart';
 import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/online_users_provider.dart';

@@ -64,6 +64,7 @@ dependencies:
   socket_io_client: ^3.0.2
   vietmap_gl_platform_interface: ^0.3.0
   signalr_netcore: ^1.4.3
+  lottie: ^3.3.1
   
   
 

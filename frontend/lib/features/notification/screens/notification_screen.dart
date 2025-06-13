@@ -24,8 +24,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
       
       // Ensure we're connected to the notification hub
-      if (!notificationProvider.isConnected && userProvider.user != null) {
-        notificationProvider.initializeNotificationHub(userProvider.user!.token);
+      if (!notificationProvider.isConnected) {
+        notificationProvider.initializeNotificationHub(userProvider.user.token);
       }
       
       // Refresh notifications

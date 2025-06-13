@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
 
 class NotificationButton extends StatelessWidget {

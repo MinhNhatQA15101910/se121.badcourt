@@ -46,4 +46,19 @@ class PeriodTime {
       hourTo: hourTo ?? this.hourTo,
     );
   }
+
+  // Helper method to convert PeriodTime to DateTime objects for a specific date
+  DateTime getStartDateTime(DateTime baseDate) {
+    final parts = hourFrom.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+    return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+  }
+
+  DateTime getEndDateTime(DateTime baseDate) {
+    final parts = hourTo.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+    return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+  }
 }

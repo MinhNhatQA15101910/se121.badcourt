@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/models/period_time.dart';
 
 class CourtHubService {
   static final CourtHubService _instance = CourtHubService._internal();
@@ -11,6 +12,8 @@ class CourtHubService {
 
   final Map<String, HubConnection> _connections = {};
   final Map<String, Function(Court)> _courtUpdateCallbacks = {};
+  final Map<String, Function(PeriodTime)> _newOrderCallbacks = {};
+  final Map<String, Function(PeriodTime)> _courtInactiveCallbacks = {};
   final Map<String, Timer> _monitorTimers = {};
 
   // Connect to a specific court
@@ -51,6 +54,44 @@ class CourtHubService {
             }
           } catch (e) {
             print('[CourtHub] Error parsing court data: $e');
+          }
+        }
+      });
+
+      connection.on('NewOrderTimePeriod', (arguments) {
+        if (arguments != null && arguments.isNotEmpty) {
+          try {
+            final periodData = arguments[0] as Map<String, dynamic>;
+            final periodTime = PeriodTime.fromMap(periodData);
+            
+            print('[CourtHub] Received new order time period for court $courtId: ${periodTime.toString()}');
+            
+            // Notify callback if exists
+            final callback = _newOrderCallbacks[courtId];
+            if (callback != null) {
+              callback(periodTime);
+            }
+          } catch (e) {
+            print('[CourtHub] Error parsing new order time period data: $e');
+          }
+        }
+      });
+
+      connection.on('CourtInactiveUpdated', (arguments) {
+        if (arguments != null && arguments.isNotEmpty) {
+          try {
+            final periodData = arguments[0] as Map<String, dynamic>;
+            final periodTime = PeriodTime.fromMap(periodData);
+            
+            print('[CourtHub] Received court inactive update for court $courtId: ${periodTime.toString()}');
+            
+            // Notify callback if exists
+            final callback = _courtInactiveCallbacks[courtId];
+            if (callback != null) {
+              callback(periodTime);
+            }
+          } catch (e) {
+            print('[CourtHub] Error parsing court inactive update data: $e');
           }
         }
       });
@@ -121,6 +162,8 @@ class CourtHubService {
         // Remove from maps
         _connections.remove(courtId);
         _courtUpdateCallbacks.remove(courtId);
+        _newOrderCallbacks.remove(courtId);
+        _courtInactiveCallbacks.remove(courtId);
         
         print('✅ [CourtHub] Disconnected from court: $courtId');
         print('[CourtHub] Remaining active connections: ${_connections.length}');
@@ -165,6 +208,30 @@ class CourtHubService {
   void removeCourtUpdateCallback(String courtId) {
     _courtUpdateCallbacks.remove(courtId);
     print('[CourtHub] Removed callback for court: $courtId');
+  }
+
+  // Set callback for new order time periods
+  void setNewOrderCallback(String courtId, Function(PeriodTime) callback) {
+    _newOrderCallbacks[courtId] = callback;
+    print('[CourtHub] Set new order callback for court: $courtId');
+  }
+
+  // Set callback for court inactive updates
+  void setCourtInactiveCallback(String courtId, Function(PeriodTime) callback) {
+    _courtInactiveCallbacks[courtId] = callback;
+    print('[CourtHub] Set court inactive callback for court: $courtId');
+  }
+
+  // Remove callback for new order time periods
+  void removeNewOrderCallback(String courtId) {
+    _newOrderCallbacks.remove(courtId);
+    print('[CourtHub] Removed new order callback for court: $courtId');
+  }
+
+  // Remove callback for court inactive updates
+  void removeCourtInactiveCallback(String courtId) {
+    _courtInactiveCallbacks.remove(courtId);
+    print('[CourtHub] Removed court inactive callback for court: $courtId');
   }
 
   // Check if connected to a specific court

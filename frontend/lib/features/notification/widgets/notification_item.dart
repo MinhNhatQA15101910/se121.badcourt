@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/notification_dto.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 class NotificationItem extends StatefulWidget {
   final NotificationDto notification;
