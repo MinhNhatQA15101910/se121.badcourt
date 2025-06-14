@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/facility_detail/screens/single_court_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/single_court_detail_screen.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/player/selected_court_provider.dart';

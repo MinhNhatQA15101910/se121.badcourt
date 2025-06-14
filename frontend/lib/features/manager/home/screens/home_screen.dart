@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/booking_management_manager/screens/booking_management_screen.dart';
+import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/home/widgets/facility_home.dart';
 import 'package:frontend/features/manager/home/widgets/item_tag.dart';
@@ -18,7 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToBookingManagementScreen() {
-    Navigator.of(context).pushNamed(BookingManagementManagerScreen.routeName);
+    Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
+  }
+
+  void _navigateToFacilityDetailScreen() {
+    Navigator.of(context).pushNamed(
+      FacilityDetailScreen.routeName,
+    );
   }
 
   @override
@@ -46,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: 'View detail information',
                 description: 'View your badminton facility detail information',
                 imgPath: 'assets/images/img_court.png',
-                onTap: () {},
+                onTap: _navigateToFacilityDetailScreen,
                 isVisibleArrow: true,
               ),
               ItemTag(

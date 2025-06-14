@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
+import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +22,7 @@ class BookingDetailCard extends StatelessWidget {
     void _navigateToBookingDetailScreen() {
       Navigator.of(context).pushNamed(
         BookingDetailScreen.routeName,
-        arguments: order,
+        arguments: order.id,
       );
     }
 
@@ -79,7 +79,7 @@ class BookingDetailCard extends StatelessWidget {
                 ],
               ),
             ),
-
+            
             // Court details
             Padding(
               padding: const EdgeInsets.all(16),
@@ -100,8 +100,7 @@ class BookingDetailCard extends StatelessWidget {
                           ? Image.network(
                               order.image.url,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
+                              errorBuilder: (context, error, stackTrace) => Image.asset(
                                 'assets/images/badminton_court_default.png',
                                 fit: BoxFit.cover,
                               ),
@@ -113,7 +112,7 @@ class BookingDetailCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-
+                  
                   // Court information
                   Expanded(
                     child: Column(
@@ -161,11 +160,9 @@ class BookingDetailCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              DateFormat('HH:mm')
-                                      .format(order.timePeriod.hourFrom) +
+                              DateFormat('HH:mm').format(order.timePeriod.hourFrom) +
                                   ' - ' +
-                                  DateFormat('HH:mm')
-                                      .format(order.timePeriod.hourTo),
+                                  DateFormat('HH:mm').format(order.timePeriod.hourTo),
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -193,7 +190,7 @@ class BookingDetailCard extends StatelessWidget {
                 ],
               ),
             ),
-
+            
             // Footer with payment method
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -246,8 +243,9 @@ class BookingDetailCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color:
-            isPlayed ? GlobalVariables.lightGreen : GlobalVariables.lightYellow,
+        color: isPlayed
+            ? GlobalVariables.lightGreen
+            : GlobalVariables.lightYellow,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

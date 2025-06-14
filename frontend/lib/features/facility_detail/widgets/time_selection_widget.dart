@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/facility_detail/widgets/time_picker_bottom_sheet.dart';
+import 'package:frontend/features/facility_detail/widgets/time_picker_bottom_sheet.dart';
 import 'package:frontend/models/court.dart';
 import 'package:google_fonts/google_fonts.dart';
 

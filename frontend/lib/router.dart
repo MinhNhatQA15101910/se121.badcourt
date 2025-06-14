@@ -8,8 +8,6 @@ import 'package:frontend/features/manager/add_facility/screens/contracts_screen.
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
-import 'package:frontend/features/manager/booking_details_manager/screens/booking_detail_manager_screen.dart';
-import 'package:frontend/features/manager/booking_management_manager/screens/booking_management_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_detail_screen.dart';
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
@@ -17,14 +15,14 @@ import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
-import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
-import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
+import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/single_court_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/player_map_screen.dart';
+import 'package:frontend/features/facility_detail/screens/single_court_detail_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
@@ -80,11 +78,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const BookingManagementScreen(),
       );
-    case BookingManagementManagerScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BookingManagementManagerScreen(),
-      );
     case BookingDetailScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
@@ -134,11 +127,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const CourtManagementDetailScreen(),
-      );
-    case BookingDetailManagerScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BookingDetailManagerScreen(),
       );
     case CheckoutScreen.routeName:
       return MaterialPageRoute(

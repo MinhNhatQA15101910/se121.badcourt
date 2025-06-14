@@ -4,10 +4,11 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
+import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/player_map_screen.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +48,10 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final facilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
     );
@@ -101,8 +106,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                           image: DecorationImage(
                             image: NetworkImage(imageUrl),
                             fit: BoxFit.cover,
-                            onError: (exception, stackTrace) {
-                            },
+                            onError: (exception, stackTrace) {},
                           ),
                         ),
                         child: imageUrl.isNotEmpty
@@ -128,8 +132,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        currentFacility
-                            .facilityImages.length,
+                        currentFacility.facilityImages.length,
                         (index) {
                           return Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),
@@ -483,27 +486,29 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            top: BorderSide(
-              color: GlobalVariables.lightGrey,
-              width: 1,
-            ),
-          ),
-        ),
-        child: CustomButton(
-          buttonText: 'choose the court',
-          borderColor: GlobalVariables.green,
-          fillColor: GlobalVariables.green,
-          textColor: Colors.white,
-          onTap: () {
-            _navigateToCourtDetailScreen(currentFacility);
-          },
-        ),
-      ),
+      bottomNavigationBar: userProvider.user.id != currentFacility.userId
+          ? Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: GlobalVariables.lightGrey,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: CustomButton(
+                buttonText: 'choose the court',
+                borderColor: GlobalVariables.green,
+                fillColor: GlobalVariables.green,
+                textColor: Colors.white,
+                onTap: () {
+                  _navigateToCourtDetailScreen(currentFacility);
+                },
+              ),
+            )
+          : null,
     );
   }
 

@@ -24,7 +24,8 @@ class BookingManagementService {
 
     try {
       http.Response response = await http.get(
-        Uri.parse('$uri/gateway/orders?pageSize=$pageSize&pageNumber=$pageNumber'),
+        Uri.parse(
+            '$uri/gateway/orders'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -53,5 +54,44 @@ class BookingManagementService {
     }
 
     return orders;
+  }
+
+  Future<Order?> fetchOrderById({
+    required BuildContext context,
+    required String orderId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      final response = await http.get(
+        Uri.parse('$uri/gateway/orders/$orderId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      Order? order;
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          order = Order.fromJson(response.body);
+        },
+      );
+
+      return order;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
+    }
   }
 }

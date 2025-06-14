@@ -1,20 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/booking_details/widgets/total_price.dart';
+import 'package:frontend/features/booking_details/widgets/total_price.dart';
+import 'package:frontend/features/booking_management/services/booking_management_service.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-class BookingDetailScreen extends StatelessWidget {
+class BookingDetailScreen extends StatefulWidget {
   static const String routeName = '/booking-detail-screen';
   const BookingDetailScreen({Key? key}) : super(key: key);
 
   @override
+  State<BookingDetailScreen> createState() => _BookingDetailScreenState();
+}
+
+class _BookingDetailScreenState extends State<BookingDetailScreen> {
+  final BookingManagementService _bookingService = BookingManagementService();
+  Order? order;
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (order == null) {
+      final String orderId =
+          ModalRoute.of(context)!.settings.arguments as String;
+      _fetchOrderDetails(orderId);
+    }
+  }
+
+  Future<void> _fetchOrderDetails(String orderId) async {
+    try {
+      setState(() {
+        isLoading = true;
+        error = null;
+      });
+
+      final fetchedOrder = await _bookingService.fetchOrderById(
+        context: context,
+        orderId: orderId,
+      );
+
+      setState(() {
+        order = fetchedOrder;
+        isLoading = false;
+        if (fetchedOrder == null) {
+          error = 'Failed to load booking details';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        error = 'An error occurred while loading booking details';
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final order = ModalRoute.of(context)!.settings.arguments as Order;
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: GlobalVariables.defaultColor,
+        appBar: AppBar(
+          backgroundColor: GlobalVariables.green,
+          title: Text(
+            'Booking Details',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (error != null || order == null) {
+      return Scaffold(
+        backgroundColor: GlobalVariables.defaultColor,
+        appBar: AppBar(
+          backgroundColor: GlobalVariables.green,
+          title: Text(
+            'Booking Details',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: GlobalVariables.darkGrey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                error ?? 'Booking not found',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: GlobalVariables.darkGrey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  final String orderId =
+                      ModalRoute.of(context)!.settings.arguments as String;
+                  _fetchOrderDetails(orderId);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlobalVariables.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     DateTime now = DateTime.now();
-    DateTime playTime = order.timePeriod.hourFrom;
+    DateTime playTime = order!.timePeriod.hourFrom;
     bool isPlayed = now.isAfter(playTime);
 
     return Scaffold(
@@ -30,11 +158,12 @@ class BookingDetailScreen extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   // Court Image
-                  order.image.url.isNotEmpty
+                  order!.image.url.isNotEmpty
                       ? Image.network(
-                          order.image.url,
+                          order!.image.url,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Image.asset(
+                          errorBuilder: (context, error, stackTrace) =>
+                              Image.asset(
                             'assets/images/demo_facility.png',
                             fit: BoxFit.cover,
                           ),
@@ -59,7 +188,7 @@ class BookingDetailScreen extends StatelessWidget {
                   ),
                   // Status badge
                   Positioned(
-                    top: 16,
+                    top: 40,
                     right: 16,
                     child: _buildStatusBadge(isPlayed),
                   ),
@@ -80,7 +209,7 @@ class BookingDetailScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
             ),
           ),
-          
+
           // Content
           SliverToBoxAdapter(
             child: Container(
@@ -97,7 +226,7 @@ class BookingDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          order.facilityName,
+                          order!.facilityName,
                           style: GoogleFonts.inter(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -117,7 +246,7 @@ class BookingDetailScreen extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                order.address,
+                                order!.address,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   color: GlobalVariables.darkGrey,
@@ -131,9 +260,9 @@ class BookingDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Booking Details Section
                   _buildSectionHeader(context, 'Booking Details'),
                   CustomContainer(
@@ -142,7 +271,7 @@ class BookingDetailScreen extends StatelessWidget {
                         _buildDetailRow(
                           context,
                           'Booking Date',
-                          _formatDateTime(order.createdAt),
+                          _formatDateTime(order!.createdAt),
                           icon: Icons.event_note_outlined,
                         ),
                         _buildDivider(),
@@ -163,9 +292,9 @@ class BookingDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Facility Owner Section
                   _buildSectionHeader(context, 'Facility Owner'),
                   CustomContainer(
@@ -234,9 +363,9 @@ class BookingDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Booking Info Section
                   _buildSectionHeader(context, 'Booking Information'),
                   CustomContainer(
@@ -252,7 +381,8 @@ class BookingDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              DateFormat('EEEE, dd/MM/yyyy').format(order.timePeriod.hourFrom),
+                              DateFormat('EEEE, dd/MM/yyyy')
+                                  .format(order!.timePeriod.hourFrom),
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -276,7 +406,8 @@ class BookingDetailScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Court 1',
@@ -292,7 +423,8 @@ class BookingDetailScreen extends StatelessWidget {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: GlobalVariables.green.withOpacity(0.1),
+                                      color: GlobalVariables.green
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
@@ -316,7 +448,7 @@ class BookingDetailScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${DateFormat('HH:mm').format(order.timePeriod.hourFrom)} - ${DateFormat('HH:mm').format(order.timePeriod.hourTo)}',
+                                    '${DateFormat('HH:mm').format(order!.timePeriod.hourFrom)} - ${DateFormat('HH:mm').format(order!.timePeriod.hourTo)}',
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
@@ -329,7 +461,7 @@ class BookingDetailScreen extends StatelessWidget {
                                       locale: 'vi_VN',
                                       symbol: '₫',
                                       decimalDigits: 0,
-                                    ).format(order.price),
+                                    ).format(order!.price),
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -344,16 +476,73 @@ class BookingDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Payment Summary
-                  TotalPrice(promotionPrice: 0, subTotalPrice: order.price),
-                  
+                  TotalPrice(promotionPrice: 0, subTotalPrice: order!.price),
+
                   const SizedBox(height: 24),
-                  
+
                   // Action Buttons
-                  
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // Download receipt functionality
+                            },
+                            icon: const Icon(Icons.receipt_long_outlined),
+                            label: const Text('Download Receipt'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: GlobalVariables.green,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(color: GlobalVariables.green),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: isPlayed
+                                ? null
+                                : () {
+                                    // Cancel booking functionality
+                                  },
+                            icon: const Icon(
+                              Icons.cancel_outlined,
+                              color: Colors.red,
+                            ),
+                            label: const Text('Cancel Booking'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isPlayed
+                                  ? Colors.grey.shade300
+                                  : Colors.white,
+                              foregroundColor:
+                                  isPlayed ? Colors.grey.shade600 : Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: isPlayed
+                                      ? Colors.grey.shade300
+                                      : Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -429,7 +618,6 @@ class BookingDetailScreen extends StatelessWidget {
   Widget _buildStatusBadge(bool isPlayed) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      margin: EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
         color: isPlayed
             ? GlobalVariables.lightGreen.withOpacity(0.9)
@@ -448,7 +636,7 @@ class BookingDetailScreen extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            isPlayed ? 'Played' : 'Pending',
+            isPlayed ? 'Played' : 'pending',
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,

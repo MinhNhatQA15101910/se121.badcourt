@@ -219,7 +219,10 @@ class PostService {
   }) async {
     List<Comment> commentList = [];
     int totalPages = 0;
-
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
     try {
       final Uri uriWithParams =
           Uri.parse('$uri/gateway/comments').replace(queryParameters: {
@@ -228,7 +231,13 @@ class PostService {
         'pageSize': pageSize.toString(),
       });
 
-      http.Response res = await http.get(uriWithParams);
+      http.Response res = await http.get(
+        uriWithParams,
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
 
       httpErrorHandler(
         response: res,

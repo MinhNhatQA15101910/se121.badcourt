@@ -5,7 +5,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_item.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_total_price.dart';
-import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
+import 'package:frontend/features/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';

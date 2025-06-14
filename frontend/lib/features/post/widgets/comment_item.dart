@@ -99,7 +99,7 @@ class _CommentItemState extends State<CommentItem> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User info row
+          // User info row with like button
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -136,6 +136,61 @@ class _CommentItemState extends State<CommentItem> {
                   ],
                 ),
               ),
+              
+              // Like button moved to top right
+              GestureDetector(
+                onTap: _toggleLike,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: _isLiked
+                        ? GlobalVariables.green.withOpacity(0.1)
+                        : Colors.grey.shade100,
+                    border: Border.all(
+                      color: _isLiked
+                          ? GlobalVariables.green.withOpacity(0.3)
+                          : Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _isLikeLoading
+                          ? SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              Icons.thumb_up,
+                              size: 14,
+                              color: _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
+                            ),
+                      if (_likesCount > 0) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          '$_likesCount',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           
@@ -159,66 +214,6 @@ class _CommentItemState extends State<CommentItem> {
               padding: const EdgeInsets.only(top: 8),
               child: _buildCommentImages(context, widget.comment.resources),
             ),
-          
-          // Like button
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: _toggleLike,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: _isLiked
-                          ? GlobalVariables.green.withOpacity(0.1)
-                          : Colors.grey.shade100,
-                      border: Border.all(
-                        color: _isLiked
-                            ? GlobalVariables.green.withOpacity(0.3)
-                            : Colors.grey.shade300,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _isLikeLoading
-                            ? SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
-                                  ),
-                                ),
-                              )
-                            : Icon(
-                                Icons.thumb_up,
-                                size: 16,
-                                color: _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
-                              ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _likesCount > 0 ? '$_likesCount' : 'Like',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -236,36 +231,40 @@ class _CommentItemState extends State<CommentItem> {
       return GestureDetector(
         onTap: () => _openFullScreenImage(context, imageUrls, 0),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            imageUrls[0],
-            fit: BoxFit.cover,
-            height: 180,
-            width: double.infinity,
+          borderRadius: BorderRadius.circular(12),
+          child: AspectRatio(
+            aspectRatio: 1.0, // Square aspect ratio
+            child: Image.network(
+              imageUrls[0],
+              fit: BoxFit.cover,
+              width: double.infinity,
+            ),
           ),
         ),
       );
     }
     
+    // Grid layout for multiple images
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: imageUrls.length > 2 ? 3 : 2,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
+        crossAxisCount: imageUrls.length == 2 ? 2 : 3,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+        childAspectRatio: 1.0, // Square aspect ratio
       ),
-      itemCount: imageUrls.length > 6 ? 6 : imageUrls.length,
+      itemCount: imageUrls.length > 9 ? 9 : imageUrls.length,
       itemBuilder: (context, index) {
-        if (index == 5 && imageUrls.length > 6) {
-          // Show "more" overlay for the last image if there are more than 6
+        if (index == 8 && imageUrls.length > 9) {
+          // Show "more" overlay for the last image if there are more than 9
           return GestureDetector(
             onTap: () => _openFullScreenImage(context, imageUrls, index),
             child: Stack(
               fit: StackFit.expand,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                   child: Image.network(
                     imageUrls[index],
                     fit: BoxFit.cover,
@@ -274,14 +273,14 @@ class _CommentItemState extends State<CommentItem> {
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
                     child: Text(
-                      '+${imageUrls.length - 5}',
+                      '+${imageUrls.length - 8}',
                       style: GoogleFonts.inter(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -295,7 +294,7 @@ class _CommentItemState extends State<CommentItem> {
         return GestureDetector(
           onTap: () => _openFullScreenImage(context, imageUrls, index),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: Image.network(
               imageUrls[index],
               fit: BoxFit.cover,

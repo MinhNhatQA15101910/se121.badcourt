@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/notification/widgets/notification_item.dart';
+import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
+import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,13 +23,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
     // Refresh notifications when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
-      
+      final notificationProvider =
+          Provider.of<NotificationProvider>(context, listen: false);
+
       // Ensure we're connected to the notification hub
       if (!notificationProvider.isConnected) {
         notificationProvider.initializeNotificationHub(userProvider.user.token);
       }
-      
+
       // Refresh notifications
       notificationProvider.refreshNotifications();
     });
@@ -55,19 +58,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   // Connection status indicator
                   IconButton(
                     icon: Icon(
-                      notificationProvider.isConnected 
-                          ? Icons.cloud_done 
+                      notificationProvider.isConnected
+                          ? Icons.cloud_done
                           : Icons.cloud_off,
-                      color: notificationProvider.isConnected 
-                          ? Colors.white 
+                      color: notificationProvider.isConnected
+                          ? Colors.white
                           : Colors.red[300],
                     ),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            notificationProvider.isConnected 
-                                ? 'Connected to notification service' 
+                            notificationProvider.isConnected
+                                ? 'Connected to notification service'
                                 : 'Disconnected from notification service',
                           ),
                         ),
@@ -181,16 +184,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
               color: GlobalVariables.green,
               child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification scrollInfo) {
-                  if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
-                      notificationProvider.hasMorePages && !notificationProvider.isLoadingMore) {
+                  if (scrollInfo.metrics.pixels ==
+                          scrollInfo.metrics.maxScrollExtent &&
+                      notificationProvider.hasMorePages &&
+                      !notificationProvider.isLoadingMore) {
                     notificationProvider.loadNextPage();
                     return true;
                   }
                   return false;
                 },
                 child: ListView.builder(
-                  itemCount: notificationProvider.notifications.length + 
-                            (notificationProvider.hasMorePages ? 1 : 0),
+                  itemCount: notificationProvider.notifications.length +
+                      (notificationProvider.hasMorePages ? 1 : 0),
                   itemBuilder: (context, index) {
                     // Show loading indicator at the bottom when loading more
                     if (index == notificationProvider.notifications.length) {
@@ -203,16 +208,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                       );
                     }
-                    
-                    final notification = notificationProvider.notifications[index];
+
+                    final notification =
+                        notificationProvider.notifications[index];
                     return NotificationItem(
                       notification: notification,
                       onTap: () {
                         // Mark as read when tapped
                         if (!notification.isRead) {
-                          notificationProvider.markNotificationAsRead(notification.id);
+                          notificationProvider
+                              .markNotificationAsRead(notification.id);
                         }
-                        
+
                         // Handle navigation based on notification type and data
                         _handleNotificationTap(notification);
                       },
@@ -228,44 +235,58 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   void _handleNotificationTap(notification) {
-  final type = notification.type.toLowerCase();
-  final data = notification.data;
+    final type = notification.type.toLowerCase();
+    final data = notification.data;
 
-  switch (type) {
-    case 'courtbookingcreated':
-    case 'courtbookingcancelled':
-      if (data.bookingId != null) {
-        print('Navigate to booking details: ${data.bookingId}');
-        // TODO: Navigate to booking detail screen
-        // Navigator.push(context, ...);
-      }
-      break;
+    switch (type) {
+      case 'courtbookingcreated':
+        if (data.orderId != null) {
+          Navigator.of(context).pushNamed(
+            BookingDetailScreen.routeName,
+            arguments: data.orderId,
+          );
+        }
+        break;
+      case 'courtbookingcancelled':
+        if (data.bookingId != null) {
+          print('Navigate to booking details: ${data.bookingId}');
+          // TODO: Navigate to booking detail screen
+          // Navigator.push(context, ...);
+        }
+        break;
 
-    case 'postliked':
-    case 'postcommented':
-      if (data.postId != null) {
-        print('Navigate to post: ${data.postId}');
-        // TODO: Navigate to post details
-      }
-      break;
+      case 'postliked':
+        if (data.postId != null) {
+          Navigator.of(context).pushNamed(
+            PostDetailScreen.routeName,
+            arguments: data.postId,
+          );
+        }
+      case 'postcommented':
+        if (data.postId != null) {
+          Navigator.of(context).pushNamed(
+            PostDetailScreen.routeName,
+            arguments: data.postId,
+          );
+        }
+        break;
 
-    case 'commentliked':
-      if (data.commentId != null) {
-        print('Navigate to comment: ${data.commentId}');
-        // TODO: Navigate to comment or comment thread
-      }
-      break;
+      case 'commentliked':
+        if (data.commentId != null) {
+          print('Navigate to comment: ${data.commentId}');
+          // TODO: Navigate to comment or comment thread
+        }
+        break;
 
-    case 'facilityrated':
-      if (data.facilityId != null) {
-        print('Navigate to facility: ${data.facilityId}');
-        // TODO: Navigate to facility detail screen
-      }
-      break;
+      case 'facilityrated':
+        if (data.facilityId != null) {
+          print('Navigate to facility: ${data.facilityId}');
+          // TODO: Navigate to facility detail screen
+        }
+        break;
 
-    default:
-      print('Unknown notification type: ${notification.type}');
+      default:
+        print('Unknown notification type: ${notification.type}');
+    }
   }
-}
-
 }

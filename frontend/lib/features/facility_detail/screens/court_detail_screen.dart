@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/facility_detail/services/facility_detail_service.dart';
-import 'package:frontend/features/player/facility_detail/widgets/court_card_player.dart';
-import 'package:frontend/features/player/facility_detail/widgets/date_tag_player.dart';
+import 'package:frontend/features/facility_detail/services/facility_detail_service.dart';
+import 'package:frontend/features/facility_detail/widgets/court_card_player.dart';
+import 'package:frontend/features/facility_detail/widgets/date_tag_player.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';

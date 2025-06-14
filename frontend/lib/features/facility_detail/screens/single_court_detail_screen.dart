@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/player/facility_detail/widgets/booking_widget_player.dart';
+import 'package:frontend/features/facility_detail/widgets/booking_widget_player.dart';
 import 'package:frontend/providers/player/selected_court_provider.dart';
 import 'package:frontend/providers/court_hub_provider.dart';
 import 'package:frontend/providers/user_provider.dart';

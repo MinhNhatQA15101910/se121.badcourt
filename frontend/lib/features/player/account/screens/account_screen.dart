@@ -5,7 +5,7 @@ import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
 import 'package:frontend/features/player/account/services/account_service.dart';
 import 'package:frontend/features/player/account/widgets/item_tag.dart';
-import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';

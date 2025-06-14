@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/loader.dart';
-import 'package:frontend/features/player/booking_management/services/booking_management_service.dart';
-import 'package:frontend/features/player/booking_management/widgets/booking_detail_card.dart';
+import 'package:frontend/features/booking_management/services/booking_management_service.dart';
+import 'package:frontend/features/booking_management/widgets/booking_detail_card.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -24,10 +24,6 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
   List<Order> _orders = [];
   List<Order> _playedOrders = [];
   List<Order> _notPlayedOrders = [];
-
-  int _ordersCount = 0;
-  int _playedOrdersCount = 0;
-  int _notPlayedOrdersCount = 0;
 
   // Pagination variables
   int _currentPage = 1;
@@ -144,9 +140,6 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
       _playedOrders.addAll(playedOrders);
       _notPlayedOrders.addAll(notPlayedOrders);
       
-      _ordersCount = _orders.length;
-      _playedOrdersCount = _playedOrders.length;
-      _notPlayedOrdersCount = _notPlayedOrders.length;
     });
   }
 
