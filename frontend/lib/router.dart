@@ -28,6 +28,7 @@ import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
+import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
 
@@ -182,13 +183,22 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const BookingSuccessScreen(),
       );
-case PostDetailScreen.routeName:
-  final postId = routeSettings.arguments as String;
-  return MaterialPageRoute(
-    settings: routeSettings,
-    builder: (_) => PostDetailScreen(postId: postId),
-  );
-
+    case PostDetailScreen.routeName:
+      final postId = routeSettings.arguments as String;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => PostDetailScreen(postId: postId),
+      );
+    case FullScreenMediaView.routeName:
+      final args = routeSettings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => FullScreenMediaView(
+          resources: args['resources'],
+          initialIndex: args['initialIndex'],
+          postTitle: args['postTitle'] ?? '',
+        ),
+      );
     default:
       return MaterialPageRoute(
         settings: routeSettings,

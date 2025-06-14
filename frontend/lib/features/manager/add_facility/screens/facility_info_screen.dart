@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
@@ -22,7 +21,8 @@ class FacilityInfo extends StatefulWidget {
   State<FacilityInfo> createState() => _FacilityInfoState();
 }
 
-class _FacilityInfoState extends State<FacilityInfo> {
+class _FacilityInfoState extends State<FacilityInfo>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _facilityNameController = TextEditingController();
   final _streetNameController = TextEditingController();
@@ -33,10 +33,47 @@ class _FacilityInfoState extends State<FacilityInfo> {
   final _descriptionController = TextEditingController();
   final _policyController = TextEditingController();
 
-  DetailAddress? _selectedAddress = null;
+  DetailAddress? _selectedAddress;
+  List<File> _images = [];
+  List<String> _facilityInfo = [];
 
-  List<File>? _images = [];
-  List<String>? _facilityInfo = [];
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _facilityNameController.dispose();
+    _streetNameController.dispose();
+    _wardNameController.dispose();
+    _districtNameController.dispose();
+    _provinceNameController.dispose();
+    _facebookUrlController.dispose();
+    _descriptionController.dispose();
+    _policyController.dispose();
+    super.dispose();
+  }
 
   void _changeAddress(DetailAddress detailAddress) {
     setState(() {
@@ -53,421 +90,425 @@ class _FacilityInfoState extends State<FacilityInfo> {
   void _clearImage(int index, bool isFile) {
     setState(() {
       if (isFile) {
-        _images!.removeAt(index);
+        _images.removeAt(index);
       } else {
-        _facilityInfo!.removeAt(index);
+        _facilityInfo.removeAt(index);
       }
     });
+  }
+
+  String? _validateFacilityName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Facility name is required';
+    }
+    if (value.trim().length < 3) {
+      return 'Facility name must be at least 3 characters';
+    }
+    if (value.trim().length > 100) {
+      return 'Facility name must not exceed 100 characters';
+    }
+    return null;
+  }
+
+  String? _validateDescription(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Description is required';
+    }
+    if (value.trim().length < 20) {
+      return 'Description must be at least 20 characters';
+    }
+    if (value.trim().length > 1000) {
+      return 'Description must not exceed 1000 characters';
+    }
+    return null;
+  }
+
+  String? _validatePolicy(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Policy is required';
+    }
+    if (value.trim().length < 10) {
+      return 'Policy must be at least 10 characters';
+    }
+    if (value.trim().length > 500) {
+      return 'Policy must not exceed 500 characters';
+    }
+    return null;
+  }
+
+  String? _validateFacebookUrl(String? value) {
+    if (value != null && value.isNotEmpty) {
+      final urlRegex = RegExp(
+        r'^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9.]+\/?$',
+        caseSensitive: false,
+      );
+      if (!urlRegex.hasMatch(value)) {
+        return 'Please enter a valid Facebook URL';
+      }
+    }
+    return null;
   }
 
   void _navigateToManagerInfoScreen() {
     if (_formKey.currentState!.validate()) {
+      if (_images.isEmpty && _facilityInfo.isEmpty) {
+        _showValidationSnackBar('Please add at least one facility image');
+        return;
+      }
+      if (_selectedAddress == null) {
+        _showValidationSnackBar('Please select a location on the map');
+        return;
+      }
       Navigator.of(context).pushNamed(ManagerInfoScreen.routeName);
     }
   }
 
+  void _showValidationSnackBar(String message) {
+    IconSnackBar.show(
+      context,
+      label: message,
+      snackBarType: SnackBarType.fail,
+    );
+  }
+
   void _saveFacilityInfo() {
     if (_formKey.currentState!.validate()) {
-      if (_images == null || _images!.isEmpty) {
-        IconSnackBar.show(
-          context,
-          label: 'Please select you image!',
-          snackBarType: SnackBarType.fail,
-        );
-      } else {
-        final newFacilityProvider = Provider.of<NewFacilityProvider>(
-          context,
-          listen: false,
-        );
-
-        Facility facility = newFacilityProvider.newFacility.copyWith(
-          facilityName: _facilityNameController.text,
-          facebookUrl: _facebookUrlController.text,
-          description: _descriptionController.text,
-          policy: _policyController.text,
-          detailAddress:
-              '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
-          province: _selectedAddress!.city,
-          lat: _selectedAddress!.lng,
-          lon: _selectedAddress!.lat,
-        );
-
-        newFacilityProvider.setFacility(facility);
-        newFacilityProvider.setFacilityImageUrls(_images!);
-
-        _navigateToManagerInfoScreen();
+      if (_images.isEmpty && _facilityInfo.isEmpty) {
+        _showValidationSnackBar('Please add at least one facility image');
+        return;
       }
+      if (_selectedAddress == null) {
+        _showValidationSnackBar('Please select a location on the map');
+        return;
+      }
+
+      final newFacilityProvider = Provider.of<NewFacilityProvider>(
+        context,
+        listen: false,
+      );
+
+      Facility facility = newFacilityProvider.newFacility.copyWith(
+        facilityName: _facilityNameController.text.trim(),
+        facebookUrl: _facebookUrlController.text.trim(),
+        description: _descriptionController.text.trim(),
+        policy: _policyController.text.trim(),
+        detailAddress:
+            '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
+        province: _selectedAddress!.city,
+        lat: _selectedAddress!.lng,
+        lon: _selectedAddress!.lat,
+      );
+
+      newFacilityProvider.setFacility(facility);
+      newFacilityProvider.setFacilityImageUrls(_images);
+
+      _navigateToManagerInfoScreen();
     }
   }
 
   void _selectMultipleImages() async {
-    List<File>? res =
-        await pickMultipleImages(); // Assuming pickMultipleImages() returns List<File>?
-    setState(() {
-      if (res.isNotEmpty) {
-        _images?.addAll(res); // Assuming _images is List<File>
-      }
-    });
+    if (_images.length + _facilityInfo.length >= 10) {
+      _showValidationSnackBar('Maximum 10 images allowed');
+      return;
+    }
+
+    List<File>? res = await pickMultipleImages();
+    if (res != null && res.isNotEmpty) {
+      setState(() {
+        int remainingSlots = 10 - (_images.length + _facilityInfo.length);
+        _images.addAll(res.take(remainingSlots));
+      });
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Facility information',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  decoration: TextDecoration.none,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            GlobalVariables.green,
+            GlobalVariables.green.withOpacity(0.8),
+          ],
         ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Container(
+      child: SafeArea(
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Pick first image
-                            GestureDetector(
-                              onTap: _selectMultipleImages,
-                              child: Container(
-                                color: GlobalVariables.lightGrey,
-                                child: AspectRatio(
-                                  aspectRatio: 4 / 3,
-                                  child: (_images != null &&
-                                          _images!.isNotEmpty)
-                                      ? Stack(
-                                          children: [
-                                            Image.file(
-                                              _images!.first,
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                            ),
-                                            Positioned(
-                                              top: 8,
-                                              right: 8,
-                                              child: IconButton(
-                                                icon: Icon(
-                                                  Icons.clear,
-                                                  color: Colors.white,
-                                                ),
-                                                onPressed: () =>
-                                                    _clearImage(0, true),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : (_facilityInfo != null &&
-                                              _facilityInfo!.isNotEmpty)
-                                          ? Stack(
-                                              children: [
-                                                Image.network(
-                                                  _facilityInfo!.first,
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                  height: double.infinity,
-                                                ),
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 8,
-                                                  child: IconButton(
-                                                    icon: Icon(Icons.clear,
-                                                        color: Colors.white),
-                                                    onPressed: () {
-                                                      _clearImage(0, false);
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
-                                            )
-                                          : Center(
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                color: GlobalVariables.darkGrey,
-                                                size: 120,
-                                              ),
-                                            ),
-                                ),
-                              ),
-                            ),
-
-                            // Pick others image
-                            Container(
-                              height: 124,
-                              padding: EdgeInsets.only(
-                                top: 16,
-                                bottom: 16,
-                                right: 12,
-                              ),
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    if (_images != null)
-                                      for (int i = 1; i < _images!.length; i++)
-                                        Padding(
-                                          padding: EdgeInsets.only(left: 16),
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                width: 100,
-                                                height: 100,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  image: DecorationImage(
-                                                    image:
-                                                        FileImage(_images![i]),
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                              ),
-                                              Positioned(
-                                                top: 4,
-                                                right: 4,
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    _clearImage(i, true);
-                                                  },
-                                                  child: Icon(
-                                                    Icons.clear,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    for (int i = 1;
-                                        i < _facilityInfo!.length;
-                                        i++)
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 16),
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              width: 100,
-                                              height: 100,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                image: DecorationImage(
-                                                  image: NetworkImage(
-                                                      _facilityInfo![i]),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              top: 4,
-                                              right: 4,
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  _clearImage(i, false);
-                                                },
-                                                child: Icon(
-                                                  Icons.clear,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    Padding(
-                                      padding: EdgeInsets.only(left: 16),
-                                      child: GestureDetector(
-                                        onTap: _selectMultipleImages,
-                                        child: Container(
-                                          width: 100,
-                                          height: 100,
-                                          decoration: BoxDecoration(
-                                            color: GlobalVariables.lightGrey,
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: Center(
-                                            child: Icon(
-                                              Icons
-                                                  .add_photo_alternate_outlined,
-                                              color: GlobalVariables.darkGrey,
-                                              size: 60,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Badminton facility Name text
-                                  CustomFormField(
-                                    controller: _facilityNameController,
-                                    label: 'Badminton facility Name',
-                                    hintText: 'Facility name',
-                                    validator: (facilityName) {
-                                      if (facilityName == null ||
-                                          facilityName.isEmpty) {
-                                        return 'Please enter your facility name.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // Select a location on the map
-                                  LocationSelector(
-                                    selectedAddress: _selectedAddress,
-                                    onAddressSelected: _changeAddress,
-                                  ),
-
-                                  // Province text
-                                  CustomFormField(
-                                    controller: _provinceNameController,
-                                    label: 'Province',
-                                    hintText: 'Province',
-                                    readOnly: true,
-                                    validator: (provinceName) {
-                                      if (provinceName == null ||
-                                          provinceName.isEmpty) {
-                                        return 'Please enter the province.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // District text
-                                  CustomFormField(
-                                    controller: _districtNameController,
-                                    label: 'District',
-                                    hintText: 'District',
-                                    readOnly: true,
-                                    validator: (districtName) {
-                                      if (districtName == null ||
-                                          districtName.isEmpty) {
-                                        return 'Please enter the district.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // Ward text
-                                  CustomFormField(
-                                    controller: _wardNameController,
-                                    label: 'Ward',
-                                    hintText: 'Ward',
-                                    readOnly: true,
-                                    validator: (wardName) {
-                                      if (wardName == null ||
-                                          wardName.isEmpty) {
-                                        return 'Please enter the ward.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // Street / House number text
-                                  CustomFormField(
-                                    controller: _streetNameController,
-                                    label: 'Street / House number',
-                                    hintText: 'Street / House number',
-                                    validator: (streetName) {
-                                      if (streetName == null ||
-                                          streetName.isEmpty) {
-                                        return 'Please enter street / house number.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // Facebook url
-                                  CustomFormField(
-                                    controller: _facebookUrlController,
-                                    label: 'Facebook url',
-                                    hintText: 'Facebook url',
-                                  ),
-
-                                  // Facility description text
-                                  CustomFormField(
-                                    controller: _descriptionController,
-                                    label: 'Facility description',
-                                    hintText: 'Facility description',
-                                    maxLines: 5,
-                                    validator: (facilityDescription) {
-                                      if (facilityDescription == null ||
-                                          facilityDescription.isEmpty) {
-                                        return 'Please enter facility description.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // Facility policy text
-                                  CustomFormField(
-                                    controller: _policyController,
-                                    label: 'Facility policy',
-                                    hintText: 'Facility policy',
-                                    maxLines: 5,
-                                    validator: (facilityPolicy) {
-                                      if (facilityPolicy == null ||
-                                          facilityPolicy.isEmpty) {
-                                        return 'Please enter facility policy.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  SizedBox(height: 12),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  Text(
+                    'Facility Information',
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: CustomButton(
-                      onTap: _saveFacilityInfo,
-                      buttonText: 'Next',
-                      borderColor: GlobalVariables.green,
-                      fillColor: GlobalVariables.green,
-                      textColor: Colors.white,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Step 1 of 3 - Basic facility details',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: GlobalVariables.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.photo_library_outlined,
+                      color: GlobalVariables.green,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Facility Images',
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        Text(
+                          'Add up to 10 high-quality images',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: GlobalVariables.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${_images.length + _facilityInfo.length}/10',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: GlobalVariables.green,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Main image
+            GestureDetector(
+              onTap: _selectMultipleImages,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: (_images.isNotEmpty)
+                      ? Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                _images.first,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                                  onPressed: () => _clearImage(0, true),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : (_facilityInfo.isNotEmpty)
+                          ? Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    _facilityInfo.first,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                                      onPressed: () => _clearImage(0, false),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey.shade300,
+                                  style: BorderStyle.solid,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    color: Colors.grey.shade400,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tap to add images',
+                                    style: GoogleFonts.inter(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                ),
+              ),
+            ),
+
+            // Additional images
+            if (_images.length > 1 || _facilityInfo.length > 1)
+              Container(
+                height: 100,
+                margin: const EdgeInsets.all(16),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: (_images.length - 1) + (_facilityInfo.length > 1 ? _facilityInfo.length - 1 : 0) + 1,
+                  itemBuilder: (context, index) {
+                    if (index < _images.length - 1) {
+                      return _buildThumbnail(_images[index + 1], index + 1, true);
+                    } else if (index < (_images.length - 1) + (_facilityInfo.length > 1 ? _facilityInfo.length - 1 : 0)) {
+                      int facilityIndex = index - (_images.length - 1) + 1;
+                      return _buildNetworkThumbnail(_facilityInfo[facilityIndex], facilityIndex);
+                    } else {
+                      return _buildAddButton();
+                    }
+                  },
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildAddButton(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnail(File image, int index, bool isFile) {
+    return Container(
+      width: 80,
+      height: 80,
+      margin: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              image,
+              fit: BoxFit.cover,
+              width: 80,
+              height: 80,
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: GestureDetector(
+                onTap: () => _clearImage(index, isFile),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
             ),
           ),
@@ -476,17 +517,246 @@ class _FacilityInfoState extends State<FacilityInfo> {
     );
   }
 
-  @override
-  void dispose() {
-    _facilityNameController.dispose();
-    _streetNameController.dispose();
-    _wardNameController.dispose();
-    _districtNameController.dispose();
-    _provinceNameController.dispose();
-    _facebookUrlController.dispose();
-    _descriptionController.dispose();
-    _policyController.dispose();
+  Widget _buildNetworkThumbnail(String imageUrl, int index) {
+    return Container(
+      width: 80,
+      height: 80,
+      margin: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              width: 80,
+              height: 80,
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: GestureDetector(
+                onTap: () => _clearImage(index, false),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    super.dispose();
+  Widget _buildAddButton() {
+    return GestureDetector(
+      onTap: _selectMultipleImages,
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: GlobalVariables.green.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: GlobalVariables.green.withOpacity(0.3),
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Icon(
+          Icons.add,
+          color: GlobalVariables.green,
+          size: 32,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildImageSection(),
+                      
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: GlobalVariables.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.info_outline,
+                                    color: GlobalVariables.green,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Basic Information',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            CustomFormField(
+                              controller: _facilityNameController,
+                              label: 'Badminton Facility Name *',
+                              hintText: 'Enter facility name',
+                              validator: _validateFacilityName,
+                            ),
+
+                            LocationSelector(
+                              selectedAddress: _selectedAddress,
+                              onAddressSelected: _changeAddress,
+                            ),
+
+                            CustomFormField(
+                              controller: _provinceNameController,
+                              label: 'Province *',
+                              hintText: 'Province',
+                              readOnly: true,
+                              validator: (value) => value?.isEmpty == true ? 'Please select location' : null,
+                            ),
+
+                            CustomFormField(
+                              controller: _districtNameController,
+                              label: 'District *',
+                              hintText: 'District',
+                              readOnly: true,
+                              validator: (value) => value?.isEmpty == true ? 'Please select location' : null,
+                            ),
+
+                            CustomFormField(
+                              controller: _wardNameController,
+                              label: 'Ward *',
+                              hintText: 'Ward',
+                              readOnly: true,
+                              validator: (value) => value?.isEmpty == true ? 'Please select location' : null,
+                            ),
+
+                            CustomFormField(
+                              controller: _streetNameController,
+                              label: 'Street / House Number *',
+                              hintText: 'Enter street address',
+                              validator: (value) => value?.trim().isEmpty == true ? 'Street address is required' : null,
+                            ),
+
+                            CustomFormField(
+                              controller: _facebookUrlController,
+                              label: 'Facebook URL (Optional)',
+                              hintText: 'https://facebook.com/yourpage',
+                              validator: _validateFacebookUrl,
+                            ),
+
+                            CustomFormField(
+                              controller: _descriptionController,
+                              label: 'Facility Description *',
+                              hintText: 'Describe your facility, amenities, and features...',
+                              maxLines: 5,
+                              validator: _validateDescription,
+                            ),
+
+                            CustomFormField(
+                              controller: _policyController,
+                              label: 'Facility Policy *',
+                              hintText: 'Enter your facility rules and policies...',
+                              maxLines: 5,
+                              validator: _validatePolicy,
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 100), // Space for button
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: _saveFacilityInfo,
+              icon: const Icon(Icons.arrow_forward, size: 24),
+              label: Text(
+                'Next Step',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlobalVariables.green,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

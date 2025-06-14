@@ -11,6 +11,52 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class PostService {
+  // Maximum file size: 100MB in bytes
+  static const int maxFileSize = 100 * 1024 * 1024; // 100MB
+  
+  // Supported video formats
+  static const List<String> supportedVideoFormats = [
+    '.mp4', '.mov', '.avi', '.mkv', '.wmv', '.flv', '.webm', '.m4v'
+  ];
+  
+  // Supported image formats
+  static const List<String> supportedImageFormats = [
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'
+  ];
+
+  // Validate file size and format
+  bool _validateFile(File file) {
+    final fileSize = file.lengthSync();
+    final fileName = file.path.toLowerCase();
+    
+    // Check file size
+    if (fileSize > maxFileSize) {
+      return false;
+    }
+    
+    // Check if it's a supported format
+    bool isValidFormat = false;
+    for (String format in [...supportedImageFormats, ...supportedVideoFormats]) {
+      if (fileName.endsWith(format)) {
+        isValidFormat = true;
+        break;
+      }
+    }
+    
+    return isValidFormat;
+  }
+
+  // Check if file is a video
+  bool _isVideoFile(File file) {
+    final fileName = file.path.toLowerCase();
+    for (String format in supportedVideoFormats) {
+      if (fileName.endsWith(format)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> createPost(
     BuildContext context,
     List<File> postFiles,
@@ -20,17 +66,40 @@ class PostService {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
+      // Validate all files before uploading
+      for (File file in postFiles) {
+        if (!_validateFile(file)) {
+          final fileSize = file.lengthSync();
+          final fileName = file.path.split('/').last;
+          
+          if (fileSize > maxFileSize) {
+            IconSnackBar.show(
+              context,
+              label: 'File "$fileName" exceeds 100MB limit',
+              snackBarType: SnackBarType.fail,
+            );
+            return;
+          } else {
+            IconSnackBar.show(
+              context,
+              label: 'File "$fileName" has unsupported format',
+              snackBarType: SnackBarType.fail,
+            );
+            return;
+          }
+        }
+      }
+
       var request =
           http.MultipartRequest('POST', Uri.parse('$uri/gateway/posts'));
       request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
 
       request.fields['title'] = title;
-      request.fields['content'] =
-          description; // <-- sửa từ 'description' thành 'content'
+      request.fields['content'] = description;
 
       for (File file in postFiles) {
         var multipartFile = await http.MultipartFile.fromPath(
-          'resources', // <-- đúng key
+          'resources',
           file.path,
         );
         request.files.add(multipartFile);
@@ -64,45 +133,72 @@ class PostService {
 
   Future<Map<String, dynamic>> fetchAllPosts({
     required BuildContext context,
-    required int pageNumber,
+    int pageNumber = 1,
     int pageSize = 10,
-    required String searchQuery,
+    String searchQuery = '',
   }) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
 
-    List<Post> postList = [];
-    int totalPages = 0;
+    List<Post> posts = [];
+    int totalPages = 1;
 
     try {
-      final Uri uriWithParams =
-          Uri.parse('$uri/gateway/posts').replace(queryParameters: {
-        'pageNumber': pageNumber.toString(),
-        'pageSize': pageSize.toString(),
-        'query': searchQuery,
-      });
+      // Build the URL with search query if provided
+      String url = '$uri/gateway/posts?pageSize=$pageSize&pageNumber=$pageNumber';
+      if (searchQuery.isNotEmpty) {
+        url += '&search=${Uri.encodeComponent(searchQuery)}';
+      }
 
-      http.Response res = await http.get(
-        uriWithParams,
-        headers: {
+      http.Response response = await http.get(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
-          'Content-Type': 'application/json',
         },
       );
 
       httpErrorHandler(
-        response: res,
+        response: response,
         context: context,
         onSuccess: () {
-          for (var object in jsonDecode(res.body)) {
-            postList.add(
-              Post.fromMap(object),
+          try {
+            final jsonResponse = jsonDecode(response.body);
+            
+            // Handle direct array response (not wrapped in object)
+            List<dynamic> postsData;
+            if (jsonResponse is List) {
+              // Direct array response
+              postsData = jsonResponse;
+              totalPages = 1; // Default since no pagination info in direct array
+            } else if (jsonResponse is Map) {
+              // Object response with posts key
+              postsData = jsonResponse['posts'] ?? [];
+              totalPages = _parseToInt(jsonResponse['totalPages']) ?? 1;
+            } else {
+              postsData = [];
+            }
+            
+            // Parse each post
+            for (var object in postsData) {
+              try {
+                posts.add(Post.fromMap(object));
+              } catch (e) {
+                print('Error parsing individual post: $e');
+                print('Post data: $object');
+                // Continue with other posts even if one fails
+              }
+            }
+          } catch (e) {
+            print('Error parsing response: $e');
+            print('Response body: ${response.body}');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing posts data: ${e.toString()}',
+              snackBarType: SnackBarType.fail,
             );
-          }
-
-          final paginationHeader = res.headers['pagination'];
-          if (paginationHeader != null) {
-            final paginationData = jsonDecode(paginationHeader);
-            totalPages = paginationData['totalPages'];
           }
         },
       );
@@ -115,7 +211,7 @@ class PostService {
     }
 
     return {
-      'posts': postList,
+      'posts': posts,
       'totalPages': totalPages,
     };
   }
@@ -143,8 +239,18 @@ class PostService {
         response: res,
         context: context,
         onSuccess: () {
-          final data = jsonDecode(res.body);
-          post = Post.fromMap(data);
+          try {
+            final data = jsonDecode(res.body);
+            post = Post.fromMap(data);
+          } catch (e) {
+            print('Error parsing post by ID: $e');
+            print('Post data: ${res.body}');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing post data',
+              snackBarType: SnackBarType.fail,
+            );
+          }
         },
       );
 
@@ -163,7 +269,7 @@ class PostService {
     BuildContext context,
     String postId,
     String content,
-    List<File> images, // Add images parameter
+    List<File> mediaFiles, // Changed from 'images' to 'mediaFiles'
   ) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -171,6 +277,30 @@ class PostService {
     );
 
     try {
+      // Validate all media files before uploading
+      for (File file in mediaFiles) {
+        if (!_validateFile(file)) {
+          final fileSize = file.lengthSync();
+          final fileName = file.path.split('/').last;
+          
+          if (fileSize > maxFileSize) {
+            IconSnackBar.show(
+              context,
+              label: 'File "$fileName" exceeds 100MB limit',
+              snackBarType: SnackBarType.fail,
+            );
+            return;
+          } else {
+            IconSnackBar.show(
+              context,
+              label: 'File "$fileName" has unsupported format',
+              snackBarType: SnackBarType.fail,
+            );
+            return;
+          }
+        }
+      }
+
       final uriObj = Uri.parse('$uri/gateway/comments');
       final request = http.MultipartRequest('POST', uriObj);
 
@@ -179,11 +309,11 @@ class PostService {
       request.fields['postId'] = postId;
       request.fields['content'] = content;
 
-      // Add images to the request
-      for (File image in images) {
+      // Add media files to the request
+      for (File mediaFile in mediaFiles) {
         var multipartFile = await http.MultipartFile.fromPath(
-          'resources', // Use the same field name as your API expects
-          image.path,
+          'resources',
+          mediaFile.path,
         );
         request.files.add(multipartFile);
       }
@@ -197,7 +327,7 @@ class PostService {
         onSuccess: () {
           IconSnackBar.show(
             context,
-            label: 'Comment added successfully',
+            label: 'Comment with media added successfully',
             snackBarType: SnackBarType.success,
           );
         },
@@ -243,16 +373,40 @@ class PostService {
         response: res,
         context: context,
         onSuccess: () {
-          for (var object in jsonDecode(res.body)) {
-            commentList.add(
-              Comment.fromMap(object),
-            );
-          }
+          try {
+            final responseData = jsonDecode(res.body);
+            
+            // Handle both array and object response formats
+            List<dynamic> commentsData;
+            if (responseData is List) {
+              commentsData = responseData;
+            } else if (responseData is Map && responseData['comments'] != null) {
+              commentsData = responseData['comments'];
+            } else {
+              commentsData = [];
+            }
 
-          final paginationHeader = res.headers['pagination'];
-          if (paginationHeader != null) {
-            final paginationData = jsonDecode(paginationHeader);
-            totalPages = paginationData['totalPages'];
+            for (var object in commentsData) {
+              try {
+                commentList.add(Comment.fromMap(object));
+              } catch (e) {
+                print('Error parsing comment: $e');
+                print('Comment data: $object');
+              }
+            }
+
+            final paginationHeader = res.headers['pagination'];
+            if (paginationHeader != null) {
+              final paginationData = jsonDecode(paginationHeader);
+              totalPages = _parseToInt(paginationData['totalPages']) ?? 0;
+            }
+          } catch (e) {
+            print('Error parsing comments response: $e');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing comments data',
+              snackBarType: SnackBarType.fail,
+            );
           }
         },
       );
@@ -338,5 +492,34 @@ class PostService {
 
       return false;
     }
+  }
+
+  // Helper method to safely parse int from dynamic value
+  static int? _parseToInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    if (value is double) return value.toInt();
+    return null;
+  }
+
+  // Helper method to get file size in a readable format
+  String getFileSizeString(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  // Helper method to check if a URL is a video
+  static bool isVideoUrl(String url) {
+    final lowerUrl = url.toLowerCase();
+    for (String format in supportedVideoFormats) {
+      if (lowerUrl.contains(format.replaceAll('.', ''))) {
+        return true;
+      }
+    }
+    return false;
   }
 }

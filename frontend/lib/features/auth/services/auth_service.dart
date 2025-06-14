@@ -9,6 +9,7 @@ import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/auth_provider.dart';
@@ -221,7 +222,7 @@ class AuthService {
             );
           } else if (roles.isNotEmpty && roles[0] == 'Manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              ManagerBottomBar.routeName,
+              IntroManagerScreen.routeName,
               (route) => false,
             );
           }

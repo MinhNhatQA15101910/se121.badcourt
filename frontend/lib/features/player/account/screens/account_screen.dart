@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/features/player/account/services/account_service.dart';
-import 'package:frontend/features/player/account/widgets/item_tag.dart';
 import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/common/services/signalr_manager_service.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -75,9 +75,9 @@ class AccountScreen extends StatelessWidget {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                final accountService = AccountService();
-                accountService.logOut(context);
+              onPressed: () async {
+                final authService = AuthService();
+                authService.logOutUser(context);
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
@@ -245,7 +245,6 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildBookingSection(BuildContext context) {
     return CustomContainer(
       child: Column(
@@ -404,18 +403,22 @@ class AccountScreen extends StatelessWidget {
     bool isLogout = false,
   }) {
     return Container(
-      padding:EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: ListTile(
         onTap: onTap,
         leading: Container(
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: GlobalVariables.green.withOpacity(0.1),
+            color: isLogout
+                ? Colors.red.withOpacity(0.1)
+                : GlobalVariables.green.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
-            color: GlobalVariables.green,
-            size: 24,
+            color: isLogout ? Colors.red : GlobalVariables.green,
+            size: 20,
           ),
         ),
         title: Text(
@@ -423,7 +426,7 @@ class AccountScreen extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: GlobalVariables.blackGrey,
+            color: isLogout ? Colors.red : GlobalVariables.blackGrey,
           ),
         ),
         subtitle: Text(
@@ -435,7 +438,7 @@ class AccountScreen extends StatelessWidget {
         ),
         trailing: Icon(
           Icons.chevron_right_rounded,
-          color: GlobalVariables.darkGrey,
+          color: isLogout ? Colors.red : GlobalVariables.darkGrey,
         ),
       ),
     );

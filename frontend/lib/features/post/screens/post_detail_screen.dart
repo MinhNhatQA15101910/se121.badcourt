@@ -5,6 +5,7 @@ import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
+import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/comment_item.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
@@ -13,6 +14,7 @@ import 'package:frontend/models/post.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'package:video_player/video_player.dart';
 
 class PostDetailScreen extends StatefulWidget {
   static const String routeName = '/post-detail';
@@ -50,7 +52,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   late Animation<double> _likeAnimation;
 
   // Add these variables to the _PostDetailScreenState class
-  List<File> _selectedCommentImages = [];
+  List<File> _selectedCommentMedia = [];
+  // Add these variables to the _PostDetailScreenState class
+  Map<int, VideoPlayerController> _videoControllers = {};
+  Map<int, bool> _videoInitialized = {};
 
   @override
   void initState() {
@@ -74,7 +79,35 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     _likeController.dispose();
     _commentController.dispose();
     _scrollController.dispose();
+    // Dispose all video controllers
+    for (var controller in _videoControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
+  }
+
+  // Add this method after initState()
+  void _initializeVideoControllers() {
+    if (_post == null) return;
+    
+    for (int i = 0; i < _post!.resources.length; i++) {
+      final resource = _post!.resources[i];
+      if (PostService.isVideoUrl(resource.url)) {
+        final controller = VideoPlayerController.network(resource.url);
+        _videoControllers[i] = controller;
+        _videoInitialized[i] = false;
+        
+        controller.initialize().then((_) {
+          if (mounted) {
+            setState(() {
+              _videoInitialized[i] = true;
+            });
+          }
+        }).catchError((error) {
+          print('Error initializing video: $error');
+        });
+      }
+    }
   }
 
   Future<void> _fetchPostDetails() async {
@@ -95,6 +128,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           _isLiked = post.isLiked;
           _likeCount = post.likesCount;
         });
+        
+        // Initialize video controllers after getting post details
+        _initializeVideoControllers();
         
         // Fetch comments after getting post details
         _fetchCommentByPostId();
@@ -169,7 +205,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   // Update the _submitComment method to include images
   Future<void> _submitComment() async {
     final commentText = _commentController.text.trim();
-    if ((commentText.isEmpty && _selectedCommentImages.isEmpty) || _isCommentLoading) return;
+    if ((commentText.isEmpty && _selectedCommentMedia.isEmpty) || _isCommentLoading) return;
 
     setState(() {
       _isCommentLoading = true;
@@ -180,13 +216,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         context,
         widget.postId,
         commentText,
-        _selectedCommentImages, // Pass the selected images
+        _selectedCommentMedia, // Pass the selected media files
       );
 
-      // Clear the input field and images
+      // Clear the input field and media
       _commentController.clear();
       setState(() {
-        _selectedCommentImages = [];
+        _selectedCommentMedia = [];
       });
       
       // Refresh comments to show the new one
@@ -227,9 +263,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   }
 
   // Add this method to handle image selection
-  void _handleCommentImagesSelected(List<File> images) {
+  void _handleCommentMediaSelected(List<File> mediaFiles) {
     setState(() {
-      _selectedCommentImages = images;
+      _selectedCommentMedia = mediaFiles;
     });
   }
 
@@ -574,7 +610,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         
                         const SizedBox(height: 12),
                         
-                        // Action buttons
+                        // Action buttons (removed share button)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -592,23 +628,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                               icon: Icons.comment_outlined,
                               label: 'Comment',
                               onTap: () {
-                                // Focus on comment input
                                 FocusScope.of(context).requestFocus(FocusNode());
-                                // Scroll to bottom to see the input field
                                 _scrollController.animateTo(
                                   _scrollController.position.maxScrollExtent,
                                   duration: const Duration(milliseconds: 300),
                                   curve: Curves.easeOut,
                                 );
-                              },
-                            ),
-                            
-                            // Share button
-                            _buildActionButton(
-                              icon: Icons.share_outlined,
-                              label: 'Share',
-                              onTap: () {
-                                // Share functionality
                               },
                             ),
                           ],
@@ -759,7 +784,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             controller: _commentController,
             isLoading: _isCommentLoading,
             onSubmit: _submitComment,
-            onImageSelected: _handleCommentImagesSelected,
+            onMediaSelected: _handleCommentMediaSelected, // Changed from onImageSelected
           ),
         ],
       ),
@@ -775,59 +800,37 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           options: CarouselOptions(
             viewportFraction: 1.0,
             enableInfiniteScroll: imageCount > 1,
-            aspectRatio: 4 / 3,
+            height: 300, // Fixed height
             enlargeCenterPage: false,
             onPageChanged: (index, reason) => setState(() {
               _activeIndex = index;
             }),
           ),
           itemBuilder: (context, index, realIndex) {
+            final resource = _post!.resources[index];
+            final isVideo = PostService.isVideoUrl(resource.url);
+            
             return GestureDetector(
               onTap: () {
-                List<String> resourceUrls = _post!.resources
-                    .map((resource) => resource.url)
-                    .toList();
+                // Navigate to full screen media view instead of image view only
                 Navigator.of(context).pushNamed(
-                  FullScreenImageView.routeName,
+                  FullScreenMediaView.routeName,
                   arguments: {
-                    'imageUrls': resourceUrls,
+                    'resources': _post!.resources,
                     'initialIndex': index,
+                    'postTitle': _post!.title,
                   },
                 );
               },
               child: Container(
                 width: MediaQuery.of(context).size.width,
+                height: 300,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                 ),
-                child: Image.network(
-                  _post!.resources[index].url,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey.shade200,
-                      child: Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          color: Colors.grey,
-                          size: 50,
-                        ),
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                      ),
-                    );
-                  },
-                ),
+                child: isVideo 
+                  ? _buildVideoPlayer(index, resource.url)
+                  : _buildImageWidget(resource.url),
               ),
             );
           },
@@ -1016,14 +1019,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                 },
               ),
               _buildOptionItem(
-                icon: Icons.share_outlined,
-                label: 'Share post',
-                onTap: () {
-                  Navigator.pop(context);
-                  // Share post functionality
-                },
-              ),
-              _buildOptionItem(
                 icon: Icons.report_outlined,
                 label: 'Report post',
                 isDestructive: true,
@@ -1060,6 +1055,119 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         ),
       ),
       onTap: onTap,
+    );
+  }
+
+  // Add this method
+  Widget _buildVideoPlayer(int index, String videoUrl) {
+    final controller = _videoControllers[index];
+    final isInitialized = _videoInitialized[index] ?? false;
+
+    if (controller == null || !isInitialized) {
+      return Container(
+        width: double.infinity,
+        height: 300,
+        color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Loading video...',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      height: 300,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 300,
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: controller.value.size.width,
+                height: controller.value.size.height,
+                child: VideoPlayer(controller),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                if (controller.value.isPlaying) {
+                  controller.pause();
+                } else {
+                  controller.play();
+                }
+              });
+            },
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageWidget(String imageUrl) {
+    return SizedBox(
+      width: double.infinity,
+      height: 300,
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade200,
+            child: Center(
+              child: Icon(
+                Icons.broken_image,
+                color: Colors.grey,
+                size: 50,
+              ),
+            ),
+          );
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+      ),
     );
   }
 }

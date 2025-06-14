@@ -17,6 +17,7 @@ class User {
     required this.token,
   });
 
+  /// Dùng khi bạn cần map để lưu hoặc serialize
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -28,21 +29,38 @@ class User {
     };
   }
 
-  factory User.fromMap(Map<String, dynamic> map) {
+  /// ✅ Chuyển từ Map -> User
+  factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: map['id'] ?? '',
-      username: map['username'] ?? '',
-      email: map['email'] ?? '',
-      imageUrl: map['imageUrl'] ?? '',
-      role: map['role'] ?? '',
-      token: map['token'] ?? '',
+      id: json['id'] ?? '',
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      role: json['role'] ?? '',
+      token: json['token'] ?? '',
     );
   }
 
-  String toJson() => json.encode(toMap());
+  /// Dùng khi decode từ json string
+  factory User.fromJsonString(String source) =>
+      User.fromJson(json.decode(source));
 
-  factory User.fromJson(String source) => User.fromMap(json.decode(source));
+  /// Dùng khi encode sang json string
+  String toJsonString() => json.encode(toMap());
 
+  /// ✅ Tạo user rỗng
+  factory User.empty() {
+    return const User(
+      id: '',
+      username: '',
+      email: '',
+      imageUrl: '',
+      role: '',
+      token: '',
+    );
+  }
+
+  /// Optional: hỗ trợ copy để chỉnh sửa từng phần
   User copyWith({
     String? id,
     String? username,

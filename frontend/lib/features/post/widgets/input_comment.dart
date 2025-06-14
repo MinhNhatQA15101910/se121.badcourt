@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class InputComment extends StatefulWidget {
   final TextEditingController controller;
   final bool isLoading;
-  final Function(List<File>) onImageSelected;
+  final Function(List<File>) onMediaSelected;
   final VoidCallback onSubmit;
 
   const InputComment({
@@ -15,7 +17,7 @@ class InputComment extends StatefulWidget {
     required this.controller,
     required this.isLoading,
     required this.onSubmit,
-    required this.onImageSelected,
+    required this.onMediaSelected,
   }) : super(key: key);
 
   @override
@@ -24,7 +26,38 @@ class InputComment extends StatefulWidget {
 
 class _InputCommentState extends State<InputComment> {
   final ImagePicker _picker = ImagePicker();
-  List<File> _selectedImages = [];
+  List<File> _selectedMedia = [];
+  Map<String, String?> _videoThumbnails = {};
+
+  Future<void> _pickMedia() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose Images'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImages();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.videocam),
+                title: const Text('Choose Video'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickVideo();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _pickImages() async {
     try {
@@ -36,11 +69,10 @@ class _InputCommentState extends State<InputComment> {
       
       if (images.isNotEmpty) {
         setState(() {
-          _selectedImages = images.map((image) => File(image.path)).toList();
+          _selectedMedia.addAll(images.map((image) => File(image.path)).toList());
         });
         
-        // Notify parent about selected images
-        widget.onImageSelected(_selectedImages);
+        widget.onMediaSelected(_selectedMedia);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,13 +81,63 @@ class _InputCommentState extends State<InputComment> {
     }
   }
 
-  void _removeImage(int index) {
+  Future<void> _pickVideo() async {
+    try {
+      final XFile? video = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(minutes: 10),
+      );
+      
+      if (video != null) {
+        final file = File(video.path);
+        final fileSize = await file.length();
+        
+        // Check file size (100MB = 100 * 1024 * 1024 bytes)
+        if (fileSize > 100 * 1024 * 1024) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Video size must be under 100MB')),
+          );
+          return;
+        }
+
+        // Generate thumbnail
+        final thumbnail = await VideoThumbnail.thumbnailFile(
+          video: video.path,
+          thumbnailPath: (await Directory.systemTemp.createTemp()).path,
+          imageFormat: ImageFormat.JPEG,
+          maxHeight: 200,
+          quality: 75,
+        );
+
+        setState(() {
+          _selectedMedia.add(file);
+          if (thumbnail != null) {
+            _videoThumbnails[video.path] = thumbnail;
+          }
+        });
+        
+        widget.onMediaSelected(_selectedMedia);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking video: $e')),
+      );
+    }
+  }
+
+  void _removeMedia(int index) {
+    final file = _selectedMedia[index];
     setState(() {
-      _selectedImages.removeAt(index);
+      _selectedMedia.removeAt(index);
+      _videoThumbnails.remove(file.path);
     });
     
-    // Notify parent about updated images
-    widget.onImageSelected(_selectedImages);
+    widget.onMediaSelected(_selectedMedia);
+  }
+
+  bool _isVideoFile(String path) {
+    final extension = path.toLowerCase().split('.').last;
+    return ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension);
   }
 
   @override
@@ -75,19 +157,22 @@ class _InputCommentState extends State<InputComment> {
         left: 16,
         right: 16,
         top: 12,
-        bottom: 12 + MediaQuery.of(context).padding.bottom, // Add safe area padding
+        bottom: 12 + MediaQuery.of(context).padding.bottom,
       ),
       child: Column(
         children: [
-          // Image preview section
-          if (_selectedImages.isNotEmpty)
+          // Media preview section
+          if (_selectedMedia.isNotEmpty)
             Container(
               height: 80,
               margin: const EdgeInsets.only(bottom: 12),
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: _selectedImages.length,
+                itemCount: _selectedMedia.length,
                 itemBuilder: (context, index) {
+                  final file = _selectedMedia[index];
+                  final isVideo = _isVideoFile(file.path);
+                  
                   return Container(
                     margin: const EdgeInsets.only(right: 8),
                     child: Stack(
@@ -105,19 +190,64 @@ class _InputCommentState extends State<InputComment> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              _selectedImages[index],
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
+                            child: Stack(
+                              children: [
+                                // Thumbnail
+                                isVideo && _videoThumbnails[file.path] != null
+                                  ? Image.file(
+                                      File(_videoThumbnails[file.path]!),
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : isVideo
+                                    ? Container(
+                                        width: 80,
+                                        height: 80,
+                                        color: Colors.black54,
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.videocam,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        ),
+                                      )
+                                    : Image.file(
+                                        file,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      ),
+                                
+                                // Video play icon overlay
+                                if (isVideo)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.play_arrow,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
+                        
+                        // Remove button
                         Positioned(
                           top: 4,
                           right: 4,
                           child: GestureDetector(
-                            onTap: () => _removeImage(index),
+                            onTap: () => _removeMedia(index),
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
@@ -142,20 +272,20 @@ class _InputCommentState extends State<InputComment> {
           // Input row
           Row(
             children: [
-              // Image picker button
+              // Media picker button
               GestureDetector(
-                onTap: _pickImages,
+                onTap: _pickMedia,
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _selectedImages.isNotEmpty
+                    color: _selectedMedia.isNotEmpty
                         ? GlobalVariables.green.withOpacity(0.1)
                         : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.image_outlined,
-                    color: _selectedImages.isNotEmpty
+                    Icons.add_photo_alternate_outlined,
+                    color: _selectedMedia.isNotEmpty
                         ? GlobalVariables.green
                         : GlobalVariables.darkGrey,
                     size: 22,

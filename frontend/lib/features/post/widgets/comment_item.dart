@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
+import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/models/comment.dart';
+import 'package:frontend/models/post_resource.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
 
 class CommentItem extends StatefulWidget {
   final Comment comment;
@@ -25,12 +27,49 @@ class _CommentItemState extends State<CommentItem> {
   bool _isLiked = false;
   int _likesCount = 0;
   bool _isLikeLoading = false;
+  
+  // Video controllers for comment media
+  Map<String, VideoPlayerController> _videoControllers = {};
+  Map<String, bool> _videoInitialized = {};
 
   @override
   void initState() {
     super.initState();
     _isLiked = widget.comment.isLiked;
     _likesCount = widget.comment.likesCount;
+    _initializeVideoControllers();
+  }
+
+  @override
+  void dispose() {
+    // Dispose video controllers
+    for (var controller in _videoControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _initializeVideoControllers() {
+    for (var resource in widget.comment.resources) {
+      if (resource is Map<String, dynamic> && resource['url'] != null) {
+        final url = resource['url'] as String;
+        if (PostService.isVideoUrl(url)) {
+          final controller = VideoPlayerController.network(url);
+          _videoControllers[url] = controller;
+          _videoInitialized[url] = false;
+          
+          controller.initialize().then((_) {
+            if (mounted) {
+              setState(() {
+                _videoInitialized[url] = true;
+              });
+            }
+          }).catchError((error) {
+            print('Error initializing video: $error');
+          });
+        }
+      }
+    }
   }
 
   Future<void> _toggleLike() async {
@@ -40,7 +79,6 @@ class _CommentItemState extends State<CommentItem> {
       _isLikeLoading = true;
     });
 
-    // Optimistic update
     final previousLikedState = _isLiked;
     final previousLikeCount = _likesCount;
 
@@ -60,14 +98,12 @@ class _CommentItemState extends State<CommentItem> {
       );
 
       if (!success) {
-        // Revert changes if API call fails
         setState(() {
           _isLiked = previousLikedState;
           _likesCount = previousLikeCount;
         });
       }
     } catch (error) {
-      // Revert changes if API call fails
       setState(() {
         _isLiked = previousLikedState;
         _likesCount = previousLikeCount;
@@ -81,7 +117,7 @@ class _CommentItemState extends State<CommentItem> {
 
   @override
   Widget build(BuildContext context) {
-    final hasImages = widget.comment.resources.isNotEmpty;
+    final hasMedia = widget.comment.resources.isNotEmpty;
     
     return Container(
       decoration: BoxDecoration(
@@ -103,7 +139,6 @@ class _CommentItemState extends State<CommentItem> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Avatar
               CustomAvatar(
                 radius: 16,
                 imageUrl: widget.comment.publisherImageUrl,
@@ -111,7 +146,6 @@ class _CommentItemState extends State<CommentItem> {
               ),
               const SizedBox(width: 8),
               
-              // Username and date
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +171,6 @@ class _CommentItemState extends State<CommentItem> {
                 ),
               ),
               
-              // Like button moved to top right
               GestureDetector(
                 onTap: _toggleLike,
                 child: Container(
@@ -208,67 +241,73 @@ class _CommentItemState extends State<CommentItem> {
               ),
             ),
           
-          // Comment images (if any)
-          if (hasImages)
+          // Comment media (images and videos)
+          if (hasMedia)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: _buildCommentImages(context, widget.comment.resources),
+              child: _buildCommentMedia(context, widget.comment.resources),
             ),
         ],
       ),
     );
   }
   
-  Widget _buildCommentImages(BuildContext context, List<dynamic> resources) {
-    final imageUrls = resources
+  Widget _buildCommentMedia(BuildContext context, List<dynamic> resources) {
+    final mediaUrls = resources
         .where((resource) => resource is Map<String, dynamic> && resource['url'] != null)
         .map<String>((resource) => resource['url'] as String)
         .toList();
     
-    if (imageUrls.isEmpty) return const SizedBox();
+    if (mediaUrls.isEmpty) return const SizedBox();
     
-    if (imageUrls.length == 1) {
+    if (mediaUrls.length == 1) {
+      final url = mediaUrls[0];
+      final isVideo = PostService.isVideoUrl(url);
+      
       return GestureDetector(
-        onTap: () => _openFullScreenImage(context, imageUrls, 0),
+        onTap: () => _openFullScreenMedia(context, mediaUrls, 0),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: AspectRatio(
-            aspectRatio: 1.0, // Square aspect ratio
-            child: Image.network(
-              imageUrls[0],
-              fit: BoxFit.cover,
-              width: double.infinity,
-            ),
+            aspectRatio: isVideo ? 16/9 : 1.0,
+            child: isVideo 
+              ? _buildVideoThumbnail(url)
+              : Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
           ),
         ),
       );
     }
     
-    // Grid layout for multiple images
+    // Grid layout for multiple media
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: imageUrls.length == 2 ? 2 : 3,
+        crossAxisCount: mediaUrls.length == 2 ? 2 : 3,
         crossAxisSpacing: 6,
         mainAxisSpacing: 6,
-        childAspectRatio: 1.0, // Square aspect ratio
+        childAspectRatio: 1.0,
       ),
-      itemCount: imageUrls.length > 9 ? 9 : imageUrls.length,
+      itemCount: mediaUrls.length > 9 ? 9 : mediaUrls.length,
       itemBuilder: (context, index) {
-        if (index == 8 && imageUrls.length > 9) {
-          // Show "more" overlay for the last image if there are more than 9
+        final url = mediaUrls[index];
+        final isVideo = PostService.isVideoUrl(url);
+        
+        if (index == 8 && mediaUrls.length > 9) {
           return GestureDetector(
-            onTap: () => _openFullScreenImage(context, imageUrls, index),
+            onTap: () => _openFullScreenMedia(context, mediaUrls, index),
             child: Stack(
               fit: StackFit.expand,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    imageUrls[index],
-                    fit: BoxFit.cover,
-                  ),
+                  child: isVideo 
+                    ? _buildVideoThumbnail(url)
+                    : Image.network(url, fit: BoxFit.cover),
                 ),
                 Container(
                   decoration: BoxDecoration(
@@ -277,7 +316,7 @@ class _CommentItemState extends State<CommentItem> {
                   ),
                   child: Center(
                     child: Text(
-                      '+${imageUrls.length - 8}',
+                      '+${mediaUrls.length - 8}',
                       style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 16,
@@ -292,25 +331,72 @@ class _CommentItemState extends State<CommentItem> {
         }
         
         return GestureDetector(
-          onTap: () => _openFullScreenImage(context, imageUrls, index),
+          onTap: () => _openFullScreenMedia(context, mediaUrls, index),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              imageUrls[index],
-              fit: BoxFit.cover,
-            ),
+            child: isVideo 
+              ? _buildVideoThumbnail(url)
+              : Image.network(url, fit: BoxFit.cover),
           ),
         );
       },
     );
   }
+
+  Widget _buildVideoThumbnail(String videoUrl) {
+    final controller = _videoControllers[videoUrl];
+    final isInitialized = _videoInitialized[videoUrl] ?? false;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (controller != null && isInitialized)
+          VideoPlayer(controller)
+        else
+          Container(
+            color: Colors.black54,
+            child: const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+          ),
+        
+        // Play button overlay
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.play_arrow,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
   
-  void _openFullScreenImage(BuildContext context, List<String> imageUrls, int initialIndex) {
+  void _openFullScreenMedia(BuildContext context, List<String> mediaUrls, int initialIndex) {
+    // Convert URLs to PostResource objects with required parameters
+    final resources = mediaUrls.map((url) {
+      final isVideo = PostService.isVideoUrl(url);
+      return PostResource(
+        id: url.hashCode.toString(),
+        url: url,
+        isMain: false, // Comment media is never main
+        fileType: isVideo ? 'video' : 'image',
+      );
+    }).toList();
+
     Navigator.of(context).pushNamed(
-      FullScreenImageView.routeName,
+      FullScreenMediaView.routeName,
       arguments: {
-        'imageUrls': imageUrls,
+        'resources': resources,
         'initialIndex': initialIndex,
+        'postTitle': 'Comment Media',
       },
     );
   }
