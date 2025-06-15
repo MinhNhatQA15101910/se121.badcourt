@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
-using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Enums;
@@ -20,7 +19,7 @@ public class MessageHub(
     IMessageRepository messageRepository,
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
-    IUserApiRepository userApiRepository,
+    IUserRepository userRepository,
     IFileService fileService,
     IHubContext<GroupHub> groupHub,
     IMapper mapper
@@ -120,8 +119,8 @@ public class MessageHub(
             throw new HubException("You cannot send messages to yourself");
         }
 
-        var sender = await userApiRepository.GetUserByIdAsync(userId);
-        var recipient = await userApiRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
+        var sender = await userRepository.GetUserByIdAsync(userId);
+        var recipient = await userRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
         if (sender == null || recipient == null)
         {
             throw new HubException("Cannot send message");
@@ -184,12 +183,13 @@ public class MessageHub(
             isMain = false;
         }
 
+        var senderImageUrl = sender.Photos.FirstOrDefault(x => x.IsMain)?.Url ?? string.Empty;
         var message = new Message
         {
             Id = ObjectId.GenerateNewId().ToString(),
             SenderId = sender.Id.ToString(),
             SenderUsername = sender.Username,
-            SenderImageUrl = sender.PhotoUrl ?? string.Empty,
+            SenderImageUrl = senderImageUrl ?? string.Empty,
             GroupId = group.Id,
             Content = createMessageDto.Content,
             Resources = files,
@@ -210,9 +210,9 @@ public class MessageHub(
                 groupDto.Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
                 foreach (var userIdInGroup in group.UserIds)
                 {
-                    var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
+                    var user = await userRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
                         ?? throw new HubException($"User with ID {userId} not found");
-                    groupDto.Users.Add(userDto);
+                    groupDto.Users.Add(mapper.Map<UserDto>(user));
                 }
                 groupDto.LastMessage = mapper.Map<MessageDto>(message);
                 groupDto.UpdatedAt = DateTime.UtcNow;

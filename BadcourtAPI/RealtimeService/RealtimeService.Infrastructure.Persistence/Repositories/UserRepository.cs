@@ -28,4 +28,11 @@ public class UserRepository : IUserRepository
     {
         return await _users.Find(_ => true).AnyAsync(cancellationToken);
     }
+
+    public async Task<User?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _users
+            .Find(u => u.Id == userId.ToString())
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+    }
 }
