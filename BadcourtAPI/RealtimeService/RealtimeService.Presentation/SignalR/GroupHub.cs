@@ -44,7 +44,7 @@ public class GroupHub(
             // Set users
             foreach (var userIdInGroup in groups[i].UserIds)
             {
-                var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
+                var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
                     ?? throw new HubException($"User with ID {userIdInGroup} not found");
                 groupDtos[i].Users.Add(userDto);
             }

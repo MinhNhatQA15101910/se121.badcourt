@@ -98,6 +98,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IConnectionRepository, ConnectionRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICourtRepository, CourtRepository>();
 
         return services;
     }

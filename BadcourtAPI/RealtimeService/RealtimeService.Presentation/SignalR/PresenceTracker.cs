@@ -6,6 +6,8 @@ public class PresenceTracker
 
     public Task<bool> UserConnected(string userId, string connectionId)
     {
+        Console.WriteLine($"[PresenceTracker] UserConnected: {userId}, ConnectionId: {connectionId}");
+
         var isOnline = false;
         lock (OnlineUsers)
         {
@@ -25,6 +27,8 @@ public class PresenceTracker
 
     public Task<bool> UserDisconnected(string userId, string connectionId)
     {
+        Console.WriteLine($"[PresenceTracker] UserDisconnected: {userId}, ConnectionId: {connectionId}");
+
         var isOffline = false;
         lock (OnlineUsers)
         {

@@ -1,4 +1,5 @@
 using RealtimeService.Domain.Interfaces;
+using RealtimeService.Infrastructure.Persistence.Data;
 using RealtimeService.Presentation.Extensions;
 using RealtimeService.Presentation.Middlewares;
 using RealtimeService.Presentation.SignalR;
@@ -29,7 +30,11 @@ var services = scope.ServiceProvider;
 try
 {
     var connectionRepository = services.GetRequiredService<IConnectionRepository>();
+    var userRepository = services.GetRequiredService<IUserRepository>();
+    var courtRepository = services.GetRequiredService<ICourtRepository>();
 
+    await Seed.SeedUsersAsync(userRepository);
+    await Seed.SeedCourtsAsync(courtRepository);
     await connectionRepository.DeleteAllAsync();
 }
 catch (Exception ex)

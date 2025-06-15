@@ -210,7 +210,7 @@ public class MessageHub(
                 groupDto.Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
                 foreach (var userIdInGroup in group.UserIds)
                 {
-                    var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
+                    var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
                         ?? throw new HubException($"User with ID {userId} not found");
                     groupDto.Users.Add(userDto);
                 }
