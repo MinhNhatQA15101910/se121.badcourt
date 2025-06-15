@@ -37,4 +37,13 @@ public class CourtRepository : ICourtRepository
             .Find(c => c.Id == courtId)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }
+
+    public async Task UpdateCourtAsync(Court court, CancellationToken cancellationToken = default)
+    {
+        await _courts.ReplaceOneAsync(
+            c => c.Id == court.Id,
+            court,
+            cancellationToken: cancellationToken
+        );
+    }
 }
