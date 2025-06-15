@@ -10,7 +10,6 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend/common/services/signalr_manager_service.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});

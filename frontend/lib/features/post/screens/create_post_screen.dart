@@ -131,11 +131,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return PostService.supportedVideoFormats.any((format) => fileName.endsWith(format));
   }
 
-  bool _isImageFile(File file) {
-    final fileName = file.path.toLowerCase();
-    return PostService.supportedImageFormats.any((format) => fileName.endsWith(format));
-  }
-
   @override
   void initState() {
     super.initState();
@@ -647,10 +642,4 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
 }

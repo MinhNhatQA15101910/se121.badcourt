@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:frontend/common/widgets/custom_button.dart';
-import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';

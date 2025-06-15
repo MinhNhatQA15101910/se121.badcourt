@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/post_resource.dart';
 import 'package:frontend/features/post/services/post_service.dart';

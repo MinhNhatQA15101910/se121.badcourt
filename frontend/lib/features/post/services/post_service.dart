@@ -47,15 +47,6 @@ class PostService {
   }
 
   // Check if file is a video
-  bool _isVideoFile(File file) {
-    final fileName = file.path.toLowerCase();
-    for (String format in supportedVideoFormats) {
-      if (fileName.endsWith(format)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   Future<void> createPost(
     BuildContext context,

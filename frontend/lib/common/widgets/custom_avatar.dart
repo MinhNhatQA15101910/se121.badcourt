@@ -206,8 +206,7 @@ class CustomAvatar extends StatelessWidget {
                   title: const Text('View Profile'),
                   subtitle: const Text('See user details'),
                   onTap: () {
-                    Navigator.of(context).pop(); // Close bottom sheet
-                    // TODO: Navigate to user profile screen
+                    Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Profile view coming soon!'),

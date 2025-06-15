@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
-import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
@@ -213,7 +212,7 @@ class _FacilityInfoState extends State<FacilityInfo>
     }
 
     List<File>? res = await pickMultipleImages();
-    if (res != null && res.isNotEmpty) {
+    if (res.isNotEmpty) {
       setState(() {
         int remainingSlots = 10 - (_images.length + _facilityInfo.length);
         _images.addAll(res.take(remainingSlots));

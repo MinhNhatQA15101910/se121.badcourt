@@ -4,7 +4,6 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/comment_item.dart';
