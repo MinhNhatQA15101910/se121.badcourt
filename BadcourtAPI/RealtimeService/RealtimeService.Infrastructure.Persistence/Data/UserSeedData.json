@@ -1,0 +1,110 @@
+[
+  {
+    "Id": "a3e1f5b2-7c0d-4d89-a5f3-8b2f6a3e9c1d",
+    "UserName": "brucehale",
+    "Email": "brucehale@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317582/BadCourt/users/1/owaesqtxom8j0vyivxxz.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Player"]
+  },
+  {
+    "Id": "f92b1e74-4c7d-45a6-b9e0-5c67d8f14d2b",
+    "UserName": "coleenbrewer",
+    "Email": "coleenbrewer@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317624/BadCourt/users/2/myjg2akblqnty3lkcggv.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Player"]
+  },
+  {
+    "Id": "d8e4a2b9-3f60-4e1c-8c2d-7b9a5d6e1f3b",
+    "UserName": "bertiekeller",
+    "Email": "bertiekeller@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317667/BadCourt/users/3/gipu7n2ob6brby6h3nv7.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Manager"]
+  },
+  {
+    "Id": "6b7e8c3d-9a2f-4d5b-8e1c-7f6a2b4d3c0e",
+    "UserName": "susansweet",
+    "Email": "susansweet@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317713/BadCourt/users/4/umosjk5ubkurr9goffqj.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Manager"]
+  },
+  {
+    "Id": "c2d7f9a5-3b1e-4c6d-8e0f-7a9b2d5c4e3f",
+    "UserName": "corrinelewis",
+    "Email": "corrinelewis@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317756/BadCourt/users/5/ad3fupizsjffxx4hfiii.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Manager"]
+  },
+  {
+    "Id": "9e2c5d7b-8a4f-3c1d-6e0f-7b5a9d2c4e3f",
+    "UserName": "goodmanduncan",
+    "Email": "goodmanduncan@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317808/BadCourt/users/6/rucz92rlvsgwrktj8vl9.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Manager"]
+  },
+  {
+    "Id": "4d3f7e9b-2c5a-1e6d-8a0f-7b9d2c4e5f3b",
+    "UserName": "mackyork",
+    "Email": "mackyork@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317844/BadCourt/users/7/l4isog0s1a1exqxhxybo.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Manager"]
+  },
+  {
+    "Id": "7a2f9d5b-4c3e-1d6e-8b0f-7c5a9d2e4f3b",
+    "UserName": "delacruzday",
+    "Email": "delacruzday@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317887/BadCourt/users/8/ueq7qpmjzrlj2eu5xk3e.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Manager"]
+  },
+  {
+    "Id": "8c5e2d7b-4a3f-1d6e-9b0f-7c5a2d9e4f3b",
+    "UserName": "adminmiller",
+    "Email": "milleradmin@gmail.com",
+    "Photos": [
+      {
+        "Url": "https://res.cloudinary.com/dauyd6npv/image/upload/v1741317929/BadCourt/users/9/jkgip80lowf0k3mmw055.jpg",
+        "IsMain": true
+      }
+    ],
+    "Roles": ["Admin"]
+  }
+]

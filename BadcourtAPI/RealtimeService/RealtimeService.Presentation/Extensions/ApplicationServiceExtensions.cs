@@ -2,7 +2,6 @@ using FluentValidation;
 using MassTransit;
 using MediatR;
 using RealtimeService.Application;
-using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Infrastructure.ExternalServices.Configurations;
@@ -80,11 +79,6 @@ public static class ApplicationServiceExtensions
 
         services.AddAutoMapper(applicationAssembly);
 
-        services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
-
-        services.AddHttpClient<IUserApiRepository, UserApiRepository>();
-        services.AddHttpClient<ICourtApiRepository, CourtApiRepository>();
-
         return services;
     }
 
@@ -98,6 +92,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IConnectionRepository, ConnectionRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICourtRepository, CourtRepository>();
 
         return services;
     }

@@ -17,6 +17,13 @@ public class AutoMapperProfile : Profile
         CreateMap<Notification, NotificationDto>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
         CreateMap<NotificationData, NotificationDataDto>();
+        CreateMap<User, UserDto>()
+            .ForMember(
+                d => d.PhotoUrl,
+                o => o.MapFrom(
+                    s => s.Photos.FirstOrDefault(x => x.IsMain)!.Url
+                )
+            );
 
         // CreateMap<DateTime, DateTime>().ConvertUsing(
         //     d => DateTime.SpecifyKind(d, DateTimeKind.Utc)
