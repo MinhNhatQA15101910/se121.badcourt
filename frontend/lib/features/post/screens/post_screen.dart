@@ -23,7 +23,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   late AnimationController _animationController;
-  late Animation<double> _animation;
 
   List<Post> _postList = [];
   int _currentPage = 1;
@@ -43,10 +42,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 300),
     );
     
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -281,14 +276,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                 ),
               ),
           ],
-        ),
-      ),
-      floatingActionButton: ScaleTransition(
-        scale: _animation,
-        child: FloatingActionButton(
-          onPressed: _navigateToCreatePostScreen,
-          backgroundColor: GlobalVariables.green,
-          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
     );

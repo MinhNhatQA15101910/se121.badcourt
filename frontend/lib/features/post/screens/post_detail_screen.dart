@@ -4,6 +4,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/comment_item.dart';
@@ -202,27 +203,28 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   }
 
   // Update the _submitComment method to include images
-  Future<void> _submitComment() async {
-    final commentText = _commentController.text.trim();
-    if ((commentText.isEmpty && _selectedCommentMedia.isEmpty) || _isCommentLoading) return;
+  Future<void> _submitComment(String commentText, List<File> mediaFiles) async {
+    print('DEBUG: _submitComment called with text: "$commentText", media count: ${mediaFiles.length}');
+    
+    if ((commentText.isEmpty && mediaFiles.isEmpty) || _isCommentLoading) {
+      print('DEBUG: Early return - empty content or already loading');
+      return;
+    }
 
     setState(() {
       _isCommentLoading = true;
     });
 
     try {
+      print('DEBUG: About to call createComment service');
       await _postService.createComment(
         context,
         widget.postId,
         commentText,
-        _selectedCommentMedia, // Pass the selected media files
+        mediaFiles, // Pass the media files directly
       );
-
-      // Clear the input field and media
-      _commentController.clear();
-      setState(() {
-        _selectedCommentMedia = [];
-      });
+      
+      print('DEBUG: Comment created successfully');
       
       // Refresh comments to show the new one
       await _refreshComments();
@@ -247,7 +249,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           _post = updatedPost;
         });
       }
+      
+      // Clear media after successful upload
+      // Force the InputComment to clear its media
+      setState(() {
+        // This will trigger a rebuild and the InputComment should clear its media
+      });
+      
     } catch (error) {
+      print('DEBUG: Error creating comment: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to post comment: $error'),
@@ -259,6 +269,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         _isCommentLoading = false;
       });
     }
+  }
+
+  // Add a simple callback for media selection
+  void _onMediaSelected() {
+    // Simple callback when media is selected
+    // Can be used for UI updates if needed
+    print('DEBUG: Media selected callback');
   }
 
   // Add this method to handle image selection
@@ -550,58 +567,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        // Like and comment counts
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Like count with animation
-                            Row(
-                              children: [
-                                ScaleTransition(
-                                  scale: _likeAnimation,
-                                  child: Icon(
-                                    _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                                    size: 20,
-                                    color: _isLiked ? GlobalVariables.green : GlobalVariables.darkGrey,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '$_likeCount ${_likeCount == 1 ? 'like' : 'likes'}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            
-                            // Comment count
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.comment_outlined,
-                                  size: 20,
-                                  color: GlobalVariables.darkGrey,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${_post!.commentsCount} ${_post!.commentsCount == 1 ? 'comment' : 'comments'}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Divider
                         Container(
                           height: 1,
                           color: Colors.grey.shade200,
@@ -611,12 +576,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         
                         // Action buttons (removed share button)
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Like button
                             _buildActionButton(
                               icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                              label: 'Like',
+                              label: 'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
                               isActive: _isLiked,
                               isLoading: _isLikeLoading,
                               onTap: _toggleLike,
@@ -625,7 +590,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                             // Comment button
                             _buildActionButton(
                               icon: Icons.comment_outlined,
-                              label: 'Comment',
+                              label:  'Comment ${_post!.commentsCount > 0 ? '(${_post!.commentsCount})' : ''}',
                               onTap: () {
                                 FocusScope.of(context).requestFocus(FocusNode());
                                 _scrollController.animateTo(
@@ -780,10 +745,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           // Comment input field (fixed at bottom)
           // Update the InputComment widget in the build method
           InputComment(
+            key: ValueKey(_isCommentLoading), // Force rebuild when loading state changes
             controller: _commentController,
             isLoading: _isCommentLoading,
             onSubmit: _submitComment,
-            onMediaSelected: _handleCommentMediaSelected, // Changed from onImageSelected
+            onMediaSelected: _onMediaSelected,
           ),
         ],
       ),

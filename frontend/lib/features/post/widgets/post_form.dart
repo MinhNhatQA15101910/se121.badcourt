@@ -31,7 +31,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
   int _likeCount = 0;
 
   late AnimationController _likeController;
-  late Animation<double> _likeAnimation;
 
   // Video controllers for each video resource
   Map<int, VideoPlayerController> _videoControllers = {};
@@ -48,10 +47,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
       duration: const Duration(milliseconds: 300),
     );
 
-    _likeAnimation = CurvedAnimation(
-      parent: _likeController,
-      curve: Curves.elasticOut,
-    );
 
     // Initialize video controllers for video resources
     _initializeVideoControllers();
@@ -218,7 +213,7 @@ class _PostFormWidgetState extends State<PostFormWidget>
                             widget.currentPost.publisherUsername,
                             style: GoogleFonts.inter(
                               fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: GlobalVariables.blackGrey,
                             ),
                           ),
@@ -256,8 +251,8 @@ class _PostFormWidgetState extends State<PostFormWidget>
                   child: Text(
                     widget.currentPost.title,
                     style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       color: GlobalVariables.blackGrey,
                     ),
                   ),
@@ -297,7 +292,7 @@ class _PostFormWidgetState extends State<PostFormWidget>
 
                     // Action buttons with integrated counts
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Like button with count
                         _buildActionButtonWithCount(
@@ -640,7 +635,7 @@ class _PostFormWidgetState extends State<PostFormWidget>
     return '$minutes:$seconds';
   }
 
-  // Updated action button with integrated count
+  // FIXED: Updated action button with integrated count - BỎ ScaleTransition
   Widget _buildActionButtonWithCount({
     required IconData icon,
     required String label,
@@ -674,17 +669,13 @@ class _PostFormWidgetState extends State<PostFormWidget>
                 ),
               )
             else
-              ScaleTransition(
-                scale: isActive && label == 'Like'
-                    ? _likeAnimation
-                    : const AlwaysStoppedAnimation(1.0),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: isActive
-                      ? GlobalVariables.green
-                      : GlobalVariables.darkGrey,
-                ),
+              // FIXED: Bỏ ScaleTransition, chỉ hiển thị Icon đơn giản
+              Icon(
+                icon,
+                size: 20,
+                color: isActive
+                    ? GlobalVariables.green
+                    : GlobalVariables.darkGrey,
               ),
             const SizedBox(width: 6),
             Text(

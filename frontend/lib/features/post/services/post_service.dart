@@ -47,6 +47,15 @@ class PostService {
   }
 
   // Check if file is a video
+  bool _isVideoFile(File file) {
+    final fileName = file.path.toLowerCase();
+    for (String format in supportedVideoFormats) {
+      if (fileName.endsWith(format)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   Future<void> createPost(
     BuildContext context,
@@ -260,7 +269,7 @@ class PostService {
     BuildContext context,
     String postId,
     String content,
-    List<File> mediaFiles, // Changed from 'images' to 'mediaFiles'
+    List<File> mediaFiles,
   ) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -268,12 +277,18 @@ class PostService {
     );
 
     try {
-      // Validate all media files before uploading
+    // Create a deep copy of the list to completely avoid concurrent modification
+      final List<File> mediaFilesCopy = [];
       for (File file in mediaFiles) {
+        mediaFilesCopy.add(File(file.path));
+      }
+    
+      // Validate all media files before uploading using the copy
+      for (File file in mediaFilesCopy) {
         if (!_validateFile(file)) {
           final fileSize = file.lengthSync();
           final fileName = file.path.split('/').last;
-          
+        
           if (fileSize > maxFileSize) {
             IconSnackBar.show(
               context,
@@ -300,8 +315,8 @@ class PostService {
       request.fields['postId'] = postId;
       request.fields['content'] = content;
 
-      // Add media files to the request
-      for (File mediaFile in mediaFiles) {
+      // Add media files to the request using the deep copy
+      for (File mediaFile in mediaFilesCopy) {
         var multipartFile = await http.MultipartFile.fromPath(
           'resources',
           mediaFile.path,

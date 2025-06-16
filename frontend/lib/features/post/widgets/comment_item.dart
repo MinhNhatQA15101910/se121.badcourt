@@ -269,7 +269,7 @@ class _CommentItemState extends State<CommentItem> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: AspectRatio(
-            aspectRatio: isVideo ? 16/9 : 1.0,
+            aspectRatio: 16/9,
             child: isVideo 
               ? _buildVideoThumbnail(url)
               : Image.network(
@@ -348,10 +348,18 @@ class _CommentItemState extends State<CommentItem> {
     final isInitialized = _videoInitialized[videoUrl] ?? false;
 
     return Stack(
-      fit: StackFit.expand,
       children: [
         if (controller != null && isInitialized)
-          VideoPlayer(controller)
+          SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: controller.value.size.width,
+                height: controller.value.size.height,
+                child: VideoPlayer(controller),
+              ),
+            ),
+          )
         else
           Container(
             color: Colors.black54,
@@ -361,23 +369,26 @@ class _CommentItemState extends State<CommentItem> {
               ),
             ),
           ),
-        
-        // Play button overlay
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.play_arrow,
-              color: Colors.white,
-              size: 32,
-            ),
+    
+    // Play button overlay
+    Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.play_arrow,
+            color: Colors.white,
+            size: 32,
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ),
+  ],
+);
+}
   
   void _openFullScreenMedia(BuildContext context, List<String> mediaUrls, int initialIndex) {
     // Convert URLs to PostResource objects with required parameters
