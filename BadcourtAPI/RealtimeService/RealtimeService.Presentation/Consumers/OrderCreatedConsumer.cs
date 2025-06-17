@@ -13,7 +13,7 @@ namespace RealtimeService.Presentation.Consumers;
 
 public class OrderCreatedConsumer(
     INotificationRepository notificationRepository,
-    IHubContext<NotificationHub> notificationHub,
+    IHubContext<PresenceHub> presenceHub,
     ICourtRepository courtRepository,
     IHubContext<CourtHub> courtHub,
     IMapper mapper
@@ -44,7 +44,7 @@ public class OrderCreatedConsumer(
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);
-            await notificationHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
+            await presenceHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
         }
 
         await courtHub.Clients.Group(context.Message.CourtId).SendAsync("NewOrderTimePeriod", context.Message.DateTimePeriodDto);

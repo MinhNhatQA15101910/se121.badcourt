@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
 import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/message_app_bar.dart';
 import 'package:frontend/features/message/widgets/message_input_widget.dart';
 import 'package:frontend/features/message/widgets/message_list_widget.dart';
@@ -60,7 +61,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScrollListener);
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -165,13 +165,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
         
         if (mounted) {
           setState(() {
-            // Update pagination info
+            // Update pagination info from SignalR initial load
             _currentPage = paginatedMessages.currentPage;
             _totalPages = paginatedMessages.totalPages;
             _pageSize = paginatedMessages.pageSize;
             _hasMorePages = _currentPage < _totalPages;
             
-            // If loading more, append messages
+            // If loading more, append messages (this path is for SignalR, not REST)
             if (_isLoadingMore) {
               // Convert new messages to map format và đảo ngược thứ tự
               final newMessages = paginatedMessages.items.reversed.map((message) => {
@@ -277,9 +277,10 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
     }
   }
 
-  // Updated to load more messages with pagination
+  // Updated to load more messages with pagination using MessageService
   Future<void> _loadMoreMessages() async {
-    if (!_hasMorePages || _isLoadingMore) return;
+    // Ensure we don't load more if already loading, no more pages, or initial loading
+    if (_isLoading || _isLoadingMore || !_hasMorePages) return;
     
     setState(() {
       _isLoadingMore = true;
@@ -287,40 +288,43 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
     
     try {
       final nextPage = _currentPage + 1;
-      print('[MessageDetailScreen] Loading more messages, page $nextPage');
+      print('[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
       
-      // Request next page from server
-      final success = await _messageHubService.requestMessagePage(
-        userId ?? "", 
-        nextPage, 
-        _pageSize
+      final messageService = MessageService();
+      final paginatedResponse = await messageService.fetchMessagesByGroup(
+        context: context,
+        groupId: userId ?? "", 
+        pageNumber: nextPage,
       );
       
-      if (!success) {
+      if (mounted) {
         setState(() {
+          final userProvider = Provider.of<UserProvider>(context, listen: false);
+          // Convert fetched MessageDto to the internal Map format and reverse order
+          final newMessages = paginatedResponse.items.reversed.map((message) => {
+            'isSender': message.senderId == userProvider.user.id,
+            'message': message.content,
+            'time': message.messageSent.millisecondsSinceEpoch,
+            'resources': [], // Assuming no resources from this API for simplicity
+            'senderImageUrl': message.senderPhotoUrl,
+          }).toList();
+          
+          // Add older messages to the beginning of the list
+          _messages.insertAll(0, newMessages);
+          
+          // Update pagination info from REST API response
+          _currentPage = paginatedResponse.currentPage;
+          _totalPages = paginatedResponse.totalPages;
+          _pageSize = paginatedResponse.pageSize;
+          _hasMorePages = _currentPage < _totalPages;
           _isLoadingMore = false;
         });
         
-        // _showSnackBar(
-        //   'Failed to load more messages',
-        //   action: SnackBarAction(
-        //     label: 'Retry',
-        //     onPressed: _loadMoreMessages,
-        //   ),
-        // );
-      }
-      
-      // Wait for response via SignalR callback
-      await Future.delayed(Duration(seconds: 2));
-      
-      if (mounted && _isLoadingMore) {
-        setState(() {
-          _isLoadingMore = false;
-        });
+        print('[MessageDetailScreen] Loaded ${_messages.length} messages, now on page $_currentPage/$_totalPages');
       }
       
     } catch (e) {
-      print('[MessageDetailScreen] Error loading more messages: $e');
+      print('[MessageDetailScreen] Error loading more messages via REST API: $e');
       
       if (mounted) {
         setState(() {
@@ -338,14 +342,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
     }
   }
 
-  void _onScrollListener() {
-    if (_isLoading || _isLoadingMore || !_hasMorePages) return;
-
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      _loadMoreMessages();
-    }
-  }
+  // Removed _onScrollListener as it's now handled by MessageListWidget
 
   Future<void> _pickImages() async {
     final List<XFile>? selectedImages = await _picker.pickMultiImage();

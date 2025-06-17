@@ -110,7 +110,6 @@ class GroupHubService {
         }
       });
 
-      // Trong method startConnection, thêm listener cho NewMessageReceived
       _connection!.on('NewMessageReceived', (arguments) {
         print('[GroupHub] Received NewMessageReceived event');
         print('[GroupHub] Arguments: $arguments');

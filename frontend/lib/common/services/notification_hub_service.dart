@@ -57,8 +57,8 @@ class NotificationHubService {
       });
 
       // Listen for new notifications
-      _hubConnection?.on('NewNotification', (arguments) {
-        print('[NotificationHub] Received NewNotification event');
+      _hubConnection?.on('ReceiveNotification', (arguments) {
+        print('[NotificationHub] Received ReceiveNotification event');
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final data = arguments[0];

@@ -74,6 +74,14 @@ class PresenceService {
         }
       });
 
+      _hubConnection!.on('NewMessageReceived', (arguments) {
+        print('[SignalR] Received NewMessageReceived event');
+      });
+
+      _hubConnection?.on('ReceiveNotification', (arguments) {
+        print('[SignalR] Received ReceiveNotification event');
+      });
+
       // Bắt đầu kết nối
       await _hubConnection!.start();
       _isConnected = true;

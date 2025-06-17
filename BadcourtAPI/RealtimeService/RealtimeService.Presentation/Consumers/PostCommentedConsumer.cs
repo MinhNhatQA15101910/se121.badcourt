@@ -12,7 +12,7 @@ namespace RealtimeService.Presentation.Consumers;
 
 public class PostCommentedConsumer(
     INotificationRepository notificationRepository,
-    IHubContext<NotificationHub> notificationHub,
+    IHubContext<PresenceHub> presenceHub,
     IMapper mapper
 ) : IConsumer<PostCommentedEvent>
 {
@@ -22,7 +22,7 @@ public class PostCommentedConsumer(
         {
             UserId = context.Message.PostOwnerId,
             Type = NotificationType.PostCommented,
-            Title = "Post Liked",
+            Title = "Post Commented",
             Content = $"{context.Message.CommentedUserUsername} commented on your post: {context.Message.CommentContent}",
             Data = new NotificationData
             {
@@ -36,7 +36,7 @@ public class PostCommentedConsumer(
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);
-            await notificationHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
+            await presenceHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
         }
 
         Console.WriteLine("Notification sent for post commented.");

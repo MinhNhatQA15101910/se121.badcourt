@@ -214,7 +214,6 @@ class _MyAppContentState extends State<MyAppContent>
     try {
       if (token.isNotEmpty && !_signalRService.isConnected) {
         print('Connecting to SignalR with token...');
-        await _signalRService.startConnection(token);
         print('SignalR connected successfully');
 
         // Setup GroupProvider callbacks sau khi có connection

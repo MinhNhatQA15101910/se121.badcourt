@@ -174,7 +174,7 @@ class SearchService {
 
     try {
       http.Response response = await http.get(
-        Uri.parse('$uri/player/facilities/provinces'),
+        Uri.parse('$uri/gateway/facilities/provinces'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'x-auth-token': userProvider.user.token,

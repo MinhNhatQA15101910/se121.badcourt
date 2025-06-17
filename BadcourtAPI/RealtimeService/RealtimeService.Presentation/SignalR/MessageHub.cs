@@ -21,7 +21,7 @@ public class MessageHub(
     IConnectionRepository connectionRepository,
     IUserRepository userRepository,
     IFileService fileService,
-    IHubContext<GroupHub> groupHub,
+    IHubContext<PresenceHub> groupHub,
     IMapper mapper
 ) : Hub
 {
@@ -195,6 +195,11 @@ public class MessageHub(
             Resources = files,
         };
         await messageRepository.AddMessageAsync(message);
+        if (!group.HasMessage) group.HasMessage = true;
+        group.UpdatedAt = DateTime.UtcNow;
+        await groupRepository.UpdateGroupAsync(group);
+
+        await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
 
         var groupConnections = await connectionRepository.GetConnectionsByGroupIdAsync(group.Id);
         if (groupConnections.Any(x => x.UserId == recipient.Id.ToString()))
@@ -210,7 +215,7 @@ public class MessageHub(
                 groupDto.Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
                 foreach (var userIdInGroup in group.UserIds)
                 {
-                    var user = await userRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
+                    var user = await userRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
                         ?? throw new HubException($"User with ID {userId} not found");
                     groupDto.Users.Add(mapper.Map<UserDto>(user));
                 }
@@ -221,11 +226,7 @@ public class MessageHub(
             }
         }
 
-        if (!group.HasMessage) group.HasMessage = true;
-        group.UpdatedAt = DateTime.UtcNow;
-        await groupRepository.UpdateGroupAsync(group);
-
-        await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
+        
     }
 
     private static string GetGroupName(string caller, string? other)

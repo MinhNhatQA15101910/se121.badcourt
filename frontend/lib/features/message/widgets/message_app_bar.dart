@@ -19,6 +19,7 @@ class MessageAppBar extends StatelessWidget {
     final now = DateTime.now();
     final lastSeen = now.subtract(const Duration(hours: 2, minutes: 30));
     final difference = now.difference(lastSeen);
+    
 
     if (difference.inDays > 0) {
       return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
@@ -34,6 +35,7 @@ class MessageAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context);
+    
     final bool isOnline = otherUser != null && onlineUsersProvider.isUserOnline(otherUser!.id);
 
     return AppBar(

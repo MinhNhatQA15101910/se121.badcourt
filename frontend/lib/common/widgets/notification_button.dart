@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
 
 class NotificationButton extends StatelessWidget {
@@ -24,23 +25,24 @@ class NotificationButton extends StatelessWidget {
           onPressed: () {
             // Navigate to notification screen
             Navigator.pushNamed(context, NotificationScreen.routeName);
-            
+
             // Call callback if provided
             if (onNotificationButtonPressed != null) {
               onNotificationButtonPressed!();
             }
           },
         ),
-        
+
         // Static badge for now - will be dynamic later when provider is properly set up
         Positioned(
-          right: 8,
+          left: 26,
           top: 8,
           child: Container(
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            decoration: BoxDecoration(
               color: Colors.red,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: GlobalVariables.white, width: 0.5)
             ),
             constraints: const BoxConstraints(
               minWidth: 12,
