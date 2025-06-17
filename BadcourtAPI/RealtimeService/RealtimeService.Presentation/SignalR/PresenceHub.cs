@@ -5,7 +5,7 @@ using RealtimeService.Presentation.Extensions;
 namespace RealtimeService.Presentation.SignalR;
 
 [Authorize]
-public class PresenceHub(PresenceTracker presenceTracker) : Hub
+public class PresenceHub(PresenceHubTracker presenceHubTracker) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -14,10 +14,10 @@ public class PresenceHub(PresenceTracker presenceTracker) : Hub
             throw new HubException("Cannot get current user claims");
         }
 
-        var isOnline = await presenceTracker.UserConnected(Context.User.GetUserId().ToString(), Context.ConnectionId);
+        var isOnline = await presenceHubTracker.UserConnectedAsync(Context.User.GetUserId().ToString(), Context.ConnectionId);
         if (isOnline) await Clients.Others.SendAsync("UserIsOnline", Context.User.GetUserId());
 
-        var onlineUsers = await presenceTracker.GetOnlineUsers();
+        var onlineUsers = await presenceHubTracker.GetOnlineUsersAsync();
         await Clients.Caller.SendAsync("GetOnlineUsers", onlineUsers);
     }
 
@@ -28,7 +28,7 @@ public class PresenceHub(PresenceTracker presenceTracker) : Hub
             throw new HubException("Cannot get current user claims");
         }
 
-        var isOffline = await presenceTracker.UserDisconnected(Context.User.GetUserId().ToString(), Context.ConnectionId);
+        var isOffline = await presenceHubTracker.UserDisconnectedAsync(Context.User.GetUserId().ToString(), Context.ConnectionId);
         if (isOffline) await Clients.Others.SendAsync("UserIsOffline", Context.User?.GetUserId());
 
         await base.OnDisconnectedAsync(exception);

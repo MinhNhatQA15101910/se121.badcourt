@@ -7,7 +7,6 @@ using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.SignalR;
 using SharedKernel.DTOs;
 using SharedKernel.Events;
-using SharedKernel.Exceptions;
 
 namespace RealtimeService.Presentation.Consumers;
 
@@ -15,6 +14,7 @@ public class OrderCreatedConsumer(
     INotificationRepository notificationRepository,
     IHubContext<NotificationHub> notificationHub,
     IHubContext<CourtHub> courtHub,
+    NotificationHubTracker notificationHubTracker,
     IMapper mapper
 ) : IConsumer<OrderCreatedEvent>
 {
@@ -36,7 +36,7 @@ public class OrderCreatedConsumer(
 
         await notificationRepository.AddNotificationAsync(notification);
 
-        var connections = await PresenceTracker.GetConnectionsForUser(context.Message.UserId);
+        var connections = await notificationHubTracker.GetConnectionsForUserAsync(context.Message.UserId);
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);

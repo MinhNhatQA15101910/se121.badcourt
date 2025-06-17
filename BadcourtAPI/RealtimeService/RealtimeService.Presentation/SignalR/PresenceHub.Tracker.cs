@@ -1,12 +1,12 @@
 namespace RealtimeService.Presentation.SignalR;
 
-public class PresenceTracker
+public class PresenceHubTracker : ITracker
 {
     private static readonly Dictionary<string, List<string>> OnlineUsers = [];
 
-    public Task<bool> UserConnected(string userId, string connectionId)
+    public Task<bool> UserConnectedAsync(string userId, string connectionId)
     {
-        Console.WriteLine($"[PresenceTracker] UserConnected: {userId}, ConnectionId: {connectionId}");
+        Console.WriteLine($"[PresenceHubTracker] UserConnected: {userId}, ConnectionId: {connectionId}");
 
         var isOnline = false;
         lock (OnlineUsers)
@@ -25,9 +25,9 @@ public class PresenceTracker
         return Task.FromResult(isOnline);
     }
 
-    public Task<bool> UserDisconnected(string userId, string connectionId)
+    public Task<bool> UserDisconnectedAsync(string userId, string connectionId)
     {
-        Console.WriteLine($"[PresenceTracker] UserDisconnected: {userId}, ConnectionId: {connectionId}");
+        Console.WriteLine($"[PresenceHubTracker] UserDisconnected: {userId}, ConnectionId: {connectionId}");
 
         var isOffline = false;
         lock (OnlineUsers)
@@ -46,7 +46,7 @@ public class PresenceTracker
         return Task.FromResult(isOffline);
     }
 
-    public Task<string[]> GetOnlineUsers()
+    public Task<string[]> GetOnlineUsersAsync()
     {
         lock (OnlineUsers)
         {
@@ -54,7 +54,7 @@ public class PresenceTracker
         }
     }
 
-    public static Task<List<string>> GetConnectionsForUser(string userId)
+    public Task<List<string>> GetConnectionsForUserAsync(string userId)
     {
         lock (OnlineUsers)
         {

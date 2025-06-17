@@ -22,7 +22,8 @@ public class MessageHub(
     IConnectionRepository connectionRepository,
     IUserApiRepository userApiRepository,
     IFileService fileService,
-    IHubContext<PresenceHub> presenceHub,
+    IHubContext<GroupHub> groupHub,
+    GroupHubTracker groupHubTracker,
     IMapper mapper
 ) : Hub
 {
@@ -204,7 +205,7 @@ public class MessageHub(
         }
         else
         {
-            var userConnections = await PresenceTracker.GetConnectionsForUser(recipient.Id.ToString());
+            var userConnections = await groupHubTracker.GetConnectionsForUserAsync(recipient.Id.ToString());
             if (userConnections != null && userConnections?.Count != null)
             {
                 var groupDto = mapper.Map<GroupDto>(group);
@@ -218,7 +219,7 @@ public class MessageHub(
                 groupDto.LastMessage = mapper.Map<MessageDto>(message);
                 groupDto.UpdatedAt = DateTime.UtcNow;
 
-                await presenceHub.Clients.Clients(userConnections).SendAsync("NewMessageReceived", groupDto);
+                await groupHub.Clients.Clients(userConnections).SendAsync("NewMessageReceived", groupDto);
             }
         }
 

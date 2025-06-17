@@ -12,6 +12,7 @@ namespace RealtimeService.Presentation.SignalR;
 
 [Authorize]
 public class GroupHub(
+    GroupHubTracker groupHubTracker,
     IGroupRepository groupRepository,
     IMessageRepository messageRepository,
     IConnectionRepository connectionRepository,
@@ -27,6 +28,8 @@ public class GroupHub(
         }
 
         var userId = Context.User.GetUserId().ToString();
+
+        await groupHubTracker.UserConnectedAsync(userId, Context.ConnectionId);
 
         var groups = await groupRepository.GetGroupsRawAsync(userId, new GroupParams
         {
@@ -67,5 +70,17 @@ public class GroupHub(
         };
 
         await Clients.Caller.SendAsync("ReceiveGroups", pagedGroupDtos);
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (Context.User is null)
+        {
+            throw new HubException("Cannot get current user claims");
+        }
+
+        await groupHubTracker.UserDisconnectedAsync(Context.User.GetUserId().ToString(), Context.ConnectionId);
+
+        await base.OnDisconnectedAsync(exception);
     }
 }

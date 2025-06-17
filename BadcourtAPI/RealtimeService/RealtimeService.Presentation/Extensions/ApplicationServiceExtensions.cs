@@ -36,7 +36,9 @@ public static class ApplicationServiceExtensions
 
         services.AddScoped<ExceptionHandlingMiddleware>();
 
-        services.AddSingleton<PresenceTracker>();
+        services.AddSingleton<PresenceHubTracker>();
+        services.AddSingleton<NotificationHubTracker>();
+        services.AddSingleton<GroupHubTracker>();
 
         services.AddMassTransit(x =>
         {
