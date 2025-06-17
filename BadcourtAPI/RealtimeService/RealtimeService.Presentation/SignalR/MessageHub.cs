@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Enums;
@@ -19,9 +20,9 @@ public class MessageHub(
     IMessageRepository messageRepository,
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
-    IUserRepository userRepository,
+    IUserApiRepository userApiRepository,
     IFileService fileService,
-    IHubContext<GroupHub> groupHub,
+    IHubContext<PresenceHub> presenceHub,
     IMapper mapper
 ) : Hub
 {
@@ -119,8 +120,8 @@ public class MessageHub(
             throw new HubException("You cannot send messages to yourself");
         }
 
-        var sender = await userRepository.GetUserByIdAsync(userId);
-        var recipient = await userRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
+        var sender = await userApiRepository.GetUserByIdAsync(userId);
+        var recipient = await userApiRepository.GetUserByIdAsync(Guid.Parse(createMessageDto.RecipientId));
         if (sender == null || recipient == null)
         {
             throw new HubException("Cannot send message");
@@ -210,14 +211,14 @@ public class MessageHub(
                 groupDto.Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
                 foreach (var userIdInGroup in group.UserIds)
                 {
-                    var user = await userRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
+                    var user = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
                         ?? throw new HubException($"User with ID {userId} not found");
                     groupDto.Users.Add(mapper.Map<UserDto>(user));
                 }
                 groupDto.LastMessage = mapper.Map<MessageDto>(message);
                 groupDto.UpdatedAt = DateTime.UtcNow;
 
-                await groupHub.Clients.Clients(userConnections).SendAsync("NewMessageReceived", groupDto);
+                await presenceHub.Clients.Clients(userConnections).SendAsync("NewMessageReceived", groupDto);
             }
         }
 

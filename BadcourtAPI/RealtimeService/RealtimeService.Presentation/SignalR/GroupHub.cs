@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.Extensions;
 using SharedKernel;
@@ -14,7 +15,7 @@ public class GroupHub(
     IGroupRepository groupRepository,
     IMessageRepository messageRepository,
     IConnectionRepository connectionRepository,
-    IUserRepository userRepository,
+    IUserApiRepository userApiRepository,
     IMapper mapper
 ) : Hub
 {
@@ -43,7 +44,7 @@ public class GroupHub(
             // Set users
             foreach (var userIdInGroup in groups[i].UserIds)
             {
-                var userDto = await userRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
+                var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
                     ?? throw new HubException($"User with ID {userIdInGroup} not found");
                 groupDtos[i].Users.Add(mapper.Map<UserDto>(userDto));
             }

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Application.Extensions;
 using RealtimeService.Domain.Interfaces;
 using SharedKernel;
@@ -13,7 +14,7 @@ public class GetGroupsHandler(
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
     IMessageRepository messageRepository,
-    IUserRepository userRepository,
+    IUserApiRepository userApiRepository,
     IMapper mapper
 ) : IQueryHandler<GetGroupsQuery, PagedResult<GroupDto>>
 {
@@ -34,7 +35,7 @@ public class GetGroupsHandler(
             // Set users
             foreach (var userIdInGroup in groups[i].UserIds)
             {
-                var userDto = await userRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup), cancellationToken)
+                var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
                     ?? throw new UserNotFoundException(Guid.Parse(userIdInGroup));
                 groupDtos[i].Users.Add(mapper.Map<UserDto>(userDto));
             }

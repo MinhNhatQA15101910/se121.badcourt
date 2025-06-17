@@ -14,16 +14,12 @@ namespace RealtimeService.Presentation.Consumers;
 public class OrderCreatedConsumer(
     INotificationRepository notificationRepository,
     IHubContext<NotificationHub> notificationHub,
-    ICourtRepository courtRepository,
     IHubContext<CourtHub> courtHub,
     IMapper mapper
 ) : IConsumer<OrderCreatedEvent>
 {
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
     {
-        // Update court
-        await UpdateCourtAsync(context);
-
         // Notify the user about the order creation
         var notification = new Notification
         {
@@ -50,22 +46,5 @@ public class OrderCreatedConsumer(
         await courtHub.Clients.Group(context.Message.CourtId).SendAsync("NewOrderTimePeriod", context.Message.DateTimePeriodDto);
 
         Console.WriteLine("Notification sent for order creation.");
-    }
-
-    private async Task UpdateCourtAsync(ConsumeContext<OrderCreatedEvent> context)
-    {
-        var court = await courtRepository.GetCourtByIdAsync(context.Message.CourtId)
-            ?? throw new CourtNotFoundException(context.Message.CourtId);
-
-        court.OrderPeriods = [
-            ..court.OrderPeriods,
-            mapper.Map<DateTimePeriod>(context.Message.DateTimePeriodDto)
-        ];
-
-        court.UpdatedAt = DateTime.UtcNow;
-
-        await courtRepository.UpdateCourtAsync(court);
-
-        Console.WriteLine("Court updated with new order period.");
     }
 }
