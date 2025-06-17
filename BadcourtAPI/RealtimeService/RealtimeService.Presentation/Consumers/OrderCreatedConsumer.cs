@@ -7,23 +7,19 @@ using RealtimeService.Domain.Interfaces;
 using RealtimeService.Presentation.SignalR;
 using SharedKernel.DTOs;
 using SharedKernel.Events;
-using SharedKernel.Exceptions;
 
 namespace RealtimeService.Presentation.Consumers;
 
 public class OrderCreatedConsumer(
     INotificationRepository notificationRepository,
-    IHubContext<PresenceHub> presenceHub,
-    ICourtRepository courtRepository,
+    IHubContext<NotificationHub> notificationHub,
     IHubContext<CourtHub> courtHub,
+    NotificationHubTracker notificationHubTracker,
     IMapper mapper
 ) : IConsumer<OrderCreatedEvent>
 {
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
     {
-        // Update court
-        await UpdateCourtAsync(context);
-
         // Notify the user about the order creation
         var notification = new Notification
         {
@@ -40,32 +36,15 @@ public class OrderCreatedConsumer(
 
         await notificationRepository.AddNotificationAsync(notification);
 
-        var connections = await PresenceTracker.GetConnectionsForUser(context.Message.UserId);
+        var connections = await notificationHubTracker.GetConnectionsForUserAsync(context.Message.UserId);
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);
-            await presenceHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
+            await notificationHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
         }
 
         await courtHub.Clients.Group(context.Message.CourtId).SendAsync("NewOrderTimePeriod", context.Message.DateTimePeriodDto);
 
         Console.WriteLine("Notification sent for order creation.");
-    }
-
-    private async Task UpdateCourtAsync(ConsumeContext<OrderCreatedEvent> context)
-    {
-        var court = await courtRepository.GetCourtByIdAsync(context.Message.CourtId)
-            ?? throw new CourtNotFoundException(context.Message.CourtId);
-
-        court.OrderPeriods = [
-            ..court.OrderPeriods,
-            mapper.Map<DateTimePeriod>(context.Message.DateTimePeriodDto)
-        ];
-
-        court.UpdatedAt = DateTime.UtcNow;
-
-        await courtRepository.UpdateCourtAsync(court);
-
-        Console.WriteLine("Court updated with new order period.");
     }
 }

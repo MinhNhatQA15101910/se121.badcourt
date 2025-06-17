@@ -10,6 +10,7 @@ namespace RealtimeService.Presentation.SignalR;
 
 [Authorize]
 public class NotificationHub(
+    NotificationHubTracker notificationHubTracker,
     INotificationRepository notificationRepository
 ) : Hub
 {
@@ -19,6 +20,8 @@ public class NotificationHub(
         {
             throw new HubException("Cannot get current user claims");
         }
+
+        await notificationHubTracker.UserConnectedAsync(Context.User.GetUserId().ToString(), Context.ConnectionId);
 
         var notificationDtos = await notificationRepository.GetNotificationsAsync(
             Context.User.GetUserId().ToString(),
@@ -38,5 +41,17 @@ public class NotificationHub(
         };
 
         await Clients.Caller.SendAsync("ReceiveNotifications", pagedNotificationDtos);
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (Context.User is null)
+        {
+            throw new HubException("Cannot get current user claims");
+        }
+
+        await notificationHubTracker.UserDisconnectedAsync(Context.User.GetUserId().ToString(), Context.ConnectionId);
+
+        await base.OnDisconnectedAsync(exception);
     }
 }

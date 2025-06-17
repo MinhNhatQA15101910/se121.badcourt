@@ -12,7 +12,8 @@ namespace RealtimeService.Presentation.Consumers;
 
 public class CommentLikedConsumer(
     INotificationRepository notificationRepository,
-    IHubContext<PresenceHub> presenceHub,
+    IHubContext<NotificationHub> notificationHub,
+    NotificationHubTracker notificationHubTracker,
     IMapper mapper
 ) : IConsumer<CommentLikedEvent>
 {
@@ -32,11 +33,11 @@ public class CommentLikedConsumer(
 
         await notificationRepository.AddNotificationAsync(notification);
 
-        var connections = await PresenceTracker.GetConnectionsForUser(context.Message.CommentOwnerId);
+        var connections = await notificationHubTracker.GetConnectionsForUserAsync(context.Message.CommentOwnerId);
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);
-            await presenceHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
+            await notificationHub.Clients.Clients(connections).SendAsync("ReceiveNotification", notificationDto);
         }
 
         Console.WriteLine("Notification sent for comment liked.");

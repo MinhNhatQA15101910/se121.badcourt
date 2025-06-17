@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using RealtimeService.Domain.Interfaces;
+using RealtimeService.Application.ApiRepositories;
 
 namespace RealtimeService.Presentation.SignalR;
 
 [Authorize]
-public class CourtHub(ICourtRepository courtRepository) : Hub
+public class CourtHub(ICourtApiRepository courtApiRepository) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -17,7 +17,7 @@ public class CourtHub(ICourtRepository courtRepository) : Hub
             throw new HubException("Court ID is required to connect to the CourtHub.");
         }
 
-        var court = await courtRepository.GetCourtByIdAsync(courtId!)
+        var court = await courtApiRepository.GetCourtByIdAsync(courtId!)
             ?? throw new HubException($"Court with ID {courtId} not found.");
 
         await Groups.AddToGroupAsync(Context.ConnectionId, courtId!);
