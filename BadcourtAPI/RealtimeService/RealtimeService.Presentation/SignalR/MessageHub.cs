@@ -1,4 +1,5 @@
 using AutoMapper;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
@@ -27,9 +28,6 @@ public class MessageHub(
     IMapper mapper
 ) : Hub
 {
-    private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"];
-    private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"];
-
     public override async Task OnConnectedAsync()
     {
         // Get the user ID from the context
@@ -129,7 +127,7 @@ public class MessageHub(
         }
 
         // Check if the message has content or resources
-        if (string.IsNullOrWhiteSpace(createMessageDto.Content) && createMessageDto.Resources.Count == 0)
+        if (string.IsNullOrWhiteSpace(createMessageDto.Content) && createMessageDto.Base64Resources.Count == 0)
         {
             throw new HubException("Message must have content or resources");
         }
@@ -141,45 +139,14 @@ public class MessageHub(
         var messageId = ObjectId.GenerateNewId().ToString();
         var isMain = true;
         var files = new List<Domain.Entities.File>();
-        foreach (var resource in createMessageDto.Resources)
+        foreach (var resource in createMessageDto.Base64Resources)
         {
+            if (!resource.Contains(','))
+                throw new HubException("Invalid base64 resource format");
+
             var fileType = GetFileType(resource);
-            Domain.Entities.File file;
-            if (fileType == FileType.Image)
-            {
-                var uploadResult = await fileService.UploadPhotoAsync($"messages/{messageId}", resource);
-                if (uploadResult.Error != null)
-                    throw new HubException(uploadResult.Error.Message);
-
-                file = new Domain.Entities.File
-                {
-                    Id = ObjectId.GenerateNewId().ToString(),
-                    Url = uploadResult.SecureUrl.AbsoluteUri,
-                    PublicId = uploadResult.PublicId,
-                    IsMain = isMain,
-                    FileType = fileType
-                };
-            }
-            else if (fileType == FileType.Video)
-            {
-                var uploadResult = await fileService.UploadVideoAsync($"messages/{messageId}", resource);
-                if (uploadResult.Error != null)
-                    throw new HubException(uploadResult.Error.Message);
-
-                file = new Domain.Entities.File
-                {
-                    Id = ObjectId.GenerateNewId().ToString(),
-                    Url = uploadResult.SecureUrl.AbsoluteUri,
-                    PublicId = uploadResult.PublicId,
-                    IsMain = isMain,
-                    FileType = fileType
-                };
-            }
-            else
-            {
-                throw new HubException("Unsupported file type");
-            }
-
+            
+            var file = await UploadFileAsync(messageId, resource, fileType, isMain);
             files.Add(file);
 
             isMain = false;
@@ -210,12 +177,10 @@ public class MessageHub(
             {
                 var groupDto = mapper.Map<GroupDto>(group);
                 groupDto.Connections = [.. groupConnections.Select(mapper.Map<ConnectionDto>)];
-                foreach (var userIdInGroup in group.UserIds)
-                {
-                    var user = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup)).ConfigureAwait(false)
-                        ?? throw new HubException($"User with ID {userId} not found");
-                    groupDto.Users.Add(mapper.Map<UserDto>(user));
-                }
+
+                var users = await Task.WhenAll(group.UserIds.Select(id => userApiRepository.GetUserByIdAsync(Guid.Parse(id))));
+                groupDto.Users = [.. users.Where(u => u != null).Select(mapper.Map<UserDto>)];
+
                 groupDto.LastMessage = mapper.Map<MessageDto>(message);
                 groupDto.UpdatedAt = DateTime.UtcNow;
 
@@ -236,18 +201,43 @@ public class MessageHub(
         return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
     }
 
-    private static FileType GetFileType(IFormFile file)
+    private static FileType GetFileType(string base64)
     {
-        if (file == null || string.IsNullOrEmpty(file.FileName))
-            return FileType.Unknown;
+        var mimeType = GetMimeTypeFromBase64(base64);
 
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-        if (ImageExtensions.Contains(extension))
-            return FileType.Image;
-        if (VideoExtensions.Contains(extension))
-            return FileType.Video;
+        if (mimeType.StartsWith("image/")) return FileType.Image;
+        if (mimeType.StartsWith("video/")) return FileType.Video;
 
         return FileType.Unknown;
+    }
+
+    private static string GetMimeTypeFromBase64(string base64String)
+    {
+        var dataHeader = base64String[..base64String.IndexOf(',')];
+        return dataHeader.Split(':')[1].Split(';')[0];
+    }
+
+    private async Task<Domain.Entities.File> UploadFileAsync(string messageId, string base64, FileType type, bool isMain)
+    {
+        UploadResult uploadResult;
+
+        if (type == FileType.Image)
+            uploadResult = await fileService.UploadPhotoAsync($"messages/{messageId}", base64);
+        else if (type == FileType.Video)
+            uploadResult = await fileService.UploadVideoAsync($"messages/{messageId}", base64);
+        else
+            throw new HubException("Unsupported file type");
+
+        if (uploadResult.Error != null)
+            throw new HubException(uploadResult.Error.Message);
+
+        return new Domain.Entities.File
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Url = uploadResult.SecureUrl.AbsoluteUri,
+            PublicId = uploadResult.PublicId,
+            IsMain = isMain,
+            FileType = type
+        };
     }
 }
