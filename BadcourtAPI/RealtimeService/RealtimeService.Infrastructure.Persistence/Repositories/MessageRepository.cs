@@ -95,4 +95,15 @@ public class MessageRepository : IMessageRepository
             cancellationToken: cancellationToken
         );
     }
+
+    public Task<int> GetNumberOfUnreadMessagesAsync(string currentUserId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Message>.Filter.And(
+            Builders<Message>.Filter.Eq(m => m.ReceiverId, currentUserId),
+            Builders<Message>.Filter.Eq(m => m.DateRead, null)
+        );
+
+        return _messages.CountDocumentsAsync(filter, cancellationToken: cancellationToken)
+            .ContinueWith(task => (int)task.Result, cancellationToken);
+    }
 }

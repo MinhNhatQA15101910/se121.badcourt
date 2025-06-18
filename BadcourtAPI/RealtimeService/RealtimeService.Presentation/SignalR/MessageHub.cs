@@ -158,6 +158,7 @@ public class MessageHub(
             SenderId = sender.Id.ToString(),
             SenderUsername = sender.Username,
             SenderImageUrl = senderImageUrl ?? string.Empty,
+            ReceiverId = recipient.Id.ToString(),
             GroupId = group.Id,
             Content = createMessageDto.Content,
             Resources = files,

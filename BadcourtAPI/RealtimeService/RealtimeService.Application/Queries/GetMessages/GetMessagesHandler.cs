@@ -4,7 +4,6 @@ using RealtimeService.Domain.Interfaces;
 using SharedKernel;
 using SharedKernel.DTOs;
 using SharedKernel.Exceptions;
-using SharedKernel.Params;
 
 namespace RealtimeService.Application.Queries.GetMessages;
 

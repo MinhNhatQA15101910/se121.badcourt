@@ -41,6 +41,10 @@ public class NotificationHub(
         };
 
         await Clients.Caller.SendAsync("ReceiveNotifications", pagedNotificationDtos);
+
+        var numberOfUnreadNotifications = await notificationRepository.GetNumberOfUnreadNotificationsAsync(
+            Context.User.GetUserId().ToString());
+        await Clients.Caller.SendAsync("ReceiveNumberOfUnreadNotifications", numberOfUnreadNotifications);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
