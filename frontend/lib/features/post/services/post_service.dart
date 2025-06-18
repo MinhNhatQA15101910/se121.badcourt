@@ -6,7 +6,7 @@ import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
-import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';

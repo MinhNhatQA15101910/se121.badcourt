@@ -6,7 +6,7 @@ import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/features/post/widgets/post_form.dart';
 import 'package:frontend/models/post.dart';
 // Change from user_dto to user
-import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -193,7 +193,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           slivers: [
             // Custom App Bar with User Info
             SliverAppBar(
-              expandedHeight: 200,
+              expandedHeight: 180,
               floating: false,
               pinned: true,
               backgroundColor: GlobalVariables.green,
@@ -408,7 +408,6 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             ),
           ),
         ),
-        const SizedBox(height: 12),
         // User Name
         Text(
           displayUser.username,
@@ -418,12 +417,11 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 4),
         // User Email
         Text(
           displayUser.email,
           style: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: 16,
             color: Colors.white.withOpacity(0.9),
           ),
         ),

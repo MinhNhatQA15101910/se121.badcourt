@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
+import 'package:frontend/common/widgets/profile_header_widget.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
@@ -11,8 +12,8 @@ import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-class AccountScreen extends StatelessWidget {
-  const AccountScreen({super.key});
+class PlayerAccountScreen extends StatelessWidget {
+  const PlayerAccountScreen({super.key});
 
   void navigateToPinputForm(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(
@@ -106,8 +107,16 @@ class AccountScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileHeader(
-                userProvider.user.username, userProvider.user.photoUrl),
+            ProfileHeaderWidget(
+              username: userProvider.user.username,
+              photoUrl: userProvider.user.photoUrl,
+              userId: userProvider.user.id,
+              photos: userProvider.user.photos,
+              showEditButton: true,
+              onEditPressed: () {
+                // Edit profile functionality
+              },
+            ),
             const SizedBox(height: 16),
             _buildBookingSection(context),
             const SizedBox(height: 16),
@@ -119,141 +128,7 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(String username, String photoUrl) {
-    return Container(
-      height: 240,
-      child: Stack(
-        children: [
-          // Background image with gradient overlay
-          Positioned.fill(
-            child: ShaderMask(
-              shaderCallback: (rect) {
-                return LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    GlobalVariables.green,
-                    GlobalVariables.green.withOpacity(0.8),
-                  ],
-                  stops: const [0.1, 1.0],
-                ).createShader(rect);
-              },
-              blendMode: BlendMode.srcATop,
-              child: Image.asset(
-                'assets/images/img_account_background.jpg',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-
-          // Profile content
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, -5),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Profile image
-          Positioned(
-            top: 80,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 4,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    photoUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.white,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.person,
-                        size: 80,
-                        color: GlobalVariables.green,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Username
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(
-                username,
-                style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: GlobalVariables.blackGrey,
-                ),
-              ),
-            ),
-          ),
-
-          // Edit profile button
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: Container(
-              decoration: BoxDecoration(
-                color: GlobalVariables.green.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: Icon(
-                  Icons.edit_outlined,
-                  color: GlobalVariables.green,
-                ),
-                onPressed: () {
-                  // Edit profile functionality
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // ... rest of the methods remain the same
   Widget _buildBookingSection(BuildContext context) {
     return CustomContainer(
       child: Column(

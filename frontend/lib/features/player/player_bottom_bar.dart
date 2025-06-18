@@ -3,7 +3,7 @@ import 'package:frontend/common/widgets/message_button.dart';
 import 'package:frontend/common/widgets/notification_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
-import 'package:frontend/features/player/account/screens/account_screen.dart';
+import 'package:frontend/features/player/account/screens/player_account_screen.dart';
 import 'package:frontend/features/player/home/screens/home_screen.dart';
 import 'package:frontend/features/player/search/screens/search_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
@@ -28,7 +28,7 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
     const HomeScreen(),
     const SearchScreen(),
     const PostScreen(),
-    const AccountScreen(),
+    const PlayerAccountScreen(),
   ];
 
   @override

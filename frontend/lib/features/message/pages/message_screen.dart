@@ -4,7 +4,7 @@ import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/user_message_box.dart';
 import 'package:frontend/models/group_dto.dart';
-import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
-import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/user.dart';
 
 class AuthProvider extends ChangeNotifier {
   Widget _authForm = LoginForm();

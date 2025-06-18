@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/online_users_provider.dart';
 import 'package:provider/provider.dart';
 

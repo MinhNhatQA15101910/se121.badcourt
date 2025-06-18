@@ -1,18 +1,22 @@
+import 'package:frontend/models/photo.dart';
+
 class User {
   final String id;
   final String username;
   final String email;
-  final String photoUrl; // <- không nullable
-  final String token;    // <- không nullable
+  final String photoUrl;
+  final String token;
   final List<String> roles;
+  final List<Photo> photos; // <-- new field
 
   User({
     required this.id,
     required this.username,
     required this.email,
-    this.photoUrl = '',  // <- mặc định là chuỗi rỗng
-    this.token = '',     // <- mặc định là chuỗi rỗng
+    this.photoUrl = '',
+    this.token = '',
     this.roles = const [],
+    this.photos = const [], // <-- default to empty list
   });
 
   String get role {
@@ -34,13 +38,20 @@ class User {
         }
       }
 
+      List<Photo> photoList = [];
+      final photosJson = json['photos'];
+      if (photosJson != null && photosJson is List) {
+        photoList = photosJson.map((p) => Photo.fromJson(p)).toList();
+      }
+
       return User(
         id: json['id'] as String? ?? '',
         username: json['username'] as String? ?? '',
         email: json['email'] as String? ?? '',
-        photoUrl: json['photoUrl'] as String? ?? '', // fallback nếu null
-        token: json['token'] as String? ?? '',       // fallback nếu null
+        photoUrl: json['photoUrl'] as String? ?? '',
+        token: json['token'] as String? ?? '',
         roles: rolesList,
+        photos: photoList,
       );
     } catch (e, stackTrace) {
       print('[User] Error parsing JSON: $e');
@@ -54,6 +65,7 @@ class User {
         photoUrl: '',
         token: '',
         roles: const ['User'],
+        photos: const [],
       );
     }
   }
@@ -66,10 +78,11 @@ class User {
       'photoUrl': photoUrl,
       'token': token,
       'roles': roles,
+      'photos': photos.map((p) => p.toJson()).toList(),
     };
   }
 
-    factory User.empty() {
+  factory User.empty() {
     return User(
       id: '',
       username: '',
@@ -77,6 +90,7 @@ class User {
       photoUrl: '',
       roles: [],
       token: '',
+      photos: [],
     );
   }
 
@@ -87,6 +101,7 @@ class User {
     String? photoUrl,
     String? token,
     List<String>? roles,
+    List<Photo>? photos,
   }) {
     return User(
       id: id ?? this.id,
@@ -95,11 +110,12 @@ class User {
       photoUrl: photoUrl ?? this.photoUrl,
       token: token ?? this.token,
       roles: roles ?? this.roles,
+      photos: photos ?? this.photos,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles)';
+    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles, photos: $photos)';
   }
 }

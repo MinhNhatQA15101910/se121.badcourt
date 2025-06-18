@@ -1,4 +1,4 @@
-import 'package:frontend/models/user_dto.dart';
+import 'package:frontend/models/user.dart';
 import 'package:frontend/models/message_dto.dart';
 
 class GroupDto {
