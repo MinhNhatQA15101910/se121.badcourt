@@ -106,7 +106,8 @@ class AccountScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileHeader(userProvider.user.username),
+            _buildProfileHeader(
+                userProvider.user.username, userProvider.user.photoUrl),
             const SizedBox(height: 16),
             _buildBookingSection(context),
             const SizedBox(height: 16),
@@ -118,7 +119,7 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(String username) {
+  Widget _buildProfileHeader(String username, String photoUrl) {
     return Container(
       height: 240,
       child: Stack(
@@ -144,7 +145,7 @@ class AccountScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Profile content
           Positioned(
             bottom: 0,
@@ -168,7 +169,7 @@ class AccountScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Profile image
           Positioned(
             top: 80,
@@ -193,15 +194,24 @@ class AccountScreen extends StatelessWidget {
                   ],
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/img_account.png',
+                  child: Image.network(
+                    photoUrl,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.white,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.person,
+                        size: 80,
+                        color: GlobalVariables.green,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          
+
           // Username
           Positioned(
             bottom: 20,
@@ -218,7 +228,7 @@ class AccountScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Edit profile button
           Positioned(
             bottom: 20,

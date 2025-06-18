@@ -10,7 +10,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/models/user.dart';
+import 'package:frontend/models/user_dto.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -94,14 +94,7 @@ class _SignUpFormState extends State<SignUpForm> {
             authProvider.setResentEmail(_emailController.text.trim());
             authProvider.setPreviousForm(SignUpForm());
             authProvider.setSignUpUser(
-              User(
-                id: '',
-                username: _usernameController.text.trim(),
-                email: _emailController.text.trim(),
-                imageUrl: '',
-                role: '',
-                token: '',
-              ),
+              User.empty()
             );
             authProvider.setForm(
               PinputForm(

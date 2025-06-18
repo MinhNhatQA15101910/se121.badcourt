@@ -134,11 +134,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         .any((format) => fileName.endsWith(format));
   }
 
-  bool _isImageFile(File file) {
-    final fileName = file.path.toLowerCase();
-    return PostService.supportedImageFormats
-        .any((format) => fileName.endsWith(format));
-  }
 
   @override
   void initState() {
@@ -243,7 +238,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                 ),
                                 child: ClipOval(
                                   child: Image.network(
-                                    userProvider.user.imageUrl,
+                                    userProvider.user.photoUrl,
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (context, error, stackTrace) => Icon(
@@ -713,10 +708,4 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
 }

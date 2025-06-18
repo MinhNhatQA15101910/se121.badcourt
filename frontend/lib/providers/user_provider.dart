@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:frontend/models/user.dart';
+import 'package:frontend/models/user_dto.dart';
 
 class UserProvider extends ChangeNotifier {
   User _user = User.empty();

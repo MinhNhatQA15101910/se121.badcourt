@@ -36,7 +36,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   bool _isLoading = false;
   bool _isRefreshing = false;
   bool _isLoadingUser = true; // Add loading state for user
-  UserDto? _userInfo; // Store fetched user info
+  User? _userInfo; // Store fetched user info
 
   @override
   void initState() {

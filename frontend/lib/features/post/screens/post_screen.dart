@@ -360,7 +360,7 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
               ),
               child: ClipOval(
                 child: Image.network(
-                  userProvider.user.imageUrl,
+                  userProvider.user.photoUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: Colors.white,
@@ -615,7 +615,7 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                   ),
                   child: ClipOval(
                     child: Image.network(
-                      userProvider.user.imageUrl,
+                      userProvider.user.photoUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.person,

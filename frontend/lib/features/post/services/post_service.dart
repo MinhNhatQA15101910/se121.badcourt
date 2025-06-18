@@ -6,7 +6,6 @@ import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
-import 'package:frontend/models/user.dart';
 import 'package:frontend/models/user_dto.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
@@ -64,15 +63,6 @@ class PostService {
   }
 
   // Check if file is a video
-  bool _isVideoFile(File file) {
-    final fileName = file.path.toLowerCase();
-    for (String format in supportedVideoFormats) {
-      if (fileName.endsWith(format)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   Future<void> createPost(
     BuildContext context,
@@ -373,7 +363,7 @@ class PostService {
     }
   }
 
-  Future<UserDto?> fetchUserById({
+  Future<User?> fetchUserById({
     required BuildContext context,
     required String userId,
   }) async {
@@ -390,7 +380,7 @@ class PostService {
         },
       );
 
-      UserDto? user;
+      User? user;
 
       httpErrorHandler(
         response: res,
@@ -398,7 +388,7 @@ class PostService {
         onSuccess: () {
           try {
             final data = jsonDecode(res.body);
-            user = UserDto.fromJson(data);
+            user = User.fromJson(data);
           } catch (e) {
             print('Error parsing post by ID: $e');
             print('Post data: ${res.body}');

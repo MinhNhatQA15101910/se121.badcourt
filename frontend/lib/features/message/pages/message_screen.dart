@@ -114,7 +114,7 @@ class _MessageScreenState extends State<MessageScreen> {
         // Find other user in the group
         final otherUser = group.users.firstWhere(
           (u) => u.id != currentUserId,
-          orElse: () => UserDto(
+          orElse: () => User(
             id: 'unknown',
             username: 'Unknown User',
             email: 'unknown@example.com',
@@ -479,7 +479,7 @@ class _MessageScreenState extends State<MessageScreen> {
                                     // Tìm user khác với user hiện tại
                                     final otherUser = group.users.firstWhere(
                                       (u) => u.id != currentUserId,
-                                      orElse: () => UserDto(
+                                      orElse: () => User(
                                         id: 'default',
                                         username: 'Default User',
                                         email: 'default@example.com',

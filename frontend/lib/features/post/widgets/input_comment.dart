@@ -140,13 +140,6 @@ class _InputCommentState extends State<InputComment> {
     return ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension);
   }
 
-  void _clearMedia() {
-    setState(() {
-      _selectedMedia.clear();
-      _videoThumbnails.clear();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(

@@ -34,7 +34,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   // Add SignalR services
   final MessageHubService _messageHubService = MessageHubService();
   late String? userId;
-  UserDto? _otherUser;
+  User? _otherUser;
 
   final ImagePicker _picker = ImagePicker();
   List<File> _imageFiles = [];
@@ -49,7 +49,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   // Pagination info
   int _currentPage = 1;
   int _totalPages = 1;
-  int _pageSize = 20;
 
   String groupId = "";
 
@@ -168,7 +167,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
             // Update pagination info from SignalR initial load
             _currentPage = paginatedMessages.currentPage;
             _totalPages = paginatedMessages.totalPages;
-            _pageSize = paginatedMessages.pageSize;
             _hasMorePages = _currentPage < _totalPages;
             
             // If loading more, append messages (this path is for SignalR, not REST)
@@ -315,7 +313,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
           // Update pagination info from REST API response
           _currentPage = paginatedResponse.currentPage;
           _totalPages = paginatedResponse.totalPages;
-          _pageSize = paginatedResponse.pageSize;
           _hasMorePages = _currentPage < _totalPages;
           _isLoadingMore = false;
         });

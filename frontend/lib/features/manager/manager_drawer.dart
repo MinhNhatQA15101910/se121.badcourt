@@ -50,7 +50,7 @@ class ManagerDrawer extends StatelessWidget {
 
     final username = userProvider.user.username;
     final email = userProvider.user.email;
-    final imageUrl = userProvider.user.imageUrl;
+    final imageUrl = userProvider.user.photoUrl;
 
     return Drawer(
       backgroundColor: GlobalVariables.green,

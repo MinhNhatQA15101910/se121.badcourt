@@ -1,61 +1,58 @@
-class UserDto {
+class User {
   final String id;
   final String username;
   final String email;
-  final String? photoUrl;
-  final String? token;
-  final List<String> roles; // Thay đổi từ String role thành List<String> roles
+  final String photoUrl; // <- không nullable
+  final String token;    // <- không nullable
+  final List<String> roles;
 
-  UserDto({
+  User({
     required this.id,
     required this.username,
     required this.email,
-    this.photoUrl,
-    this.token,
-    this.roles = const [], // Default empty list
+    this.photoUrl = '',  // <- mặc định là chuỗi rỗng
+    this.token = '',     // <- mặc định là chuỗi rỗng
+    this.roles = const [],
   });
 
-  // Getter để lấy role đầu tiên từ mảng roles
   String get role {
     if (roles.isNotEmpty) {
-      return roles[0]; // Lấy phần tử đầu tiên
+      return roles[0];
     }
-    return 'User'; // Default role nếu không có
+    return 'User';
   }
 
-  factory UserDto.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(Map<String, dynamic> json) {
     try {
-      // Parse roles list
       List<String> rolesList = [];
       final rolesJson = json['roles'];
       if (rolesJson != null) {
         if (rolesJson is List) {
           rolesList = rolesJson.map((role) => role.toString()).toList();
         } else if (rolesJson is String) {
-          rolesList = [rolesJson]; // Nếu là string đơn, chuyển thành list
+          rolesList = [rolesJson];
         }
       }
 
-      return UserDto(
+      return User(
         id: json['id'] as String? ?? '',
         username: json['username'] as String? ?? '',
         email: json['email'] as String? ?? '',
-        photoUrl: json['photoUrl'] as String?,
-        token: json['token'] as String?,
+        photoUrl: json['photoUrl'] as String? ?? '', // fallback nếu null
+        token: json['token'] as String? ?? '',       // fallback nếu null
         roles: rolesList,
       );
     } catch (e, stackTrace) {
-      print('[UserDto] Error parsing JSON: $e');
-      print('[UserDto] Stack trace: $stackTrace');
-      print('[UserDto] JSON data: $json');
-      
-      // Return default UserDto on error
-      return UserDto(
+      print('[User] Error parsing JSON: $e');
+      print('[User] Stack trace: $stackTrace');
+      print('[User] JSON data: $json');
+
+      return User(
         id: json['id'] as String? ?? 'unknown',
         username: json['username'] as String? ?? 'Unknown User',
         email: json['email'] as String? ?? 'unknown@example.com',
-        photoUrl: null,
-        token: null,
+        photoUrl: '',
+        token: '',
         roles: const ['User'],
       );
     }
@@ -72,7 +69,18 @@ class UserDto {
     };
   }
 
-  UserDto copyWith({
+    factory User.empty() {
+    return User(
+      id: '',
+      username: '',
+      email: '',
+      photoUrl: '',
+      roles: [],
+      token: '',
+    );
+  }
+
+  User copyWith({
     String? id,
     String? username,
     String? email,
@@ -80,7 +88,7 @@ class UserDto {
     String? token,
     List<String>? roles,
   }) {
-    return UserDto(
+    return User(
       id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,
@@ -92,6 +100,6 @@ class UserDto {
 
   @override
   String toString() {
-    return 'UserDto(id: $id, username: $username, email: $email, photoUrl: $photoUrl, roles: $roles)';
+    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles)';
   }
 }

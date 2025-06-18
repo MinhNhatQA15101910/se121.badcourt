@@ -5,7 +5,7 @@ import 'package:frontend/providers/online_users_provider.dart';
 import 'package:provider/provider.dart';
 
 class MessageAppBar extends StatelessWidget {
-  final UserDto? otherUser;
+  final User? otherUser;
   final bool isConnected;
 
   const MessageAppBar({

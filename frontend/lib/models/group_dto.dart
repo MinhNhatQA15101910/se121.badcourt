@@ -4,7 +4,7 @@ import 'package:frontend/models/message_dto.dart';
 class GroupDto {
   final String id;
   final String name;
-  final List<UserDto> users;
+  final List<User> users;
   final MessageDto? lastMessage;
   final List<String> connections; // Changed from ConnectionDto to String
   final DateTime updatedAt;
@@ -37,12 +37,12 @@ class GroupDto {
       final usersList = json['users'] as List<dynamic>? ?? [];
       final users = usersList.map((userJson) {
         if (userJson is Map<String, dynamic>) {
-          return UserDto.fromJson(userJson);
+          return User.fromJson(userJson);
         } else {
           print('[GroupDto] Invalid user format: $userJson');
           return null;
         }
-      }).where((user) => user != null).cast<UserDto>().toList();
+      }).where((user) => user != null).cast<User>().toList();
 
       // Parse connections list - now as simple strings
       final connectionsList = json['connections'] as List<dynamic>? ?? [];
@@ -104,7 +104,7 @@ class GroupDto {
   GroupDto copyWith({
     String? id,
     String? name,
-    List<UserDto>? users,
+    List<User>? users,
     MessageDto? lastMessage,
     List<String>? connections,
     DateTime? updatedAt,
