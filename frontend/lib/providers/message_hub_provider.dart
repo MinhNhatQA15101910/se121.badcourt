@@ -148,50 +148,6 @@ class MessageHubProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> sendMessage(BuildContext context, String otherUserId, String content) async {
-    try {
-      Provider.of<UserProvider>(context, listen: false);
-
-      // Đảm bảo connection sẵn sàng trước khi gửi
-      if (!_messageHubService.isConnectionReady(otherUserId)) {
-        print('[MessageHubProvider] Connection not ready, attempting to connect...');
-        final connected = await connectToUser(context, otherUserId);
-        if (!connected) {
-          _error = 'Cannot establish connection to send message';
-          notifyListeners();
-          return false;
-        }
-        
-        // Đợi thêm một chút sau khi kết nối
-        await Future.delayed(Duration(milliseconds: 1000));
-      }
-
-      // Kiểm tra lại connection state
-      final connectionState = _messageHubService.getConnectionState(otherUserId);
-      print('[MessageHubProvider] Connection state before sending: $connectionState');
-
-      if (!_messageHubService.isConnectionReady(otherUserId)) {
-        _error = 'Connection not ready to send message';
-        notifyListeners();
-        return false;
-      }
-
-      final success = await _messageHubService.sendMessage(otherUserId, content);
-      
-      if (!success) {
-        _error = 'Failed to send message';
-        notifyListeners();
-      }
-      
-      return success;
-    } catch (e) {
-      print('[MessageHubProvider] Error sending message: $e');
-      _error = 'Error sending message: $e';
-      notifyListeners();
-      return false;
-    }
-  }
-
   Future<void> disconnectFromUser(String otherUserId) async {
     await _messageHubService.stopConnection(otherUserId);
     _clearMessages();

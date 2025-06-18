@@ -31,19 +31,18 @@ class MessageHubService {
       final hubUrl = '$signalrUri/hubs/message?user=$otherUserId';
       print('[MessageHub] Connecting to: $hubUrl');
       print('[MessageHub] Using token: ${accessToken.substring(0, 20)}...');
-    
+
       final connection = HubConnectionBuilder()
           .withUrl(
-            hubUrl,
-            options: HttpConnectionOptions(
-              accessTokenFactory: () async => accessToken,
-              skipNegotiation: false,
-              transport: HttpTransportType.WebSockets,
-              requestTimeout: 30000, // 30 seconds
-            ),
-          )
-          .withAutomaticReconnect(retryDelays: [0, 2000, 10000, 30000])
-          .build();
+        hubUrl,
+        options: HttpConnectionOptions(
+          accessTokenFactory: () async => accessToken,
+          skipNegotiation: false,
+          transport: HttpTransportType.WebSockets,
+          requestTimeout: 30000, // 30 seconds
+        ),
+      )
+          .withAutomaticReconnect(retryDelays: [0, 2000, 10000, 30000]).build();
 
       // Set up event listeners
       connection.on('UpdatedGroup', (arguments) {
@@ -57,7 +56,8 @@ class MessageHubService {
               onUpdatedGroup?.call(group);
               print('[MessageHub] UpdatedGroup processed successfully');
             } else {
-              print('[MessageHub] UpdatedGroup data is not Map<String, dynamic>: ${groupData.runtimeType}');
+              print(
+                  '[MessageHub] UpdatedGroup data is not Map<String, dynamic>: ${groupData.runtimeType}');
             }
           } catch (e) {
             print('[MessageHub] Error parsing UpdatedGroup: $e');
@@ -66,34 +66,40 @@ class MessageHubService {
       });
 
       connection.on('ReceiveMessageThread', (arguments) {
-        print('[MessageHub] Received ReceiveMessageThread event for user $otherUserId');
+        print(
+            '[MessageHub] Received ReceiveMessageThread event for user $otherUserId');
         print('[MessageHub] ReceiveMessageThread arguments: $arguments');
-        
+
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final paginatedData = arguments[0];
-            print('[MessageHub] Raw paginated data type: ${paginatedData.runtimeType}');
+            print(
+                '[MessageHub] Raw paginated data type: ${paginatedData.runtimeType}');
             print('[MessageHub] Raw paginated data: $paginatedData');
-            
+
             if (paginatedData is Map<String, dynamic>) {
               print('[MessageHub] Processing paginated message data...');
-              
+
               // Parse the paginated messages
-              final paginatedMessages = PaginatedMessagesDto.fromJson(paginatedData);
-              print('[MessageHub] Successfully parsed ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}/${paginatedMessages.totalPages}');
-              
+              final paginatedMessages =
+                  PaginatedMessagesDto.fromJson(paginatedData);
+              print(
+                  '[MessageHub] Successfully parsed ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}/${paginatedMessages.totalPages}');
+
               // Log each message for debugging
               for (int i = 0; i < paginatedMessages.items.length; i++) {
                 final message = paginatedMessages.items[i];
-                print('[MessageHub] Message $i: ${message.content} from ${message.senderUsername}');
+                print(
+                    '[MessageHub] Message $i: ${message.content} from ${message.senderUsername}');
               }
-              
+
               // Call the callback with paginated messages
               onReceiveMessageThread?.call(paginatedMessages);
-              print('[MessageHub] Called onReceiveMessageThread callback with paginated data');
-              
+              print(
+                  '[MessageHub] Called onReceiveMessageThread callback with paginated data');
             } else {
-              print('[MessageHub] ReceiveMessageThread data is not Map<String, dynamic>: ${paginatedData.runtimeType}');
+              print(
+                  '[MessageHub] ReceiveMessageThread data is not Map<String, dynamic>: ${paginatedData.runtimeType}');
               // Call callback with empty paginated data to stop loading
               final emptyPaginated = PaginatedMessagesDto(
                 currentPage: 1,
@@ -104,7 +110,6 @@ class MessageHubService {
               );
               onReceiveMessageThread?.call(emptyPaginated);
             }
-            
           } catch (e, stackTrace) {
             print('[MessageHub] Error parsing paginated message thread: $e');
             print('[MessageHub] Stack trace: $stackTrace');
@@ -119,7 +124,8 @@ class MessageHubService {
             onReceiveMessageThread?.call(emptyPaginated);
           }
         } else {
-          print('[MessageHub] ReceiveMessageThread called with null or empty arguments');
+          print(
+              '[MessageHub] ReceiveMessageThread called with null or empty arguments');
           // Call callback with empty paginated data to stop loading
           final emptyPaginated = PaginatedMessagesDto(
             currentPage: 1,
@@ -139,23 +145,23 @@ class MessageHubService {
           try {
             final messageData = arguments[0];
             print('[MessageHub] NewMessage data: $messageData');
-            
+
             Map<String, dynamic> msgJson;
-            
+
             if (messageData is Map<String, dynamic>) {
               msgJson = messageData;
             } else if (messageData is String) {
               msgJson = jsonDecode(messageData);
             } else {
-              print('[MessageHub] NewMessage data is unexpected type: ${messageData.runtimeType}');
+              print(
+                  '[MessageHub] NewMessage data is unexpected type: ${messageData.runtimeType}');
               return;
             }
-            
+
             // Process the message data
             final message = MessageDto.fromJson(msgJson);
             onNewMessage?.call(message);
             print('[MessageHub] NewMessage processed: ${message.content}');
-            
           } catch (e, stackTrace) {
             print('[MessageHub] Error parsing new message: $e');
             print('[MessageHub] Stack trace: $stackTrace');
@@ -164,7 +170,8 @@ class MessageHubService {
       });
 
       connection.on('NewMessageReceived', (arguments) {
-        print('[MessageHub] Received NewMessageReceived event for user $otherUserId');
+        print(
+            '[MessageHub] Received NewMessageReceived event for user $otherUserId');
         print('[MessageHub] NewMessageReceived arguments: $arguments');
         if (arguments != null && arguments.isNotEmpty) {
           try {
@@ -174,7 +181,8 @@ class MessageHubService {
               onNewMessageReceived?.call(group);
               print('[MessageHub] NewMessageReceived processed successfully');
             } else {
-              print('[MessageHub] NewMessageReceived data is not Map<String, dynamic>: ${groupData.runtimeType}');
+              print(
+                  '[MessageHub] NewMessageReceived data is not Map<String, dynamic>: ${groupData.runtimeType}');
             }
           } catch (e) {
             print('[MessageHub] Error parsing NewMessageReceived: $e');
@@ -187,10 +195,9 @@ class MessageHubService {
       _connections[otherUserId] = connection;
       _connectionStates[otherUserId] = true;
       print('✅ [MessageHub] Connected to user: $otherUserId');
-      
+
       // Sau khi kết nối thành công, server có thể tự động gửi message thread
       print('[MessageHub] Waiting for automatic message thread from server...');
-    
     } catch (e) {
       print('❌ [MessageHub] Connection failed for user $otherUserId: $e');
       _connectionStates[otherUserId] = false;
@@ -207,7 +214,8 @@ class MessageHubService {
         _connectionStates[otherUserId] = false;
         print('[MessageHub] Disconnected from user: $otherUserId');
       } catch (e) {
-        print('[MessageHub] Error stopping connection for user $otherUserId: $e');
+        print(
+            '[MessageHub] Error stopping connection for user $otherUserId: $e');
       }
     }
   }
@@ -219,98 +227,100 @@ class MessageHubService {
     print('[MessageHub] All connections stopped');
   }
 
-  Future<bool> sendMessage(String otherUserId, String content, {String? attachmentUrl, int maxRetries = 3}) async {
+  Future<bool> sendMessage(
+    String otherUserId,
+    String content, {
+    List<Map<String, dynamic>> resources =
+        const [], // <-- Thay vì attachmentUrl
+    int maxRetries = 3,
+  }) async {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       final connection = _connections[otherUserId];
-    
+
       if (connection == null) {
         print('[MessageHub] No connection found for user: $otherUserId');
         return false;
       }
-    
-      // Kiểm tra connection state
+
       if (connection.state != HubConnectionState.Connected) {
-        print('[MessageHub] Connection to user $otherUserId is not active (state: ${connection.state}). Attempting to reconnect...');
-      
+        print(
+            '[MessageHub] Connection to user $otherUserId is not active (state: ${connection.state}). Attempting to reconnect...');
+
         try {
           if (connection.state == HubConnectionState.Disconnected) {
             await connection.start();
             _connectionStates[otherUserId] = true;
             print('[MessageHub] Reconnected to user: $otherUserId');
-            
-            // Đợi một chút để connection ổn định
             await Future.delayed(Duration(milliseconds: 1000));
           } else {
-            // Đợi connection reconnect tự động
             await Future.delayed(Duration(milliseconds: 2000 * attempt));
           }
         } catch (reconnectError) {
-          print('[MessageHub] Failed to reconnect to user $otherUserId (attempt $attempt): $reconnectError');
-          if (attempt == maxRetries) {
-            return false;
-          }
+          print(
+              '[MessageHub] Failed to reconnect to user $otherUserId (attempt $attempt): $reconnectError');
+          if (attempt == maxRetries) return false;
           continue;
         }
       }
 
-      // Thử gửi tin nhắn
       try {
         final createMessageDto = CreateMessageDto(
           recipientId: otherUserId,
           content: content,
-          attachmentUrl: attachmentUrl,
+          resources: resources, 
         );
-        
-        // Hiển thị JSON trước khi gửi
+
         final messageJson = createMessageDto.toJson();
         print('[MessageHub] Sending message JSON: ${messageJson.toString()}');
-        
-        // Hiển thị chi tiết connection
         print('[MessageHub] Connection state: ${connection.state}');
         print('[MessageHub] Connection ID: ${connection.connectionId}');
-        
+
         await connection.invoke('SendMessage', args: [messageJson]);
-        print('[MessageHub] Message sent to user: $otherUserId (attempt $attempt)');
+        print(
+            '[MessageHub] Message sent to user: $otherUserId (attempt $attempt)');
         return true;
-        
       } catch (e) {
-        print('[MessageHub] Error sending message to user $otherUserId (attempt $attempt): $e');
-        
-        // Nếu lỗi do connection, đánh dấu là disconnected
-        if (e.toString().contains('connection is not in the \'Connected\' State') ||
+        print(
+            '[MessageHub] Error sending message to user $otherUserId (attempt $attempt): $e');
+
+        if (e
+                .toString()
+                .contains('connection is not in the \'Connected\' State') ||
             e.toString().contains('Connection closed with an error')) {
           _connectionStates[otherUserId] = false;
-          
+
           if (attempt < maxRetries) {
-            print('[MessageHub] Will retry sending message (attempt ${attempt + 1}/$maxRetries)');
+            print(
+                '[MessageHub] Will retry sending message (attempt ${attempt + 1}/$maxRetries)');
             await Future.delayed(Duration(milliseconds: 1000 * attempt));
             continue;
           }
         }
-        
-        if (attempt == maxRetries) {
-          return false;
-        }
+
+        if (attempt == maxRetries) return false;
       }
     }
-    
+
     return false;
   }
 
   // Request specific page of messages
-  Future<bool> requestMessagePage(String otherUserId, int pageNumber, int pageSize) async {
+  Future<bool> requestMessagePage(
+      String otherUserId, int pageNumber, int pageSize) async {
     final connection = _connections[otherUserId];
-    
-    if (connection == null || connection.state != HubConnectionState.Connected) {
+
+    if (connection == null ||
+        connection.state != HubConnectionState.Connected) {
       print('[MessageHub] Not connected to user $otherUserId');
       return false;
     }
 
     try {
-      print('[MessageHub] Requesting message page $pageNumber with size $pageSize for user $otherUserId');
-      
+      print(
+          '[MessageHub] Requesting message page $pageNumber with size $pageSize for user $otherUserId');
+
       await connection.invoke('GetMessages', args: [pageNumber, pageSize]);
-      
+
       print('[MessageHub] Message page request sent successfully');
       return true;
     } catch (e) {
@@ -330,9 +340,9 @@ class MessageHubService {
 
   bool isConnectionReady(String otherUserId) {
     final connection = _connections[otherUserId];
-    return connection != null && 
-           connection.state == HubConnectionState.Connected &&
-           (_connectionStates[otherUserId] ?? false);
+    return connection != null &&
+        connection.state == HubConnectionState.Connected &&
+        (_connectionStates[otherUserId] ?? false);
   }
 
   List<String> get connectedUsers => _connectionStates.entries
@@ -340,9 +350,11 @@ class MessageHubService {
       .map((entry) => entry.key)
       .toList();
 
-  bool get hasActiveConnections => _connectionStates.values.any((state) => state);
+  bool get hasActiveConnections =>
+      _connectionStates.values.any((state) => state);
 
-  int get activeConnectionsCount => _connectionStates.values.where((state) => state).length;
+  int get activeConnectionsCount =>
+      _connectionStates.values.where((state) => state).length;
 
   String getConnectionStateString(String otherUserId) {
     final connection = _connections[otherUserId];
@@ -354,25 +366,27 @@ class MessageHubService {
     if (isConnectionReady(otherUserId)) {
       return true;
     }
-    
+
     print('[MessageHub] Ensuring connection to user: $otherUserId');
-    
+
     try {
       final existingConnection = _connections[otherUserId];
-      if (existingConnection != null && existingConnection.state != HubConnectionState.Connected) {
+      if (existingConnection != null &&
+          existingConnection.state != HubConnectionState.Connected) {
         await existingConnection.start();
         _connectionStates[otherUserId] = true;
         return true;
       }
-      
+
       if (existingConnection == null) {
         await startConnection(accessToken, otherUserId);
         return isConnectionReady(otherUserId);
       }
-      
+
       return false;
     } catch (e) {
-      print('[MessageHub] Failed to ensure connection to user $otherUserId: $e');
+      print(
+          '[MessageHub] Failed to ensure connection to user $otherUserId: $e');
       return false;
     }
   }

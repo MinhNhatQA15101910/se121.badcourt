@@ -33,7 +33,7 @@ class GroupHubService {
     try {
       final hubUrl = '$signalrUri/hubs/group';
       print('[GroupHub] Connecting to: $hubUrl');
-      
+
       _connection = HubConnectionBuilder()
           .withUrl(
             hubUrl,
@@ -50,25 +50,30 @@ class GroupHubService {
       _connection!.on('ReceiveGroups', (arguments) {
         print('[GroupHub] Received groups event');
         print('[GroupHub] Arguments: $arguments');
-        
+
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final paginatedData = arguments[0];
-            print('[GroupHub] Paginated data type: ${paginatedData.runtimeType}');
+            print(
+                '[GroupHub] Paginated data type: ${paginatedData.runtimeType}');
             print('[GroupHub] Paginated data: $paginatedData');
-            
+
             if (paginatedData is Map<String, dynamic>) {
-              final paginatedGroups = PaginatedGroupsDto.fromJson(paginatedData);
+              final paginatedGroups =
+                  PaginatedGroupsDto.fromJson(paginatedData);
               onReceiveGroups?.call(paginatedGroups);
-              print('[GroupHub] Received paginated groups: ${paginatedGroups.items.length} groups on page ${paginatedGroups.currentPage}/${paginatedGroups.totalPages}');
-              
+              print(
+                  '[GroupHub] Received paginated groups: ${paginatedGroups.items.length} groups on page ${paginatedGroups.currentPage}/${paginatedGroups.totalPages}');
+
               // Log each group for debugging
               for (int i = 0; i < paginatedGroups.items.length; i++) {
                 final group = paginatedGroups.items[i];
-                print('[GroupHub] Group $i: ${group.name} with ${group.users.length} users, lastMessage: ${group.lastMessage?.content}');
+                print(
+                    '[GroupHub] Group $i: ${group.name} with ${group.users.length} users, lastMessage: ${group.lastMessage?.content}');
               }
             } else {
-              print('[GroupHub] Paginated data is not Map<String, dynamic>: ${paginatedData.runtimeType}');
+              print(
+                  '[GroupHub] Paginated data is not Map<String, dynamic>: ${paginatedData.runtimeType}');
             }
           } catch (e, stackTrace) {
             print('[GroupHub] Error parsing paginated groups: $e');
@@ -114,14 +119,15 @@ class GroupHubService {
       _connection!.on('NewMessageReceived', (arguments) {
         print('[GroupHub] Received NewMessageReceived event');
         print('[GroupHub] Arguments: $arguments');
-        
+
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final groupData = arguments[0];
             if (groupData is Map<String, dynamic>) {
               final group = GroupDto.fromJson(groupData);
               onNewMessageReceived?.call(group);
-              print('[GroupHub] NewMessageReceived processed: Group ${group.id} with message from ${group.lastMessage?.senderUsername}');
+              print(
+                  '[GroupHub] NewMessageReceived processed: Group ${group.id} with message from ${group.lastMessage?.senderUsername}');
             }
           } catch (e) {
             print('[GroupHub] Error parsing NewMessageReceived: $e');
@@ -133,7 +139,6 @@ class GroupHubService {
       await _connection!.start();
       _isConnected = true;
       print('✅ [GroupHub] Connected successfully');
-      
     } catch (e) {
       _isConnected = false;
       print('❌ [GroupHub] Connection failed: $e');
@@ -151,29 +156,6 @@ class GroupHubService {
       } catch (e) {
         print('[GroupHub] Error stopping connection: $e');
       }
-    }
-  }
-
-  // Send message to group
-  Future<bool> sendMessage(String groupId, String content, {String? attachmentUrl}) async {
-    if (!_isConnected || _connection == null) {
-      print('[GroupHub] Not connected');
-      return false;
-    }
-
-    try {
-      final messageData = {
-        'groupId': groupId,
-        'content': content,
-        if (attachmentUrl != null) 'attachmentUrl': attachmentUrl,
-      };
-
-      await _connection!.invoke('SendMessage', args: [messageData]);
-      print('[GroupHub] Message sent to group: $groupId');
-      return true;
-    } catch (e) {
-      print('[GroupHub] Error sending message: $e');
-      return false;
     }
   }
 
@@ -203,15 +185,15 @@ class GroupHubService {
 
     try {
       print('[GroupHub] Requesting page $pageNumber with size $pageSize');
-      
+
       // Check if the server supports the GetGroups method with pagination
       await _connection!.invoke('GetGroups', args: [pageNumber, pageSize]);
-      
+
       print('[GroupHub] Page request sent successfully');
       return true;
     } catch (e) {
       print('[GroupHub] Error requesting page: $e');
-      
+
       // Fallback to default method if pagination not supported
       print('[GroupHub] Falling back to default method');
       return await requestGroups();

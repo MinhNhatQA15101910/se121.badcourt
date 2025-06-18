@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:frontend/models/post_resource.dart'; // Import from separate file
+
+import 'package:frontend/models/file_dto.dart';
 
 class Post {
   final String id;
@@ -8,7 +9,7 @@ class Post {
   final String publisherImageUrl;
   final String title;
   final String content;
-  final List<PostResource> resources;
+  final List<FileDto> resources;
   final int likesCount;
   final bool isLiked;
   final int commentsCount;
@@ -37,8 +38,8 @@ class Post {
       title: map['title']?.toString() ?? '',
       content: map['content']?.toString() ?? '',
       resources: map['resources'] != null
-          ? List<PostResource>.from(
-              map['resources'].map((r) => PostResource.fromMap(r)))
+          ? List<FileDto>.from(
+              map['resources'].map((r) => FileDto.fromJson(r)))
           : [],
       // Fix: Handle both string and int types for likesCount
       likesCount: _parseToInt(map['likesCount']),
@@ -71,7 +72,7 @@ class Post {
       'publisherImageUrl': publisherImageUrl,
       'title': title,
       'content': content,
-      'resources': resources.map((r) => r.toMap()).toList(),
+      'resources': resources.map((r) => r.toJson()).toList(),
       'likesCount': likesCount,
       'isLiked': isLiked,
       'commentsCount': commentsCount,
@@ -91,7 +92,7 @@ class Post {
     String? publisherImageUrl,
     String? title,
     String? content,
-    List<PostResource>? resources,
+    List<FileDto>? resources,
     int? likesCount,
     bool? isLiked,
     int? commentsCount,

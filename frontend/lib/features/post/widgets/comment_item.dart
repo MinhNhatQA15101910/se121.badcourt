@@ -4,7 +4,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/models/comment.dart';
-import 'package:frontend/models/post_resource.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 
@@ -394,7 +394,7 @@ class _CommentItemState extends State<CommentItem> {
     // Convert URLs to PostResource objects with required parameters
     final resources = mediaUrls.map((url) {
       final isVideo = PostService.isVideoUrl(url);
-      return PostResource(
+      return FileDto(
         id: url.hashCode.toString(),
         url: url,
         isMain: false, // Comment media is never main

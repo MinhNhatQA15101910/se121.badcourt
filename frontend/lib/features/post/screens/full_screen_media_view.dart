@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/models/post_resource.dart';
 import 'package:frontend/features/post/services/post_service.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,7 +13,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 class FullScreenMediaView extends StatefulWidget {
   static const String routeName = '/full-screen-media-view';
   
-  final List<PostResource> resources;
+  final List<FileDto> resources;
   final int initialIndex;
   final String postTitle;
 

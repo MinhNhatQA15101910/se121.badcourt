@@ -8,30 +8,32 @@ import 'package:frontend/common/services/court_hub_service.dart';
 import 'package:frontend/models/paginated_groups_dto.dart';
 
 class SignalRManagerService {
-  static final SignalRManagerService _instance = SignalRManagerService._internal();
+  static final SignalRManagerService _instance =
+      SignalRManagerService._internal();
   factory SignalRManagerService() => _instance;
   SignalRManagerService._internal();
 
   final PresenceService _presenceService = PresenceService();
   final GroupHubService _groupHubService = GroupHubService();
   final MessageHubService _messageHubService = MessageHubService();
-  final NotificationHubService _notificationHubService = NotificationHubService();
+  final NotificationHubService _notificationHubService =
+      NotificationHubService();
   final CourtHubService _courtHubService = CourtHubService();
 
   // Start all SignalR connections
   Future<void> startAllConnections(String accessToken) async {
     try {
       print('[SignalRManager] Starting all SignalR connections...');
-      
+
       // Start presence connection
       await _presenceService.startConnection(accessToken);
-      
+
       // Start group hub connection
       await _groupHubService.startConnection(accessToken);
-      
+
       // Start notification hub connection
       await _notificationHubService.startConnection(accessToken);
-      
+
       print('✅ [SignalRManager] All connections started successfully');
     } catch (e) {
       print('❌ [SignalRManager] Error starting connections: $e');
@@ -43,13 +45,13 @@ class SignalRManagerService {
   Future<void> stopAllConnections() async {
     try {
       print('[SignalRManager] Stopping all SignalR connections...');
-      
+
       await _presenceService.stopConnection();
       await _groupHubService.stopConnection();
       await _messageHubService.stopAllConnections();
       await _notificationHubService.stopConnection();
       await _courtHubService.disconnectFromAllCourts(); // Add this line
-      
+
       print('✅ [SignalRManager] All connections stopped');
     } catch (e) {
       print('❌ [SignalRManager] Error stopping connections: $e');
@@ -69,16 +71,6 @@ class SignalRManagerService {
   // Disconnect from a specific user
   Future<void> disconnectFromUser(String otherUserId) async {
     await _messageHubService.stopConnection(otherUserId);
-  }
-
-  // Send message to a user
-  Future<bool> sendMessage(String otherUserId, String content, {String? attachmentUrl}) async {
-    return await _messageHubService.sendMessage(otherUserId, content, attachmentUrl: attachmentUrl);
-  }
-
-  // Send message to group
-  Future<bool> sendMessageToGroup(String groupId, String content, {String? attachmentUrl}) async {
-    return await _groupHubService.sendMessage(groupId, content, attachmentUrl: attachmentUrl);
   }
 
   // Mark group as read
@@ -116,12 +108,14 @@ class SignalRManagerService {
   // Connection status
   bool get isPresenceConnected => _presenceService.isConnected;
   bool get isGroupHubConnected => _groupHubService.isConnected;
-  bool isConnectedToUser(String userId) => _messageHubService.isConnectedToUser(userId);
+  bool isConnectedToUser(String userId) =>
+      _messageHubService.isConnectedToUser(userId);
   bool get isNotificationHubConnected => _notificationHubService.isConnected;
-  
+
   List<String> get connectedUsers => _messageHubService.connectedUsers;
 
-  bool isConnectedToCourt(String courtId) => _courtHubService.isConnectedToCourt(courtId);
+  bool isConnectedToCourt(String courtId) =>
+      _courtHubService.isConnectedToCourt(courtId);
   List<String> get connectedCourts => _courtHubService.connectedCourts;
 
   // Initialize all services with callbacks - Updated to use PaginatedGroupsDto
@@ -143,11 +137,13 @@ class SignalRManagerService {
     _groupHubService.onReceiveGroups = onReceiveGroups;
     _groupHubService.onNewMessage = onNewMessage;
     _groupHubService.onGroupUpdated = onGroupUpdated;
-    _groupHubService.onNewMessageReceived = onNewMessageReceived; // Thêm callback mới
+    _groupHubService.onNewMessageReceived =
+        onNewMessageReceived; // Thêm callback mới
   }
 
   // Helper method to convert List<GroupDto> to PaginatedGroupsDto for backward compatibility
-  PaginatedGroupsDto createPaginatedGroups(List<GroupDto> groups, {
+  PaginatedGroupsDto createPaginatedGroups(
+    List<GroupDto> groups, {
     int currentPage = 1,
     int totalPages = 1,
     int pageSize = 20,

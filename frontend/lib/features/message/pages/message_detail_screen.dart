@@ -37,7 +37,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   User? _otherUser;
 
   final ImagePicker _picker = ImagePicker();
-  List<File> _imageFiles = [];
+  List<File> _mediaFiles = [];
 
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -341,26 +341,45 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
 
   // Removed _onScrollListener as it's now handled by MessageListWidget
 
-  Future<void> _pickImages() async {
-    final List<XFile>? selectedImages = await _picker.pickMultiImage();
-    if (selectedImages != null) {
-      setState(() {
-        _imageFiles.addAll(
-          selectedImages.map((xfile) => File(xfile.path)).toList(),
-        );
-      });
-    }
+Future<void> _pickMedia() async {
+  final ImagePicker _picker = ImagePicker();
+
+  // Chọn ảnh (nhiều)
+  final List<XFile>? images = await _picker.pickMultiImage();
+
+  // Chọn video (chỉ 1 lần tại 1 thời điểm, bạn có thể lặp nếu cần nhiều video)
+  final XFile? video = await _picker.pickVideo(
+    source: ImageSource.gallery,
+  );
+
+  final List<File> pickedMedia = [];
+
+  if (images != null) {
+    pickedMedia.addAll(images.map((xfile) => File(xfile.path)));
   }
 
-  void _removeImage(int index) {
+  if (video != null) {
+    pickedMedia.add(File(video.path));
+  }
+
+  if (pickedMedia.isNotEmpty) {
     setState(() {
-      _imageFiles.removeAt(index);
+      _mediaFiles.addAll(pickedMedia);
     });
   }
+}
+
+
+void _removeMedia(int index) {
+  setState(() {
+    _mediaFiles.removeAt(index);
+  });
+}
+
 
   // Enhanced _sendMessage method với better retry logic
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty && _imageFiles.isEmpty) {
+    if (_messageController.text.trim().isEmpty && _mediaFiles.isEmpty) {
       _showSnackBar('Message cannot be empty');
       return;
     }
@@ -369,7 +388,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
     _messageController.clear();
 
     setState(() {
-      _imageFiles = [];
+      _mediaFiles = [];
       _isSendingMessage = true;
     });
 
@@ -547,11 +566,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
                   ),
                   MessageInputWidget(
                     messageController: _messageController,
-                    imageFiles: _imageFiles,
+                    mediaFiles: _mediaFiles,
                     isConnected: _isConnected,
                     isSendingMessage: _isSendingMessage,
-                    onPickImages: _pickImages,
-                    onRemoveImage: _removeImage,
+                    onPickMedia: _pickMedia,
+                    onRemoveMedia: _removeMedia,
                     onSendMessage: _sendMessage,
                   ),
                 ],

@@ -1,19 +1,19 @@
 class CreateMessageDto {
   final String recipientId;
   final String content;
-  final String? attachmentUrl;
+  final List<Map<String, dynamic>> resources;
 
   CreateMessageDto({
     required this.recipientId,
     required this.content,
-    this.attachmentUrl,
+    this.resources = const [],
   });
 
   Map<String, dynamic> toJson() {
     return {
       'recipientId': recipientId,
       'content': content,
-      if (attachmentUrl != null) 'attachmentUrl': attachmentUrl,
+      'resources': resources,
     };
   }
 
@@ -21,7 +21,10 @@ class CreateMessageDto {
     return CreateMessageDto(
       recipientId: json['recipientId'] ?? '',
       content: json['content'] ?? '',
-      attachmentUrl: json['attachmentUrl'],
+      resources: (json['resources'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e))
+              .toList() ??
+          [],
     );
   }
 }

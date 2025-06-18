@@ -4,23 +4,23 @@ class FileDto {
   final bool isMain;
   final String fileType;
 
-  const FileDto({
+  FileDto({
     this.id,
     required this.url,
     required this.isMain,
     required this.fileType,
   });
 
-  factory FileDto.fromMap(Map<String, dynamic> map) {
+  factory FileDto.fromJson(Map<String, dynamic> json) {
     return FileDto(
-      id: map['id'],
-      url: map['url'] ?? '',
-      isMain: map['isMain'] ?? false,
-      fileType: map['fileType'] ?? '',
+      id: json['id']?.toString(),
+      url: json['url']?.toString() ?? '',
+      isMain: json['isMain'] ?? false,
+      fileType: json['fileType']?.toString() ?? '',
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'url': url,

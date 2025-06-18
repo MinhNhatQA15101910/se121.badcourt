@@ -1,3 +1,5 @@
+import 'package:frontend/models/file_dto.dart';
+
 class MessageDto {
   final String id;
   final String senderId;
@@ -6,7 +8,8 @@ class MessageDto {
   final DateTime messageSent;
   final String? senderUsername;
   final String? senderPhotoUrl;
-  final DateTime? dateRead; // Thay đổi từ String? thành DateTime?
+  final DateTime? dateRead;
+  final List<FileDto> resources;
 
   MessageDto({
     required this.id,
@@ -17,6 +20,7 @@ class MessageDto {
     this.senderUsername,
     this.senderPhotoUrl,
     this.dateRead,
+    this.resources = const [],
   });
 
   factory MessageDto.fromJson(Map<String, dynamic> json) {
@@ -30,17 +34,21 @@ class MessageDto {
             ? DateTime.parse(json['messageSent'].toString())
             : DateTime.now(),
         senderUsername: json['senderUsername']?.toString(),
-        senderPhotoUrl: json['senderMessageUrl']?.toString(), // Note: server uses 'senderMessageUrl'
+        senderPhotoUrl: json['senderMessageUrl']?.toString(), // Backend uses this name
         dateRead: json['dateRead'] != null && json['dateRead'].toString().isNotEmpty
             ? DateTime.parse(json['dateRead'].toString())
             : null,
+        resources: json['resources'] != null && json['resources'] is List
+            ? (json['resources'] as List)
+                .map((item) => FileDto.fromJson(item))
+                .toList()
+            : [],
       );
     } catch (e, stackTrace) {
       print('Error parsing MessageDto from JSON: $e');
       print('JSON data: $json');
       print('Stack trace: $stackTrace');
-      
-      // Return a default MessageDto to prevent crashes
+
       return MessageDto(
         id: json['id']?.toString() ?? 'unknown',
         senderId: json['senderId']?.toString() ?? 'unknown',
@@ -50,6 +58,7 @@ class MessageDto {
         senderUsername: json['senderUsername']?.toString() ?? 'Unknown',
         senderPhotoUrl: null,
         dateRead: null,
+        resources: [],
       );
     }
   }
@@ -62,13 +71,14 @@ class MessageDto {
       'content': content,
       'messageSent': messageSent.toIso8601String(),
       'senderUsername': senderUsername,
-      'senderMessageUrl': senderPhotoUrl, // Note: server expects 'senderMessageUrl'
+      'senderMessageUrl': senderPhotoUrl,
       'dateRead': dateRead?.toIso8601String(),
+      'resources': resources.map((f) => f.toJson()).toList(),
     };
   }
 
   @override
   String toString() {
-    return 'MessageDto{id: $id, senderId: $senderId, groupId: $groupId, content: $content, messageSent: $messageSent, senderUsername: $senderUsername, dateRead: $dateRead}';
+    return 'MessageDto{id: $id, senderId: $senderId, groupId: $groupId, content: $content, messageSent: $messageSent, senderUsername: $senderUsername, dateRead: $dateRead, resources: $resources}';
   }
 }

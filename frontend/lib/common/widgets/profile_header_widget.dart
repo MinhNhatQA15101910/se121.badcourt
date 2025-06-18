@@ -4,7 +4,6 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/services/user_service.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/photo.dart';
-import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
