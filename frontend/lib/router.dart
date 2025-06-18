@@ -31,6 +31,7 @@ import 'package:frontend/features/post/screens/create_post_screen.dart';
 import 'package:frontend/features/post/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
+import 'package:frontend/features/post/screens/user_profile_screen.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
   switch (routeSettings.name) {
@@ -188,6 +189,14 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => PostDetailScreen(postId: postId),
+      );
+    case UserProfileScreen.routeName:
+      final userId = routeSettings.arguments as String;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => UserProfileScreen(
+          userId: userId,
+        ),
       );
     case FullScreenMediaView.routeName:
       final args = routeSettings.arguments as Map<String, dynamic>;

@@ -250,8 +250,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'courtbookingcancelled':
         if (data.bookingId != null) {
           print('Navigate to booking details: ${data.bookingId}');
-          // TODO: Navigate to booking detail screen
-          // Navigator.push(context, ...);
         }
         break;
 
@@ -272,9 +270,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         break;
 
       case 'commentliked':
-        if (data.commentId != null) {
-          print('Navigate to comment: ${data.commentId}');
-          // TODO: Navigate to comment or comment thread
+        if (data.postId != null) {
+          Navigator.of(context).pushNamed(
+            PostDetailScreen.routeName,
+            arguments: data.postId,
+          );
         }
         break;
 

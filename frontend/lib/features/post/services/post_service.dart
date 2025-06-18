@@ -6,6 +6,8 @@ import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
+import 'package:frontend/models/user.dart';
+import 'package:frontend/models/user_dto.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -13,36 +15,51 @@ import 'package:provider/provider.dart';
 class PostService {
   // Maximum file size: 100MB in bytes
   static const int maxFileSize = 100 * 1024 * 1024; // 100MB
-  
+
   // Supported video formats
   static const List<String> supportedVideoFormats = [
-    '.mp4', '.mov', '.avi', '.mkv', '.wmv', '.flv', '.webm', '.m4v'
+    '.mp4',
+    '.mov',
+    '.avi',
+    '.mkv',
+    '.wmv',
+    '.flv',
+    '.webm',
+    '.m4v'
   ];
-  
+
   // Supported image formats
   static const List<String> supportedImageFormats = [
-    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.bmp',
+    '.webp'
   ];
 
   // Validate file size and format
   bool _validateFile(File file) {
     final fileSize = file.lengthSync();
     final fileName = file.path.toLowerCase();
-    
+
     // Check file size
     if (fileSize > maxFileSize) {
       return false;
     }
-    
+
     // Check if it's a supported format
     bool isValidFormat = false;
-    for (String format in [...supportedImageFormats, ...supportedVideoFormats]) {
+    for (String format in [
+      ...supportedImageFormats,
+      ...supportedVideoFormats
+    ]) {
       if (fileName.endsWith(format)) {
         isValidFormat = true;
         break;
       }
     }
-    
+
     return isValidFormat;
   }
 
@@ -71,7 +88,7 @@ class PostService {
         if (!_validateFile(file)) {
           final fileSize = file.lengthSync();
           final fileName = file.path.split('/').last;
-          
+
           if (fileSize > maxFileSize) {
             IconSnackBar.show(
               context,
@@ -134,7 +151,7 @@ class PostService {
   Future<Map<String, dynamic>> fetchAllPosts({
     required BuildContext context,
     int pageNumber = 1,
-    int pageSize = 10,
+    int pageSize = 20,
     String searchQuery = '',
   }) async {
     final userProvider = Provider.of<UserProvider>(
@@ -147,7 +164,8 @@ class PostService {
 
     try {
       // Build the URL with search query if provided
-      String url = '$uri/gateway/posts?pageSize=$pageSize&pageNumber=$pageNumber';
+      String url =
+          '$uri/gateway/posts?pageSize=$pageSize&pageNumber=$pageNumber';
       if (searchQuery.isNotEmpty) {
         url += '&search=${Uri.encodeComponent(searchQuery)}';
       }
@@ -166,39 +184,33 @@ class PostService {
         onSuccess: () {
           try {
             final jsonResponse = jsonDecode(response.body);
-            
-            // Handle direct array response (not wrapped in object)
-            List<dynamic> postsData;
-            if (jsonResponse is List) {
-              // Direct array response
-              postsData = jsonResponse;
-              totalPages = 1; // Default since no pagination info in direct array
-            } else if (jsonResponse is Map) {
-              // Object response with posts key
-              postsData = jsonResponse['posts'] ?? [];
-              totalPages = _parseToInt(jsonResponse['totalPages']) ?? 1;
-            } else {
-              postsData = [];
+
+            // Get totalPages from response headers
+            if (response.headers.containsKey('pagination')) {
+              final paginationHeader = response.headers['pagination'];
+              if (paginationHeader != null) {
+                final paginationMap = jsonDecode(paginationHeader);
+                final rawTotalPages = paginationMap['totalPages'];
+                if (rawTotalPages is int) {
+                  totalPages = rawTotalPages;
+                } else if (rawTotalPages is String) {
+                  totalPages = int.tryParse(rawTotalPages) ?? 1;
+                }
+              }
             }
-            
-            // Parse each post
-            for (var object in postsData) {
+
+            // Continue parsing posts
+            final rawPosts = jsonResponse;
+            for (var object in rawPosts) {
               try {
                 posts.add(Post.fromMap(object));
               } catch (e) {
                 print('Error parsing individual post: $e');
                 print('Post data: $object');
-                // Continue with other posts even if one fails
               }
             }
           } catch (e) {
             print('Error parsing response: $e');
-            print('Response body: ${response.body}');
-            IconSnackBar.show(
-              context,
-              label: 'Error parsing posts data: ${e.toString()}',
-              snackBarType: SnackBarType.fail,
-            );
           }
         },
       );
@@ -215,6 +227,102 @@ class PostService {
       'totalPages': totalPages,
     };
   }
+
+  Future<Map<String, dynamic>> fetchPostsByUserId({
+  required BuildContext context,
+  required String publisherId,
+  int pageNumber = 1,
+  int pageSize = 20,
+}) async {
+  final userProvider = Provider.of<UserProvider>(
+    context,
+    listen: false,
+  );
+
+  List<Post> posts = [];
+  int totalPages = 1;
+
+  try {
+    String url =
+        '$uri/gateway/posts?publisherId=$publisherId&pageSize=$pageSize&pageNumber=$pageNumber';
+
+    http.Response response = await http.get(
+      Uri.parse(url),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ${userProvider.user.token}',
+      },
+    );
+
+    httpErrorHandler(
+      response: response,
+      context: context,
+      onSuccess: () {
+        try {
+          final jsonResponse = jsonDecode(response.body);
+
+          // Get totalPages from response headers (like fetchAllPosts)
+          if (response.headers.containsKey('pagination')) {
+            final paginationHeader = response.headers['pagination'];
+            if (paginationHeader != null) {
+              final paginationMap = jsonDecode(paginationHeader);
+              final rawTotalPages = paginationMap['totalPages'];
+              if (rawTotalPages is int) {
+                totalPages = rawTotalPages;
+              } else if (rawTotalPages is String) {
+                totalPages = int.tryParse(rawTotalPages) ?? 1;
+              }
+            }
+          }
+
+          // Parse posts
+          if (jsonResponse is List) {
+            // If it's a plain list
+            for (var object in jsonResponse) {
+              try {
+                posts.add(Post.fromMap(object));
+              } catch (e) {
+                print('Error parsing individual post: $e');
+                print('Post data: $object');
+              }
+            }
+          } else if (jsonResponse is Map) {
+            // If it's a wrapped response (edge case)
+            final rawPosts = jsonResponse['posts'] ?? [];
+            for (var object in rawPosts) {
+              try {
+                posts.add(Post.fromMap(object));
+              } catch (e) {
+                print('Error parsing individual post: $e');
+                print('Post data: $object');
+              }
+            }
+          }
+        } catch (e) {
+          print('Error parsing response: $e');
+          print('Response body: ${response.body}');
+          IconSnackBar.show(
+            context,
+            label: 'Error parsing posts data: ${e.toString()}',
+            snackBarType: SnackBarType.fail,
+          );
+        }
+      },
+    );
+  } catch (error) {
+    IconSnackBar.show(
+      context,
+      label: error.toString(),
+      snackBarType: SnackBarType.fail,
+    );
+  }
+
+  return {
+    'posts': posts,
+    'totalPages': totalPages,
+  };
+}
+
 
   Future<Post?> fetchPostById({
     required BuildContext context,
@@ -265,6 +373,55 @@ class PostService {
     }
   }
 
+  Future<UserDto?> fetchUserById({
+    required BuildContext context,
+    required String userId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      final Uri currentUri = Uri.parse('$uri/gateway/users/$userId');
+
+      http.Response res = await http.get(
+        currentUri,
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      UserDto? user;
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          try {
+            final data = jsonDecode(res.body);
+            user = UserDto.fromJson(data);
+          } catch (e) {
+            print('Error parsing post by ID: $e');
+            print('Post data: ${res.body}');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing post data',
+              snackBarType: SnackBarType.fail,
+            );
+          }
+        },
+      );
+
+      return user;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
+    }
+  }
+
   Future<void> createComment(
     BuildContext context,
     String postId,
@@ -277,18 +434,18 @@ class PostService {
     );
 
     try {
-    // Create a deep copy of the list to completely avoid concurrent modification
+      // Create a deep copy of the list to completely avoid concurrent modification
       final List<File> mediaFilesCopy = [];
       for (File file in mediaFiles) {
         mediaFilesCopy.add(File(file.path));
       }
-    
+
       // Validate all media files before uploading using the copy
       for (File file in mediaFilesCopy) {
         if (!_validateFile(file)) {
           final fileSize = file.lengthSync();
           final fileName = file.path.split('/').last;
-        
+
           if (fileSize > maxFileSize) {
             IconSnackBar.show(
               context,
@@ -381,12 +538,13 @@ class PostService {
         onSuccess: () {
           try {
             final responseData = jsonDecode(res.body);
-            
+
             // Handle both array and object response formats
             List<dynamic> commentsData;
             if (responseData is List) {
               commentsData = responseData;
-            } else if (responseData is Map && responseData['comments'] != null) {
+            } else if (responseData is Map &&
+                responseData['comments'] != null) {
               commentsData = responseData['comments'];
             } else {
               commentsData = [];
