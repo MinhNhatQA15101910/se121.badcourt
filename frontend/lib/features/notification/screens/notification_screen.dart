@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/notification/services/notification_service.dart';
 import 'package:frontend/features/notification/widgets/notification_item.dart';
 import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
+import 'package:frontend/models/notification_dto.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,23 +19,192 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  final NotificationService _notificationService = NotificationService();
+  final ScrollController _scrollController = ScrollController();
+  
+  // Pagination state
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _isLoadingMore = false;
+  bool _hasMorePages = false;
+  List<NotificationDto> _allNotifications = [];
+
   @override
   void initState() {
     super.initState();
-    // Refresh notifications when screen loads
+    
+    // Add scroll listener for infinite pagination
+    _scrollController.addListener(_onScroll);
+    
+    // Initialize SignalR and load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final notificationProvider =
-          Provider.of<NotificationProvider>(context, listen: false);
-
-      // Ensure we're connected to the notification hub
-      if (!notificationProvider.isConnected) {
-        notificationProvider.initializeNotificationHub(userProvider.user.token);
-      }
-
-      // Refresh notifications
-      notificationProvider.refreshNotifications();
+      _initializeNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Initialize SignalR connection and sync with provider notifications
+  Future<void> _initializeNotifications() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+
+    // Ensure we're connected to the notification hub
+    if (!notificationProvider.isConnected) {
+      await notificationProvider.initializeNotificationHub(userProvider.user.token);
+    }
+
+    // Refresh notifications via SignalR
+    await notificationProvider.refreshNotifications();
+    
+    // Sync initial data from provider
+    _syncWithProvider();
+    
+    // Check pagination info after initial load
+    await _checkPaginationInfo();
+  }
+
+  // Sync local state with NotificationProvider
+  void _syncWithProvider() {
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+    
+    setState(() {
+      _allNotifications = List.from(notificationProvider.notifications);
+      _currentPage = 1; // SignalR provides first page
+      // Don't assume there are more pages, let REST API determine this
+      _hasMorePages = true; // We'll check this on first REST API call
+      _totalPages = 1; // Will be updated by first REST API call
+    });
+  }
+
+  // Scroll listener for infinite pagination
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreNotifications();
+    }
+  }
+
+  // Load more notifications using REST API
+  Future<void> _loadMoreNotifications() async {
+    if (_isLoadingMore) {
+      return;
+    }
+
+    // For the first REST API call, we don't know total pages yet
+    if (_totalPages > 1 && _currentPage >= _totalPages) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final nextPage = _currentPage + 1;
+      print('Loading notifications page $nextPage'); // Debug log
+      
+      final paginatedResponse = await _notificationService.fetchNotification(
+        context: context,
+        pageNumber: nextPage,
+      );
+
+      if (mounted) {
+        setState(() {
+          // Update pagination info from REST API response
+          _totalPages = paginatedResponse.totalPages;
+          
+          if (paginatedResponse.items.isNotEmpty) {
+            // Add new notifications to the list
+            _allNotifications.addAll(paginatedResponse.items);
+            _currentPage = paginatedResponse.currentPage;
+            _hasMorePages = _currentPage < _totalPages;
+          } else {
+            _hasMorePages = false;
+          }
+        
+        print('Updated: currentPage=$_currentPage, totalPages=$_totalPages, hasMore=$_hasMorePages');
+      });
+      
+      print('Loaded ${paginatedResponse.items.length} notifications. Total: ${_allNotifications.length}');
+    }
+  } catch (error) {
+    if (mounted) {
+      print('Error loading more notifications: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load more notifications: $error'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+}
+
+  // Refresh all notifications
+  Future<void> _refreshNotifications() async {
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+    
+    setState(() {
+      _currentPage = 1;
+      _totalPages = 1;
+      _hasMorePages = true;
+      _allNotifications.clear();
+    });
+
+    // Refresh via SignalR first
+    await notificationProvider.refreshNotifications();
+    
+    // Sync with provider
+    _syncWithProvider();
+  }
+
+  // Handle new real-time notifications from SignalR
+  void _handleNewNotification(NotificationDto newNotification) {
+    setState(() {
+      // Add new notification to the beginning of the list
+      _allNotifications.insert(0, newNotification);
+    });
+  }
+
+  // Check pagination info by making a test call to page 2
+  Future<void> _checkPaginationInfo() async {
+    try {
+      final testResponse = await _notificationService.fetchNotification(
+        context: context,
+        pageNumber: 2, // Check if page 2 exists
+      );
+    
+      if (mounted) {
+        setState(() {
+          _totalPages = testResponse.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
+        });
+        
+        print('Pagination info: totalPages=$_totalPages, hasMore=$_hasMorePages');
+      }
+    } catch (error) {
+      print('Error checking pagination info: $error');
+      // If error, assume no more pages
+      setState(() {
+        _hasMorePages = false;
+      });
+    }
   }
 
   @override
@@ -96,7 +267,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
         color: GlobalVariables.defaultColor,
         child: Consumer<NotificationProvider>(
           builder: (context, notificationProvider, _) {
-            if (notificationProvider.isLoading) {
+            // Listen for new notifications from SignalR
+            if (notificationProvider.notifications.length > _allNotifications.length) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _syncWithProvider();
+              });
+            }
+
+            if (notificationProvider.isLoading && _allNotifications.isEmpty) {
               return const Center(
                 child: CircularProgressIndicator(
                   color: GlobalVariables.green,
@@ -104,7 +282,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               );
             }
 
-            if (notificationProvider.error != null) {
+            if (notificationProvider.error != null && _allNotifications.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -133,9 +311,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () {
-                        notificationProvider.refreshNotifications();
-                      },
+                      onPressed: _refreshNotifications,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: GlobalVariables.green,
                       ),
@@ -146,7 +322,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               );
             }
 
-            if (notificationProvider.notifications.isEmpty) {
+            if (_allNotifications.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -178,53 +354,188 @@ class _NotificationScreenState extends State<NotificationScreen> {
             }
 
             return RefreshIndicator(
-              onRefresh: () async {
-                await notificationProvider.refreshNotifications();
-              },
+              onRefresh: _refreshNotifications,
               color: GlobalVariables.green,
               child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification scrollInfo) {
-                  if (scrollInfo.metrics.pixels ==
-                          scrollInfo.metrics.maxScrollExtent &&
-                      notificationProvider.hasMorePages &&
-                      !notificationProvider.isLoadingMore) {
-                    notificationProvider.loadNextPage();
-                    return true;
+                  // Additional scroll detection for better infinite scroll
+                  if (scrollInfo is ScrollEndNotification &&
+                      scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
+                    _loadMoreNotifications();
                   }
                   return false;
                 },
-                child: ListView.builder(
-                  itemCount: notificationProvider.notifications.length +
-                      (notificationProvider.hasMorePages ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    // Show loading indicator at the bottom when loading more
-                    if (index == notificationProvider.notifications.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: GlobalVariables.green,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    // Pagination info
+                    if (_totalPages > 1 && _allNotifications.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Container(
+                          margin: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.notifications_outlined,
+                                size: 16,
+                                color: GlobalVariables.green,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Showing ${_allNotifications.length} notifications',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: GlobalVariables.darkGrey,
+                                ),
+                              ),
+                              if (_hasMorePages) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: GlobalVariables.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Page $_currentPage of $_totalPages',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: GlobalVariables.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      );
-                    }
+                      ),
 
-                    final notification =
-                        notificationProvider.notifications[index];
-                    return NotificationItem(
-                      notification: notification,
-                      onTap: () {
-                        // Mark as read when tapped
-                        if (!notification.isRead) {
-                          notificationProvider
-                              .markNotificationAsRead(notification.id);
-                        }
+                    // Notifications list
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final notification = _allNotifications[index];
+                          return NotificationItem(
+                            notification: notification,
+                            onTap: () {
+                              // Mark as read when tapped
+                              if (!notification.isRead) {
+                                notificationProvider.markNotificationAsRead(notification.id);
+                              }
 
-                        // Handle navigation based on notification type and data
-                        _handleNotificationTap(notification);
-                      },
-                    );
-                  },
+                              // Handle navigation based on notification type and data
+                              _handleNotificationTap(notification);
+                            },
+                          );
+                        },
+                        childCount: _allNotifications.length,
+                      ),
+                    ),
+
+                    // Loading more indicator
+                    if (_isLoadingMore)
+                      SliverToBoxAdapter(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Loading more notifications...',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: GlobalVariables.darkGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // End of list indicator
+                    if (_allNotifications.isNotEmpty && !_hasMorePages && !_isLoadingMore)
+                      SliverToBoxAdapter(
+                        child: Container(
+                          margin: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.check_circle_outline,
+                                size: 16,
+                                color: GlobalVariables.green,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'All notifications loaded',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: GlobalVariables.darkGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Bottom spacing
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 20),
+                    ),
+                  ],
                 ),
               ),
             );

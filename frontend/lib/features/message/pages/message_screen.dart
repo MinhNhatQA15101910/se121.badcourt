@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/user_message_box.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/user_dto.dart';
@@ -20,10 +21,14 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final MessageService _messageService = MessageService();
 
-  List<GroupDto> groups = [];
+  // Local state for hybrid approach
+  List<GroupDto> _allGroups = [];
   List<GroupDto> filteredGroups = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
   bool _hasMorePages = false;
   int _currentPage = 1;
   int _totalPages = 1;
@@ -31,7 +36,27 @@ class _MessageScreenState extends State<MessageScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Add scroll listener for infinite pagination
+    _scrollController.addListener(_onScroll);
+    
     _initializeScreen();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Scroll listener for infinite pagination
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreGroups();
+    }
   }
 
   Future<void> _initializeScreen() async {
@@ -50,28 +75,13 @@ class _MessageScreenState extends State<MessageScreen> {
     // Check if GroupProvider is connected and has groups
     if (groupProvider.isConnected) {
       if (groupProvider.groups.isNotEmpty) {
-        // Already have groups
-        setState(() {
-          groups = groupProvider.groups;
-          _currentPage = groupProvider.currentPage;
-          _totalPages = groupProvider.totalPages;
-          _hasMorePages = _currentPage < _totalPages;
-          _updateFilteredGroups();
-          _isLoading = false;
-        });
+        // Already have groups from SignalR
+        _syncWithProvider();
       } else {
         // Connected but no groups yet, wait for automatic updates
         print('[MessageScreen] Connected to GroupHub, waiting for groups...');
         await Future.delayed(const Duration(seconds: 2));
-        
-        setState(() {
-          groups = groupProvider.groups;
-          _currentPage = groupProvider.currentPage;
-          _totalPages = groupProvider.totalPages;
-          _hasMorePages = _currentPage < _totalPages;
-          _updateFilteredGroups();
-          _isLoading = false;
-        });
+        _syncWithProvider();
       }
     } else {
       // Not connected yet, try to initialize GroupHub
@@ -86,19 +96,120 @@ class _MessageScreenState extends State<MessageScreen> {
         
         // Wait for groups to load
         await Future.delayed(const Duration(seconds: 3));
-        
-        setState(() {
-          groups = groupProvider.groups;
-          _currentPage = groupProvider.currentPage;
-          _totalPages = groupProvider.totalPages;
-          _hasMorePages = _currentPage < _totalPages;
-          _updateFilteredGroups();
-          _isLoading = false;
-        });
+        _syncWithProvider();
       } catch (e) {
         print('[MessageScreen] Error initializing GroupHub: $e');
         setState(() {
           _isLoading = false;
+        });
+      }
+    }
+
+    // Check pagination info after initial load
+    await _checkPaginationInfo();
+  }
+
+  // Sync local state with GroupProvider
+  void _syncWithProvider() {
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    
+    setState(() {
+      _allGroups = List.from(groupProvider.groups);
+      _currentPage = 1; // SignalR provides first page
+      _hasMorePages = true; // Will be updated by REST API
+      _updateFilteredGroups();
+      _isLoading = false;
+    });
+  }
+
+  // Check pagination info by making a test call to page 2
+  Future<void> _checkPaginationInfo() async {
+    try {
+      final testResponse = await _messageService.fetchGroup(
+        context: context,
+        pageNumber: 2, // Check if page 2 exists
+      );
+    
+      if (mounted) {
+        setState(() {
+          _totalPages = testResponse.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
+        });
+        
+        print('Group pagination info: totalPages=$_totalPages, hasMore=$_hasMorePages');
+      }
+    } catch (error) {
+      print('Error checking group pagination info: $error');
+      // If error, assume no more pages
+      setState(() {
+        _hasMorePages = false;
+      });
+    }
+  }
+
+  // Load more groups using REST API
+  Future<void> _loadMoreGroups() async {
+    if (_isLoadingMore) {
+      return;
+    }
+
+    // For the first REST API call, we don't know total pages yet
+    if (_totalPages > 1 && _currentPage >= _totalPages) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final nextPage = _currentPage + 1;
+      print('Loading groups page $nextPage'); // Debug log
+      
+      final paginatedResponse = await _messageService.fetchGroup(
+        context: context,
+        pageNumber: nextPage,
+      );
+
+      if (mounted) {
+        setState(() {
+          // Update pagination info from REST API response
+          _totalPages = paginatedResponse.totalPages;
+          
+          if (paginatedResponse.items.isNotEmpty) {
+            // Add new groups to the list
+            _allGroups.addAll(paginatedResponse.items);
+            _currentPage = paginatedResponse.currentPage;
+            _hasMorePages = _currentPage < _totalPages;
+          } else {
+            _hasMorePages = false;
+          }
+          
+          _updateFilteredGroups();
+          
+          print('Updated groups: currentPage=$_currentPage, totalPages=$_totalPages, hasMore=$_hasMorePages');
+        });
+        
+        print('Loaded ${paginatedResponse.items.length} groups. Total: ${_allGroups.length}');
+      }
+    } catch (error) {
+      if (mounted) {
+        print('Error loading more groups: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load more conversations: $error'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
         });
       }
     }
@@ -107,10 +218,10 @@ class _MessageScreenState extends State<MessageScreen> {
   void _updateFilteredGroups() {
     final searchQuery = _searchController.text.toLowerCase();
     if (searchQuery.isEmpty) {
-      filteredGroups = List.from(groups);
+      filteredGroups = List.from(_allGroups);
     } else {
       final currentUserId = Provider.of<UserProvider>(context, listen: false).user.id;
-      filteredGroups = groups.where((group) {
+      filteredGroups = _allGroups.where((group) {
         // Find other user in the group
         final otherUser = group.users.firstWhere(
           (u) => u.id != currentUserId,
@@ -118,7 +229,7 @@ class _MessageScreenState extends State<MessageScreen> {
             id: 'unknown',
             username: 'Unknown User',
             email: 'unknown@example.com',
-            roles: const ['Unknown'], // Sử dụng roles thay vì role
+            roles: const ['Unknown'],
           ),
         );
         
@@ -137,12 +248,16 @@ class _MessageScreenState extends State<MessageScreen> {
   Future<void> _refreshGroups() async {
     setState(() {
       _isLoading = true;
+      _currentPage = 1;
+      _totalPages = 1;
+      _hasMorePages = true;
+      _allGroups.clear();
     });
 
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     
     try {
-      // Request groups refresh
+      // Request groups refresh via SignalR
       await groupProvider.refreshGroups();
       
       // Refresh unread count
@@ -151,14 +266,11 @@ class _MessageScreenState extends State<MessageScreen> {
       // Wait a bit for any updates
       await Future.delayed(const Duration(milliseconds: 1000));
       
-      setState(() {
-        groups = groupProvider.groups;
-        _currentPage = groupProvider.currentPage;
-        _totalPages = groupProvider.totalPages;
-        _hasMorePages = _currentPage < _totalPages;
-        _updateFilteredGroups();
-        _isLoading = false;
-      });
+      // Sync with provider
+      _syncWithProvider();
+      
+      // Check pagination info
+      await _checkPaginationInfo();
     } catch (e) {
       print('[MessageScreen] Error refreshing groups: $e');
       setState(() {
@@ -174,36 +286,6 @@ class _MessageScreenState extends State<MessageScreen> {
           ),
         ),
       );
-    }
-  }
-
-  Future<void> _loadMoreGroups() async {
-    if (!_hasMorePages) return;
-    
-    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    if (!groupProvider.isConnected) return;
-    
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      // Load next page
-      await groupProvider.loadNextPage();
-      
-      setState(() {
-        groups = groupProvider.groups;
-        _currentPage = groupProvider.currentPage;
-        _totalPages = groupProvider.totalPages;
-        _hasMorePages = _currentPage < _totalPages;
-        _updateFilteredGroups();
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('[MessageScreen] Error loading more groups: $e');
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -365,26 +447,25 @@ class _MessageScreenState extends State<MessageScreen> {
             // Group list - Listen to GroupProvider for real-time updates
             Consumer<GroupProvider>(
               builder: (context, groupProvider, _) {
-                // Update local groups when GroupProvider changes
-                if (groupProvider.groups != groups) {
+                // Listen for new groups from SignalR and sync
+                if (groupProvider.groups.length != _allGroups.length) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    setState(() {
-                      groups = groupProvider.groups;
-                      _currentPage = groupProvider.currentPage;
-                      _totalPages = groupProvider.totalPages;
-                      _hasMorePages = _currentPage < _totalPages;
-                      _updateFilteredGroups();
-                    });
+                    // Only sync if SignalR has more recent data
+                    if (groupProvider.groups.isNotEmpty) {
+                      _syncWithProvider();
+                    }
                   });
                 }
 
-                return _isLoading && groups.isEmpty
+                return _isLoading && _allGroups.isEmpty
                     ? const Expanded(
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircularProgressIndicator(),
+                              CircularProgressIndicator(
+                                color: GlobalVariables.green,
+                              ),
                               SizedBox(height: 16),
                               Text('Loading conversations...'),
                             ],
@@ -436,6 +517,9 @@ class _MessageScreenState extends State<MessageScreen> {
                                           );
                                           _refreshGroups();
                                         },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: GlobalVariables.green,
+                                        ),
                                         child: const Text('Connect'),
                                       ),
                                     ),
@@ -446,101 +530,228 @@ class _MessageScreenState extends State<MessageScreen> {
                         : Expanded(
                             child: RefreshIndicator(
                               onRefresh: _refreshGroups,
+                              color: GlobalVariables.green,
                               child: NotificationListener<ScrollNotification>(
                                 onNotification: (ScrollNotification scrollInfo) {
-                                  if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
-                                      _hasMorePages && !_isLoading) {
+                                  // Additional scroll detection for better infinite scroll
+                                  if (scrollInfo is ScrollEndNotification &&
+                                      scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
                                     _loadMoreGroups();
-                                    return true;
                                   }
                                   return false;
                                 },
-                                child: ListView.builder(
-                                  itemCount: filteredGroups.length + (_hasMorePages ? 1 : 0),
-                                  itemBuilder: (context, index) {
-                                    // Show loading indicator at the bottom when loading more
-                                    if (index == filteredGroups.length) {
-                                      return const Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                                        child: Center(
-                                          child: CircularProgressIndicator(),
+                                child: CustomScrollView(
+                                  controller: _scrollController,
+                                  slivers: [
+                                    // Pagination info
+                                    if (_totalPages > 1 && _allGroups.isNotEmpty)
+                                      SliverToBoxAdapter(
+                                        child: Container(
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.05),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.chat_outlined,
+                                                size: 16,
+                                                color: GlobalVariables.green,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Showing ${_allGroups.length} conversations',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: GlobalVariables.darkGrey,
+                                                ),
+                                              ),
+                                              if (_hasMorePages) ...[
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: GlobalVariables.green.withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    'Page $_currentPage of $_totalPages',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 12,
+                                                      color: GlobalVariables.green,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
                                         ),
-                                      );
-                                    }
-                                    
-                                    final group = filteredGroups[index];
-
-                                    // Lấy thông tin user hiện tại
-                                    final currentUserId =
-                                        Provider.of<UserProvider>(context, listen: false)
-                                            .user
-                                            .id;
-
-                                    // Tìm user khác với user hiện tại
-                                    final otherUser = group.users.firstWhere(
-                                      (u) => u.id != currentUserId,
-                                      orElse: () => User(
-                                        id: 'default',
-                                        username: 'Default User',
-                                        email: 'default@example.com',
-                                        photoUrl: '',
-                                        roles: const ['Unknown'], // Sử dụng roles thay vì role
                                       ),
-                                    );
 
-                                    final hasUnread = _hasUnreadMessage(group);
-                                    
-                                    // Format last message time using updatedAt
-                                    String formattedTime = _formatTimeAgo(group.updatedAt);
+                                    // Groups list
+                                    SliverList(
+                                      delegate: SliverChildBuilderDelegate(
+                                        (context, index) {
+                                          final group = filteredGroups[index];
 
-                                    return GestureDetector(
-                                      onTap: () {
-                                        _onGroupTapped(group.id);
-                                        Navigator.of(context).pushNamed(
-                                          MessageDetailScreen.routeName,
-                                          arguments: otherUser.id,
-                                        );
-                                      },
-                                      child: UserMessageBox(
-                                        userName: otherUser.username,
-                                        lastMessage: group.lastMessage?.content ?? 
-                                                   (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
-                                        timestamp: formattedTime,
-                                        userImageUrl: otherUser.photoUrl ?? '',
-                                        role: otherUser.role, // Sử dụng getter role
-                                        userId: otherUser.id,
-                                        roomId: group.id,
-                                        hasUnreadMessage: hasUnread,
+                                          // Lấy thông tin user hiện tại
+                                          final currentUserId =
+                                              Provider.of<UserProvider>(context, listen: false)
+                                                  .user
+                                                  .id;
+
+                                          // Tìm user khác với user hiện tại
+                                          final otherUser = group.users.firstWhere(
+                                            (u) => u.id != currentUserId,
+                                            orElse: () => User(
+                                              id: 'default',
+                                              username: 'Default User',
+                                              email: 'default@example.com',
+                                              photoUrl: '',
+                                              roles: const ['Unknown'],
+                                            ),
+                                          );
+
+                                          final hasUnread = _hasUnreadMessage(group);
+                                          
+                                          // Format last message time using updatedAt
+                                          String formattedTime = _formatTimeAgo(group.updatedAt);
+
+                                          return GestureDetector(
+                                            onTap: () {
+                                              _onGroupTapped(group.id);
+                                              Navigator.of(context).pushNamed(
+                                                MessageDetailScreen.routeName,
+                                                arguments: otherUser.id,
+                                              );
+                                            },
+                                            child: UserMessageBox(
+                                              userName: otherUser.username,
+                                              lastMessage: group.lastMessage?.content ?? 
+                                                         (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
+                                              timestamp: formattedTime,
+                                              userImageUrl: otherUser.photoUrl,
+                                              role: otherUser.role,
+                                              userId: otherUser.id,
+                                              roomId: group.id,
+                                              hasUnreadMessage: hasUnread,
+                                            ),
+                                          );
+                                        },
+                                        childCount: filteredGroups.length,
                                       ),
-                                    );
-                                  },
+                                    ),
+
+                                    // Loading more indicator
+                                    if (_isLoadingMore)
+                                      SliverToBoxAdapter(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 20),
+                                          child: Center(
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(25),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.1),
+                                                    blurRadius: 10,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child: CircularProgressIndicator(
+                                                      valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Text(
+                                                    'Loading more conversations...',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w500,
+                                                      color: GlobalVariables.darkGrey,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                    // End of list indicator
+                                    if (_allGroups.isNotEmpty && !_hasMorePages && !_isLoadingMore)
+                                      SliverToBoxAdapter(
+                                        child: Container(
+                                          margin: const EdgeInsets.all(16),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.05),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle_outline,
+                                                size: 16,
+                                                color: GlobalVariables.green,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'All conversations loaded',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: GlobalVariables.darkGrey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                    // Bottom spacing
+                                    const SliverToBoxAdapter(
+                                      child: SizedBox(height: 20),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           );
               },
             ),
-            // Pagination info
-            if (_totalPages > 1)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  'Page $_currentPage of $_totalPages',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-              ),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }

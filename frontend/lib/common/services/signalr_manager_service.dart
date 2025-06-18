@@ -5,6 +5,7 @@ import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
 import 'package:frontend/common/services/notification_hub_service.dart';
 import 'package:frontend/common/services/court_hub_service.dart';
+import 'package:frontend/models/paginated_groups_dto.dart';
 
 class SignalRManagerService {
   static final SignalRManagerService _instance = SignalRManagerService._internal();

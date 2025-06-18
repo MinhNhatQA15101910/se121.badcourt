@@ -1,6 +1,7 @@
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
+import 'package:frontend/models/paginated_groups_dto.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
 class GroupHubService {

@@ -56,7 +56,7 @@ class MessageAppBar extends StatelessWidget {
                   radius: 20,
                   backgroundColor: Colors.grey[300],
                   backgroundImage: otherUser?.photoUrl != null 
-                      ? NetworkImage(otherUser!.photoUrl!) 
+                      ? NetworkImage(otherUser!.photoUrl) 
                       : null,
                   child: otherUser?.photoUrl == null 
                       ? Icon(Icons.person, color: Colors.grey[600], size: 24)

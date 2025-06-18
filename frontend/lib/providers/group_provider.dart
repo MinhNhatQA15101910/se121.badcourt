@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
+import 'package:frontend/models/paginated_groups_dto.dart';
 
 class GroupProvider extends ChangeNotifier {
   final GroupHubService _groupHubService = GroupHubService();
