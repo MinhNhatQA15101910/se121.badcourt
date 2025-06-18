@@ -71,7 +71,6 @@ public class MessageHub(
             Context.User.GetUserId().ToString(),
             new MessageParams
             {
-
                 GroupId = group.Id,
                 PageNumber = 1,
                 PageSize = 20,

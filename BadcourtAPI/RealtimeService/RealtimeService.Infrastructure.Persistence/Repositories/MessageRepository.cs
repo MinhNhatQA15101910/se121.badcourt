@@ -45,7 +45,6 @@ public class MessageRepository : IMessageRepository
 
     public async Task<PagedList<MessageDto>> GetMessagesAsync(string currentUserId, MessageParams messageParams, CancellationToken cancellationToken = default)
     {
-
         var pipeline = new List<BsonDocument>
         {
             new("$match", new BsonDocument("GroupId", messageParams.GroupId))
