@@ -45,7 +45,6 @@ public class MessageRepository : IMessageRepository
 
     public async Task<PagedList<MessageDto>> GetMessagesAsync(string currentUserId, MessageParams messageParams, CancellationToken cancellationToken = default)
     {
-
         var pipeline = new List<BsonDocument>
         {
             new("$match", new BsonDocument("GroupId", messageParams.GroupId))
@@ -95,5 +94,16 @@ public class MessageRepository : IMessageRepository
             message,
             cancellationToken: cancellationToken
         );
+    }
+
+    public Task<int> GetNumberOfUnreadMessagesAsync(string currentUserId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Message>.Filter.And(
+            Builders<Message>.Filter.Eq(m => m.ReceiverId, currentUserId),
+            Builders<Message>.Filter.Eq(m => m.DateRead, null)
+        );
+
+        return _messages.CountDocumentsAsync(filter, cancellationToken: cancellationToken)
+            .ContinueWith(task => (int)task.Result, cancellationToken);
     }
 }

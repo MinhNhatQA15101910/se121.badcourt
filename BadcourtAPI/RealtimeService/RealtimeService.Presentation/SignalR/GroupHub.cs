@@ -70,6 +70,9 @@ public class GroupHub(
         };
 
         await Clients.Caller.SendAsync("ReceiveGroups", pagedGroupDtos);
+
+        var numberOfUnreadMessages = await messageRepository.GetNumberOfUnreadMessagesAsync(userId);
+        await Clients.Caller.SendAsync("ReceiveNumberOfUnreadMessages", numberOfUnreadMessages);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
