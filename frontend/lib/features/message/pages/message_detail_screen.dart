@@ -27,7 +27,8 @@ class MessageDetailScreen extends StatefulWidget {
   _MessageDetailScreenState createState() => _MessageDetailScreenState();
 }
 
-class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerProviderStateMixin {
+class _MessageDetailScreenState extends State<MessageDetailScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
 
@@ -74,10 +75,11 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
     if (userId != null) {
       _initializeServices();
       _loadOtherUserInfo();
-      
+
       // Khởi tạo OnlineUsersProvider nếu chưa được khởi tạo
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
+      final onlineUsersProvider =
+          Provider.of<OnlineUsersProvider>(context, listen: false);
       if (!PresenceService().isConnected) {
         onlineUsersProvider.initialize(userProvider.user.token);
       }
@@ -88,9 +90,9 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
 
   void _loadOtherUserInfo() {
     if (userId == null) return;
-    
+
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    
+
     // Find the group that contains this user
     for (var group in groupProvider.groups) {
       for (var user in group.users) {
@@ -129,7 +131,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
 
     try {
       print('[MessageDetailScreen] Initializing services for user: $userId');
-      
+
       // Set up message callbacks first
       _messageHubService.onNewMessage = (message) {
         print('Received new message: ${message.content}');
@@ -144,7 +146,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
               'senderImageUrl': message.senderPhotoUrl,
             });
           });
-          
+
           // Tự động cuộn xuống cuối danh sách khi có tin nhắn mới
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (_scrollController.hasClients) {
@@ -160,26 +162,29 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
 
       // Update to handle paginated messages
       _messageHubService.onReceiveMessageThread = (paginatedMessages) {
-        print('Received paginated message thread: ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}/${paginatedMessages.totalPages}');
-        
+        print(
+            'Received paginated message thread: ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}/${paginatedMessages.totalPages}');
+
         if (mounted) {
           setState(() {
             // Update pagination info from SignalR initial load
             _currentPage = paginatedMessages.currentPage;
             _totalPages = paginatedMessages.totalPages;
             _hasMorePages = _currentPage < _totalPages;
-            
+
             // If loading more, append messages (this path is for SignalR, not REST)
             if (_isLoadingMore) {
               // Convert new messages to map format và đảo ngược thứ tự
-              final newMessages = paginatedMessages.items.reversed.map((message) => {
-                'isSender': message.senderId == userProvider.user.id,
-                'message': message.content,
-                'time': message.messageSent.millisecondsSinceEpoch,
-                'resources': [],
-                'senderImageUrl': message.senderPhotoUrl,
-              }).toList();
-              
+              final newMessages = paginatedMessages.items.reversed
+                  .map((message) => {
+                        'isSender': message.senderId == userProvider.user.id,
+                        'message': message.content,
+                        'time': message.messageSent.millisecondsSinceEpoch,
+                        'resources': [],
+                        'senderImageUrl': message.senderPhotoUrl,
+                      })
+                  .toList();
+
               // Add older messages to the beginning of the list
               _messages.insertAll(0, newMessages);
               _isLoadingMore = false;
@@ -195,20 +200,22 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
                   'senderImageUrl': message.senderPhotoUrl,
                 });
               }
-              
+
               // Cuộn xuống cuối danh sách sau khi tải tin nhắn ban đầu
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (_scrollController.hasClients) {
-                  _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                  _scrollController
+                      .jumpTo(_scrollController.position.maxScrollExtent);
                 }
               });
             }
-            
+
             _isLoading = false;
             _fadeController.forward();
           });
-          
-          print('[MessageDetailScreen] Updated UI with ${_messages.length} messages, page $_currentPage/$_totalPages');
+
+          print(
+              '[MessageDetailScreen] Updated UI with ${_messages.length} messages, page $_currentPage/$_totalPages');
         }
       };
 
@@ -217,14 +224,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
         userProvider.user.token,
         userId ?? "",
       );
-      
+
       // Wait a bit for connection to stabilize
       await Future.delayed(Duration(milliseconds: 2000));
-      
+
       // Check connection state
       final isReady = _messageHubService.isConnectionReady(userId ?? "");
       print('[MessageDetailScreen] Connection ready: $isReady');
-      
+
       setState(() {
         _isConnected = isReady;
         _isConnecting = false;
@@ -238,7 +245,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
             _isLoading = false;
             _fadeController.forward();
           });
-          print('[MessageDetailScreen] No messages received, stopping loading indicator');
+          print(
+              '[MessageDetailScreen] No messages received, stopping loading indicator');
         }
       }
 
@@ -253,7 +261,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
           );
         }
       }
-      
     } catch (e) {
       print('[MessageDetailScreen] Error initializing services: $e');
       if (mounted) {
@@ -263,7 +270,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
           _isConnected = false;
           _fadeController.forward();
         });
-        
+
         // _showSnackBar(
         //   'Connection error: $e',
         //   action: SnackBarAction(
@@ -279,55 +286,61 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
   Future<void> _loadMoreMessages() async {
     // Ensure we don't load more if already loading, no more pages, or initial loading
     if (_isLoading || _isLoadingMore || !_hasMorePages) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
-    
+
     try {
       final nextPage = _currentPage + 1;
-      print('[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
-      
+      print(
+          '[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
+
       final messageService = MessageService();
       final paginatedResponse = await messageService.fetchMessagesByGroup(
         context: context,
-        groupId: userId ?? "", 
+        groupId: userId ?? "",
         pageNumber: nextPage,
       );
-      
+
       if (mounted) {
         setState(() {
-          final userProvider = Provider.of<UserProvider>(context, listen: false);
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
           // Convert fetched MessageDto to the internal Map format and reverse order
-          final newMessages = paginatedResponse.items.reversed.map((message) => {
-            'isSender': message.senderId == userProvider.user.id,
-            'message': message.content,
-            'time': message.messageSent.millisecondsSinceEpoch,
-            'resources': [], // Assuming no resources from this API for simplicity
-            'senderImageUrl': message.senderPhotoUrl,
-          }).toList();
-          
+          final newMessages = paginatedResponse.items.reversed
+              .map((message) => {
+                    'isSender': message.senderId == userProvider.user.id,
+                    'message': message.content,
+                    'time': message.messageSent.millisecondsSinceEpoch,
+                    'resources':
+                        [], // Assuming no resources from this API for simplicity
+                    'senderImageUrl': message.senderPhotoUrl,
+                  })
+              .toList();
+
           // Add older messages to the beginning of the list
           _messages.insertAll(0, newMessages);
-          
+
           // Update pagination info from REST API response
           _currentPage = paginatedResponse.currentPage;
           _totalPages = paginatedResponse.totalPages;
           _hasMorePages = _currentPage < _totalPages;
           _isLoadingMore = false;
         });
-        
-        print('[MessageDetailScreen] Loaded ${_messages.length} messages, now on page $_currentPage/$_totalPages');
+
+        print(
+            '[MessageDetailScreen] Loaded ${_messages.length} messages, now on page $_currentPage/$_totalPages');
       }
-      
     } catch (e) {
-      print('[MessageDetailScreen] Error loading more messages via REST API: $e');
-      
+      print(
+          '[MessageDetailScreen] Error loading more messages via REST API: $e');
+
       if (mounted) {
         setState(() {
           _isLoadingMore = false;
         });
-        
+
         _showSnackBar(
           'Error loading more messages: $e',
           action: SnackBarAction(
@@ -341,41 +354,39 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> with TickerPr
 
   // Removed _onScrollListener as it's now handled by MessageListWidget
 
-Future<void> _pickMedia() async {
-  final ImagePicker _picker = ImagePicker();
+  Future<void> _pickMedia() async {
+    final ImagePicker _picker = ImagePicker();
 
-  // Chọn ảnh (nhiều)
-  final List<XFile>? images = await _picker.pickMultiImage();
+    // Chọn ảnh (nhiều)
+    final List<XFile>? images = await _picker.pickMultiImage();
 
-  // Chọn video (chỉ 1 lần tại 1 thời điểm, bạn có thể lặp nếu cần nhiều video)
-  final XFile? video = await _picker.pickVideo(
-    source: ImageSource.gallery,
-  );
+    // Chọn video (chỉ 1 lần tại 1 thời điểm, bạn có thể lặp nếu cần nhiều video)
+    final XFile? video = await _picker.pickVideo(
+      source: ImageSource.gallery,
+    );
 
-  final List<File> pickedMedia = [];
+    final List<File> pickedMedia = [];
 
-  if (images != null) {
-    pickedMedia.addAll(images.map((xfile) => File(xfile.path)));
+    if (images != null) {
+      pickedMedia.addAll(images.map((xfile) => File(xfile.path)));
+    }
+
+    if (video != null) {
+      pickedMedia.add(File(video.path));
+    }
+
+    if (pickedMedia.isNotEmpty) {
+      setState(() {
+        _mediaFiles.addAll(pickedMedia);
+      });
+    }
   }
 
-  if (video != null) {
-    pickedMedia.add(File(video.path));
-  }
-
-  if (pickedMedia.isNotEmpty) {
+  void _removeMedia(int index) {
     setState(() {
-      _mediaFiles.addAll(pickedMedia);
+      _mediaFiles.removeAt(index);
     });
   }
-}
-
-
-void _removeMedia(int index) {
-  setState(() {
-    _mediaFiles.removeAt(index);
-  });
-}
-
 
   // Enhanced _sendMessage method với better retry logic
   Future<void> _sendMessage() async {
@@ -385,97 +396,58 @@ void _removeMedia(int index) {
     }
 
     final content = _messageController.text.trim();
-    _messageController.clear();
+    final List<File> attachmentsToSend = List.from(_mediaFiles);
 
+    // Clear UI immediately for better UX
+    _messageController.clear();
     setState(() {
-      _mediaFiles = [];
+      _mediaFiles.clear();
       _isSendingMessage = true;
     });
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      
-      // Thử gửi tin nhắn với retry logic
-      bool success = false;
-      int maxAttempts = 3;
-      
-      for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-        print('[MessageDetailScreen] Sending message attempt $attempt/$maxAttempts');
-        
-        // Kiểm tra và đảm bảo connection
-        if (!_messageHubService.isConnectionReady(userId ?? "")) {
-          print('[MessageDetailScreen] Connection not ready, attempting to reconnect...');
-          
-          try {
-            await _messageHubService.startConnection(
-              userProvider.user.token,
-              userId ?? "",
-            );
-            
-            // Đợi connection ổn định
-            await Future.delayed(Duration(milliseconds: 2000));
-            
-            if (!_messageHubService.isConnectionReady(userId ?? "")) {
-              if (attempt < maxAttempts) {
-                print('[MessageDetailScreen] Connection still not ready, retrying...');
-                continue;
-              } else {
-                throw Exception('Unable to establish stable connection');
-              }
-            }
-          } catch (connectionError) {
-            print('[MessageDetailScreen] Connection error on attempt $attempt: $connectionError');
-            if (attempt < maxAttempts) {
-              await Future.delayed(Duration(milliseconds: 1000 * attempt));
-              continue;
-            } else {
-              throw Exception('Connection failed after $maxAttempts attempts: $connectionError');
-            }
-          }
-        }
-        
-        // Hiển thị thông tin chi tiết trước khi gửi
-        print('[MessageDetailScreen] Sending message to user: $userId');
-        print('[MessageDetailScreen] Message content: $content');
-        print('[MessageDetailScreen] Connection state: ${_messageHubService.getConnectionStateString(userId ?? "")}');
 
-        // Thử gửi tin nhắn
-        try {
-          success = await _messageHubService.sendMessage(
-            userId ?? "",
-            content,
-            maxRetries: 1, // Đã có retry ở level này rồi
-          );
-          
-          if (success) {
-            print('[MessageDetailScreen] Message sent successfully on attempt $attempt');
-            break;
-          } else {
-            print('[MessageDetailScreen] Failed to send message on attempt $attempt');
-            if (attempt < maxAttempts) {
-              await Future.delayed(Duration(milliseconds: 1000 * attempt));
-            }
-          }
-        } catch (sendError) {
-          print('[MessageDetailScreen] Send error on attempt $attempt: $sendError');
-          if (attempt < maxAttempts) {
-            await Future.delayed(Duration(milliseconds: 1000 * attempt));
-          } else {
-            throw sendError;
-          }
+      // Validate file sizes before sending
+      for (File file in attachmentsToSend) {
+        final int fileSizeInBytes = await file.length();
+        final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+        if (fileSizeInMB > 10) {
+          // Reduced limit for base64 transmission
+          throw Exception(
+              'File ${file.path.split('/').last} is too large (${fileSizeInMB.toStringAsFixed(1)}MB). Maximum size is 10MB for direct upload.');
         }
       }
-      
-      if (!success) {
-        throw Exception('Failed to send message after $maxAttempts attempts');
+
+      print(
+          '[MessageDetailScreen] Sending message with ${attachmentsToSend.length} attachments');
+
+      // Send message directly with base64 attachments
+      bool success = await _messageHubService.sendMessage(
+        userId ?? "",
+        content,
+        attachments: attachmentsToSend,
+      );
+
+      if (success) {
+        print('[MessageDetailScreen] Message sent successfully');
+        if (attachmentsToSend.isNotEmpty) {
+          _showSnackBar(
+              'Message with ${attachmentsToSend.length} attachment(s) sent successfully');
+        }
+      } else {
+        throw Exception('Failed to send message');
       }
-      
     } catch (e) {
       print('[MessageDetailScreen] Error sending message: $e');
-      
-      // Restore message content if sending failed
+
+      // Restore message content and attachments if sending failed
       _messageController.text = content;
-      
+      setState(() {
+        _mediaFiles.addAll(attachmentsToSend);
+      });
+
       if (mounted) {
         _showSnackBar(
           'Failed to send message: ${e.toString()}',
@@ -496,8 +468,9 @@ void _removeMedia(int index) {
       }
     }
   }
-  
-  void _showSnackBar(String message, {Duration? duration, SnackBarAction? action}) {
+
+  void _showSnackBar(String message,
+      {Duration? duration, SnackBarAction? action}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),

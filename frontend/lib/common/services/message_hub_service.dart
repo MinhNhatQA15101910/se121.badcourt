@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:frontend/constants/global_variables.dart';
+import 'package:mime/mime.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
@@ -230,10 +234,14 @@ class MessageHubService {
   Future<bool> sendMessage(
     String otherUserId,
     String content, {
-    List<Map<String, dynamic>> resources =
-        const [], // <-- Thay vì attachmentUrl
+    List<File> attachments = const [],
     int maxRetries = 3,
   }) async {
+    print('[MessageHub] sendMessage called with:');
+    print('[MessageHub] - otherUserId: $otherUserId');
+    print('[MessageHub] - content: $content');
+    print('[MessageHub] - attachments count: ${attachments.length}');
+
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       final connection = _connections[otherUserId];
 
@@ -264,14 +272,73 @@ class MessageHubService {
       }
 
       try {
+        // Convert File objects to base64 strings
+        List<String> base64Resources = [];
+
+        print('[MessageHub] Processing ${attachments.length} attachments...');
+
+        for (int i = 0; i < attachments.length; i++) {
+          File file = attachments[i];
+          try {
+            print('[MessageHub] Processing file $i: ${file.path}');
+
+            // Check if file exists
+            if (!await file.exists()) {
+              print('[MessageHub] File does not exist: ${file.path}');
+              continue;
+            }
+
+            // Read file as bytes and convert to base64
+
+            Uint8List fileBytes = await file.readAsBytes();
+            final mimeType = lookupMimeType(file.path);
+            String base64String = base64Encode(fileBytes);
+            String fullBase64 = "data:$mimeType;base64,$base64String";
+
+            // Get file info for logging
+            String fileName = file.path.split('/').last;
+            String fileExtension = fileName.split('.').last.toLowerCase();
+            String contentType = _getContentType(fileExtension);
+
+            // Add base64 string to resources
+            base64Resources.add(fullBase64);
+
+            print(
+                '[MessageHub] Successfully processed attachment $i: $fileName (${fileBytes.length} bytes, $contentType)');
+          } catch (fileError) {
+            print(
+                '[MessageHub] Error processing file ${file.path}: $fileError');
+            // Continue with other files even if one fails
+          }
+        }
+
+        print(
+            '[MessageHub] Final base64Resources count: ${base64Resources.length}');
+
+        // Create message DTO with base64 resources
         final createMessageDto = CreateMessageDto(
           recipientId: otherUserId,
           content: content,
-          resources: resources, 
+          base64Resources: base64Resources,
         );
 
         final messageJson = createMessageDto.toJson();
-        print('[MessageHub] Sending message JSON: ${messageJson.toString()}');
+
+        // Debug the final JSON (don't log full base64 strings as they're very long)
+        print('[MessageHub] CreateMessageDto JSON:');
+        print('[MessageHub] - recipientId: ${messageJson['recipientId']}');
+        print('[MessageHub] - content: ${messageJson['content']}');
+        print(
+            '[MessageHub] - base64Resources count: ${(messageJson['base64Resources'] as List).length}');
+
+        // Log first few characters of each base64 string for debugging
+        for (int i = 0; i < base64Resources.length; i++) {
+          final preview = base64Resources[i].length > 50
+              ? '${base64Resources[i].substring(0, 50)}...'
+              : base64Resources[i];
+          print('[MessageHub] - base64Resources[$i]: $preview');
+        }
+
         print('[MessageHub] Connection state: ${connection.state}');
         print('[MessageHub] Connection ID: ${connection.connectionId}');
 
@@ -304,7 +371,57 @@ class MessageHubService {
     return false;
   }
 
-  // Request specific page of messages
+  // Helper method to determine content type based on file extension
+  String _getContentType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      case 'avi':
+        return 'video/x-msvideo';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'wav':
+        return 'audio/wav';
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  // Convenience methods
+  Future<bool> sendMessageWithAttachment(
+    String otherUserId,
+    String content,
+    File attachment,
+  ) async {
+    return sendMessage(otherUserId, content, attachments: [attachment]);
+  }
+
+  Future<bool> sendMessageWithAttachments(
+    String otherUserId,
+    String content,
+    List<File> attachments,
+  ) async {
+    return sendMessage(otherUserId, content, attachments: attachments);
+  }
+
+  // Keep all your existing utility methods unchanged...
   Future<bool> requestMessagePage(
       String otherUserId, int pageNumber, int pageSize) async {
     final connection = _connections[otherUserId];
@@ -318,9 +435,7 @@ class MessageHubService {
     try {
       print(
           '[MessageHub] Requesting message page $pageNumber with size $pageSize for user $otherUserId');
-
       await connection.invoke('GetMessages', args: [pageNumber, pageSize]);
-
       print('[MessageHub] Message page request sent successfully');
       return true;
     } catch (e) {

@@ -1,19 +1,19 @@
 class CreateMessageDto {
   final String recipientId;
   final String content;
-  final List<Map<String, dynamic>> resources;
+  final List<String> base64Resources;
 
   CreateMessageDto({
     required this.recipientId,
     required this.content,
-    this.resources = const [],
+    this.base64Resources = const [],
   });
 
   Map<String, dynamic> toJson() {
     return {
       'recipientId': recipientId,
       'content': content,
-      'resources': resources,
+      'base64Resources': base64Resources, // Updated field name
     };
   }
 
@@ -21,8 +21,8 @@ class CreateMessageDto {
     return CreateMessageDto(
       recipientId: json['recipientId'] ?? '',
       content: json['content'] ?? '',
-      resources: (json['resources'] as List<dynamic>?)
-              ?.map((e) => Map<String, dynamic>.from(e))
+      base64Resources: (json['base64Resources'] as List<dynamic>?)
+              ?.map((e) => e.toString())
               .toList() ??
           [],
     );
