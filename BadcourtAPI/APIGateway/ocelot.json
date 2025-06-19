@@ -242,6 +242,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/notifications",
       "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/read/{notificationId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications/read/{notificationId}",
+      "UpstreamHttpMethod": ["Put"]
     }
   ],
   "GlobalConfiguration": {
