@@ -297,9 +297,9 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
           '[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
 
       final messageService = MessageService();
-      final paginatedResponse = await messageService.fetchMessagesByOrderUserId(
+      final paginatedResponse = await messageService.fetchMessagesByGroup(
         context: context,
-        userId: userId ?? "",
+        groupId: userId ?? "",
         pageNumber: nextPage,
       );
 

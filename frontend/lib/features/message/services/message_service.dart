@@ -10,9 +10,9 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class MessageService {
-  Future<PaginatedMessagesDto> fetchMessagesByOrderUserId({ // Changed return type
+  Future<PaginatedMessagesDto> fetchMessagesByGroup({ // Changed return type
     required BuildContext context,
-    required String userId,
+    required String groupId,
     int pageNumber = 1,
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -20,7 +20,7 @@ class MessageService {
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/gateway/messages?OtherUserId=$userId&pageNumber=$pageNumber'),
+        Uri.parse('$uri/gateway/messages?groupId=$groupId&pageNumber=$pageNumber'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

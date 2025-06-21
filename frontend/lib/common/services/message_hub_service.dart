@@ -173,6 +173,27 @@ class MessageHubService {
         }
       });
 
+      connection.on('NewMessageReceived', (arguments) {
+        print(
+            '[MessageHub] Received NewMessageReceived event for user $otherUserId');
+        print('[MessageHub] NewMessageReceived arguments: $arguments');
+        if (arguments != null && arguments.isNotEmpty) {
+          try {
+            final groupData = arguments[0];
+            if (groupData is Map<String, dynamic>) {
+              final group = GroupDto.fromJson(groupData);
+              onNewMessageReceived?.call(group);
+              print('[MessageHub] NewMessageReceived processed successfully');
+            } else {
+              print(
+                  '[MessageHub] NewMessageReceived data is not Map<String, dynamic>: ${groupData.runtimeType}');
+            }
+          } catch (e) {
+            print('[MessageHub] Error parsing NewMessageReceived: $e');
+          }
+        }
+      });
+
       // Start connection
       await connection.start();
       _connections[otherUserId] = connection;

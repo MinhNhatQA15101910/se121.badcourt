@@ -14,10 +14,10 @@ class GroupHubService {
 
   // Callbacks - Updated to handle paginated data
   Function(PaginatedGroupsDto paginatedGroups)? onReceiveGroups;
-  Function(MessageDto message)? onNewMessage; // Có thể null để tránh duplicate
+  Function(MessageDto message)? onNewMessage;
   Function(GroupDto group)? onGroupUpdated;
+  // Thêm callback cho NewMessageReceived
   Function(GroupDto group)? onNewMessageReceived;
-  Function(int count)? onReceiveNumberOfUnreadMessages;
 
   // Getters
   bool get isConnected => _isConnected;
@@ -84,22 +84,19 @@ class GroupHubService {
         }
       });
 
-      // Chỉ listen NewMessage nếu callback được set (để tránh duplicate)
       _connection!.on('NewMessage', (arguments) {
-        print('[GroupHub] Received NewMessage event');
-        if (onNewMessage != null && arguments != null && arguments.isNotEmpty) {
+        print('[GroupHub] Received new message event');
+        if (arguments != null && arguments.isNotEmpty) {
           try {
             final messageData = arguments[0];
             if (messageData is Map<String, dynamic>) {
               final message = MessageDto.fromJson(messageData);
-              onNewMessage!(message);
-              print('[GroupHub] NewMessage processed: ${message.senderId}');
+              onNewMessage?.call(message);
+              print('[GroupHub] New message from: ${message.senderId}');
             }
           } catch (e) {
-            print('[GroupHub] Error parsing NewMessage: $e');
+            print('[GroupHub] Error parsing new message: $e');
           }
-        } else {
-          print('[GroupHub] NewMessage callback not set or no data, skipping');
         }
       });
 
@@ -119,7 +116,6 @@ class GroupHubService {
         }
       });
 
-      // Primary event listener cho NewMessageReceived
       _connection!.on('NewMessageReceived', (arguments) {
         print('[GroupHub] Received NewMessageReceived event');
         print('[GroupHub] Arguments: $arguments');
@@ -129,45 +125,12 @@ class GroupHubService {
             final groupData = arguments[0];
             if (groupData is Map<String, dynamic>) {
               final group = GroupDto.fromJson(groupData);
-              
-              // Log chi tiết để debug
-              print('[GroupHub] NewMessageReceived - Group: ${group.id}');
-              if (group.lastMessage != null) {
-                print('[GroupHub] NewMessageReceived - Message ID: ${group.lastMessage!.id}');
-                print('[GroupHub] NewMessageReceived - Message content: ${group.lastMessage!.content}');
-                print('[GroupHub] NewMessageReceived - Sender: ${group.lastMessage!.senderUsername}');
-                print('[GroupHub] NewMessageReceived - Sent at: ${group.lastMessage!.messageSent}');
-              }
-              
               onNewMessageReceived?.call(group);
-              print('[GroupHub] NewMessageReceived processed successfully');
+              print(
+                  '[GroupHub] NewMessageReceived processed: Group ${group.id} with message from ${group.lastMessage?.senderUsername}');
             }
           } catch (e) {
             print('[GroupHub] Error parsing NewMessageReceived: $e');
-          }
-        }
-      });
-
-      _connection!.on('ReceiveNumberOfUnreadMessages', (arguments) {
-        print('[GroupHub] Received ReceiveNumberOfUnreadMessages event');
-        print('[GroupHub] Arguments: $arguments');
-
-        if (arguments != null && arguments.isNotEmpty) {
-          final countRaw = arguments[0];
-          if (countRaw is int) {
-            onReceiveNumberOfUnreadMessages?.call(countRaw);
-            print('[GroupHub] Unread message count: $countRaw');
-          } else if (countRaw is String) {
-            final count = int.tryParse(countRaw);
-            if (count != null) {
-              onReceiveNumberOfUnreadMessages?.call(count);
-              print('[GroupHub] Unread message count (parsed): $count');
-            } else {
-              print(
-                  '[GroupHub] Unable to parse unread message count: $countRaw');
-            }
-          } else {
-            print('[GroupHub] Unexpected data type: ${countRaw.runtimeType}');
           }
         }
       });
