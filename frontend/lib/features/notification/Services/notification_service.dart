@@ -10,12 +10,11 @@ import 'package:provider/provider.dart';
 
 class NotificationService {
   Future<PaginatedNotificationsDto> fetchNotification({
-    // Changed return type
     required BuildContext context,
     int pageNumber = 1,
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    PaginatedNotificationsDto? paginatedResponse; // Changed type
+    PaginatedNotificationsDto? paginatedResponse;
 
     try {
       final response = await http.get(
@@ -44,10 +43,54 @@ class NotificationService {
 
     return paginatedResponse ??
         PaginatedNotificationsDto(
-            items: [],
-            currentPage: pageNumber,
-            totalPages: pageNumber,
-            pageSize: 20,
-            totalCount: 0);
+          items: [],
+          currentPage: pageNumber,
+          totalPages: pageNumber,
+          pageSize: 20,
+          totalCount: 0,
+        );
+  }
+
+  Future<bool> markNotificationAsRead({
+    required BuildContext context,
+    required String notificationId,
+    bool showSuccessMessage = false,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    bool success = false;
+
+    try {
+      final response = await http.put(
+        Uri.parse('$uri/gateway/notifications/read/$notificationId'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          success = true;
+          if (showSuccessMessage) {
+            IconSnackBar.show(
+              context,
+              label: 'Marked as read',
+              snackBarType: SnackBarType.success,
+            );
+          }
+        },
+      );
+    } catch (error) {
+      success = false;
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${error.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return success;
   }
 }

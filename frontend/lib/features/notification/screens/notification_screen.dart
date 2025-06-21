@@ -207,6 +207,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  // CẢI TIẾN: Handle notification tap - gọi API và cập nhật UI
+  Future<void> _handleNotificationTap(NotificationDto notification) async {
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+    
+    // Nếu notification chưa đọc, đánh dấu đã đọc
+    if (!notification.isRead) {
+      final success = await notificationProvider.markNotificationAsRead(
+        notification.id, 
+        context
+      );
+      
+      if (success) {
+        // Cập nhật local state
+        setState(() {
+          final index = _allNotifications.indexWhere((n) => n.id == notification.id);
+          if (index != -1) {
+            _allNotifications[index] = _allNotifications[index].copyWith(isRead: true);
+          }
+        });
+      }
+    }
+
+    // Handle navigation based on notification type and data
+    _navigateBasedOnNotificationType(notification);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -252,8 +278,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   if (notificationProvider.unreadCount > 0)
                     IconButton(
                       icon: const Icon(Icons.done_all, color: Colors.white),
-                      onPressed: () {
-                        notificationProvider.markAllNotificationsAsRead();
+                      onPressed: () async {
+                        final success = await notificationProvider.markAllNotificationsAsRead(context);
+                        if (success) {
+                          // Cập nhật local state
+                          setState(() {
+                            for (int i = 0; i < _allNotifications.length; i++) {
+                              if (!_allNotifications[i].isRead) {
+                                _allNotifications[i] = _allNotifications[i].copyWith(isRead: true);
+                              }
+                            }
+                          });
+                        }
                       },
                       tooltip: 'Mark all as read',
                     ),
@@ -431,15 +467,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           final notification = _allNotifications[index];
                           return NotificationItem(
                             notification: notification,
-                            onTap: () {
-                              // Mark as read when tapped
-                              if (!notification.isRead) {
-                                notificationProvider.markNotificationAsRead(notification.id);
-                              }
-
-                              // Handle navigation based on notification type and data
-                              _handleNotificationTap(notification);
-                            },
+                            onTap: () => _handleNotificationTap(notification),
                           );
                         },
                         childCount: _allNotifications.length,
@@ -545,7 +573,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  void _handleNotificationTap(notification) {
+  void _navigateBasedOnNotificationType(NotificationDto notification) {
     final type = notification.type.toLowerCase();
     final data = notification.data;
 
@@ -559,8 +587,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         }
         break;
       case 'courtbookingcancelled':
-        if (data.bookingId != null) {
-          print('Navigate to booking details: ${data.bookingId}');
+        if (data.orderId != null) {
+          print('Navigate to booking details: ${data.orderId}');
         }
         break;
 
@@ -590,8 +618,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         break;
 
       case 'facilityrated':
-        if (data.facilityId != null) {
-          print('Navigate to facility: ${data.facilityId}');
+        if (data.roomId != null) {
+          print('Navigate to facility: ${data.roomId}');
           // TODO: Navigate to facility detail screen
         }
         break;
