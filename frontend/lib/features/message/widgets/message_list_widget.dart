@@ -95,32 +95,14 @@ class MessageListWidget extends StatelessWidget {
 
     return Column(
       children: [
-        // Pagination info
-        if (totalPages > 1 && !isLoading)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              'Page $currentPage of $totalPages',
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        
         // Messages list
         Expanded(
           child: NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
               // Tải thêm tin nhắn cũ khi cuộn lên đầu danh sách
               if (scrollInfo.metrics.pixels <= 0 &&
-                  hasMorePages && !isLoadingMore) {
+                  hasMorePages &&
+                  !isLoadingMore) {
                 onLoadMore();
                 return true;
               }
@@ -178,7 +160,8 @@ class MessageListWidget extends StatelessWidget {
                 }
 
                 // Adjust index for loading indicator
-                final messageIndex = hasMorePages && isLoadingMore ? index - 1 : index;
+                final messageIndex =
+                    hasMorePages && isLoadingMore ? index - 1 : index;
                 if (messageIndex < 0 || messageIndex >= messages.length) {
                   return const SizedBox.shrink();
                 }
@@ -187,9 +170,10 @@ class MessageListWidget extends StatelessWidget {
                 final nextMessage = messageIndex < messages.length - 1
                     ? messages[messageIndex + 1]
                     : null;
-                    
+
                 // Kiểm tra xem tin nhắn có phải là tin nhắn đầu tiên của ngày không
-                final bool isFirstMessageOfDay = _isFirstMessageOfDay(message, messageIndex > 0 ? messages[messageIndex - 1] : null);
+                final bool isFirstMessageOfDay = _isFirstMessageOfDay(message,
+                    messageIndex > 0 ? messages[messageIndex - 1] : null);
 
                 return Column(
                   children: [
@@ -217,34 +201,41 @@ class MessageListWidget extends StatelessWidget {
       ],
     );
   }
-  
+
   // Kiểm tra xem tin nhắn có phải là tin nhắn đầu tiên của ngày không
-  bool _isFirstMessageOfDay(Map<String, dynamic> message, Map<String, dynamic>? previousMessage) {
+  bool _isFirstMessageOfDay(
+      Map<String, dynamic> message, Map<String, dynamic>? previousMessage) {
     if (previousMessage == null) return true;
-    
-    final DateTime currentMessageTime = DateTime.fromMillisecondsSinceEpoch(message['time']);
-    final DateTime previousMessageTime = DateTime.fromMillisecondsSinceEpoch(previousMessage['time']);
-    
+
+    final DateTime currentMessageTime =
+        DateTime.fromMillisecondsSinceEpoch(message['time']);
+    final DateTime previousMessageTime =
+        DateTime.fromMillisecondsSinceEpoch(previousMessage['time']);
+
     return currentMessageTime.year != previousMessageTime.year ||
-           currentMessageTime.month != previousMessageTime.month ||
-           currentMessageTime.day != previousMessageTime.day;
+        currentMessageTime.month != previousMessageTime.month ||
+        currentMessageTime.day != previousMessageTime.day;
   }
-  
+
   // Hiển thị ngày
   Widget _buildDateSeparator(int timestamp) {
     final DateTime messageTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
     final DateTime now = DateTime.now();
     final DateTime yesterday = DateTime.now().subtract(const Duration(days: 1));
-    
+
     String dateText;
-    if (messageTime.year == now.year && messageTime.month == now.month && messageTime.day == now.day) {
+    if (messageTime.year == now.year &&
+        messageTime.month == now.month &&
+        messageTime.day == now.day) {
       dateText = 'Today';
-    } else if (messageTime.year == yesterday.year && messageTime.month == yesterday.month && messageTime.day == yesterday.day) {
+    } else if (messageTime.year == yesterday.year &&
+        messageTime.month == yesterday.month &&
+        messageTime.day == yesterday.day) {
       dateText = 'Yesterday';
     } else {
       dateText = '${messageTime.day}/${messageTime.month}/${messageTime.year}';
     }
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
       child: Row(

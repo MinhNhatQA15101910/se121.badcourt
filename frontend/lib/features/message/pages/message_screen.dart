@@ -33,6 +33,10 @@ class _MessageScreenState extends State<MessageScreen> {
   int _currentPage = 1;
   int _totalPages = 1;
 
+  // Track previous groups count để detect changes
+  int _previousGroupsCount = 0;
+  List<String> _previousGroupIds = [];
+
   @override
   void initState() {
     super.initState();
@@ -109,7 +113,7 @@ class _MessageScreenState extends State<MessageScreen> {
     await _checkPaginationInfo();
   }
 
-  // Sync local state with GroupProvider
+  // Sync local state with GroupProvider - Updated với logic reorder
   void _syncWithProvider() {
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     
@@ -120,6 +124,146 @@ class _MessageScreenState extends State<MessageScreen> {
       _updateFilteredGroups();
       _isLoading = false;
     });
+
+    // Update tracking variables
+    _previousGroupsCount = _allGroups.length;
+    _previousGroupIds = _allGroups.map((g) => g.id).toList();
+  }
+
+  // Handle new message received - Đẩy group lên đầu nếu đã tồn tại
+  void _handleNewMessageReceived(GroupProvider groupProvider) {
+    final newGroups = groupProvider.groups;
+    
+    // Check if there are any changes
+    if (newGroups.length == _previousGroupsCount && 
+        _listEquals(_previousGroupIds, newGroups.map((g) => g.id).toList())) {
+      // No structural changes, but check for message updates
+      _handleMessageUpdates(newGroups);
+      return;
+    }
+
+    print('[MessageScreen] Detected group changes, syncing...');
+    
+    // Find new or updated groups
+    final currentGroupIds = _allGroups.map((g) => g.id).toSet();
+    final newGroupIds = newGroups.map((g) => g.id).toSet();
+    
+    // Check for new groups
+    final addedGroupIds = newGroupIds.difference(currentGroupIds);
+    
+    // Check for updated groups (groups with new messages)
+    final updatedGroups = <GroupDto>[];
+    for (final newGroup in newGroups) {
+      final existingGroup = _allGroups.firstWhere(
+        (g) => g.id == newGroup.id,
+        orElse: () => GroupDto(
+          id: '',
+          name: '',
+          users: [],
+          connections: [],
+          updatedAt: DateTime.now(),
+        ),
+      );
+      
+      // Check if this group has a newer message
+      if (existingGroup.id.isNotEmpty) {
+        final existingMessageTime = existingGroup.lastMessage?.messageSent ?? existingGroup.updatedAt;
+        final newMessageTime = newGroup.lastMessage?.messageSent ?? newGroup.updatedAt;
+        
+        if (newMessageTime.isAfter(existingMessageTime)) {
+          updatedGroups.add(newGroup);
+          print('[MessageScreen] Group ${newGroup.id} has new message, will move to top');
+        }
+      }
+    }
+
+    setState(() {
+      // Handle new groups
+      for (final groupId in addedGroupIds) {
+        final newGroup = newGroups.firstWhere((g) => g.id == groupId);
+        _allGroups.add(newGroup);
+        print('[MessageScreen] Added new group: ${newGroup.id}');
+      }
+
+      // Handle updated groups - Move to top
+      for (final updatedGroup in updatedGroups) {
+        // Remove from current position
+        _allGroups.removeWhere((g) => g.id == updatedGroup.id);
+        // Add to top
+        _allGroups.insert(0, updatedGroup);
+        print('[MessageScreen] Moved group ${updatedGroup.id} to top');
+      }
+
+      // Update other groups that weren't moved
+      for (int i = 0; i < _allGroups.length; i++) {
+        final currentGroup = _allGroups[i];
+        final updatedGroup = newGroups.firstWhere(
+          (g) => g.id == currentGroup.id,
+          orElse: () => currentGroup,
+        );
+        
+        // Only update if it's not one of the groups we already moved
+        if (!updatedGroups.any((g) => g.id == currentGroup.id)) {
+          _allGroups[i] = updatedGroup;
+        }
+      }
+
+      _updateFilteredGroups();
+    });
+
+    // Update tracking variables
+    _previousGroupsCount = _allGroups.length;
+    _previousGroupIds = _allGroups.map((g) => g.id).toList();
+  }
+
+  // Handle message updates without structural changes
+  void _handleMessageUpdates(List<GroupDto> newGroups) {
+    bool hasUpdates = false;
+    
+    for (int i = 0; i < _allGroups.length; i++) {
+      final currentGroup = _allGroups[i];
+      final newGroup = newGroups.firstWhere(
+        (g) => g.id == currentGroup.id,
+        orElse: () => currentGroup,
+      );
+      
+      // Check if message content or timestamp changed
+      final currentMessageTime = currentGroup.lastMessage?.messageSent ?? currentGroup.updatedAt;
+      final newMessageTime = newGroup.lastMessage?.messageSent ?? newGroup.updatedAt;
+      final currentMessageContent = currentGroup.lastMessage?.content ?? '';
+      final newMessageContent = newGroup.lastMessage?.content ?? '';
+      
+      if (newMessageTime.isAfter(currentMessageTime) || currentMessageContent != newMessageContent) {
+        // This group has a new message, move to top
+        setState(() {
+          _allGroups.removeAt(i);
+          _allGroups.insert(0, newGroup);
+          _updateFilteredGroups();
+        });
+        hasUpdates = true;
+        print('[MessageScreen] Moved group ${newGroup.id} to top due to message update');
+        break; // Only move one group at a time for smooth animation
+      } else if (currentGroup != newGroup) {
+        // Update group data without moving
+        _allGroups[i] = newGroup;
+        hasUpdates = true;
+      }
+    }
+    
+    if (hasUpdates) {
+      setState(() {
+        _updateFilteredGroups();
+      });
+    }
+  }
+
+  // Helper method to compare lists
+  bool _listEquals<T>(List<T> list1, List<T> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 
   // Check pagination info by making a test call to page 2
@@ -177,10 +321,17 @@ class _MessageScreenState extends State<MessageScreen> {
           _totalPages = paginatedResponse.totalPages;
           
           if (paginatedResponse.items.isNotEmpty) {
-            // Add new groups to the list
-            _allGroups.addAll(paginatedResponse.items);
+            // Add new groups to the list (only if they don't already exist)
+            final existingIds = _allGroups.map((g) => g.id).toSet();
+            final newGroups = paginatedResponse.items
+                .where((g) => !existingIds.contains(g.id))
+                .toList();
+            
+            _allGroups.addAll(newGroups);
             _currentPage = paginatedResponse.currentPage;
             _hasMorePages = _currentPage < _totalPages;
+            
+            print('Added ${newGroups.length} new groups from API');
           } else {
             _hasMorePages = false;
           }
@@ -239,10 +390,15 @@ class _MessageScreenState extends State<MessageScreen> {
       }).toList();
     }
     
-    // Sort groups by updatedAt time (most recent first)
-    filteredGroups.sort((a, b) {
-      return b.updatedAt.compareTo(a.updatedAt); // Descending order
-    });
+    // Sort groups by last message time (most recent first) - nhưng giữ thứ tự đã được sắp xếp từ real-time updates
+    if (searchQuery.isEmpty) {
+      // Chỉ sort khi không search để giữ thứ tự real-time
+      filteredGroups.sort((a, b) {
+        final aTime = a.lastMessage?.messageSent ?? a.updatedAt;
+        final bTime = b.lastMessage?.messageSent ?? b.updatedAt;
+        return bTime.compareTo(aTime); // Descending order
+      });
+    }
   }
 
   Future<void> _refreshGroups() async {
@@ -252,6 +408,8 @@ class _MessageScreenState extends State<MessageScreen> {
       _totalPages = 1;
       _hasMorePages = true;
       _allGroups.clear();
+      _previousGroupsCount = 0;
+      _previousGroupIds.clear();
     });
 
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
@@ -290,8 +448,29 @@ class _MessageScreenState extends State<MessageScreen> {
   }
 
   void _onGroupTapped(String groupId) {
-    // Mark group as read via GroupProvider
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    
+    // Tìm user khác trong group để mark messages as read for that user
+    final group = groupProvider.getGroupById(groupId);
+    if (group != null) {
+      final currentUserId = Provider.of<UserProvider>(context, listen: false).user.id;
+      final otherUser = group.users.firstWhere(
+        (u) => u.id != currentUserId,
+        orElse: () => User(
+          id: 'unknown',
+          username: 'Unknown User',
+          email: 'unknown@example.com',
+          roles: const ['Unknown'],
+        ),
+      );
+      
+      // Mark messages as read for this specific user
+      if (otherUser.id != 'unknown') {
+        groupProvider.markMessagesAsReadForUser(otherUser.id);
+      }
+    }
+    
+    // Mark group as read via GroupProvider
     groupProvider.markGroupAsRead(groupId);
     
     // Also mark as read via SignalR using the public method
@@ -353,29 +532,11 @@ class _MessageScreenState extends State<MessageScreen> {
               ),
             ),
             const Spacer(),
-            // Hiển thị số tin nhắn chưa đọc và trạng thái kết nối
+            // Hiển thị trạng thái kết nối
             Consumer<GroupProvider>(
               builder: (context, groupProvider, _) {
-                final unreadCount = groupProvider.unreadMessageCount;
                 return Row(
                   children: [
-                    if (unreadCount > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          unreadCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 8),
                     // Hiển thị trạng thái kết nối GroupHub
                     Icon(
                       groupProvider.isConnected 
@@ -398,6 +559,31 @@ class _MessageScreenState extends State<MessageScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _refreshGroups,
             tooltip: 'Refresh conversations',
+          ),
+          // Thêm button để xem unread count chi tiết
+          Consumer<GroupProvider>(
+            builder: (context, groupProvider, _) {
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.info_outline),
+                onSelected: (value) {
+                  if (value == 'show_details') {
+                    _showUnreadDetails(groupProvider);
+                  } else if (value == 'mark_all_read') {
+                    groupProvider.markAllMessagesAsRead();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'show_details',
+                    child: Text('Show unread details'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'mark_all_read',
+                    child: Text('Mark all as read'),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -444,18 +630,15 @@ class _MessageScreenState extends State<MessageScreen> {
                 },
               ),
             ),
-            // Group list - Listen to GroupProvider for real-time updates
+            // Group list - Sử dụng Consumer để lắng nghe thay đổi real-time với logic reorder
             Consumer<GroupProvider>(
               builder: (context, groupProvider, _) {
-                // Listen for new groups from SignalR and sync
-                if (groupProvider.groups.length != _allGroups.length) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    // Only sync if SignalR has more recent data
-                    if (groupProvider.groups.isNotEmpty) {
-                      _syncWithProvider();
-                    }
-                  });
-                }
+                // Handle real-time updates với reorder logic
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (groupProvider.groups.isNotEmpty) {
+                    _handleNewMessageReceived(groupProvider);
+                  }
+                });
 
                 return _isLoading && _allGroups.isEmpty
                     ? const Expanded(
@@ -599,7 +782,7 @@ class _MessageScreenState extends State<MessageScreen> {
                                         ),
                                       ),
 
-                                    // Groups list
+                                    // Groups list với AnimatedList để smooth reordering
                                     SliverList(
                                       delegate: SliverChildBuilderDelegate(
                                         (context, index) {
@@ -628,24 +811,26 @@ class _MessageScreenState extends State<MessageScreen> {
                                           // Format last message time using updatedAt
                                           String formattedTime = _formatTimeAgo(group.updatedAt);
 
-                                          return GestureDetector(
-                                            onTap: () {
-                                              _onGroupTapped(group.id);
-                                              Navigator.of(context).pushNamed(
-                                                MessageDetailScreen.routeName,
-                                                arguments: otherUser.id,
-                                              );
-                                            },
-                                            child: UserMessageBox(
-                                              userName: otherUser.username,
-                                              lastMessage: group.lastMessage?.content ?? 
-                                                         (group.lastMessageAttachment != null ? 'Attachment' : 'Start a conversation'),
-                                              timestamp: formattedTime,
-                                              userImageUrl: otherUser.photoUrl,
-                                              role: otherUser.role,
-                                              userId: otherUser.id,
-                                              roomId: group.id,
-                                              hasUnreadMessage: hasUnread,
+                                          return AnimatedContainer(
+                                            duration: const Duration(milliseconds: 300),
+                                            key: ValueKey(group.id), // Key để maintain state khi reorder
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                _onGroupTapped(group.id);
+                                                Navigator.of(context).pushNamed(
+                                                  MessageDetailScreen.routeName,
+                                                  arguments: otherUser.id,
+                                                );
+                                              },
+                                              child: UserMessageBox(
+                                                userName: otherUser.username,
+                                                timestamp: formattedTime,
+                                                userImageUrl: otherUser.photoUrl,
+                                                role: otherUser.role,
+                                                userId: otherUser.id,
+                                                roomId: group.id,
+                                                hasUnreadMessage: hasUnread,
+                                              ),
                                             ),
                                           );
                                         },
@@ -751,6 +936,67 @@ class _MessageScreenState extends State<MessageScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Hiển thị chi tiết unread count
+  void _showUnreadDetails(GroupProvider groupProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unread Messages Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Total unread: ${groupProvider.unreadMessageCount}'),
+              const SizedBox(height: 16),
+              const Text('By User:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ...groupProvider.unreadCountByUser.entries.map((entry) {
+                // Tìm username từ groups
+                String username = 'Unknown';
+                for (final group in groupProvider.groups) {
+                  final user = group.users.firstWhere(
+                    (u) => u.id == entry.key,
+                    orElse: () => User(
+                      id: '',
+                      username: '',
+                      email: '',
+                      roles: const [],
+                    ),
+                  );
+                  if (user.id.isNotEmpty) {
+                    username = user.username;
+                    break;
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4),
+                  child: Text('$username: ${entry.value}'),
+                );
+              }).toList(),
+              const SizedBox(height: 16),
+              const Text('By Group:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ...groupProvider.unreadCountByGroup.entries.map((entry) {
+                // Tìm group name
+                final group = groupProvider.getGroupById(entry.key);
+                final groupName = group?.name ?? 'Unknown Group';
+                return Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4),
+                  child: Text('$groupName: ${entry.value}'),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

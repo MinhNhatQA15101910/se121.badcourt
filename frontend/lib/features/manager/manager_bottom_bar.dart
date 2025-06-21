@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/message_button.dart';
 import 'package:frontend/common/widgets/notification_button.dart';
+
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
@@ -25,7 +26,7 @@ class ManagerBottomBar extends StatefulWidget {
 class _ManagerBottomBarState extends State<ManagerBottomBar> {
   int _selectedIndex = 0;
   String userId = "";
-  
+
   final List<Widget> _pages = [
     const HomeScreen(),
     const CourtManagementScreen(),
@@ -108,7 +109,7 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
               NotificationButton(
                 userId: userId,
                 onNotificationButtonPressed: _resetIndex,
-              ),              // Sử dụng MessageButton mới không cần truyền unreadMessages
+              ), // Sử dụng MessageButton mới không cần truyền unreadMessages
               MessageButton(
                 userId: userId,
                 onMessageButtonPressed: _resetIndex,
