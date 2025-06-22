@@ -182,7 +182,11 @@ class AuthService {
 
           SharedPreferences prefs = await SharedPreferences.getInstance();
           final token = jsonDecode(response.body)['token'];
+          
+          // Lưu token và đánh dấu đã đăng nhập
           await prefs.setString('x-auth-token', token);
+          await prefs.setBool('is-logged-in', true);
+          await prefs.setBool('remember-login', true); // Thêm flag remember login
 
           userProvider.setUser(response.body);
           print('User data set in provider');
@@ -201,7 +205,7 @@ class AuthService {
                 onNewMessage: groupProvider.groupHubService.onNewMessage,
                 onGroupUpdated: groupProvider.groupHubService.onGroupUpdated,
                 onNewMessageReceived: groupProvider
-                    .groupHubService.onNewMessageReceived, // Thêm callback mới
+                    .groupHubService.onNewMessageReceived,
               );
 
               print('All SignalR services connected successfully after login');
@@ -277,7 +281,11 @@ class AuthService {
 
           SharedPreferences prefs = await SharedPreferences.getInstance();
           final token = jsonDecode(response.body)['token'];
+          
+          // Lưu token và đánh dấu đã đăng nhập
           await prefs.setString('x-auth-token', token);
+          await prefs.setBool('is-logged-in', true);
+          await prefs.setBool('remember-login', true);
 
           Provider.of<UserProvider>(context, listen: false)
               .setUser(response.body);
@@ -468,11 +476,14 @@ class AuthService {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('x-auth-token');
-      print(
-          'Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
+      bool? rememberLogin = prefs.getBool('remember-login');
+      
+      print('Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
+      print('Remember login: ${rememberLogin ?? false}');
 
-      if (token == null) {
+      if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
         await prefs.setString('x-auth-token', '');
+        await prefs.setBool('is-logged-in', false);
         return;
       }
 
@@ -509,14 +520,83 @@ class AuthService {
         } catch (signalRError) {
           print('Error auto-connecting to SignalR services: $signalRError');
         }
+      } else {
+        // Token không hợp lệ, clear stored data
+        await clearLoginData();
       }
     } catch (error) {
       print('Error in getUserData: $error');
+      await clearLoginData();
       IconSnackBar.show(
         context,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
+    }
+  }
+
+  // Method để kiểm tra và làm mới token nếu cần
+  Future<bool> refreshTokenIfNeeded() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('x-auth-token');
+      bool? rememberLogin = prefs.getBool('remember-login');
+      
+      if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
+        return false;
+      }
+
+      // Kiểm tra tính hợp lệ của token
+      var tokenRes = await http.post(
+        Uri.parse('$uri/gateway/token-is-valid'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': token,
+        },
+      );
+
+      var isValidToken = jsonDecode(tokenRes.body);
+      
+      if (!isValidToken) {
+        await clearLoginData();
+      }
+      
+      return isValidToken == true;
+    } catch (error) {
+      print('Error checking token validity: $error');
+      await clearLoginData();
+      return false;
+    }
+  }
+
+  // Method để clear tất cả login data
+  Future<void> clearLoginData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('x-auth-token');
+      await prefs.remove('Authorization');
+      await prefs.setBool('is-logged-in', false);
+      await prefs.setBool('remember-login', false);
+      print('Login data cleared');
+    } catch (error) {
+      print('Error clearing login data: $error');
+    }
+  }
+
+  // Method để check login status
+  Future<bool> isLoggedIn() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool? isLoggedIn = prefs.getBool('is-logged-in');
+      bool? rememberLogin = prefs.getBool('remember-login');
+      String? token = prefs.getString('x-auth-token');
+      
+      return (isLoggedIn ?? false) && 
+             (rememberLogin ?? false) && 
+             (token != null && token.isNotEmpty);
+    } catch (error) {
+      print('Error checking login status: $error');
+      return false;
     }
   }
 
@@ -527,10 +607,8 @@ class AuthService {
       await _signalRManager.stopAllConnections();
       print('All SignalR services disconnected on logout');
 
-      // Clear stored tokens
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('x-auth-token');
-      await prefs.remove('Authorization');
+      // Clear stored tokens và các dữ liệu khác
+      await clearLoginData();
 
       // Clear user data
       Provider.of<UserProvider>(context, listen: false).setUser('');
@@ -553,6 +631,22 @@ class AuthService {
         label: 'Error during logout: ${error.toString()}',
         snackBarType: SnackBarType.fail,
       );
+    }
+  }
+
+  // Method để logout mà không hiển thị thông báo (dùng khi token expired)
+  Future<void> silentLogout(BuildContext context) async {
+    try {
+      await _signalRManager.stopAllConnections();
+      await clearLoginData();
+      Provider.of<UserProvider>(context, listen: false).setUser('');
+      
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AuthOptionsScreen.routeName,
+        (route) => false,
+      );
+    } catch (error) {
+      print('Error during silent logout: $error');
     }
   }
 

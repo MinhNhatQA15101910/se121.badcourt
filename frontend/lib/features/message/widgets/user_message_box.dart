@@ -62,7 +62,6 @@ class UserMessageBox extends StatelessWidget {
 
         // Lấy lastMessage real-time từ GroupProvider
         String lastMessage = 'Start a conversation';
-        String messageTimestamp = timestamp;
 
         if (roomId != null) {
           final group = groupProvider.getGroupById(roomId!);

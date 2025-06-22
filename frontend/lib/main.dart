@@ -86,35 +86,203 @@ class MyAppContent extends StatefulWidget {
   State<MyAppContent> createState() => _MyAppContentState();
 }
 
-class _MyAppContentState extends State<MyAppContent>
-    with WidgetsBindingObserver {
+class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver {
   final _authService = AuthService();
   final _signalRService = PresenceService();
-  bool _isFirstLaunch = true;
+  
+  // Thêm các biến để quản lý trạng thái
+  bool _isInitializing = true;  // Đang khởi tạo app
+  bool _isLoggedIn = false;     // Trạng thái đăng nhập
+  bool _isFirstLaunch = true;   // Lần đầu mở app
 
-  void getFirstLaunch() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? isFirstLaunch = prefs.getBool('is-first-launch');
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeSignalRListeners();
+    
+    // Khởi tạo app và kiểm tra trạng thái đăng nhập
+    _initializeApp();
+  }
 
-    if (isFirstLaunch == null || isFirstLaunch) {
+  // Method khởi tạo app - QUAN TRỌNG
+  Future<void> _initializeApp() async {
+    try {
+      print('🚀 Initializing app...');
+      
+      // 1. Kiểm tra first launch
+      await _checkFirstLaunch();
+      
+      // 2. Kiểm tra trạng thái đăng nhập đã lưu
+      await _checkSavedLoginState();
+      
+      // 3. Nếu có thông tin đăng nhập, thử tự động đăng nhập
+      if (_isLoggedIn) {
+        await _attemptAutoLogin();
+      } else {
+        setState(() {
+          _isInitializing = false;
+        });
+      }
+      
+      // 4. Setup callbacks sau khi có context
+      _setupGroupProviderCallbacks();
+      
+    } catch (error) {
+      print('❌ Error initializing app: $error');
       setState(() {
-        _isFirstLaunch = true;
-      });
-    } else {
-      setState(() {
-        _isFirstLaunch = false;
+        _isLoggedIn = false;
+        _isInitializing = false;
       });
     }
   }
 
+  // Kiểm tra first launch
+  Future<void> _checkFirstLaunch() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool? isFirstLaunch = prefs.getBool('is-first-launch');
+      
+      setState(() {
+        _isFirstLaunch = isFirstLaunch ?? true;
+      });
+      
+      print('📱 Is first launch: $_isFirstLaunch');
+    } catch (error) {
+      print('❌ Error checking first launch: $error');
+    }
+  }
+
+  // Kiểm tra trạng thái đăng nhập đã lưu
+  Future<void> _checkSavedLoginState() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      
+      String? savedToken = prefs.getString('x-auth-token');
+      bool? rememberLogin = prefs.getBool('remember-login');
+      bool? isLoggedIn = prefs.getBool('is-logged-in');
+      
+      print('💾 Saved token exists: ${savedToken != null && savedToken.isNotEmpty}');
+      print('💾 Remember login: ${rememberLogin ?? false}');
+      print('💾 Is logged in: ${isLoggedIn ?? false}');
+      
+      // Chỉ coi như đã đăng nhập nếu có đầy đủ thông tin
+      bool hasValidSavedState = (savedToken != null && savedToken.isNotEmpty) &&
+                               (rememberLogin ?? false) &&
+                               (isLoggedIn ?? false);
+      
+      setState(() {
+        _isLoggedIn = hasValidSavedState;
+      });
+      
+    } catch (error) {
+      print('❌ Error checking saved login state: $error');
+      setState(() {
+        _isLoggedIn = false;
+      });
+    }
+  }
+
+  // Thử tự động đăng nhập
+  Future<void> _attemptAutoLogin() async {
+    try {
+      print('🔄 Attempting auto login...');
+      
+      // Gọi getUserData và đợi kết quả
+      await _authService.getUserData(context);
+      
+      // Kiểm tra xem user data có được load thành công không
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      bool loginSuccessful = userProvider.user.token.isNotEmpty;
+      
+      print('✅ Auto login successful: $loginSuccessful');
+      
+      if (loginSuccessful) {
+        // Đánh dấu không còn first launch nếu đăng nhập thành công
+        if (_isFirstLaunch) {
+          await _markNotFirstLaunch();
+        }
+        
+        // Connect SignalR services
+        await _connectSignalRServices(userProvider.user.token);
+      } else {
+        // Auto login thất bại, clear saved data
+        await _clearLoginData();
+      }
+      
+      setState(() {
+        _isLoggedIn = loginSuccessful;
+        _isInitializing = false;
+      });
+      
+    } catch (error) {
+      print('❌ Auto login failed: $error');
+      await _clearLoginData();
+      setState(() {
+        _isLoggedIn = false;
+        _isInitializing = false;
+      });
+    }
+  }
+
+  // Connect SignalR services
+  Future<void> _connectSignalRServices(String token) async {
+    try {
+      print('🔗 Connecting SignalR services...');
+      await connectSignalRWithToken(token);
+      
+      // Connect GroupHub
+      final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+      if (!groupProvider.isConnected) {
+        await groupProvider.initializeGroupHub(token);
+        _setupGroupProviderCallbacks();
+      }
+      
+      // Connect NotificationHub
+      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+      if (!notificationProvider.isConnected) {
+        await notificationProvider.initializeNotificationHub(token);
+      }
+      
+      print('✅ SignalR services connected');
+    } catch (error) {
+      print('❌ Error connecting SignalR services: $error');
+    }
+  }
+
+  // Đánh dấu không còn first launch
+  Future<void> _markNotFirstLaunch() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is-first-launch', false);
+      setState(() {
+        _isFirstLaunch = false;
+      });
+      print('✅ Marked not first launch');
+    } catch (error) {
+      print('❌ Error marking not first launch: $error');
+    }
+  }
+
+  // Clear login data
+  Future<void> _clearLoginData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('x-auth-token');
+      await prefs.remove('Authorization');
+      await prefs.setBool('is-logged-in', false);
+      await prefs.setBool('remember-login', false);
+      print('🗑️ Login data cleared');
+    } catch (error) {
+      print('❌ Error clearing login data: $error');
+    }
+  }
+
   void _initializeSignalRListeners() {
-    // Set up SignalR event listeners
     _signalRService.onUserOnline = (userId) {
       if (mounted) {
         print('User $userId came online');
-        // Update OnlineUsersProvider
-        final onlineUsersProvider =
-            Provider.of<OnlineUsersProvider>(context, listen: false);
+        final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
         onlineUsersProvider.addOnlineUser(userId);
       }
     };
@@ -122,9 +290,7 @@ class _MyAppContentState extends State<MyAppContent>
     _signalRService.onUserOffline = (userId) {
       if (mounted) {
         print('User $userId went offline');
-        // Update OnlineUsersProvider
-        final onlineUsersProvider =
-            Provider.of<OnlineUsersProvider>(context, listen: false);
+        final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
         onlineUsersProvider.removeOnlineUser(userId);
       }
     };
@@ -132,10 +298,7 @@ class _MyAppContentState extends State<MyAppContent>
     _signalRService.onOnlineUsersReceived = (users) {
       if (mounted) {
         print('Online users: $users');
-        // Update OnlineUsersProvider with full list
-        final onlineUsersProvider =
-            Provider.of<OnlineUsersProvider>(context, listen: false);
-        // Clear and add all users
+        final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
         for (final user in users) {
           onlineUsersProvider.addOnlineUser(user);
         }
@@ -143,30 +306,22 @@ class _MyAppContentState extends State<MyAppContent>
     };
   }
 
-  // Setup GroupProvider callbacks để xử lý tin nhắn mới
   void _setupGroupProviderCallbacks() {
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    // Setup callback để xử lý tin nhắn mới
     groupProvider.onNewMessage = (message) {
       if (mounted) {
-        print(
-            '[Main] New message received: ${message.content} from ${message.senderUsername}');
-
-        // Có thể thêm logic hiển thị notification ở đây
-        _showNewMessageNotification(
-            message.content, message.senderUsername ?? 'Unknown');
+        print('[Main] New message received: ${message.content} from ${message.senderUsername}');
+        _showNewMessageNotification(message.content, message.senderUsername ?? 'Unknown');
       }
     };
 
-    // Set current user ID nếu đã có
     if (userProvider.user.id.isNotEmpty) {
       groupProvider.setCurrentUserId(userProvider.user.id);
     }
   }
 
-  // Hiển thị notification khi có tin nhắn mới
   void _showNewMessageNotification(String content, String senderName) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -200,7 +355,6 @@ class _MyAppContentState extends State<MyAppContent>
             label: 'View',
             textColor: Colors.white,
             onPressed: () {
-              // Navigate to messages screen
               Navigator.pushNamed(context, '/messageScreen');
             },
           ),
@@ -209,14 +363,11 @@ class _MyAppContentState extends State<MyAppContent>
     }
   }
 
-  // Method để connect SignalR khi có token
   Future<void> connectSignalRWithToken(String token) async {
     try {
       if (token.isNotEmpty && !_signalRService.isConnected) {
         print('Connecting to SignalR with token...');
         print('SignalR connected successfully');
-
-        // Setup GroupProvider callbacks sau khi có connection
         if (mounted) {
           _setupGroupProviderCallbacks();
         }
@@ -224,24 +375,6 @@ class _MyAppContentState extends State<MyAppContent>
     } catch (e) {
       print('Error connecting to SignalR: $e');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    getFirstLaunch();
-    _initializeSignalRListeners();
-
-    // Load user data sau khi widget đã được build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _authService.getUserData(context);
-
-      // Setup callbacks sau khi có context
-      if (mounted) {
-        _setupGroupProviderCallbacks();
-      }
-    });
   }
 
   @override
@@ -257,8 +390,7 @@ class _MyAppContentState extends State<MyAppContent>
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    final notificationProvider =
-        Provider.of<NotificationProvider>(context, listen: false);
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
     bool isLoggedIn = userProvider.user.token.isNotEmpty;
 
     switch (state) {
@@ -289,7 +421,6 @@ class _MyAppContentState extends State<MyAppContent>
           if (!groupProvider.isConnected) {
             print('App resumed - reconnecting GroupHub');
             groupProvider.initializeGroupHub(userProvider.user.token).then((_) {
-              // Setup callbacks lại sau khi reconnect
               if (mounted) {
                 _setupGroupProviderCallbacks();
               }
@@ -297,8 +428,7 @@ class _MyAppContentState extends State<MyAppContent>
           }
           if (!notificationProvider.isConnected) {
             print('App resumed - reconnecting NotificationHub');
-            notificationProvider
-                .initializeNotificationHub(userProvider.user.token);
+            notificationProvider.initializeNotificationHub(userProvider.user.token);
           }
         }
         break;
@@ -310,40 +440,38 @@ class _MyAppContentState extends State<MyAppContent>
   }
 
   Widget _getHomeScreen() {
+    // Hiển thị loading trong khi đang khởi tạo
+    if (_isInitializing) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: GlobalVariables.green,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Loading...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
-        if (userProvider.user.token.isNotEmpty) {
-          // User đã đăng nhập - connect SignalR nếu chưa connect
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            connectSignalRWithToken(userProvider.user.token);
-
-            // Kết nối GroupHub
-            final groupProvider =
-                Provider.of<GroupProvider>(context, listen: false);
-            if (!groupProvider.isConnected) {
-              groupProvider
-                  .initializeGroupHub(userProvider.user.token)
-                  .then((_) {
-                // Setup callbacks sau khi connect thành công
-                if (mounted) {
-                  _setupGroupProviderCallbacks();
-                }
-              });
-            } else if (mounted) {
-              // Đã connect rồi, chỉ cần setup callbacks
-              _setupGroupProviderCallbacks();
-            }
-
-            // Kết nối NotificationHub
-            final notificationProvider =
-                Provider.of<NotificationProvider>(context, listen: false);
-            if (!notificationProvider.isConnected) {
-              print('[Main] Initializing NotificationHub...');
-              notificationProvider
-                  .initializeNotificationHub(userProvider.user.token);
-            }
-          });
-
+        bool isUserLoggedIn = userProvider.user.token.isNotEmpty;
+        
+        print('🏠 Building home screen - User logged in: $isUserLoggedIn');
+        
+        if (isUserLoggedIn) {
           // Phân biệt role để chuyển đến màn hình phù hợp
           if (userProvider.user.role == 'manager') {
             return const IntroManagerScreen();

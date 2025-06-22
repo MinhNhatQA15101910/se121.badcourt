@@ -174,14 +174,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
     _syncWithProvider();
   }
 
-  // Handle new real-time notifications from SignalR
-  void _handleNewNotification(NotificationDto newNotification) {
-    setState(() {
-      // Add new notification to the beginning of the list
-      _allNotifications.insert(0, newNotification);
-    });
-  }
-
   // Check pagination info by making a test call to page 2
   Future<void> _checkPaginationInfo() async {
     try {

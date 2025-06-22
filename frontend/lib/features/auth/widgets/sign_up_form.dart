@@ -37,6 +37,111 @@ class _SignUpFormState extends State<SignUpForm> {
   final _passwordController = TextEditingController();
   final _passwordConfirmedController = TextEditingController();
 
+  // Password requirements validation
+  Map<String, bool> _getPasswordRequirements(String password) {
+    return {
+      'minLength': password.length >= 8,
+      'hasUppercase': password.contains(RegExp(r'[A-Z]')),
+      'hasLowercase': password.contains(RegExp(r'[a-z]')),
+      'hasNumber': password.contains(RegExp(r'[0-9]')),
+      'hasSpecialChar': password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')),
+    };
+  }
+
+  // Enhanced password validator
+  String? _validatePassword(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Please enter your password.';
+    }
+
+    final requirements = _getPasswordRequirements(password);
+    
+    if (!requirements['minLength']!) {
+      return 'Password must be at least 8 characters long.';
+    }
+    
+    if (!requirements['hasUppercase']!) {
+      return 'Password must contain at least 1 uppercase letter.';
+    }
+    
+    if (!requirements['hasLowercase']!) {
+      return 'Password must contain at least 1 lowercase letter.';
+    }
+    
+    if (!requirements['hasNumber']!) {
+      return 'Password must contain at least 1 number.';
+    }
+    
+    if (!requirements['hasSpecialChar']!) {
+      return 'Password must contain at least 1 special character.';
+    }
+
+    return null;
+  }
+
+  // Enhanced email validator
+  String? _validateEmail(String? email) {
+    if (email == null || email.isEmpty) {
+      return 'Please enter your email.';
+    }
+
+    // Check basic email format
+    if (!EmailValidator.validate(email)) {
+      return 'Please enter a valid email address.';
+    }
+
+    // Additional email validation rules
+    if (email.length > 254) {
+      return 'Email too long (maximum 254 characters).';
+    }
+
+    // Check for consecutive dots
+    if (email.contains('..')) {
+      return 'Email cannot contain consecutive periods.';
+    }
+
+    // Check for valid domain
+    final parts = email.split('@');
+    if (parts.length != 2) {
+      return 'Invalid email.';
+    }
+
+    final domain = parts[1];
+    if (domain.isEmpty || domain.startsWith('.') || domain.endsWith('.')) {
+      return 'Invalid email domain.';
+    }
+
+    return null;
+  }
+
+  // Enhanced username validator
+  String? _validateUsername(String? username) {
+    if (username == null || username.isEmpty) {
+      return 'Please enter your username.';
+    }
+
+    if (username.length < 6) {
+      return 'Username must be at least 6 characters long.';
+    }
+
+    if (username.length > 30) {
+      return 'Username cannot exceed 30 characters.';
+    }
+
+    // Check for valid characters (letters, numbers, underscore, hyphen)
+    if (!RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(username)) {
+      return 'Username can only contain letters, numbers, underscores and hyphens.';
+    }
+
+    // Cannot start or end with special characters
+    if (username.startsWith('_') || username.startsWith('-') || 
+        username.endsWith('_') || username.endsWith('-')) {
+      return 'Username cannot start or end with special characters.';
+    }
+
+    return null;
+  }
+
   void _loginWithGoogle() {
     setState(() {
       _isLoginWithGoogleLoading = true;
@@ -93,9 +198,7 @@ class _SignUpFormState extends State<SignUpForm> {
           if (isSignUpValid) {
             authProvider.setResentEmail(_emailController.text.trim());
             authProvider.setPreviousForm(SignUpForm());
-            authProvider.setSignUpUser(
-              User.empty()
-            );
+            authProvider.setSignUpUser(User.empty());
             authProvider.setForm(
               PinputForm(
                 isMoveBack: false,
@@ -105,7 +208,7 @@ class _SignUpFormState extends State<SignUpForm> {
           } else {
             IconSnackBar.show(
               context,
-              label: 'Fail to sign up!',
+              label: 'Sign up failed!',
               snackBarType: SnackBarType.fail,
             );
           }
@@ -127,7 +230,7 @@ class _SignUpFormState extends State<SignUpForm> {
         color: GlobalVariables.defaultColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: GlobalVariables.lightGreen..withOpacity(0.5),
+          color: GlobalVariables.lightGreen.withOpacity(0.5),
         ),
       ),
       padding: EdgeInsets.symmetric(
@@ -156,17 +259,7 @@ class _SignUpFormState extends State<SignUpForm> {
               CustomTextfield(
                 controller: _usernameController,
                 hintText: 'Username',
-                validator: (username) {
-                  if (username == null || username.isEmpty) {
-                    return 'Please enter your username.';
-                  }
-
-                  if (username.length < 6) {
-                    return 'Username must be at least 6 characters long.';
-                  }
-
-                  return null;
-                },
+                validator: _validateUsername,
               ),
               const SizedBox(height: 16),
 
@@ -175,17 +268,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 controller: _emailController,
                 hintText: 'Email address',
                 isEmail: true,
-                validator: (email) {
-                  if (email == null || email.isEmpty) {
-                    return 'Please enter your email.';
-                  }
-
-                  if (!EmailValidator.validate(email)) {
-                    return 'Please enter a valid email address.';
-                  }
-
-                  return null;
-                },
+                validator: _validateEmail,
               ),
               const SizedBox(height: 16),
 
@@ -194,17 +277,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 controller: _passwordController,
                 isPassword: true,
                 hintText: 'Password',
-                validator: (password) {
-                  if (password == null || password.isEmpty) {
-                    return 'Please enter your password.';
-                  }
-
-                  if (password.length < 8) {
-                    return 'Password must be at least 8 characters long.';
-                  }
-
-                  return null;
-                },
+                validator: _validatePassword,
               ),
               const SizedBox(height: 16),
 
@@ -215,11 +288,11 @@ class _SignUpFormState extends State<SignUpForm> {
                 hintText: 'Confirm password',
                 validator: (password) {
                   if (password == null || password.isEmpty) {
-                    return 'Please enter your password.';
+                    return 'Please confirm your password.';
                   }
 
                   if (password.trim() != _passwordController.text.trim()) {
-                    return 'Password confirm does not match.';
+                    return 'Password confirmation does not match.';
                   }
 
                   return null;
@@ -281,7 +354,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
               if (authProvider.isPlayer) const SizedBox(height: 16),
 
-              // Sign up with Google button.
+              // Sign up with Google button
               if (authProvider.isPlayer)
                 Align(
                   alignment: Alignment.center,
@@ -355,7 +428,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
               if (authProvider.isPlayer) const SizedBox(height: 16),
 
-              // Continue as a guess button
+              // Continue as a guest button
               if (authProvider.isPlayer)
                 Align(
                   alignment: Alignment.center,
@@ -387,7 +460,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
               if (authProvider.isPlayer) const SizedBox(height: 16),
 
-              // Navigate to Sign Up form text
+              // Navigate to Login form text
               Align(
                 alignment: Alignment.center,
                 child: GestureDetector(

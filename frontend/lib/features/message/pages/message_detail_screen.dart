@@ -37,7 +37,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
   late String? userId;
   User? _otherUser;
 
-  final ImagePicker _picker = ImagePicker();
   List<File> _mediaFiles = [];
 
   bool _isLoading = true;
@@ -406,7 +405,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
     });
 
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      Provider.of<UserProvider>(context, listen: false);
 
       // Validate file sizes before sending
       for (File file in attachmentsToSend) {
