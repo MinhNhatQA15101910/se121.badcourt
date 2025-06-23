@@ -21,7 +21,6 @@ class PresenceService {
     }
 
     try {
-      // Sử dụng đúng URL như web: /hubs/presence thay vì /presenceHub
       final hubUrl = '$signalrUri/hubs/presence';
       print('Connecting to SignalR: $hubUrl');
       
@@ -37,50 +36,8 @@ class PresenceService {
           .withAutomaticReconnect()
           .build();
 
-      // Thiết lập event listeners giống như web
-      _hubConnection!.on('UserIsOnline', (arguments) {
-        if (arguments != null && arguments.isNotEmpty) {
-          final userId = arguments[0].toString();
-          onUserOnline?.call(userId);
-          print('[SignalR] User $userId is online');
-        }
-      });
-
-      _hubConnection!.on('UserIsOffline', (arguments) {
-        if (arguments != null && arguments.isNotEmpty) {
-          final userId = arguments[0].toString();
-          onUserOffline?.call(userId);
-          print('[SignalR] User $userId is offline');
-        }
-      });
-
-      _hubConnection!.on('GetOnlineUsers', (arguments) {
-        if (arguments != null && arguments.isNotEmpty) {
-          try {
-            final usersData = arguments[0];
-            List<String> users = [];
-            
-            if (usersData is List) {
-              users = usersData.map((user) => user.toString()).toList();
-            } else {
-              users = [usersData.toString()];
-            }
-            
-            onOnlineUsersReceived?.call(users);
-            print('[SignalR] Online users: $users');
-          } catch (e) {
-            print('Error parsing users: $e');
-          }
-        }
-      });
-
-      _hubConnection!.on('NewMessageReceived', (arguments) {
-        print('[SignalR] Received NewMessageReceived event');
-      });
-
-      _hubConnection?.on('ReceiveNotification', (arguments) {
-        print('[SignalR] Received ReceiveNotification event');
-      });
+      // Setup SignalR event handlers
+      _setupSignalRHandlers();
 
       // Bắt đầu kết nối
       await _hubConnection!.start();
@@ -92,6 +49,49 @@ class PresenceService {
       _isConnected = false;
       rethrow;
     }
+  }
+
+  void _setupSignalRHandlers() {
+    print('[PresenceService] Setting up SignalR handlers');
+    
+    _hubConnection!.on('UserIsOnline', (arguments) {
+      print('[SignalR] UserIsOnline event received: $arguments');
+      if (arguments != null && arguments.isNotEmpty) {
+        final userId = arguments[0].toString();
+        print('[SignalR] Calling onUserOnline callback for user: $userId');
+        onUserOnline?.call(userId);
+      }
+    });
+
+    _hubConnection!.on('UserIsOffline', (arguments) {
+      print('[SignalR] UserIsOffline event received: $arguments');
+      if (arguments != null && arguments.isNotEmpty) {
+        final userId = arguments[0].toString();
+        print('[SignalR] Calling onUserOffline callback for user: $userId');
+        onUserOffline?.call(userId);
+      }
+    });
+
+    _hubConnection!.on('GetOnlineUsers', (arguments) {
+      print('[SignalR] GetOnlineUsers event received: $arguments');
+      if (arguments != null && arguments.isNotEmpty) {
+        try {
+          final usersData = arguments[0];
+          List<String> users = [];
+          
+          if (usersData is List) {
+            users = usersData.map((user) => user.toString()).toList();
+          } else {
+            users = [usersData.toString()];
+          }
+          
+          print('[SignalR] Calling onOnlineUsersReceived callback with users: $users');
+          onOnlineUsersReceived?.call(users);
+        } catch (e) {
+          print('Error parsing users: $e');
+        }
+      }
+    });
   }
 
   Future<void> stopConnection() async {
@@ -111,5 +111,13 @@ class PresenceService {
   String get connectionState {
     if (_hubConnection == null) return 'Not initialized';
     return _hubConnection!.state.toString();
+  }
+
+  // Method để test callbacks
+  void testCallbacks() {
+    print('[PresenceService] Testing callbacks:');
+    print('onUserOnline: ${onUserOnline != null}');
+    print('onUserOffline: ${onUserOffline != null}');
+    print('onOnlineUsersReceived: ${onOnlineUsersReceived != null}');
   }
 }

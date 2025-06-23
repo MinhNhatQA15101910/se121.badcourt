@@ -7,7 +7,8 @@ class OnlineUsersProvider extends ChangeNotifier {
   bool _isInitialized = false;
 
   OnlineUsersProvider() {
-    _setupListeners();
+    // Không setup listeners ở đây nữa
+    print('[OnlineUsersProvider] Constructor called');
   }
 
   Set<String> get onlineUsers => _onlineUsers;
@@ -48,6 +49,10 @@ class OnlineUsersProvider extends ChangeNotifier {
   Future<void> initialize(String accessToken) async {
     try {
       print('[OnlineUsersProvider] Initializing with token');
+      
+      // Setup listeners TRƯỚC KHI kết nối
+      _setupListeners();
+      
       if (!_presenceService.isConnected) {
         await _presenceService.startConnection(accessToken);
         _isInitialized = true;
