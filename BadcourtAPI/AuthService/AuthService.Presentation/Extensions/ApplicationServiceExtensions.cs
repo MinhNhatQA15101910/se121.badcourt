@@ -1,5 +1,6 @@
 using AuthService.Core.Application;
 using AuthService.Core.Application.Behaviors;
+using AuthService.Core.Application.Consumers;
 using AuthService.Core.Application.Interfaces;
 using AuthService.Core.Application.Services;
 using AuthService.Core.Domain.Repositories;
@@ -65,7 +66,20 @@ public static class ApplicationServiceExtensions
         // MassTransit and RabbitMQ
         services.AddMassTransit(x =>
         {
-            x.UsingRabbitMq();
+            x.AddConsumer<UserOnlineConsumer>();
+            x.AddConsumer<UserOfflineConsumer>();
+
+            x.UsingRabbitMq((ctx, cfg) =>
+            {
+                cfg.ReceiveEndpoint("AuthService-user-online-queue", e =>
+                {
+                    e.ConfigureConsumer<UserOnlineConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("AuthService-user-offline-queue", e =>
+                {
+                    e.ConfigureConsumer<UserOfflineConsumer>(ctx);
+                });
+            });
         });
 
         // Others
