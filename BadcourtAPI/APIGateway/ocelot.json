@@ -237,6 +237,13 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
+      "DownstreamPathTemplate": "/api/messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/messages",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
       "DownstreamPathTemplate": "/api/notifications",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],

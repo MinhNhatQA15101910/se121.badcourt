@@ -59,8 +59,8 @@ public class FacilityRepository : IFacilityRepository
                     { "near", new BsonDocument("type", "Point").Add("coordinates", new BsonArray { facilityParams.Lon, facilityParams.Lat }) },
                     { "distanceField", "Distance" },
                     { "spherical", true },
-                    { "sort", new BsonDocument("Distance", facilityParams.SortBy == "asc" ? 1 : -1) }
                 }));
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("Distance", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
             case "price":
                 pipeline.Add(new BsonDocument("$addFields", new BsonDocument("avgPrice",

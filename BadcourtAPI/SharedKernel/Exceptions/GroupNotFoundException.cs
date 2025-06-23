@@ -1,6 +1,6 @@
 namespace SharedKernel.Exceptions;
 
 public class GroupNotFoundException(string groupName)
-    : NotFoundException($"The order with the name {groupName} was not found.")
+    : NotFoundException($"The group with the name {groupName} was not found.")
 {
 }
