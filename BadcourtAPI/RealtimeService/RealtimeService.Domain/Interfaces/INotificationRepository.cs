@@ -14,5 +14,6 @@ public interface INotificationRepository
         string userId, NotificationParams notificationParams, CancellationToken cancellationToken = default);
     Task<int> GetNumberOfUnreadNotificationsAsync(
         string userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(string userId, CancellationToken cancellationToken = default);
     Task UpdateNotificationAsync(Notification notification, CancellationToken cancellationToken = default);
 }
