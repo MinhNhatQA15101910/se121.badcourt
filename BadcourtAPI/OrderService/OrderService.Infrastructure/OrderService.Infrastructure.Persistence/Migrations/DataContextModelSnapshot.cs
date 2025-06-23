@@ -45,8 +45,9 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Property<decimal>("Price")
                     .HasColumnType("TEXT");
 
-                b.Property<int>("State")
-                    .HasColumnType("INTEGER");
+                b.Property<string>("State")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
 
                 b.Property<DateTime>("UpdatedAt")
                     .HasColumnType("TEXT");

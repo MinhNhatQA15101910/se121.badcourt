@@ -11,6 +11,13 @@ public class DataContext(DbContextOptions options) : DbContext(options)
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Order>(entity =>
+        { 
+            entity.Property(o => o.State)
+                .HasConversion<string>()
+                .IsRequired();
+        });
+
         modelBuilder.Entity<Order>()
             .OwnsOne(o => o.DateTimePeriod);
     }
