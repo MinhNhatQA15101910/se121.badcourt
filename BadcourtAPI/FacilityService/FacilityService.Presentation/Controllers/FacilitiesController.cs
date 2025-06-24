@@ -42,8 +42,6 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<FacilityDto>> RegisterFacility([FromForm] RegisterFacilityDto registerFacilityDto)
     {
-        registerFacilityDto.UserId = User.GetUserId();
-
         var facility = await mediator.Send(new RegisterFacilityCommand(registerFacilityDto));
         return CreatedAtAction(
             nameof(GetFacility),

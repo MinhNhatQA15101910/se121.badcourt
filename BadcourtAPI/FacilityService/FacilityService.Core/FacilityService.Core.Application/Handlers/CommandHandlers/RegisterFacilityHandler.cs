@@ -1,8 +1,11 @@
 using AutoMapper;
 using FacilityService.Core.Application.Commands;
+using FacilityService.Core.Application.Extensions;
+using FacilityService.Core.Application.ExternalServices.Interfaces;
 using FacilityService.Core.Application.Interfaces;
 using FacilityService.Core.Domain.Entities;
 using FacilityService.Core.Domain.Repositories;
+using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 using SharedKernel.DTOs;
 using SharedKernel.Exceptions;
@@ -10,14 +13,23 @@ using SharedKernel.Exceptions;
 namespace FacilityService.Core.Application.Handlers.CommandHandlers;
 
 public class RegisterFacilityHandler(
+    IHttpContextAccessor httpContextAccessor,
     IFacilityRepository facilityRepository,
     IFileService fileService,
+    IUserServiceClient userServiceClient,
     IMapper mapper
 ) : ICommandHandler<RegisterFacilityCommand, FacilityDto>
 {
     public async Task<FacilityDto> Handle(RegisterFacilityCommand request, CancellationToken cancellationToken)
     {
+        var userId = httpContextAccessor.HttpContext.User.GetUserId();
+        var user = await userServiceClient.GetUserByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+
         var facility = mapper.Map<Facility>(request.RegisterFacilityDto);
+        facility.UserId = user.Id;
+        facility.UserName = user.Username;
+        facility.UserImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url;
 
         await facilityRepository.AddFacilityAsync(facility, cancellationToken);
 
