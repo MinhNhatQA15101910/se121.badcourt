@@ -46,6 +46,8 @@ public static class ApplicationServiceExtensions
             x.AddConsumer<PostLikedConsumer>();
             x.AddConsumer<PostCommentedConsumer>();
             x.AddConsumer<CommentLikedConsumer>();
+            x.AddConsumer<FacilityApprovedConsumer>();
+            x.AddConsumer<FacilityRejectedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
@@ -64,6 +66,14 @@ public static class ApplicationServiceExtensions
                 cfg.ReceiveEndpoint("RealtimeService-comment-liked-queue", e =>
                 {
                     e.ConfigureConsumer<CommentLikedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-facility-approved-queue", e =>
+                {
+                    e.ConfigureConsumer<FacilityApprovedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-facility-rejected-queue", e =>
+                {
+                    e.ConfigureConsumer<FacilityRejectedConsumer>(ctx);
                 });
             });
         });
