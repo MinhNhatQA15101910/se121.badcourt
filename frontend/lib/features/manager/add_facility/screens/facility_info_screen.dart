@@ -14,7 +14,9 @@ import 'package:provider/provider.dart';
 
 class FacilityInfo extends StatefulWidget {
   static const String routeName = 'manager/facility-info';
-  const FacilityInfo({super.key});
+  final Facility? existingFacility; // Optional parameter for edit mode
+  
+  const FacilityInfo({super.key, this.existingFacility});
 
   @override
   State<FacilityInfo> createState() => _FacilityInfoState();
@@ -58,6 +60,38 @@ class _FacilityInfoState extends State<FacilityInfo>
       curve: Curves.easeOutCubic,
     ));
     _animationController.forward();
+
+    // Initialize provider based on mode
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<NewFacilityProvider>(context, listen: false);
+      if (widget.existingFacility != null) {
+        provider.initializeForEdit(widget.existingFacility!);
+        _populateFieldsFromFacility(widget.existingFacility!);
+      } else {
+        provider.initializeForCreate();
+      }
+    });
+  }
+
+  void _populateFieldsFromFacility(Facility facility) {
+    _facilityNameController.text = facility.facilityName;
+    _facebookUrlController.text = facility.facebookUrl;
+    _descriptionController.text = facility.description;
+    _policyController.text = facility.policy;
+    
+    // Parse address
+    final addressParts = facility.detailAddress.split(', ');
+    if (addressParts.length >= 4) {
+      _streetNameController.text = addressParts[0];
+      _wardNameController.text = addressParts[1];
+      _districtNameController.text = addressParts[2];
+      _provinceNameController.text = addressParts[3];
+    }
+    
+    // Set existing facility images
+    _facilityInfo = facility.facilityImages.map((img) => img.url).toList();
+    
+    setState(() {});
   }
 
   @override
@@ -154,7 +188,7 @@ class _FacilityInfoState extends State<FacilityInfo>
         _showValidationSnackBar('Please add at least one facility image');
         return;
       }
-      if (_selectedAddress == null) {
+      if (_selectedAddress == null && widget.existingFacility == null) {
         _showValidationSnackBar('Please select a location on the map');
         return;
       }
@@ -176,7 +210,7 @@ class _FacilityInfoState extends State<FacilityInfo>
         _showValidationSnackBar('Please add at least one facility image');
         return;
       }
-      if (_selectedAddress == null) {
+      if (_selectedAddress == null && widget.existingFacility == null) {
         _showValidationSnackBar('Please select a location on the map');
         return;
       }
@@ -186,6 +220,11 @@ class _FacilityInfoState extends State<FacilityInfo>
         listen: false,
       );
 
+      // Use existing coordinates if no new address selected
+      double lat = _selectedAddress?.lng ?? widget.existingFacility?.lat ?? 0.0;
+      double lon = _selectedAddress?.lat ?? widget.existingFacility?.lon ?? 0.0;
+      String province = _selectedAddress?.city ?? widget.existingFacility?.province ?? _provinceNameController.text;
+
       Facility facility = newFacilityProvider.newFacility.copyWith(
         facilityName: _facilityNameController.text.trim(),
         facebookUrl: _facebookUrlController.text.trim(),
@@ -193,9 +232,9 @@ class _FacilityInfoState extends State<FacilityInfo>
         policy: _policyController.text.trim(),
         detailAddress:
             '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
-        province: _selectedAddress!.city,
-        lat: _selectedAddress!.lng,
-        lon: _selectedAddress!.lat,
+        province: province,
+        lat: lat,
+        lon: lon,
       );
 
       newFacilityProvider.setFacility(facility);
@@ -221,6 +260,7 @@ class _FacilityInfoState extends State<FacilityInfo>
   }
 
   Widget _buildHeader() {
+    final provider = Provider.of<NewFacilityProvider>(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -246,7 +286,7 @@ class _FacilityInfoState extends State<FacilityInfo>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Facility Information',
+                    provider.isEditMode ? 'Edit Facility' : 'Facility Information',
                     style: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -255,7 +295,9 @@ class _FacilityInfoState extends State<FacilityInfo>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Step 1 of 3 - Basic facility details',
+                    provider.isEditMode 
+                        ? 'Update facility details'
+                        : 'Step 1 of 3 - Basic facility details',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.9),
@@ -269,6 +311,9 @@ class _FacilityInfoState extends State<FacilityInfo>
       ),
     );
   }
+
+  // ... (rest of the widget methods remain the same as in the original file)
+  // I'll include the key parts that need modification
 
   Widget _buildImageSection() {
     return FadeTransition(
@@ -347,7 +392,7 @@ class _FacilityInfoState extends State<FacilityInfo>
               ),
             ),
             
-            // Main image
+            // Main image display logic (handles both new files and existing URLs)
             GestureDetector(
               onTap: _selectMultipleImages,
               child: Container(
@@ -446,10 +491,10 @@ class _FacilityInfoState extends State<FacilityInfo>
               ),
             ),
 
-            // Additional images
+            // Additional images thumbnail view
             if (_images.length > 1 || _facilityInfo.length > 1)
               Container(
-                height: 100,
+                height: 80,
                 margin: const EdgeInsets.all(16),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -650,6 +695,8 @@ class _FacilityInfoState extends State<FacilityInfo>
                             LocationSelector(
                               selectedAddress: _selectedAddress,
                               onAddressSelected: _changeAddress,
+                              lat: widget.existingFacility?.lat ?? 0.0,
+                              lng: widget.existingFacility?.lon ?? 0.0,
                             ),
 
                             CustomFormField(

@@ -1,140 +1,160 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:frontend/models/active.dart';
 import 'package:frontend/models/facility.dart';
-import 'package:frontend/models/manager_info.dart';
 import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/manager_info.dart';
 
 class NewFacilityProvider extends ChangeNotifier {
   Facility _newFacility = Facility(
-    id: 'default_id',
-    userId: 'default_userId',
-    facilityName: 'Default Facility Name',
-    facebookUrl: 'https://www.facebook.com/default',
-    description: 'This is a default facility description.',
-    policy: 'Default policy for this facility.',
-    facilityImages: [
-      ImageCustom(
-        id: 'default_image_id_1',
-        url: 'https://via.placeholder.com/150',
-        isMain: true,
-        type: 'image',
-      ),
-      ImageCustom(
-        id: 'default_image_id_2',
-        url: 'https://via.placeholder.com/200',
-        isMain: false,
-        type: 'image',
-      ),
-    ],
-    courtsAmount: 1,
-    detailAddress: '123 Default Street, Default City',
-    province: 'Default Province',
-    lon: 0,
-    lat: 0,
-    ratingAvg: 4.5,
-    totalRating: 100,
-    state: 'Pending',
-    registeredAt: DateTime.now(),
+    id: '',
+    facilityName: '',
+    facebookUrl: '',
+    description: '',
+    policy: '',
+    userId: '',
+    facilityImages: [],
+    courtsAmount: 0,
     minPrice: 0,
     maxPrice: 0,
+    detailAddress: '',
+    province: '',
+    lat: 0.0,
+    lon: 0.0,
+    ratingAvg: 0.0,
+    totalRating: 0,
+    state: '',
+    registeredAt: DateTime.now(),
     managerInfo: ManagerInfo(
-      fullName: 'Default Manager',
-      email: 'manager@example.com',
-      phoneNumber: '0123456789',
-      citizenId: '123456789',
-      citizenImageFront: ImageCustom(
-        id: 'default_citizen_front_id',
-        url: 'https://via.placeholder.com/150',
-        isMain: true,
-        type: 'image',
-      ),
-      citizenImageBack: ImageCustom(
-        id: 'default_citizen_back_id',
-        url: 'https://via.placeholder.com/150',
-        isMain: true,
-        type: 'image',
-      ),
-      bankCardFront: ImageCustom(
-        id: 'default_bank_front_id',
-        url: 'https://via.placeholder.com/150',
-        isMain: true,
-        type: 'image',
-      ),
-      bankCardBack: ImageCustom(
-        id: 'default_bank_back_id',
-        url: 'https://via.placeholder.com/150',
-        isMain: true,
-        type: 'image',
-      ),
-      businessLicenseImages: [
-        ImageCustom(
-          id: 'default_license_id_1',
-          url: 'https://via.placeholder.com/150',
-          isMain: true,
-          type: 'image',
-        ),
-        ImageCustom(
-          id: 'default_license_id_2',
-          url: 'https://via.placeholder.com/200',
-          isMain: false,
-          type: 'image',
-        ),
-      ],
+      fullName: '',
+      email: '',
+      phoneNumber: '',
+      citizenId: '',
+      citizenImageFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
+      citizenImageBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
+      bankCardFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
+      bankCardBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
+      businessLicenseImages: [],
     ),
-    activeAt: Active(
-      schedule: {},
-    ), userName: '',
+    userName: '',
   );
 
   List<File> _facilityImages = [];
+  List<File> _licenseImages = [];
   File _frontCitizenIdImage = File('');
   File _backCitizenIdImage = File('');
   File _frontBankCardImage = File('');
   File _backBankCardImage = File('');
-  List<File> _licenseImages = [];
+  
+  // Add mode tracking
+  bool _isEditMode = false;
+  Facility? _originalFacility;
 
+  // Getters
   Facility get newFacility => _newFacility;
   List<File> get facilityImages => _facilityImages;
+  List<File> get licenseImages => _licenseImages;
   File get frontCitizenIdImage => _frontCitizenIdImage;
   File get backCitizenIdImage => _backCitizenIdImage;
   File get frontBankCardImage => _frontBankCardImage;
   File get backBankCardImage => _backBankCardImage;
-  List<File> get licenseImages => _licenseImages;
+  bool get isEditMode => _isEditMode;
+  Facility? get originalFacility => _originalFacility;
 
+  // Initialize for editing existing facility
+  void initializeForEdit(Facility facility) {
+    _isEditMode = true;
+    _originalFacility = facility;
+    _newFacility = facility.copyWith();
+    notifyListeners();
+  }
+
+  // Initialize for creating new facility
+  void initializeForCreate() {
+    _isEditMode = false;
+    _originalFacility = null;
+    _newFacility = Facility(
+      id: '',
+      facilityName: '',
+      facebookUrl: '',
+      description: '',
+      policy: '',
+      userId: '',
+      facilityImages: [],
+      courtsAmount: 0,
+      minPrice: 0,
+      maxPrice: 0,
+      detailAddress: '',
+      province: '',
+      lat: 0.0,
+      lon: 0.0,
+      ratingAvg: 0.0,
+      totalRating: 0,
+      state: '',
+      registeredAt: DateTime.now(),
+      managerInfo: ManagerInfo(
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        citizenId: '',
+        citizenImageFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
+        citizenImageBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
+        bankCardFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
+        bankCardBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
+        businessLicenseImages: [],
+      ),
+      userName: '',
+    );
+    _clearAllImages();
+    notifyListeners();
+  }
+
+  void _clearAllImages() {
+    _facilityImages.clear();
+    _licenseImages.clear();
+    _frontCitizenIdImage = File('');
+    _backCitizenIdImage = File('');
+    _frontBankCardImage = File('');
+    _backBankCardImage = File('');
+  }
+
+  // Setters
   void setFacility(Facility facility) {
     _newFacility = facility;
     notifyListeners();
   }
 
-  void setFacilityImageUrls(List<File> facilityImages) {
-    _facilityImages = facilityImages;
+  void setFacilityImageUrls(List<File> images) {
+    _facilityImages = images;
     notifyListeners();
   }
 
-  void setFrontCitizenIdImage(File frontCitizenIdImage) {
-    _frontCitizenIdImage = frontCitizenIdImage;
+  void setLicenseImages(List<File> images) {
+    _licenseImages = images;
     notifyListeners();
   }
 
-  void setBackCitizenIdImage(File backCitizenIdImage) {
-    _backCitizenIdImage = backCitizenIdImage;
+  void setFrontCitizenIdImage(File image) {
+    _frontCitizenIdImage = image;
     notifyListeners();
   }
 
-  void setFrontBankCardImage(File frontBankCardImage) {
-    _frontBankCardImage = frontBankCardImage;
+  void setBackCitizenIdImage(File image) {
+    _backCitizenIdImage = image;
     notifyListeners();
   }
 
-  void setBackBankCardImage(File backBankCardImage) {
-    _backBankCardImage = backBankCardImage;
+  void setFrontBankCardImage(File image) {
+    _frontBankCardImage = image;
     notifyListeners();
   }
 
-  void setLicenseImages(List<File> licenseImages) {
-    _licenseImages = licenseImages;
+  void setBackBankCardImage(File image) {
+    _backBankCardImage = image;
     notifyListeners();
+  }
+
+  // Reset provider
+  void reset() {
+    initializeForCreate();
   }
 }

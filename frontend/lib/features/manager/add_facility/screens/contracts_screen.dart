@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
 import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class ContractScreen extends StatefulWidget {
   static const String routeName = '/manager/contracts';
@@ -64,7 +66,7 @@ class _ContractScreenState extends State<ContractScreen>
     );
   }
 
-  Future<void> _addFacility() async {
+  Future<void> _submitFacility() async {
     if (!_checkBoxValue) {
       _showValidationSnackBar('Please accept the terms and conditions to continue.');
       return;
@@ -80,10 +82,22 @@ class _ContractScreenState extends State<ContractScreen>
     });
 
     try {
-      await _addFacilityService.registerFacility(context: context);
+      final provider = Provider.of<NewFacilityProvider>(context, listen: false);
+      
+      if (provider.isEditMode && provider.originalFacility != null) {
+        // Update existing facility
+        await _addFacilityService.updateFacility(
+          context: context,
+          facility: provider.originalFacility!,
+        );
+      } else {
+        // Create new facility
+        await _addFacilityService.registerFacility(context: context);
+      }
+      
       _navigateToIntroManagerScreen();
     } catch (e) {
-      _showValidationSnackBar('Registration failed. Please try again.');
+      _showValidationSnackBar('Operation failed. Please try again.');
     } finally {
       setState(() {
         _isLoading = false;
@@ -100,6 +114,7 @@ class _ContractScreenState extends State<ContractScreen>
   }
 
   Widget _buildHeader() {
+    final provider = Provider.of<NewFacilityProvider>(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -134,7 +149,9 @@ class _ContractScreenState extends State<ContractScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Please read carefully before proceeding',
+                    provider.isEditMode 
+                        ? 'Review terms for facility update'
+                        : 'Please read carefully before proceeding',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.9),
@@ -361,6 +378,7 @@ class _ContractScreenState extends State<ContractScreen>
   }
 
   Widget _buildConfirmButton() {
+    final provider = Provider.of<NewFacilityProvider>(context);
     return Container(
       padding: const EdgeInsets.all(16),
       child: AnimatedContainer(
@@ -380,7 +398,7 @@ class _ContractScreenState extends State<ContractScreen>
           height: 56,
           child: ElevatedButton.icon(
             onPressed: (_checkBoxValue && _hasScrolledToBottom && !_isLoading) 
-                ? _addFacility 
+                ? _submitFacility 
                 : null,
             icon: _isLoading 
                 ? const SizedBox(
@@ -393,7 +411,11 @@ class _ContractScreenState extends State<ContractScreen>
                   )
                 : const Icon(Icons.check_circle_outline, size: 24),
             label: Text(
-              _isLoading ? 'Processing...' : 'Confirm Registration',
+              _isLoading 
+                  ? 'Processing...' 
+                  : provider.isEditMode 
+                      ? 'Confirm Update'
+                      : 'Confirm Registration',
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
