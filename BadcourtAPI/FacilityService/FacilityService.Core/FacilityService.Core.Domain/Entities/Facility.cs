@@ -32,7 +32,7 @@ public class Facility
     public Active? ActiveAt { get; set; }
 
     [BsonRepresentation(BsonType.String)]
-    public FacilityState State { get; set; }
+    public FacilityState State { get; set; } = FacilityState.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -40,7 +40,7 @@ public class Facility
     public ManagerInfo ManagerInfo { get; set; } = null!;
 
     [BsonIgnoreIfNull]
-    public double Distance { get; set; }
+    public double? Distance { get; set; }
     [BsonIgnoreIfNull]
-    public decimal AvgPrice { get; set; }
+    public decimal? AvgPrice { get; set; }
 }

@@ -51,6 +51,14 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
     }
 
     [Authorize(Roles = "Admin, Manager")]
+    [HttpPut("{id:length(24)}")]
+    public async Task<IActionResult> UpdateFacility(string id, [FromForm] UpdateFacilityDto updateFacilityDto)
+    {
+        await mediator.Send(new UpdateFacilityCommand(id, updateFacilityDto));
+        return NoContent();
+    }
+
+    [Authorize(Roles = "Admin, Manager")]
     [HttpPut("update-active/{id:length(24)}")]
     public async Task<IActionResult> UpdateActive(string id, ActiveDto activeDto)
     {

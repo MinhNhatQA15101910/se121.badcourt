@@ -114,6 +114,13 @@
       "UpstreamHttpMethod": ["Post"]
     },
     {
+      "DownstreamPathTemplate": "/api/facilities/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
       "DownstreamPathTemplate": "/api/facilities/update-active/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
