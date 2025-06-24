@@ -206,6 +206,13 @@
       "UpstreamPathTemplate": "/gateway/orders/check-conflict",
       "UpstreamHttpMethod": ["Post"]
     },
+    {
+      "DownstreamPathTemplate": "/api/orders/cancel/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/cancel/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",

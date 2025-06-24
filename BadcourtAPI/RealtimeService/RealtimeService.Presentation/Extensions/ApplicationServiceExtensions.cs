@@ -43,6 +43,7 @@ public static class ApplicationServiceExtensions
         services.AddMassTransit(x =>
         {
             x.AddConsumer<OrderCreatedConsumer>();
+            x.AddConsumer<OrderCancelledConsumer>();
             x.AddConsumer<PostLikedConsumer>();
             x.AddConsumer<PostCommentedConsumer>();
             x.AddConsumer<CommentLikedConsumer>();
@@ -54,6 +55,10 @@ public static class ApplicationServiceExtensions
                 cfg.ReceiveEndpoint("RealtimeService-order-created-queue", e =>
                 {
                     e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-order-cancelled-queue", e =>
+                {
+                    e.ConfigureConsumer<OrderCancelledConsumer>(ctx);
                 });
                 cfg.ReceiveEndpoint("RealtimeService-post-liked-queue", e =>
                 {

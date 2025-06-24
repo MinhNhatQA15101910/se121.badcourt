@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.Core.Application.Commands.CancelOrder;
 using OrderService.Core.Application.Commands.CheckConflict;
 using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Queries.GetOrderById;
@@ -48,5 +49,13 @@ public class OrdersController(IMediator mediator) : ControllerBase
     {
         await mediator.Send(new CheckConflictCommand(checkConflictDto));
         return Ok();
+    }
+
+    [HttpPut("cancel/{id}")]
+    [Authorize]
+    public async Task<IActionResult> CancelOrder(Guid id)
+    {
+        await mediator.Send(new CancelOrderCommand(id));
+        return NoContent();
     }
 }
