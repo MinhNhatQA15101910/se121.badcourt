@@ -41,4 +41,6 @@ public class Facility
 
     [BsonIgnoreIfNull]
     public double Distance { get; set; }
+    [BsonIgnoreIfNull]
+    public decimal AvgPrice { get; set; }
 }
