@@ -1,5 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using OrderService.Core.Domain.Entities;
 using OrderService.Core.Domain.Repositories;
 using SharedKernel;
@@ -21,6 +22,19 @@ public class OrderRepository(
     public async Task<bool> CompleteAsync(CancellationToken cancellationToken = default)
     {
         return await context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by status
+        if (orderParams.State != null)
+        {
+            query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
+        }
+        
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)

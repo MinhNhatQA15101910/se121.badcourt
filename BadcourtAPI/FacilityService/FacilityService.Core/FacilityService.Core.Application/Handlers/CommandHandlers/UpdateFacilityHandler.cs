@@ -4,6 +4,7 @@ using FacilityService.Core.Application.Commands;
 using FacilityService.Core.Application.Extensions;
 using FacilityService.Core.Application.Interfaces;
 using FacilityService.Core.Domain.Entities;
+using FacilityService.Core.Domain.Enums;
 using FacilityService.Core.Domain.Repositories;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
@@ -111,6 +112,7 @@ public class UpdateFacilityHandler(
             );
         }
 
+        facility.State = FacilityState.Pending;
         facility.UpdatedAt = DateTime.UtcNow;
 
         await facilityRepository.UpdateFacilityAsync(facility, cancellationToken);
