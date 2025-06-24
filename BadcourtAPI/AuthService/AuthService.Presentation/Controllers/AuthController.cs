@@ -79,4 +79,11 @@ public class AuthController(IMediator mediator) : ControllerBase
 
         return NoContent();
     }
+
+    [HttpGet("fully-access-token")]
+    public async Task<ActionResult<string>> GetFullyAccessToken()
+    {
+        var token = await mediator.Send(new CreateFullyAccessTokenCommand());
+        return Ok(token);
+    }
 }

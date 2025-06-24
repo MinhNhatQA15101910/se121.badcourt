@@ -1,14 +1,17 @@
 using FacilityService.Core.Application.Commands;
 using FacilityService.Core.Application.Extensions;
+using FacilityService.Core.Application.ExternalServices.Interfaces;
 using FacilityService.Core.Domain.Repositories;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.Exceptions;
+using SharedKernel.Params;
 
 namespace FacilityService.Core.Application.Handlers.CommandHandlers;
 
 public class DeleteFacilityHandler(
     IHttpContextAccessor httpContextAccessor,
-    IFacilityRepository facilityRepository
+    IFacilityRepository facilityRepository,
+    IOrderServiceClient orderServiceClient
 ) : ICommandHandler<DeleteFacilityCommand, bool>
 {
     public async Task<bool> Handle(DeleteFacilityCommand request, CancellationToken cancellationToken)
@@ -26,6 +29,18 @@ public class DeleteFacilityHandler(
             }
         }
 
+        var notPlayedOrders = await orderServiceClient.GetOrdersAsync(new OrderParams
+        {
+            FacilityId = request.FacilityId,
+            HourFrom = DateTime.UtcNow,
+        });
+        if (notPlayedOrders != null && notPlayedOrders.Any())
+        {
+            throw new BadRequestException("Cannot delete facility with existing orders.");
+        }
+
+        await facilityRepository.DeleteFacilityAsync(facility, cancellationToken);
+        
         return true;
     }
 }

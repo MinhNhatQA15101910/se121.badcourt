@@ -73,6 +73,7 @@ public static class ApplicationServiceExtensions
         services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
         services.AddHttpClient<IUserServiceClient, UserServiceClient>();
+        services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
 
         return services;
     }

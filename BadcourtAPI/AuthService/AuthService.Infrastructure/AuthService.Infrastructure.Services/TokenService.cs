@@ -14,6 +14,38 @@ public class TokenService(
     UserManager<User> userManager
 ) : ITokenService
 {
+    public Task<string> CreateFullyAccessTokenAsync()
+    {
+        var tokenKey = config["TokenKey"] ?? throw new Exception("Cannot access TokenKey from appsettings");
+        if (tokenKey.Length < 64)
+        {
+            throw new Exception("You tokenKey needs to be at least 64 characters long");
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, "8c5e2d7b-4a3f-1d6e-9b0f-7c5a2d9e4f3b"),
+            new(ClaimTypes.Email, "milleradmin@gmail.com"),
+            new(ClaimTypes.Name, "adminmiller"),
+            new(ClaimTypes.Role, "Admin"),
+        };
+
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.Now.AddYears(100),
+            SigningCredentials = creds
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        return Task.FromResult(tokenHandler.WriteToken(token));
+    }
+
     public async Task<string> CreateTokenAsync(User user)
     {
         var tokenKey = config["TokenKey"] ?? throw new Exception("Cannot access TokenKey from appsettings");

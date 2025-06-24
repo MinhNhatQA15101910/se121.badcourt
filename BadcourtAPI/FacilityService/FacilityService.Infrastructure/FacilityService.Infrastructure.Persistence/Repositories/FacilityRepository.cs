@@ -163,4 +163,12 @@ public class FacilityRepository : IFacilityRepository
             cancellationToken: cancellationToken
         );
     }
+
+    public async Task DeleteFacilityAsync(Facility facility, CancellationToken cancellationToken = default)
+    {
+        await _facilities.DeleteOneAsync(
+            f => f.Id == facility.Id,
+            cancellationToken: cancellationToken
+        );
+    }
 }

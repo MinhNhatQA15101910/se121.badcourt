@@ -73,4 +73,12 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
         await mediator.Send(new RejectFacilityCommand(id));
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin, Manager")]
+    [HttpDelete("{id:length(24)}")]
+    public async Task<IActionResult> DeleteFacility(string id)
+    {
+        await mediator.Send(new DeleteFacilityCommand(id));
+        return Ok();
+    }
 }

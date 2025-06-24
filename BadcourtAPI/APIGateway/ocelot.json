@@ -36,6 +36,13 @@
       "UpstreamHttpMethod": ["Patch"]
     },
     {
+      "DownstreamPathTemplate": "/api/auth/fully-access-token",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/fully-access-token",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
       "DownstreamPathTemplate": "/api/users/me",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
@@ -126,6 +133,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
       "UpstreamPathTemplate": "/gateway/facilities/reject/{id}",
       "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/{id}",
+      "UpstreamHttpMethod": ["Delete"]
     },
 
     {
