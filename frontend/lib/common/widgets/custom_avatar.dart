@@ -12,8 +12,8 @@ class CustomAvatar extends StatelessWidget {
   final double radius;
   final String? imageUrl;
   final String userId;
-  final String? userName; // Keep for bottom sheet display
-  final String? userEmail; // Keep for bottom sheet display
+  final String? userName;
+  final String? userEmail;
 
   const CustomAvatar({
     Key? key,
@@ -26,7 +26,6 @@ class CustomAvatar extends StatelessWidget {
 
   Future<void> _createGroupAndNavigate(
       BuildContext context, String userId) async {
-    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     final messageHubProvider =
         Provider.of<MessageHubProvider>(context, listen: false);
 
@@ -45,7 +44,8 @@ class CustomAvatar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(GlobalVariables.green),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -70,9 +70,6 @@ class CustomAvatar extends StatelessWidget {
       );
 
       if (messageHubProvider.isConnectedToUser(userId)) {
-        // Refresh groups in GroupProvider to include any new groups
-        await groupProvider.requestGroups();
-
         // Hide loading dialog
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
@@ -113,7 +110,7 @@ class CustomAvatar extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => UserProfileScreen(
-          userId: userId, 
+          userId: userId,
         ),
       ),
     );
@@ -193,7 +190,7 @@ class CustomAvatar extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      
+
                       // User Info
                       Expanded(
                         child: Column(
@@ -245,7 +242,8 @@ class CustomAvatar extends StatelessWidget {
 
                 // Divider
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   height: 1,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -275,9 +273,7 @@ class CustomAvatar extends StatelessWidget {
                           _navigateToDetailMessageScreen(context, userId);
                         },
                       ),
-                      
                       const SizedBox(height: 8),
-                      
                       _buildActionTile(
                         context: context,
                         icon: Icons.person_outline_rounded,
@@ -290,9 +286,7 @@ class CustomAvatar extends StatelessWidget {
                           _navigateToUserProfile(context);
                         },
                       ),
-                      
                       const SizedBox(height: 8),
-                      
                       _buildActionTile(
                         context: context,
                         icon: Icons.block_outlined,
