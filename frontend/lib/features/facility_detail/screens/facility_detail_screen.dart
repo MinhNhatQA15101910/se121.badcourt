@@ -247,8 +247,8 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         ),
                       ),
                       child: ClipOval(
-                        /*child: Image.network(
-                          currentFacility.userImageUrl,
+                        child: Image.network(
+                          currentFacility.userImageUrl ?? '',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Image.asset(
@@ -256,10 +256,6 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                               fit: BoxFit.cover,
                             );
                           },
-                        ),*/
-                        child: Image.asset(
-                          'assets/images/img_account.png',
-                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -271,7 +267,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _InterRegular14(
-                            currentFacility.managerInfo.fullName,
+                            currentFacility.userName,
                             GlobalVariables.blackGrey,
                             1,
                           ),

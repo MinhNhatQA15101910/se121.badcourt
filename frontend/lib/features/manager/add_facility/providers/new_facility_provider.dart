@@ -85,7 +85,7 @@ class NewFacilityProvider extends ChangeNotifier {
     ),
     activeAt: Active(
       schedule: {},
-    ),
+    ), userName: '',
   );
 
   List<File> _facilityImages = [];

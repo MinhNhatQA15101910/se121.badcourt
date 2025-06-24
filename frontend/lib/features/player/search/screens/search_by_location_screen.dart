@@ -127,7 +127,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     ),
     activeAt: Active(
       schedule: {},
-    ),
+    ), userName: '',
   );
 
   void _fetchAllFacilities() async {

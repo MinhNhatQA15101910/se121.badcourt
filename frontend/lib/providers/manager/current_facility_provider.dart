@@ -84,6 +84,7 @@ class CurrentFacilityProvider extends ChangeNotifier {
     activeAt: Active(
       schedule: {},
     ),
+    userName: '',
   );
 
   Facility get currentFacility => _currentFacility;

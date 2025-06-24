@@ -25,6 +25,8 @@ class Facility {
   final DateTime registeredAt;
   final ManagerInfo managerInfo;
   final Active? activeAt;
+  final String userName;
+  final String? userImageUrl;
 
   Facility({
     required this.id,
@@ -47,6 +49,8 @@ class Facility {
     required this.registeredAt,
     required this.managerInfo,
     this.activeAt,
+    required this.userName,
+    this.userImageUrl,
   });
 
   Facility copyWith({
@@ -70,6 +74,8 @@ class Facility {
     DateTime? registeredAt,
     ManagerInfo? managerInfo,
     Active? activeAt,
+    String? userName,
+    String? userImageUrl,
   }) {
     return Facility(
       id: id ?? this.id,
@@ -92,6 +98,8 @@ class Facility {
       registeredAt: registeredAt ?? this.registeredAt,
       managerInfo: managerInfo ?? this.managerInfo,
       activeAt: activeAt ?? this.activeAt,
+      userName: userName ?? this.userName,
+      userImageUrl: userImageUrl ?? this.userImageUrl,
     );
   }
 
@@ -119,6 +127,8 @@ class Facility {
       'registeredAt': registeredAt.toUtc().toIso8601String(),
       'managerInfo': managerInfo.toMap(),
       'activeAt': activeAt?.toMap(),
+      'userName': userName,
+      'userImageUrl': userImageUrl,
     };
   }
 
@@ -144,9 +154,13 @@ class Facility {
       ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
       totalRating: map['totalRatings'] ?? 0,
       state: map['state'] ?? '',
-      registeredAt: DateTime.tryParse(map['registeredAt'] ?? '') ?? DateTime.now(),
+      registeredAt:
+          DateTime.tryParse(map['registeredAt'] ?? '') ?? DateTime.now(),
       managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
-      activeAt: map['activeAt'] != null ? Active.fromMap(map['activeAt']) : null,
+      activeAt:
+          map['activeAt'] != null ? Active.fromMap(map['activeAt']) : null,
+      userName: map['userName'] ?? '',
+      userImageUrl: map['userImageUrl'],
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/Enums/facility_state.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
@@ -8,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'state_badge_widget.dart';
 
 class ManagerFacilityItem extends StatefulWidget {
   const ManagerFacilityItem({
@@ -46,6 +48,9 @@ class _ManagerFacilityItemState extends State<ManagerFacilityItem> {
     final imageCount = widget.facility.facilityImages.length;
     final minPrice = widget.facility.minPrice;
     final maxPrice = widget.facility.maxPrice;
+    
+    // Convert string state to enum
+    final facilityState = FacilityStateExtension.fromString(widget.facility.state);
 
     return GestureDetector(
       onTap: _navigateToManagerHome,
@@ -86,7 +91,7 @@ class _ManagerFacilityItemState extends State<ManagerFacilityItem> {
                       itemBuilder: (context, index, realIndex) {
                         final imageUrl = imageCount > 0
                             ? widget.facility.facilityImages[index].url
-                            : 'https://via.placeholder.com/300'; // Placeholder nếu null
+                            : 'https://via.placeholder.com/300';
 
                         return Container(
                           decoration: BoxDecoration(
@@ -95,11 +100,20 @@ class _ManagerFacilityItemState extends State<ManagerFacilityItem> {
                             ),
                             image: DecorationImage(
                               image: NetworkImage(imageUrl),
-                              fit: BoxFit.cover, // Căn chỉnh hình ảnh
+                              fit: BoxFit.cover,
                             ),
                           ),
                         );
                       },
+                    ),
+                    // State Badge positioned at top-right
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: StateBadge(
+                        state: facilityState,
+                        fontSize: 11,
+                      ),
                     ),
                     if (imageCount > 1)
                       Positioned(

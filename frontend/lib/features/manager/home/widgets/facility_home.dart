@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/Enums/facility_state.dart';
+import 'package:frontend/common/widgets/state_badge_widget.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
@@ -30,6 +32,11 @@ class _FacilityHomeState extends State<FacilityHome> {
         currentFacilityProvider.currentFacility.facilityImages.length;
     final minPrice = currentFacilityProvider.currentFacility.minPrice;
     final maxPrice = currentFacilityProvider.currentFacility.maxPrice;
+    
+    // Convert string state to enum
+    final facilityState = FacilityStateExtension.fromString(
+      currentFacilityProvider.currentFacility.state
+    );
 
     return Container(
       child: Column(
@@ -43,13 +50,11 @@ class _FacilityHomeState extends State<FacilityHome> {
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: _interMedium16(
-                    currentFacilityProvider.currentFacility.facilityName,
-                    GlobalVariables.white,
-                    1,
+                StateBadge(
+                    state: facilityState,
+                    fontSize: 12,
                   ),
-                ),
+                Spacer(),
                 IconButton(
                   onPressed: _navigateToFacilityInfo,
                   iconSize: 24,
@@ -150,10 +155,16 @@ class _FacilityHomeState extends State<FacilityHome> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _interRegular18(
-                  currentFacilityProvider.currentFacility.facilityName,
-                  GlobalVariables.blackGrey,
-                  1,
+                Row(
+                  children: [
+                    Expanded(
+                      child: _interRegular18(
+                        currentFacilityProvider.currentFacility.facilityName,
+                        GlobalVariables.blackGrey,
+                        1,
+                      ),
+                    ),
+                  ],
                 ),
                 _interBold16(
                   minPrice == maxPrice
@@ -169,11 +180,6 @@ class _FacilityHomeState extends State<FacilityHome> {
                           symbol: 'đ',
                         ).format(maxPrice)} / 1h ',
                   GlobalVariables.blackGrey,
-                  1,
-                ),
-                _interRegular14Underline(
-                  'activated',
-                  GlobalVariables.green,
                   1,
                 ),
               ],
@@ -225,48 +231,6 @@ class _FacilityHomeState extends State<FacilityHome> {
           color: color,
           fontSize: 16,
           fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _interRegular14Underline(
-    String text,
-    Color color,
-    int maxLines,
-  ) {
-    return Container(
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          decoration: TextDecoration.underline,
-          decorationColor: color,
-        ),
-      ),
-    );
-  }
-
-  Widget _interMedium16(String text, Color color, int maxLines) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: 8,
-        top: 12,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.start,
-        maxLines: maxLines,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );
