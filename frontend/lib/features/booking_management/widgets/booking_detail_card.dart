@@ -15,9 +15,7 @@ class BookingDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DateTime now = DateTime.now();
     DateTime playTime = order.timePeriod.hourFrom;
-    bool isPlayed = now.isAfter(playTime);
 
     void _navigateToBookingDetailScreen() {
       Navigator.of(context).pushNamed(
@@ -75,11 +73,11 @@ class BookingDetailCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  _buildStatusBadge(isPlayed),
+                  _buildStatusBadge(order.state),
                 ],
               ),
             ),
-            
+
             // Court details
             Padding(
               padding: const EdgeInsets.all(16),
@@ -100,7 +98,8 @@ class BookingDetailCard extends StatelessWidget {
                           ? Image.network(
                               order.image.url,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Image.asset(
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset(
                                 'assets/images/badminton_court_default.png',
                                 fit: BoxFit.cover,
                               ),
@@ -112,7 +111,7 @@ class BookingDetailCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  
+
                   // Court information
                   Expanded(
                     child: Column(
@@ -160,9 +159,11 @@ class BookingDetailCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              DateFormat('HH:mm').format(order.timePeriod.hourFrom) +
+                              DateFormat('HH:mm')
+                                      .format(order.timePeriod.hourFrom) +
                                   ' - ' +
-                                  DateFormat('HH:mm').format(order.timePeriod.hourTo),
+                                  DateFormat('HH:mm')
+                                      .format(order.timePeriod.hourTo),
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -190,7 +191,7 @@ class BookingDetailCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Footer with payment method
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -239,34 +240,44 @@ class BookingDetailCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(bool isPlayed) {
+  Widget _buildStatusBadge(String state) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isPlayed
-            ? GlobalVariables.lightGreen
-            : GlobalVariables.lightYellow,
+        color: state == 'Played'
+            ? GlobalVariables.lightGreen.withOpacity(0.9)
+            : state == "Cancelled"
+                ? GlobalVariables.lightRed.withOpacity(0.9)
+                : GlobalVariables.lightYellow.withOpacity(0.9),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isPlayed ? Icons.check_circle_outline : Icons.schedule,
+            state == "Played"
+                ? Icons.check_circle_outline
+                : state == "Cancelled"
+                    ? Icons.cancel
+                    : Icons.schedule,
             size: 14,
-            color: isPlayed
+            color: state == "Played"
                 ? GlobalVariables.darkGreen
-                : GlobalVariables.darkYellow,
+                : state == "Cancelled"
+                    ? GlobalVariables.darkRed
+                    : GlobalVariables.darkYellow,
           ),
           const SizedBox(width: 4),
           Text(
-            isPlayed ? 'Played' : 'Pending',
+            state,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isPlayed
+              color: state == "Played"
                   ? GlobalVariables.darkGreen
-                  : GlobalVariables.darkYellow,
+                  : state == "Cancelled"
+                      ? GlobalVariables.darkRed
+                      : GlobalVariables.darkYellow,
             ),
           ),
         ],

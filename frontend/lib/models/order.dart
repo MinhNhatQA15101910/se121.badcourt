@@ -10,6 +10,7 @@ class Order {
   final DateTime createdAt;
   final ImageCustom image;
   final TimePeriod timePeriod;
+  final String state;
 
   const Order({
     required this.id,
@@ -19,6 +20,7 @@ class Order {
     required this.createdAt,
     required this.image,
     required this.timePeriod,
+    this.state = 'None',
   });
 
   Map<String, dynamic> toMap() {
@@ -29,7 +31,8 @@ class Order {
       'price': price,
       'createdAt': createdAt.toIso8601String(),
       'image': image.toMap(),
-      'dateTimePeriod': timePeriod.toMap(), // 🔄 key changed here
+      'dateTimePeriod': timePeriod.toMap(),
+      'state': state,
     };
   }
 
@@ -42,6 +45,7 @@ class Order {
       createdAt: DateTime.parse(map['createdAt']),
       image: ImageCustom.fromMap(map['image'] ?? {}),
       timePeriod: TimePeriod.fromMap(map['dateTimePeriod'] ?? {}),
+      state: map['state'] ?? 'None',
     );
   }
 

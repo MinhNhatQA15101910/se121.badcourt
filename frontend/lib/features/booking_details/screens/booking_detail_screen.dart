@@ -141,10 +141,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       );
     }
 
-    DateTime now = DateTime.now();
-    DateTime playTime = order!.timePeriod.hourFrom;
-    bool isPlayed = now.isAfter(playTime);
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -190,7 +186,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   Positioned(
                     top: 40,
                     right: 16,
-                    child: _buildStatusBadge(isPlayed),
+                    child: _buildStatusBadge(order!.state),
                   ),
                 ],
               ),
@@ -251,7 +247,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                   fontSize: 14,
                                   color: GlobalVariables.darkGrey,
                                 ),
-                                maxLines: 1,
+                                maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -278,16 +274,22 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                         _buildDetailRow(
                           context,
                           'Status',
-                          isPlayed ? 'Played' : 'Pending',
-                          valueColor: isPlayed
+                          order!.state,
+                          valueColor: order!.state == 'Played'
                               ? GlobalVariables.darkGreen
-                              : GlobalVariables.darkYellow,
-                          icon: isPlayed
+                              : order!.state == 'Cancelled'
+                                  ? GlobalVariables.red
+                                  : GlobalVariables.darkYellow,
+                          icon: order!.state == 'Played'
                               ? Icons.check_circle_outline
-                              : Icons.schedule,
-                          iconColor: isPlayed
+                              : order!.state == 'Played'
+                                  ? Icons.cancel
+                                  : Icons.schedule,
+                          iconColor: order!.state == 'Played'
                               ? GlobalVariables.darkGreen
-                              : GlobalVariables.darkYellow,
+                              : order!.state == 'Cancelled'
+                                  ? GlobalVariables.darkRed
+                                  : GlobalVariables.darkYellow,
                         ),
                       ],
                     ),
@@ -510,7 +512,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: isPlayed
+                            onPressed: order!.state != 'NotPlay' 
                                 ? null
                                 : () {
                                     // Cancel booking functionality
@@ -521,16 +523,16 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                             ),
                             label: const Text('Cancel Booking'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isPlayed
+                              backgroundColor: order!.state != 'NotPlay' 
                                   ? Colors.grey.shade300
                                   : Colors.white,
                               foregroundColor:
-                                  isPlayed ? Colors.grey.shade600 : Colors.red,
+                                  order!.state != 'NotPlay'  ? Colors.grey.shade600 : Colors.red,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
-                                  color: isPlayed
+                                  color: order!.state != 'NotPlay' 
                                       ? Colors.grey.shade300
                                       : Colors.red,
                                 ),
@@ -615,34 +617,44 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     );
   }
 
-  Widget _buildStatusBadge(bool isPlayed) {
+  Widget _buildStatusBadge(String state) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isPlayed
+        color: state == 'Played'
             ? GlobalVariables.lightGreen.withOpacity(0.9)
-            : GlobalVariables.lightYellow.withOpacity(0.9),
+            : state == "Cancelled"
+                ? GlobalVariables.lightRed.withOpacity(0.9)
+                : GlobalVariables.lightYellow.withOpacity(0.9),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isPlayed ? Icons.check_circle_outline : Icons.schedule,
+            state == "Played"
+                ? Icons.check_circle_outline
+                : state == "Cancelled"
+                    ? Icons.cancel
+                    : Icons.schedule,
             size: 14,
-            color: isPlayed
+            color: state == "Played"
                 ? GlobalVariables.darkGreen
-                : GlobalVariables.darkYellow,
+                : state == "Cancelled"
+                    ? GlobalVariables.darkRed
+                    : GlobalVariables.darkYellow,
           ),
           const SizedBox(width: 4),
           Text(
-            isPlayed ? 'Played' : 'pending',
+            state,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isPlayed
+              color: state == "Played"
                   ? GlobalVariables.darkGreen
-                  : GlobalVariables.darkYellow,
+                  : state == "Cancelled"
+                      ? GlobalVariables.darkRed
+                      : GlobalVariables.darkYellow,
             ),
           ),
         ],

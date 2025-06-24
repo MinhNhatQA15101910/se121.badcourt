@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/services/message_service.dart';
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/online_users_provider.dart';
 import 'package:provider/provider.dart';
 
-class UserMessageBox extends StatelessWidget {
+class UserMessageBox extends StatefulWidget {
   final String userName;
   final String timestamp;
   final String userImageUrl;
@@ -13,7 +15,6 @@ class UserMessageBox extends StatelessWidget {
   final String userId;
   final String? roomId;
   final bool hasUnreadMessage;
-  // Bỏ lastMessage prop vì sẽ lấy real-time từ provider
 
   const UserMessageBox({
     Key? key,
@@ -26,11 +27,94 @@ class UserMessageBox extends StatelessWidget {
     this.hasUnreadMessage = false,
   }) : super(key: key);
 
+  @override
+  State<UserMessageBox> createState() => _UserMessageBoxState();
+}
+
+class _UserMessageBoxState extends State<UserMessageBox> {
+  final MessageService _messageService = MessageService();
+  User? _user;
+  bool _previousOnlineStatus = false;
+  bool _isLoadingUser = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUser();
+    });
+  }
+
+  Future<void> _loadUser() async {
+    if (_isLoadingUser) return; // Prevent multiple simultaneous calls
+    
+    setState(() {
+      _isLoadingUser = true;
+    });
+
+    try {
+      final fetchedUser = await _messageService.fetchUserById(
+        context: context,
+        userId: widget.userId,
+      );
+
+      if (!mounted) return;
+      
+      setState(() {
+        _user = fetchedUser;
+        _isLoadingUser = false;
+      });
+      
+      print('[UserMessageBox] User data loaded for ${widget.userId}: lastOnlineAt = ${fetchedUser?.lastOnlineAt}');
+    } catch (e) {
+      print('[UserMessageBox] Error loading user data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingUser = false;
+        });
+      }
+    }
+  }
+
+  // CẢI TIẾN: Kiểm tra user có online không dựa trên lastOnlineAt
+  bool _isUserOnline(DateTime? lastOnlineAt) {
+    return lastOnlineAt == null; // null = online, có giá trị = offline
+  }
+
+  // CẢI TIẾN: Tính thời gian offline dựa trên lastOnlineAt
+  String _getOfflineTimeText(DateTime? lastOnlineAt) {
+    if (lastOnlineAt == null) {
+      return 'Online'; // User đang online
+    }
+    
+    final now = DateTime.now();
+    final difference = now.difference(lastOnlineAt);
+    
+    if (difference.inDays > 365) {
+      final years = (difference.inDays / 365).floor();
+      return 'Last seen ${years} year${years > 1 ? 's' : ''} ago';
+    } else if (difference.inDays > 30) {
+      final months = (difference.inDays / 30).floor();
+      return 'Last seen ${months} month${months > 1 ? 's' : ''} ago';
+    } else if (difference.inDays > 7) {
+      final weeks = (difference.inDays / 7).floor();
+      return 'Last seen ${weeks} week${weeks > 1 ? 's' : ''} ago';
+    } else if (difference.inDays > 0) {
+      return 'Last seen ${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+    } else if (difference.inHours > 0) {
+      return 'Last seen ${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+    } else if (difference.inMinutes > 0) {
+      return 'Last seen ${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+    } else {
+      return 'Last seen just now';
+    }
+  }
+
   void _navigateToMessageScreen(BuildContext context, String userId) {
-    if (roomId != null) {
+    if (widget.roomId != null) {
       final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-      groupProvider.markGroupAsRead(roomId!);
-      groupProvider.markGroupAsReadViaSignalR(roomId!);
+      groupProvider.markGroupAsRead(widget.roomId!);
+      groupProvider.markGroupAsReadViaSignalR(widget.roomId!);
 
       // Mark messages as read for this specific user
       groupProvider.markMessagesAsReadForUser(userId);
@@ -43,10 +127,22 @@ class UserMessageBox extends StatelessWidget {
   }
 
   String _getStatusText(bool isOnline, String timestamp) {
-    if (isOnline) {
-      return 'Online';
-    } else {
-      return timestamp;
+    return isOnline ? 'Online' : timestamp;
+  }
+
+  // CẢI TIẾN: Detect online status changes và refresh user data
+  void _handleOnlineStatusChange(bool currentOnlineStatus) {
+    if (_previousOnlineStatus != currentOnlineStatus) {
+      print('[UserMessageBox] Online status changed for ${widget.userId}: $_previousOnlineStatus -> $currentOnlineStatus');
+      
+      // Delay nhỏ để server có thời gian cập nhật lastOnlineAt
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) {
+          _loadUser(); // Refresh user data để lấy lastOnlineAt mới
+        }
+      });
+      
+      _previousOnlineStatus = currentOnlineStatus;
     }
   }
 
@@ -54,21 +150,37 @@ class UserMessageBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<OnlineUsersProvider, GroupProvider>(
       builder: (context, onlineUsersProvider, groupProvider, child) {
-        final bool isOnline = onlineUsersProvider.isUserOnline(userId);
+        // CẢI TIẾN: Sử dụng OnlineUsersProvider để detect changes
+        final bool isOnlineFromProvider = onlineUsersProvider.isUserOnline(widget.userId);
+        
+        // CẢI TIẾN: Sử dụng user data từ API nếu có, fallback to provider
+        final bool isOnline = _user != null 
+            ? _isUserOnline(_user!.lastOnlineAt)
+            : isOnlineFromProvider;
+            
+        // CẢI TIẾN: Detect và handle online status changes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleOnlineStatusChange(isOnlineFromProvider);
+        });
 
-        // Get unread count for this specific user
-        final unreadCount = groupProvider.getUnreadCountForUser(userId);
-        final hasUnread = unreadCount > 0 || hasUnreadMessage;
+        final unreadCount = groupProvider.getUnreadCountForUser(widget.userId);
+        final hasUnread = unreadCount > 0 || widget.hasUnreadMessage;
 
-        // Lấy lastMessage real-time từ GroupProvider
+        // CẢI TIẾN: Sử dụng lastOnlineAt để tính status text
+        String statusText;
+        if (_user != null) {
+          statusText = _getOfflineTimeText(_user!.lastOnlineAt);
+        } else {
+          statusText = _getStatusText(isOnline, widget.timestamp);
+        }
+
         String lastMessage = 'Start a conversation';
 
-        if (roomId != null) {
-          final group = groupProvider.getGroupById(roomId!);
+        if (widget.roomId != null) {
+          final group = groupProvider.getGroupById(widget.roomId!);
           if (group != null && group.lastMessage != null) {
             lastMessage = group.lastMessage!.content;
 
-            // Kiểm tra nếu có attachment
             if (group.lastMessage!.resources.isNotEmpty) {
               final resourceCount = group.lastMessage!.resources.length;
               if (lastMessage.isEmpty) {
@@ -80,7 +192,6 @@ class UserMessageBox extends StatelessWidget {
               }
             }
 
-            // Truncate message nếu quá dài
             if (lastMessage.length > 50) {
               lastMessage = '${lastMessage.substring(0, 47)}...';
             }
@@ -94,22 +205,29 @@ class UserMessageBox extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => _navigateToMessageScreen(context, userId),
+              onTap: () => _navigateToMessageScreen(context, widget.userId),
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(
-                  color: Colors.transparent,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: GlobalVariables.green.withOpacity(0.3),
+                    color: GlobalVariables.green.withOpacity(0.2),
                     width: 1,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    // Avatar with online status dot
+                    // Avatar with online status indicator
                     Stack(
                       children: [
                         Container(
@@ -126,13 +244,13 @@ class UserMessageBox extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 24,
                             backgroundColor: GlobalVariables.lightGreen,
-                            backgroundImage: userImageUrl.isNotEmpty
-                                ? NetworkImage(userImageUrl)
+                            backgroundImage: widget.userImageUrl.isNotEmpty
+                                ? NetworkImage(widget.userImageUrl)
                                 : null,
-                            child: userImageUrl.isEmpty
+                            child: widget.userImageUrl.isEmpty
                                 ? Text(
-                                    userName.isNotEmpty
-                                        ? userName[0].toUpperCase()
+                                    widget.userName.isNotEmpty
+                                        ? widget.userName[0].toUpperCase()
                                         : '?',
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -143,16 +261,17 @@ class UserMessageBox extends StatelessWidget {
                                 : null,
                           ),
                         ),
-                        // Online status indicator
+                        // CẢI TIẾN: Online status indicator với animation
                         Positioned(
                           right: 0,
                           bottom: 0,
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             width: 16,
                             height: 16,
                             decoration: BoxDecoration(
                               color: isOnline
-                                  ? const Color(0xFF4CAF50)
+                                  ? GlobalVariables.green
                                   : const Color(0xFF9E9E9E),
                               shape: BoxShape.circle,
                               border: Border.all(
@@ -162,9 +281,9 @@ class UserMessageBox extends StatelessWidget {
                               boxShadow: [
                                 BoxShadow(
                                   color: isOnline
-                                      ? const Color(0xFF4CAF50).withOpacity(0.3)
+                                      ? GlobalVariables.green.withOpacity(0.4)
                                       : Colors.black.withOpacity(0.15),
-                                  blurRadius: isOnline ? 6 : 3,
+                                  blurRadius: isOnline ? 8 : 3,
                                   offset: const Offset(0, 1),
                                 ),
                               ],
@@ -174,7 +293,6 @@ class UserMessageBox extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(width: 12),
-                    // Content
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +302,7 @@ class UserMessageBox extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  userName,
+                                  widget.userName,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: hasUnread
@@ -219,7 +337,7 @@ class UserMessageBox extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  role,
+                                  widget.role,
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
@@ -230,27 +348,78 @@ class UserMessageBox extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 3),
-                          // Online/Offline status text với message timestamp
+                          // CẢI TIẾN: Online/Offline status với chấm và màu
                           Row(
                             children: [
-                              Text(
-                                _getStatusText(isOnline, timestamp),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                              // Chấm trạng thái
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
                                   color: isOnline
-                                      ? const Color(0xFF4CAF50)
+                                      ? GlobalVariables.green
                                       : const Color(0xFF9E9E9E),
+                                  shape: BoxShape.circle,
+                                  boxShadow: isOnline
+                                      ? [
+                                          BoxShadow(
+                                            color: GlobalVariables.green.withOpacity(0.3),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              // Status text với loading indicator
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: AnimatedSwitcher(
+  duration: const Duration(milliseconds: 300),
+  child: Align(
+    alignment: Alignment.centerLeft, // 👈 align to the left
+    child: Text(
+      statusText,
+      key: ValueKey(statusText),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: isOnline ? FontWeight.w600 : FontWeight.w500,
+        color: isOnline
+            ? GlobalVariables.green
+            : const Color(0xFF9E9E9E),
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+  ),
+)
+
+                                    ),
+                                    // Loading indicator khi đang fetch user
+                                    if (_isLoadingUser)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 4),
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 1.5,
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            GlobalVariables.green.withOpacity(0.6),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          // Last message with unread count - Real-time update
+                          // Last message with unread count
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start, // đã đúng
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: AnimatedSwitcher(
@@ -262,11 +431,10 @@ class UserMessageBox extends StatelessWidget {
                                       child: child,
                                     );
                                   },
-                                  layoutBuilder: (Widget? currentChild,
-                                      List<Widget> previousChildren) {
+                                  layoutBuilder:
+                                      (currentChild, previousChildren) {
                                     return Stack(
-                                      alignment: Alignment
-                                          .topLeft, // 👈 Căn trái trên cùng
+                                      alignment: Alignment.topLeft,
                                       children: [
                                         ...previousChildren,
                                         if (currentChild != null) currentChild,
@@ -334,7 +502,7 @@ class UserMessageBox extends StatelessWidget {
                                   ),
                                 ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),

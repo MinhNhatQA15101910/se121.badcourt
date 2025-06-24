@@ -494,25 +494,38 @@ class _MessageScreenState extends State<MessageScreen> {
     return difference.inHours < 1;
   }
 
-  String _formatTimeAgo(DateTime dateTime) {
+  // CẢI TIẾN: Tính thời gian offline dựa trên lastOnlineAt
+  String _getOfflineTimeText(DateTime? lastOnlineAt) {
+    if (lastOnlineAt == null) {
+      return 'Online'; // User đang online
+    }
+    
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final difference = now.difference(lastOnlineAt);
     
     if (difference.inDays > 365) {
-      return '${(difference.inDays / 365).floor()} year(s) ago';
+      final years = (difference.inDays / 365).floor();
+      return 'Last seen ${years} year${years > 1 ? 's' : ''} ago';
     } else if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()} month(s) ago';
+      final months = (difference.inDays / 30).floor();
+      return 'Last seen ${months} month${months > 1 ? 's' : ''} ago';
     } else if (difference.inDays > 7) {
-      return '${(difference.inDays / 7).floor()} week(s) ago';
+      final weeks = (difference.inDays / 7).floor();
+      return 'Last seen ${weeks} week${weeks > 1 ? 's' : ''} ago';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} day(s) ago';
+      return 'Last seen ${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour(s) ago';
+      return 'Last seen ${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute(s) ago';
+      return 'Last seen ${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
     } else {
-      return 'Just now';
+      return 'Last seen just now';
     }
+  }
+
+  // CẢI TIẾN: Kiểm tra user có online không dựa trên lastOnlineAt
+  bool _isUserOnline(DateTime? lastOnlineAt) {
+    return lastOnlineAt == null;
   }
 
   @override
@@ -808,8 +821,11 @@ class _MessageScreenState extends State<MessageScreen> {
 
                                           final hasUnread = _hasUnreadMessage(group);
                                           
-                                          // Format last message time using updatedAt
-                                          String formattedTime = _formatTimeAgo(group.updatedAt);
+                                          // CẢI TIẾN: Sử dụng lastOnlineAt để xác định trạng thái và thời gian
+                                          final isOnline = _isUserOnline(otherUser.lastOnlineAt);
+                                          final statusText = isOnline 
+                                              ? 'Online' 
+                                              : _getOfflineTimeText(otherUser.lastOnlineAt);
 
                                           return AnimatedContainer(
                                             duration: const Duration(milliseconds: 300),
@@ -824,7 +840,7 @@ class _MessageScreenState extends State<MessageScreen> {
                                               },
                                               child: UserMessageBox(
                                                 userName: otherUser.username,
-                                                timestamp: formattedTime,
+                                                timestamp: statusText, // Sử dụng status text thay vì formatted time
                                                 userImageUrl: otherUser.photoUrl,
                                                 role: otherUser.role,
                                                 userId: otherUser.id,

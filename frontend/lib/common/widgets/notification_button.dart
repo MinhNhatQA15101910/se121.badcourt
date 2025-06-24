@@ -19,15 +19,13 @@ class NotificationButton extends StatelessWidget {
     return Consumer<NotificationProvider>(
       builder: (context, notificationProvider, child) {
         final unreadCount = notificationProvider.unreadCount;
-        final isConnected = notificationProvider.isConnected;
 
         return Stack(
           children: [
             IconButton(
               icon: Icon(
                 Icons.notifications_outlined,
-                color:
-                    isConnected ? Colors.white : Colors.white.withOpacity(0.7),
+                color: Colors.white,
                 size: 30,
               ),
               onPressed: () {

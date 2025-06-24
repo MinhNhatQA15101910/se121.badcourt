@@ -5,6 +5,7 @@ import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/paginated_groups_dto.dart';
 import 'package:frontend/models/paginated_messages_dto.dart'; // Changed import
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -139,6 +140,55 @@ class MessageService {
         label: 'Failed to send message: ${e.toString()}',
         snackBarType: SnackBarType.fail,
       );
+    }
+  }
+  
+  Future<User?> fetchUserById({
+    required BuildContext context,
+    required String userId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      final Uri currentUri = Uri.parse('$uri/gateway/users/$userId');
+
+      http.Response res = await http.get(
+        currentUri,
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      User? user;
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          try {
+            final data = jsonDecode(res.body);
+            user = User.fromJson(data);
+          } catch (e) {
+            print('Error parsing post by ID: $e');
+            print('Post data: ${res.body}');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing post data',
+              snackBarType: SnackBarType.fail,
+            );
+          }
+        },
+      );
+
+      return user;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
     }
   }
 }
