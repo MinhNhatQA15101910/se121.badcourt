@@ -102,6 +102,7 @@ public class CreateOrderHandler(
         var order = new Order
         {
             UserId = userId,
+            FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
             FacilityName = facility.FacilityName,
             Address = facility.DetailAddress,

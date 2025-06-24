@@ -1,6 +1,9 @@
 using FacilityService.Core.Application;
 using FacilityService.Core.Application.Behaviors;
 using FacilityService.Core.Application.Consumers;
+using FacilityService.Core.Application.ExternalServices;
+using FacilityService.Core.Application.ExternalServices.Clients;
+using FacilityService.Core.Application.ExternalServices.Interfaces;
 using FacilityService.Core.Application.Interfaces;
 using FacilityService.Core.Domain.Repositories;
 using FacilityService.Infrastructure.Configuration;
@@ -19,25 +22,10 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddControllers();
-
-        // Options pattern
-        services.Configure<FacilityDatabaseSettings>(config.GetSection(nameof(FacilityDatabaseSettings)));
-        services.Configure<CloudinarySettings>(config.GetSection(nameof(CloudinarySettings)));
-
-        // Repositories
-        services.AddScoped<IFacilityRepository, FacilityRepository>();
-
-        // Services
-        services.AddScoped<IFileService, FileService>();
+        services.AddHttpContextAccessor();
 
         // Middleware
         services.AddScoped<ExceptionHandlingMiddleware>();
-
-        // MediatR
-        var applicationAssembly = typeof(AssemblyReference).Assembly;
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        services.AddValidatorsFromAssembly(applicationAssembly);
 
         // Redis
         services.AddStackExchangeRedisCache(options =>
@@ -68,8 +56,44 @@ public static class ApplicationServiceExtensions
             });
         });
 
-        // Others
+        return services.AddApplication(config)
+            .AddPersistence(config)
+            .AddExternalServices(config);
+    }
+
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    {
+        var applicationAssembly = typeof(AssemblyReference).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddValidatorsFromAssembly(applicationAssembly);
+
         services.AddAutoMapper(applicationAssembly);
+
+        services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
+
+        services.AddHttpClient<IUserServiceClient, UserServiceClient>();
+        services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<FacilityDatabaseSettings>(
+            configuration.GetSection(nameof(FacilityDatabaseSettings))
+        );
+
+        services.AddScoped<IFacilityRepository, FacilityRepository>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<CloudinarySettings>(config.GetSection(nameof(CloudinarySettings)));
+
+        services.AddScoped<IFileService, FileService>();
 
         return services;
     }

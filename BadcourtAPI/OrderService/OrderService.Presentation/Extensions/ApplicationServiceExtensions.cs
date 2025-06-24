@@ -6,6 +6,7 @@ using OrderService.Core.Application;
 using OrderService.Core.Application.ApiRepository;
 using OrderService.Core.Domain.Repositories;
 using OrderService.Infrastructure.Configuration;
+using OrderService.Infrastructure.ExternalServices.BackgroundServices;
 using OrderService.Infrastructure.Persistence;
 using OrderService.Infrastructure.Persistence.Repositories;
 using OrderService.Presentation.Middlewares;
@@ -22,16 +23,19 @@ public static class ApplicationServiceExtensions
         // Middleware
         services.AddScoped<ExceptionHandlingMiddleware>();
 
-        // Database
-        services.AddDbContext<DataContext>(options =>
+        // MassTransit
+        services.AddMassTransit(x =>
         {
-            options.UseSqlite(
-                config.GetConnectionString("DefaultConnection"),
-                options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-            );
+            x.UsingRabbitMq();
         });
-        services.AddScoped<IOrderRepository, OrderRepository>();
 
+        return services.AddApplication(config)
+            .AddPersistence(config)
+            .AddExternalServices(config);
+    }
+
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    {
         // MediatR
         var applicationAssembly = typeof(AssemblyReference).Assembly;
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
@@ -41,15 +45,31 @@ public static class ApplicationServiceExtensions
         // AutoMapper
         services.AddAutoMapper(applicationAssembly);
 
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<DataContext>(options =>
+        {
+            options.UseSqlite(
+                configuration.GetConnectionString("DefaultConnection"),
+                options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+            );
+        });
+        services.AddScoped<IOrderRepository, OrderRepository>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
+    {
+        // Background Services
+        services.AddHostedService<UpdateOrderStateBackgroundService>();
+
         // Api Repositories
         services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();
         services.AddHttpClient<ICourtApiRepository, CourtApiRepository>();
-
-        // MassTransit
-        services.AddMassTransit(x =>
-        {
-            x.UsingRabbitMq();
-        });
 
         // Configuration
         services.Configure<ApiEndpoints>(config.GetSection(nameof(ApiEndpoints)));

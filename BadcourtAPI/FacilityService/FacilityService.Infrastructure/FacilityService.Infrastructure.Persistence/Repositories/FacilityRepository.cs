@@ -63,13 +63,13 @@ public class FacilityRepository : IFacilityRepository
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("Distance", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
             case "price":
-                pipeline.Add(new BsonDocument("$addFields", new BsonDocument("avgPrice",
+                pipeline.Add(new BsonDocument("$addFields", new BsonDocument("AvgPrice",
                     new BsonDocument("$avg", new BsonArray
                     {
                         new BsonDocument("$ifNull", new BsonArray { "$MinPrice", 0 }),
                         new BsonDocument("$ifNull", new BsonArray { "$MaxPrice", 0 })
                     }))));
-                pipeline.Add(new BsonDocument("$sort", new BsonDocument("avgPrice", facilityParams.SortBy == "asc" ? 1 : -1)));
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("AvgPrice", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
             case "registeredAt":
             default:
@@ -160,6 +160,14 @@ public class FacilityRepository : IFacilityRepository
         await _facilities.ReplaceOneAsync(
             f => f.Id == facility.Id,
             facility,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task DeleteFacilityAsync(Facility facility, CancellationToken cancellationToken = default)
+    {
+        await _facilities.DeleteOneAsync(
+            f => f.Id == facility.Id,
             cancellationToken: cancellationToken
         );
     }

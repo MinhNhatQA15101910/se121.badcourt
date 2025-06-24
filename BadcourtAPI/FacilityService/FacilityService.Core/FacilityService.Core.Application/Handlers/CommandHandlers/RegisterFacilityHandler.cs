@@ -1,8 +1,11 @@
 using AutoMapper;
 using FacilityService.Core.Application.Commands;
+using FacilityService.Core.Application.Extensions;
+using FacilityService.Core.Application.ExternalServices.Interfaces;
 using FacilityService.Core.Application.Interfaces;
 using FacilityService.Core.Domain.Entities;
 using FacilityService.Core.Domain.Repositories;
+using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 using SharedKernel.DTOs;
 using SharedKernel.Exceptions;
@@ -10,122 +13,107 @@ using SharedKernel.Exceptions;
 namespace FacilityService.Core.Application.Handlers.CommandHandlers;
 
 public class RegisterFacilityHandler(
+    IHttpContextAccessor httpContextAccessor,
     IFacilityRepository facilityRepository,
     IFileService fileService,
+    IUserServiceClient userServiceClient,
     IMapper mapper
 ) : ICommandHandler<RegisterFacilityCommand, FacilityDto>
 {
     public async Task<FacilityDto> Handle(RegisterFacilityCommand request, CancellationToken cancellationToken)
     {
+        var userId = httpContextAccessor.HttpContext.User.GetUserId();
+        var user = await userServiceClient.GetUserByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+
         var facility = mapper.Map<Facility>(request.RegisterFacilityDto);
+        facility.UserId = user.Id;
+        facility.UserName = user.Username;
+        facility.UserImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url;
 
         await facilityRepository.AddFacilityAsync(facility, cancellationToken);
 
-        // Upload facility images to cloudinary
-        List<FacilityPhoto> photos = [];
-        bool isMain = true;
-        foreach (var image in request.RegisterFacilityDto.FacilityImages)
+        // Upload facility images
+        var facilityPhotos = await UploadMultiplePhotosAsync(
+            $"facilities/{facility.Id}",
+            request.RegisterFacilityDto.FacilityImages,
+            withMain: true
+        );
+        facility.Photos = [.. facilityPhotos.Select(p => new FacilityPhoto
         {
-            var uploadResult = await fileService.UploadPhotoAsync($"facilities/{facility.Id}", image);
-            if (uploadResult.Error != null)
-            {
-                throw new BadRequestException(uploadResult.Error.Message);
-            }
+            Id = ObjectId.GenerateNewId().ToString(),
+            Url = p.Url,
+            PublicId = p.PublicId,
+            IsMain = p.IsMain
+        })];
 
-            photos.Add(new FacilityPhoto
-            {
-                Id = ObjectId.GenerateNewId().ToString(),
-                Url = uploadResult.SecureUrl.ToString(),
-                PublicId = uploadResult.PublicId,
-                IsMain = isMain
-            });
+        // Upload manager info documents
+        facility.ManagerInfo.CitizenImageFront = await UploadSinglePhotoAsync(
+            $"facilities/{facility.Id}/citizen_images",
+            request.RegisterFacilityDto.CitizenImageFront
+        );
 
-            isMain = false;
-        }
+        facility.ManagerInfo.CitizenImageBack = await UploadSinglePhotoAsync(
+            $"facilities/{facility.Id}/citizen_images",
+            request.RegisterFacilityDto.CitizenImageBack
+        );
 
-        // Upload citizen image front to cloudinary
-        var citizenImageFrontUploadResult = await fileService.UploadPhotoAsync($"facilities/{facility.Id}/citizen_images", request.RegisterFacilityDto.CitizenImageFront);
-        if (citizenImageFrontUploadResult.Error != null)
-        {
-            throw new BadRequestException(citizenImageFrontUploadResult.Error.Message);
-        }
-        var citizenImageFront = new Photo
-        {
-            Url = citizenImageFrontUploadResult.SecureUrl.ToString(),
-            PublicId = citizenImageFrontUploadResult.PublicId,
-            IsMain = false
-        };
+        facility.ManagerInfo.BankCardFront = await UploadSinglePhotoAsync(
+            $"facilities/{facility.Id}/bank_cards",
+            request.RegisterFacilityDto.BankCardFront
+        );
 
-        // Upload citizen image back to cloudinary
-        var citizenImageBackUploadResult = await fileService.UploadPhotoAsync($"facilities/{facility.Id}/citizen_images", request.RegisterFacilityDto.CitizenImageBack);
-        if (citizenImageBackUploadResult.Error != null)
-        {
-            throw new BadRequestException(citizenImageBackUploadResult.Error.Message);
-        }
-        var citizenImageBack = new Photo
-        {
-            Url = citizenImageBackUploadResult.SecureUrl.ToString(),
-            PublicId = citizenImageBackUploadResult.PublicId,
-            IsMain = false
-        };
+        facility.ManagerInfo.BankCardBack = await UploadSinglePhotoAsync(
+            $"facilities/{facility.Id}/bank_cards",
+            request.RegisterFacilityDto.BankCardBack
+        );
 
-        // Upload bank card front image to cloudinary
-        var bankCardFrontUploadResult = await fileService.UploadPhotoAsync($"facilities/{facility.Id}/bank_cards", request.RegisterFacilityDto.BankCardFront);
-        if (bankCardFrontUploadResult.Error != null)
-        {
-            throw new BadRequestException(bankCardFrontUploadResult.Error.Message);
-        }
-        var bankCardFront = new Photo
-        {
-            Url = bankCardFrontUploadResult.SecureUrl.ToString(),
-            PublicId = bankCardFrontUploadResult.PublicId,
-            IsMain = false
-        };
+        facility.ManagerInfo.BusinessLicenseImages = await UploadMultiplePhotosAsync(
+            $"facilities/{facility.Id}/business_licenses",
+            request.RegisterFacilityDto.BusinessLicenseImages,
+            withMain: true
+        );
 
-        // Upload bank card back image to cloudinary
-        var bankCardBackUploadResult = await fileService.UploadPhotoAsync($"facilities/{facility.Id}/bank_cards", request.RegisterFacilityDto.BankCardBack);
-        if (bankCardBackUploadResult.Error != null)
-        {
-            throw new BadRequestException(bankCardBackUploadResult.Error.Message);
-        }
-        var bankCardBack = new Photo
-        {
-            Url = bankCardBackUploadResult.SecureUrl.ToString(),
-            PublicId = bankCardBackUploadResult.PublicId,
-            IsMain = false
-        };
-
-        // Upload business license images to cloudinary
-        List<Photo> businessLicenseImages = [];
-        isMain = true;
-        foreach (var image in request.RegisterFacilityDto.BusinessLicenseImages)
-        {
-            var uploadResult = await fileService.UploadPhotoAsync($"facilities/{facility.Id}/business_licenses", image);
-            if (uploadResult.Error != null)
-            {
-                throw new BadRequestException(uploadResult.Error.Message);
-            }
-
-            businessLicenseImages.Add(new Photo
-            {
-                Url = uploadResult.SecureUrl.ToString(),
-                PublicId = uploadResult.PublicId,
-                IsMain = isMain
-            });
-
-            isMain = false;
-        }
-
-        facility.Photos = photos.AsEnumerable();
-        facility.ManagerInfo.CitizenImageFront = citizenImageFront;
-        facility.ManagerInfo.CitizenImageBack = citizenImageBack;
-        facility.ManagerInfo.BankCardFront = bankCardFront;
-        facility.ManagerInfo.BankCardBack = bankCardBack;
-        facility.ManagerInfo.BusinessLicenseImages = businessLicenseImages.AsEnumerable();
-
-        // Update facility in the repository
+        // Persist full data
         await facilityRepository.UpdateFacilityAsync(facility, cancellationToken);
 
         return mapper.Map<FacilityDto>(facility);
+    }
+
+    private async Task<Photo> UploadSinglePhotoAsync(string folder, IFormFile file)
+    {
+        var result = await fileService.UploadPhotoAsync(folder, file);
+        if (result.Error != null)
+            throw new BadRequestException(result.Error.Message);
+
+        return new Photo
+        {
+            Url = result.SecureUrl.ToString(),
+            PublicId = result.PublicId,
+            IsMain = false
+        };
+    }
+
+    private async Task<List<Photo>> UploadMultiplePhotosAsync(string folder, IEnumerable<IFormFile> files, bool withMain = false)
+    {
+        var photos = new List<Photo>();
+        bool isMain = withMain;
+        foreach (var file in files)
+        {
+            var result = await fileService.UploadPhotoAsync(folder, file);
+            if (result.Error != null)
+                throw new BadRequestException(result.Error.Message);
+
+            photos.Add(new Photo
+            {
+                Url = result.SecureUrl.ToString(),
+                PublicId = result.PublicId,
+                IsMain = isMain
+            });
+
+            isMain = false;
+        }
+
+        return photos;
     }
 }
