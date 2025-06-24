@@ -11,7 +11,7 @@ using OrderService.Infrastructure.Persistence;
 namespace OrderService.Infrastructure.Persistence.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250623155506_SqlInitial")]
+[Migration("20250624042018_SqlInitial")]
 partial class SqlInitial
 {
     /// <inheritdoc />
@@ -35,6 +35,10 @@ partial class SqlInitial
                     .HasColumnType("TEXT");
 
                 b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("FacilityId")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.Property<string>("FacilityName")

@@ -38,6 +38,12 @@ public class OrderRepository(
             query = query.Where(o => o.UserId == userId);
         }
 
+        // Filter by facilityId
+        if (orderParams.FacilityId != null)
+        {
+            query = query.Where(o => o.FacilityId == orderParams.FacilityId);
+        }
+
         // Filter by courtId
         if (orderParams.CourtId != null)
         {
@@ -49,6 +55,12 @@ public class OrderRepository(
         {
             query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
         }
+
+        // Filter by date range
+        query = query.Where(o =>
+            o.DateTimePeriod.HourFrom >= orderParams.HourFrom &&
+            o.DateTimePeriod.HourTo <= orderParams.HourTo
+        );
 
         // Order
         query = orderParams.OrderBy switch
