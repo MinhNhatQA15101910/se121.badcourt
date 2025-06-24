@@ -77,61 +77,65 @@ class SearchService {
     return null;
   }
 
-  Future<List<Facility>> fetchAllFacilities({
+  Future<Map<String, dynamic>> fetchAllFacilities({
     required BuildContext context,
     String? province,
-    double? minPrice,
-    double? maxPrice,
+    int? minPrice,
+    int? maxPrice,
+    String? search,
     Sort? sort,
+    int page = 1,
+    int limit = 10,
   }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final prefs = await SharedPreferences.getInstance();
 
     List<Facility> facilities = [];
-    bool isQuery = false;
+    int currentPage = 1;
+    int totalPages = 1;
 
-    String requestUri = '$uri/gateway/facilities';
+    final Map<String, String> queryParams = {};
+
+    // Add pagination parameters
+    queryParams['pageNumber'] = page.toString();
+    queryParams['pageSize'] = limit.toString();
+
     if (province != null) {
-      requestUri += '?province=$province';
-      isQuery = true;
+      queryParams['province'] = province;
     }
 
-    if (minPrice != null) {
-      if (isQuery)
-        requestUri += '&min_price=$minPrice';
-      else
-        requestUri += '?min_price=$minPrice';
-      isQuery = true;
+    if (minPrice != null && minPrice > 0) {
+      queryParams['minPrice'] = minPrice.toString();
     }
 
-    if (maxPrice != null) {
-      if (isQuery)
-        requestUri += '&max_price=$maxPrice';
-      else
-        requestUri += '?max_price=$maxPrice';
-      isQuery = true;
+    if (maxPrice != null && maxPrice != double.infinity) {
+      queryParams['maxPrice'] = maxPrice.toString();
+    }
+
+    if (search != null && search.trim().isNotEmpty) {
+      queryParams['search'] = search.trim();
     }
 
     if (sort != null) {
-      if (isQuery)
-        requestUri += '&sort=${sort.sort}&order=${sort.order}';
-      else
-        requestUri += '?sort=${sort.sort}&order=${sort.order}';
-      isQuery = true;
+      queryParams['sortBy'] = sort.order;
+      queryParams['orderBy'] = sort.sort;
 
-      if (sort.sort == "location") {
+      if (sort.sort == 'location') {
         final latitude = prefs.getDouble('latitude');
         final longitude = prefs.getDouble('longitude');
-        requestUri += '&lat=$latitude&lon=$longitude';
+        if (latitude != null && longitude != null) {
+          queryParams['lat'] = latitude.toString();
+          queryParams['lon'] = longitude.toString();
+        }
       }
     }
 
+    final uriWithParams = Uri.parse('$uri/gateway/facilities')
+        .replace(queryParameters: queryParams);
+
     try {
       http.Response response = await http.get(
-        Uri.parse(requestUri),
+        uriWithParams,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -142,12 +146,23 @@ class SearchService {
         response: response,
         context: context,
         onSuccess: () {
-          for (var object in jsonDecode(response.body)) {
-            facilities.add(
-              Facility.fromJson(
-                jsonEncode(object),
-              ),
-            );
+          final responseData = jsonDecode(response.body);
+          
+          // Handle both array response and paginated response
+          if (responseData is List) {
+            // Old format - just array of facilities
+            for (var object in responseData) {
+              facilities.add(Facility.fromJson(jsonEncode(object)));
+            }
+          } else if (responseData is Map<String, dynamic>) {
+            // New format - paginated response
+            if (responseData['data'] != null) {
+              for (var object in responseData['data']) {
+                facilities.add(Facility.fromJson(jsonEncode(object)));
+              }
+            }
+            currentPage = responseData['currentPage'] ?? 1;
+            totalPages = responseData['totalPages'] ?? 1;
           }
         },
       );
@@ -159,7 +174,11 @@ class SearchService {
       );
     }
 
-    return facilities;
+    return {
+      'facilities': facilities,
+      'currentPage': currentPage,
+      'totalPages': totalPages,
+    };
   }
 
   Future<List<String>> fetchAllProvinces({

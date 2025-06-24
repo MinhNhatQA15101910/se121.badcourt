@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 
 class FilterProvider extends ChangeNotifier {
-  double _minPrice = 0;
-  double _maxPrice = double.infinity;
+  int _minPrice = 0;
+  int _maxPrice = 1000000000;
   String _province = '';
   bool _usingTag = false;
   int _tagIndex = -1;
   bool _firstFilter = true;
 
-  double get minPrice => _minPrice;
-  double get maxPrice => _maxPrice;
+  int get minPrice => _minPrice;
+  int get maxPrice => _maxPrice;
   String get province => _province;
   bool get usingTag => _usingTag;
   int get tagIndex => _tagIndex;
   bool get firstFilter => _firstFilter;
 
-  void setMinPrice(double minPrice) {
+  void setMinPrice(int minPrice) {
     _minPrice = minPrice;
     notifyListeners();
   }
 
-  void setMaxPrice(double maxPrice) {
+  void setMaxPrice(int maxPrice) {
     _maxPrice = maxPrice;
     notifyListeners();
   }
@@ -47,7 +47,7 @@ class FilterProvider extends ChangeNotifier {
 
   void resetFilter() {
     _minPrice = 0;
-    _maxPrice = double.infinity;
+    _maxPrice = 1000000000;
     _province = '';
     _usingTag = false;
     _tagIndex = -1;

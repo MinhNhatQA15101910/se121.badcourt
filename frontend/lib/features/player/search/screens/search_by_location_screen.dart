@@ -132,10 +132,14 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
 
   void _fetchAllFacilities() async {
     try {
-      _facilities = await _searchService.fetchAllFacilities(
+      // Sửa lỗi: lấy facilities từ Map result
+      final result = await _searchService.fetchAllFacilities(
         context: context,
         sort: Sort.location_asc,
       );
+
+      // Extract facilities từ Map result
+      _facilities = result['facilities'] as List<Facility>;
 
       print("Fetched facilities: ${_facilities.length}");
       for (var facility in _facilities) {
@@ -331,9 +335,9 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                                 hintText: 'Find badminton facilities',
                                 hintStyle: GoogleFonts.inter(
                                   color: GlobalVariables.darkGrey,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
-                                contentPadding: const EdgeInsets.all(16),
+                                contentPadding: const EdgeInsets.all(8),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
@@ -377,8 +381,8 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                         GestureDetector(
                           onTap: _pingMarker,
                           child: Container(
-                            width: 54,
-                            height: 54,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(

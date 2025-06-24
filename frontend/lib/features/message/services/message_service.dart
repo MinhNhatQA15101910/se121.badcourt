@@ -24,7 +24,7 @@ class MessageService {
     try {
       final response = await http.get(
         Uri.parse(
-            '$uri/gateway/messages?OtherUserId=$userId&pageNumber=$pageNumber'),
+            '$uri/gateway/messages?OtherUserId=$userId&pageNumber=$pageNumber&pageSize=20'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
