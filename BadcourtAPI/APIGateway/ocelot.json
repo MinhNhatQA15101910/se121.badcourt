@@ -113,6 +113,20 @@
       "UpstreamPathTemplate": "/gateway/facilities/update-active/{id}",
       "UpstreamHttpMethod": ["Put"]
     },
+    {
+      "DownstreamPathTemplate": "/api/facilities/approve/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/approve/{id}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities/reject/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/reject/{id}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/courts/{id}",

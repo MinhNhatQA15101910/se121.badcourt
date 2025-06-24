@@ -57,4 +57,20 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
         await mediator.Send(new UpdateActiveCommand(id, User.GetUserId(), activeDto));
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("approve/{id:length(24)}")]
+    public async Task<IActionResult> ApproveFacility(string id)
+    {
+        await mediator.Send(new ApproveFacilityCommand(id));
+        return NoContent();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("reject/{id:length(24)}")]
+    public async Task<IActionResult> RejectFacility(string id)
+    {
+        await mediator.Send(new RejectFacilityCommand(id));
+        return NoContent();
+    }
 }
