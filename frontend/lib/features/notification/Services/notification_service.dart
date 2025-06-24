@@ -93,4 +93,91 @@ class NotificationService {
 
     return success;
   }
+
+  Future<Map<String, dynamic>> markAllNotificationsAsRead({
+    required BuildContext context,
+    bool showSuccessMessage = false,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    bool success = false;
+    int markedCount = 0;
+
+    try {
+      final response = await http.put(
+        Uri.parse('$uri/gateway/notifications/read-all'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          success = true;
+          
+          // Nếu API trả về số lượng đã đánh dấu
+          try {
+            final responseBody = jsonDecode(response.body);
+            markedCount = responseBody['markedCount'] ?? 0;
+          } catch (e) {
+            // Nếu không có thông tin, giả sử đã đánh dấu tất cả
+            markedCount = 0;
+          }
+          
+          if (showSuccessMessage) {
+            IconSnackBar.show(
+              context,
+              label: 'All notifications marked as read',
+              snackBarType: SnackBarType.success,
+            );
+          }
+        },
+      );
+    } catch (error) {
+      success = false;
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${error.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return {
+      'success': success,
+      'markedCount': markedCount,
+    };
+  }
+
+  // Thêm method để lấy unread count từ server
+  Future<int> getUnreadCount({
+    required BuildContext context,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    int unreadCount = 0;
+
+    try {
+      final response = await http.get(
+        Uri.parse('$uri/gateway/notifications/unread-count'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          final responseBody = jsonDecode(response.body);
+          unreadCount = responseBody['unreadCount'] ?? 0;
+        },
+      );
+    } catch (error) {
+      print('Error fetching unread count: $error');
+    }
+
+    return unreadCount;
+  }
 }

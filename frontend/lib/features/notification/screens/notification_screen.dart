@@ -21,7 +21,7 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   final NotificationService _notificationService = NotificationService();
   final ScrollController _scrollController = ScrollController();
-  
+
   // Pagination state
   int _currentPage = 1;
   int _totalPages = 1;
@@ -32,10 +32,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Add scroll listener for infinite pagination
     _scrollController.addListener(_onScroll);
-    
+
     // Initialize SignalR and load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeNotifications();
@@ -52,27 +52,30 @@ class _NotificationScreenState extends State<NotificationScreen> {
   // Initialize SignalR connection and sync with provider notifications
   Future<void> _initializeNotifications() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+    final notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
 
     // Ensure we're connected to the notification hub
     if (!notificationProvider.isConnected) {
-      await notificationProvider.initializeNotificationHub(userProvider.user.token);
+      await notificationProvider
+          .initializeNotificationHub(userProvider.user.token);
     }
 
     // Refresh notifications via SignalR
     await notificationProvider.refreshNotifications();
-    
+
     // Sync initial data from provider
     _syncWithProvider();
-    
+
     // Check pagination info after initial load
     await _checkPaginationInfo();
   }
 
   // Sync local state with NotificationProvider
   void _syncWithProvider() {
-    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
-    
+    final notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
+
     setState(() {
       _allNotifications = List.from(notificationProvider.notifications);
       _currentPage = 1; // SignalR provides first page
@@ -84,7 +87,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   // Scroll listener for infinite pagination
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       _loadMoreNotifications();
     }
@@ -108,7 +111,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     try {
       final nextPage = _currentPage + 1;
       print('Loading notifications page $nextPage'); // Debug log
-      
+
       final paginatedResponse = await _notificationService.fetchNotification(
         context: context,
         pageNumber: nextPage,
@@ -118,7 +121,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         setState(() {
           // Update pagination info from REST API response
           _totalPages = paginatedResponse.totalPages;
-          
+
           if (paginatedResponse.items.isNotEmpty) {
             // Add new notifications to the list
             _allNotifications.addAll(paginatedResponse.items);
@@ -127,39 +130,42 @@ class _NotificationScreenState extends State<NotificationScreen> {
           } else {
             _hasMorePages = false;
           }
-        
-        print('Updated: currentPage=$_currentPage, totalPages=$_totalPages, hasMore=$_hasMorePages');
-      });
-      
-      print('Loaded ${paginatedResponse.items.length} notifications. Total: ${_allNotifications.length}');
-    }
-  } catch (error) {
-    if (mounted) {
-      print('Error loading more notifications: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to load more notifications: $error'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+
+          print(
+              'Updated: currentPage=$_currentPage, totalPages=$_totalPages, hasMore=$_hasMorePages');
+        });
+
+        print(
+            'Loaded ${paginatedResponse.items.length} notifications. Total: ${_allNotifications.length}');
+      }
+    } catch (error) {
+      if (mounted) {
+        print('Error loading more notifications: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load more notifications: $error'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-        ),
-      );
-    }
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoadingMore = false;
-      });
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+      }
     }
   }
-}
 
   // Refresh all notifications
   Future<void> _refreshNotifications() async {
-    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
-    
+    final notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
+
     setState(() {
       _currentPage = 1;
       _totalPages = 1;
@@ -169,7 +175,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     // Refresh via SignalR first
     await notificationProvider.refreshNotifications();
-    
+
     // Sync with provider
     _syncWithProvider();
   }
@@ -181,14 +187,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
         context: context,
         pageNumber: 2, // Check if page 2 exists
       );
-    
+
       if (mounted) {
         setState(() {
           _totalPages = testResponse.totalPages;
           _hasMorePages = _currentPage < _totalPages;
         });
-        
-        print('Pagination info: totalPages=$_totalPages, hasMore=$_hasMorePages');
+
+        print(
+            'Pagination info: totalPages=$_totalPages, hasMore=$_hasMorePages');
       }
     } catch (error) {
       print('Error checking pagination info: $error');
@@ -201,21 +208,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   // CẢI TIẾN: Handle notification tap - gọi API và cập nhật UI
   Future<void> _handleNotificationTap(NotificationDto notification) async {
-    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
-    
+    final notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
+
     // Nếu notification chưa đọc, đánh dấu đã đọc
     if (!notification.isRead) {
       final success = await notificationProvider.markNotificationAsRead(
-        notification.id, 
-        context
-      );
-      
+          notification.id, context);
+
       if (success) {
         // Cập nhật local state
         setState(() {
-          final index = _allNotifications.indexWhere((n) => n.id == notification.id);
+          final index =
+              _allNotifications.indexWhere((n) => n.id == notification.id);
           if (index != -1) {
-            _allNotifications[index] = _allNotifications[index].copyWith(isRead: true);
+            _allNotifications[index] =
+                _allNotifications[index].copyWith(isRead: true);
           }
         });
       }
@@ -271,13 +279,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     IconButton(
                       icon: const Icon(Icons.done_all, color: Colors.white),
                       onPressed: () async {
-                        final success = await notificationProvider.markAllNotificationsAsRead(context);
+                        final success = await notificationProvider
+                            .markAllNotificationsAsRead(context);
                         if (success) {
                           // Cập nhật local state
                           setState(() {
                             for (int i = 0; i < _allNotifications.length; i++) {
                               if (!_allNotifications[i].isRead) {
-                                _allNotifications[i] = _allNotifications[i].copyWith(isRead: true);
+                                _allNotifications[i] =
+                                    _allNotifications[i].copyWith(isRead: true);
                               }
                             }
                           });
@@ -296,7 +306,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Consumer<NotificationProvider>(
           builder: (context, notificationProvider, _) {
             // Listen for new notifications from SignalR
-            if (notificationProvider.notifications.length > _allNotifications.length) {
+            if (notificationProvider.notifications.length >
+                _allNotifications.length) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _syncWithProvider();
               });
@@ -310,7 +321,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
               );
             }
 
-            if (notificationProvider.error != null && _allNotifications.isEmpty) {
+            if (notificationProvider.error != null &&
+                _allNotifications.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -388,7 +400,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 onNotification: (ScrollNotification scrollInfo) {
                   // Additional scroll detection for better infinite scroll
                   if (scrollInfo is ScrollEndNotification &&
-                      scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
+                      scrollInfo.metrics.pixels >=
+                          scrollInfo.metrics.maxScrollExtent - 100) {
                     _loadMoreNotifications();
                   }
                   return false;
@@ -396,62 +409,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 child: CustomScrollView(
                   controller: _scrollController,
                   slivers: [
-                    // Pagination info
-                    if (_totalPages > 1 && _allNotifications.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.notifications_outlined,
-                                size: 16,
-                                color: GlobalVariables.green,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Showing ${_allNotifications.length} notifications',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: GlobalVariables.darkGrey,
-                                ),
-                              ),
-                              if (_hasMorePages) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: GlobalVariables.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    'Page $_currentPage of $_totalPages',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: GlobalVariables.green,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-
                     // Notifications list
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -473,7 +430,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Center(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(25),
@@ -492,7 +450,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          GlobalVariables.green),
                                       strokeWidth: 2,
                                     ),
                                   ),
@@ -513,11 +472,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
 
                     // End of list indicator
-                    if (_allNotifications.isNotEmpty && !_hasMorePages && !_isLoadingMore)
+                    if (_allNotifications.isNotEmpty &&
+                        !_hasMorePages &&
+                        !_isLoadingMore)
                       SliverToBoxAdapter(
                         child: Container(
                           margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),

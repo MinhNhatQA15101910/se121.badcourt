@@ -62,7 +62,7 @@ class NotificationProvider extends ChangeNotifier {
           '[NotificationProvider] Updated: ${_notifications.length} notifications, unread: $_unreadCount');
     };
 
-    // Setup callback for new notifications - CẢI TIẾN LOGIC
+    // Setup callback for new notifications
     _notificationHubService.onNewNotification = (NotificationDto notification) {
       print('[NotificationProvider] New notification received: ${notification.title}');
       print('[NotificationProvider] Notification isRead: ${notification.isRead}');
@@ -74,7 +74,6 @@ class NotificationProvider extends ChangeNotifier {
       _totalCount++;
       
       // LOGIC MỚI: Luôn cộng unread count lên 1 nếu notification chưa đọc
-      // Bất kể có unread count từ server hay không
       if (!notification.isRead) {
         _unreadCount++;
         print('[NotificationProvider] Incremented unread count to: $_unreadCount');
@@ -87,15 +86,14 @@ class NotificationProvider extends ChangeNotifier {
           '[NotificationProvider] Added new notification - Total: $_totalCount, Unread: $_unreadCount');
     };
 
-    // Setup callback for unread count from server - CHỈ SỬ DỤNG KHI KHỞI TẠO
+    // Setup callback for unread count from server
     _notificationHubService.onUnreadCountReceived = (count) {
       print('[NotificationProvider] Received unread count from SignalR: $count');
       
       // Chỉ sử dụng unread count từ server khi lần đầu kết nối
-      // Sau đó sẽ tự quản lý local count
       if (!_unreadCountFromServer) {
         _unreadCount = count;
-        _unreadCountFromServer = true; // Đánh dấu là đã nhận từ server
+        _unreadCountFromServer = true;
         notifyListeners();
         print('[NotificationProvider] Set initial unread count from server to: $_unreadCount');
       } else {
@@ -110,7 +108,7 @@ class NotificationProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       _isConnected = false;
-      _unreadCountFromServer = false; // Reset flag
+      _unreadCountFromServer = false;
       notifyListeners();
 
       print('[NotificationProvider] Connecting to NotificationHub...');
@@ -133,7 +131,7 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Refresh notifications (reconnect to get latest)
+  // Refresh notifications
   Future<void> refreshNotifications() async {
     if (!_isConnected) {
       _error = 'Not connected to notification service';
@@ -146,19 +144,11 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Request fresh notifications from server
       print('[NotificationProvider] Refreshing notifications...');
-      
-      // Reset server flag để có thể nhận unread count mới từ server
       _unreadCountFromServer = false;
-      
-      // Since backend doesn't support manual refresh,
-      // we just wait and let the automatic system work
       await Future.delayed(const Duration(seconds: 1));
-
       _isLoading = false;
       notifyListeners();
-      
       print('[NotificationProvider] Refresh completed');
     } catch (e) {
       _error = 'Failed to refresh notifications: $e';
@@ -168,50 +158,26 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Load next page of notifications
-  Future<void> loadNextPage() async {
-    if (!_isConnected || _isLoadingMore || !hasMorePages) return;
-
-    _isLoadingMore = true;
-    notifyListeners();
-
-    try {
-      print('[NotificationProvider] Loading next page...');
-      
-      // Since backend doesn't support pagination requests,
-      // we simulate loading more by waiting
-      await Future.delayed(const Duration(seconds: 1));
-
-      _isLoadingMore = false;
-      notifyListeners();
-      
-      print('[NotificationProvider] Next page loaded');
-    } catch (e) {
-      print('[NotificationProvider] Error loading next page: $e');
-      _isLoadingMore = false;
-      notifyListeners();
-    }
-  }
-
-  // Mark notification as read - SỬ DỤNG REST API THAY VÌ SIGNALR
+  // Mark notification as read
   Future<bool> markNotificationAsRead(String notificationId, context) async {
     try {
       print('[NotificationProvider] Marking notification as read: $notificationId');
       
       // Tìm notification trong danh sách local
       final index = _notifications.indexWhere((n) => n.id == notificationId);
+      final wasUnread = index != -1 && !_notifications[index].isRead;
 
       // Gọi REST API để đánh dấu đã đọc
-      await _notificationService.markNotificationAsRead(
+      final success = await _notificationService.markNotificationAsRead(
         context: context,
         notificationId: notificationId,
       );
       
       // Nếu API thành công, cập nhật UI
-      if (index != -1 && !_notifications[index].isRead) {
+      if (success && index != -1 && wasUnread) {
         _notifications[index] = _notifications[index].copyWith(isRead: true);
         
-        // Giảm unread count xuống 1 nếu notification này chưa đọc
+        // Giảm unread count xuống 1
         if (_unreadCount > 0) {
           _unreadCount--;
         }
@@ -220,7 +186,7 @@ class NotificationProvider extends ChangeNotifier {
         print('[NotificationProvider] Notification marked as read successfully. Unread count: $_unreadCount');
       }
       
-      return true;
+      return success;
       
     } catch (e) {
       print('[NotificationProvider] Error marking notification as read: $e');
@@ -228,37 +194,55 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Mark all notifications as read - SỬ DỤNG REST API
+  // CẢI TIẾN: Mark all notifications as read với đồng bộ unread count
   Future<bool> markAllNotificationsAsRead(context) async {
     try {
       print('[NotificationProvider] Marking all notifications as read...');
       
       // Đếm số notifications chưa đọc trong danh sách hiện tại
-      final unreadNotifications = _notifications.where((n) => !n.isRead).toList();
-      final unreadCount = unreadNotifications.length;
+      final currentUnreadNotifications = _notifications.where((n) => !n.isRead).toList();
+      final currentUnreadCount = currentUnreadNotifications.length;
       
-      // Gọi API cho từng notification chưa đọc
-      for (final notification in unreadNotifications) {
-        await _notificationService.markNotificationAsRead(
-          context: context,
-          notificationId: notification.id,
-        );
-      }
+      print('[NotificationProvider] Current unread notifications in list: $currentUnreadCount');
+      print('[NotificationProvider] Current unread count: $_unreadCount');
       
-      // Cập nhật UI - đánh dấu tất cả là đã đọc
-      for (int i = 0; i < _notifications.length; i++) {
-        if (!_notifications[i].isRead) {
-          _notifications[i] = _notifications[i].copyWith(isRead: true);
+      // Gọi API để đánh dấu tất cả là đã đọc
+      final result = await _notificationService.markAllNotificationsAsRead(
+        context: context,
+        showSuccessMessage: true,
+      );
+      
+      if (result['success'] == true) {
+        // Cập nhật UI - đánh dấu tất cả notifications trong danh sách là đã đọc
+        for (int i = 0; i < _notifications.length; i++) {
+          if (!_notifications[i].isRead) {
+            _notifications[i] = _notifications[i].copyWith(isRead: true);
+          }
         }
+        
+        // LOGIC ĐỒNG BỘ UNREAD COUNT:
+        // Nếu API trả về số lượng đã đánh dấu, sử dụng nó
+        final markedCount = result['markedCount'] as int;
+        if (markedCount > 0) {
+          // Trừ đi số lượng đã đánh dấu từ server
+          _unreadCount = (_unreadCount - markedCount).clamp(0, _unreadCount);
+          print('[NotificationProvider] Used server marked count: $markedCount, new unread count: $_unreadCount');
+        } else {
+          // Nếu không có thông tin từ server, reset về 0 (đánh dấu tất cả)
+          _unreadCount = 0;
+          print('[NotificationProvider] Reset unread count to 0 (mark all)');
+        }
+        
+        // Đồng bộ với server để đảm bảo chính xác
+        _syncUnreadCountWithServer(context);
+        
+        notifyListeners();
+        print('[NotificationProvider] All notifications marked as read successfully. Final unread count: $_unreadCount');
+        
+        return true;
       }
       
-      // Giảm unread count theo số lượng đã đánh dấu
-      _unreadCount = (_unreadCount - unreadCount).clamp(0, _unreadCount);
-      
-      notifyListeners();
-      print('[NotificationProvider] All notifications marked as read successfully. Unread count: $_unreadCount');
-      
-      return true;
+      return false;
       
     } catch (e) {
       print('[NotificationProvider] Error marking all notifications as read: $e');
@@ -266,7 +250,24 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Tính toán unread count dựa trên notifications đã tải (chỉ dùng khi khởi tạo)
+  // THÊM: Đồng bộ unread count với server
+  Future<void> _syncUnreadCountWithServer(context) async {
+    try {
+      final serverUnreadCount = await _notificationService.getUnreadCount(
+        context: context,
+      );
+      
+      if (serverUnreadCount != _unreadCount) {
+        print('[NotificationProvider] Syncing unread count with server: local=$_unreadCount, server=$serverUnreadCount');
+        _unreadCount = serverUnreadCount;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('[NotificationProvider] Error syncing unread count with server: $e');
+    }
+  }
+
+  // Tính toán unread count dựa trên notifications đã tải
   void _updateLocalUnreadCount() {
     final newUnreadCount = _notifications.where((n) => !n.isRead).length;
     
@@ -276,7 +277,7 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Force update unread count - CHỈ CẬP NHẬT LOCAL KHI CẦN
+  // Force update unread count
   void forceUpdateUnreadCount() {
     if (!_unreadCountFromServer) {
       _updateLocalUnreadCount();
@@ -284,14 +285,14 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Phương thức để reset server flag (dùng khi cần tính lại local)
+  // Reset server flag
   void resetServerUnreadCountFlag() {
     _unreadCountFromServer = false;
     _updateLocalUnreadCount();
     notifyListeners();
   }
 
-  // THÊM: Phương thức để đồng bộ unread count với server (nếu cần)
+  // Sync unread count with server manually
   void syncUnreadCountWithServer(int serverCount) {
     if (_unreadCount != serverCount) {
       print('[NotificationProvider] Syncing unread count: local=$_unreadCount, server=$serverCount');
@@ -335,7 +336,7 @@ class NotificationProvider extends ChangeNotifier {
     _totalPages = 1;
     _totalCount = 0;
     _unreadCount = 0;
-    _unreadCountFromServer = false; // Reset flag
+    _unreadCountFromServer = false;
     _error = null;
     _isLoading = false;
     _isLoadingMore = false;

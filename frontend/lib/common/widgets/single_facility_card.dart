@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/models/facility.dart';
