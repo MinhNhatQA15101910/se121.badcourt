@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/services/message_hub_service.dart';
+import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,7 @@ class MessageHubProvider with ChangeNotifier {
   bool _isLoadingMore = false;
   String? _error;
   GroupDto? _currentGroup;
+  bool _userScrolling = false; // Track user scrolling
   
   // Pagination info
   int _currentPage = 1;
@@ -30,9 +32,14 @@ class MessageHubProvider with ChangeNotifier {
   int get pageSize => _pageSize;
   int get totalCount => _totalCount;
   bool get hasMorePages => _currentPage < _totalPages;
+  bool get userScrolling => _userScrolling;
 
   MessageHubProvider() {
     _setupCallbacks();
+  }
+
+  void setUserScrolling(bool scrolling) {
+    _userScrolling = scrolling;
   }
 
   void _setupCallbacks() {
@@ -50,16 +57,21 @@ class MessageHubProvider with ChangeNotifier {
       _pageSize = paginatedMessages.pageSize;
       _totalCount = paginatedMessages.totalCount;
       
-      // If loading more pages, append to existing messages
+      // Sort messages by time (oldest first for proper display order)
+      final sortedMessages = List<MessageDto>.from(paginatedMessages.items);
+      sortedMessages.sort((a, b) => a.messageSent.compareTo(b.messageSent));
+      
       if (_isLoadingMore) {
-        // Add only new messages that don't already exist
+        // When loading more (older messages), add them to the beginning
         final existingIds = _messages.map((m) => m.id).toSet();
-        final newMessages = paginatedMessages.items.where((m) => !existingIds.contains(m.id)).toList();
-        _messages.addAll(newMessages);
+        final newMessages = sortedMessages.where((m) => !existingIds.contains(m.id)).toList();
+        
+        // Insert older messages at the beginning
+        _messages.insertAll(0, newMessages);
         _isLoadingMore = false;
       } else {
-        // Otherwise replace all messages
-        _messages = paginatedMessages.items;
+        // Initial load - replace all messages
+        _messages = sortedMessages;
       }
       
       _isLoading = false;
@@ -69,7 +81,9 @@ class MessageHubProvider with ChangeNotifier {
     };
 
     _messageHubService.onNewMessage = (message) {
-      _messages.insert(0, message);
+      print('[MessageHubProvider] Received new message: ${message.content}');
+      // Add new messages to the end (they are the newest)
+      _messages.add(message);
       notifyListeners();
     };
 
@@ -89,9 +103,7 @@ class MessageHubProvider with ChangeNotifier {
       final accessToken = userProvider.user.token;
 
       print('[MessageHubProvider] Connecting to user: $otherUserId');
-      print('[MessageHubProvider] Using token: ${accessToken.substring(0, 20)}...');
 
-      // Kiểm tra xem đã connected chưa
       if (_messageHubService.isConnectionReady(otherUserId)) {
         print('[MessageHubProvider] Already connected to user: $otherUserId');
         _isLoading = false;
@@ -100,8 +112,6 @@ class MessageHubProvider with ChangeNotifier {
       }
 
       await _messageHubService.startConnection(accessToken, otherUserId);
-      
-      // Đợi một chút để connection ổn định
       await Future.delayed(Duration(milliseconds: 500));
       
       final isReady = _messageHubService.isConnectionReady(otherUserId);
@@ -130,16 +140,36 @@ class MessageHubProvider with ChangeNotifier {
       notifyListeners();
       
       final nextPage = _currentPage + 1;
-      print('[MessageHubProvider] Loading message page $nextPage for user $otherUserId');
+      print('[MessageHubProvider] Loading message page $nextPage for user $otherUserId via REST API');
       
-      final success = await _messageHubService.requestMessagePage(otherUserId, nextPage, _pageSize);
-      
-      if (!success) {
-        _isLoadingMore = false;
-        notifyListeners();
+      // Use REST API for additional pages
+      final messageService = MessageService();
+      final paginatedResponse = await messageService.fetchMessagesByOrderUserId(
+        context: context,
+        userId: otherUserId,
+        pageNumber: nextPage,
+      );
+
+      if (paginatedResponse.items.isNotEmpty) {
+        // Sort messages by time (oldest first)
+        final sortedMessages = List<MessageDto>.from(paginatedResponse.items);
+        sortedMessages.sort((a, b) => a.messageSent.compareTo(b.messageSent));
+        
+        // Add older messages to the beginning of the list
+        final existingIds = _messages.map((m) => m.id).toSet();
+        final newMessages = sortedMessages.where((m) => !existingIds.contains(m.id)).toList();
+        _messages.insertAll(0, newMessages);
+
+        // Update pagination info from REST API response
+        _currentPage = paginatedResponse.currentPage;
+        _totalPages = paginatedResponse.totalPages;
+        
+        print('[MessageHubProvider] Loaded ${newMessages.length} more messages via REST API, now on page $_currentPage/$_totalPages');
       }
       
-      return success;
+      _isLoadingMore = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       print('[MessageHubProvider] Error loading more messages: $e');
       _isLoadingMore = false;
@@ -179,6 +209,7 @@ class MessageHubProvider with ChangeNotifier {
     _totalPages = 1;
     _pageSize = 20;
     _totalCount = 0;
+    _userScrolling = false;
   }
 
   void _clearAllData() {
@@ -191,5 +222,6 @@ class MessageHubProvider with ChangeNotifier {
     _error = null;
     _isLoading = false;
     _isLoadingMore = false;
+    _userScrolling = false;
   }
 }

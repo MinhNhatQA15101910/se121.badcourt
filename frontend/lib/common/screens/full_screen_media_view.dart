@@ -12,16 +12,14 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 
 class FullScreenMediaView extends StatefulWidget {
   static const String routeName = '/full-screen-media-view';
-  
+
   final List<FileDto> resources;
   final int initialIndex;
-  final String postTitle;
 
   const FullScreenMediaView({
     Key? key,
     required this.resources,
     required this.initialIndex,
-    required this.postTitle,
   }) : super(key: key);
 
   @override
@@ -33,7 +31,7 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
   int _currentIndex = 0;
   bool _isControlsVisible = true;
   bool _isDownloading = false;
-  
+
   // Video controllers
   Map<int, VideoPlayerController> _videoControllers = {};
   Map<int, bool> _videoInitialized = {};
@@ -44,7 +42,7 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
     _currentIndex = widget.initialIndex;
     _carouselController = CarouselSliderController();
     _initializeVideoControllers();
-    
+
     // Hide controls after 3 seconds
     _hideControlsAfterDelay();
   }
@@ -52,11 +50,11 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
   void _initializeVideoControllers() {
     for (int i = 0; i < widget.resources.length; i++) {
       final resource = widget.resources[i];
-      if (PostService.isVideoUrl(resource.url)) {
+      if (_isVideoFile(resource)) {
         final controller = VideoPlayerController.network(resource.url);
         _videoControllers[i] = controller;
         _videoInitialized[i] = false;
-        
+
         controller.initialize().then((_) {
           if (mounted) {
             setState(() {
@@ -68,6 +66,10 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
         });
       }
     }
+  }
+
+  bool _isVideoFile(FileDto file) {
+    return file.fileType.toLowerCase() == 'video';
   }
 
   void _hideControlsAfterDelay() {
@@ -84,7 +86,7 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
     setState(() {
       _isControlsVisible = !_isControlsVisible;
     });
-    
+
     if (_isControlsVisible) {
       _hideControlsAfterDelay();
     }
@@ -101,18 +103,18 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
 
   Future<void> _downloadMedia() async {
     if (_isDownloading) return;
-    
+
     setState(() {
       _isDownloading = true;
     });
 
     try {
       final resource = widget.resources[_currentIndex];
-      final isVideo = PostService.isVideoUrl(resource.url);
-      
+      final isVideo = _isVideoFile(resource);
+
       // Use app's document directory instead of external storage
       final directory = await getApplicationDocumentsDirectory();
-      
+
       // Create BadCourt folder in app directory
       final badCourtDir = Directory('${directory.path}/BadCourt');
       if (!await badCourtDir.exists()) {
@@ -130,10 +132,11 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
       if (response.statusCode == 200) {
         final file = File(filePath);
         await file.writeAsBytes(response.bodyBytes);
-        
+
         IconSnackBar.show(
           context,
-          label: '${isVideo ? 'Video' : 'Image'} saved to app folder successfully',
+          label:
+              '${isVideo ? 'Video' : 'Image'} saved to app folder successfully',
           snackBarType: SnackBarType.success,
         );
       } else {
@@ -179,16 +182,16 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
               ),
               itemBuilder: (context, index, realIndex) {
                 final resource = widget.resources[index];
-                final isVideo = PostService.isVideoUrl(resource.url);
-                
+                final isVideo = _isVideoFile(resource);
+
                 return Center(
-                  child: isVideo 
-                    ? _buildVideoPlayer(index, resource.url)
-                    : _buildImageWidget(resource.url),
+                  child: isVideo
+                      ? _buildVideoPlayer(index, resource.url)
+                      : _buildImageWidget(resource.url),
                 );
               },
             ),
-            
+
             // Top controls
             AnimatedOpacity(
               opacity: _isControlsVisible ? 1.0 : 0.0,
@@ -219,51 +222,24 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
                           ),
                           onPressed: () => Navigator.pop(context),
                         ),
-                        
-                        // Title and counter
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (widget.postTitle.isNotEmpty)
-                                Text(
-                                  widget.postTitle,
-                                  style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              Text(
-                                '${_currentIndex + 1} of ${widget.resources.length}',
-                                style: GoogleFonts.inter(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
+                        const Spacer(),
                         // Download button
                         IconButton(
                           icon: _isDownloading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.download,
+                                  color: Colors.white,
+                                  size: 24,
                                 ),
-                              )
-                            : const Icon(
-                                Icons.download,
-                                color: Colors.white,
-                                size: 24,
-                              ),
                           onPressed: _isDownloading ? null : _downloadMedia,
                         ),
                       ],
@@ -292,7 +268,8 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(GlobalVariables.green),
               ),
               const SizedBox(height: 16),
               Text(
@@ -321,7 +298,7 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
               child: VideoPlayer(controller),
             ),
           ),
-          
+
           // Play/Pause button
           if (_isControlsVisible)
             GestureDetector(
@@ -350,7 +327,7 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
                 ),
               ),
             ),
-          
+
           // Video progress indicator
           if (_isControlsVisible && controller.value.isPlaying)
             Positioned(
@@ -409,7 +386,7 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
         height: double.infinity,
         child: Image.network(
           imageUrl,
-          fit: BoxFit.fitWidth,
+          fit: BoxFit.contain,
           width: double.infinity,
           errorBuilder: (context, error, stackTrace) {
             return Container(
@@ -445,7 +422,8 @@ class _FullScreenMediaViewState extends State<FullScreenMediaView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(GlobalVariables.green),
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
                               loadingProgress.expectedTotalBytes!

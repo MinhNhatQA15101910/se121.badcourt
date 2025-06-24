@@ -7,7 +7,8 @@ class User {
   final String photoUrl;
   final String token;
   final List<String> roles;
-  final List<Photo> photos; // <-- new field
+  final List<Photo> photos;
+  final DateTime? lastOnlineAt;
 
   User({
     required this.id,
@@ -16,7 +17,8 @@ class User {
     this.photoUrl = '',
     this.token = '',
     this.roles = const [],
-    this.photos = const [], // <-- default to empty list
+    this.photos = const [],
+    this.lastOnlineAt,
   });
 
   String get role {
@@ -52,6 +54,9 @@ class User {
         token: json['token'] as String? ?? '',
         roles: rolesList,
         photos: photoList,
+        lastOnlineAt: json['lastOnlineAt'] != null
+            ? DateTime.tryParse(json['lastOnlineAt'])
+            : null,
       );
     } catch (e, stackTrace) {
       print('[User] Error parsing JSON: $e');
@@ -66,6 +71,7 @@ class User {
         token: '',
         roles: const ['User'],
         photos: const [],
+        lastOnlineAt: null,
       );
     }
   }
@@ -79,6 +85,7 @@ class User {
       'token': token,
       'roles': roles,
       'photos': photos.map((p) => p.toJson()).toList(),
+      'lastOnlineAt': lastOnlineAt?.toIso8601String(), // <-- serialize
     };
   }
 
@@ -91,6 +98,7 @@ class User {
       roles: [],
       token: '',
       photos: [],
+      lastOnlineAt: null,
     );
   }
 
@@ -102,6 +110,7 @@ class User {
     String? token,
     List<String>? roles,
     List<Photo>? photos,
+    DateTime? lastOnlineAt,
   }) {
     return User(
       id: id ?? this.id,
@@ -111,11 +120,12 @@ class User {
       token: token ?? this.token,
       roles: roles ?? this.roles,
       photos: photos ?? this.photos,
+      lastOnlineAt: lastOnlineAt ?? this.lastOnlineAt,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles, photos: $photos)';
+    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles, photos: $photos, lastOnlineAt: $lastOnlineAt)';
   }
 }

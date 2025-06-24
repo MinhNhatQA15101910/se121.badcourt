@@ -28,7 +28,7 @@ import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
-import 'package:frontend/features/post/screens/full_screen_media_view.dart';
+import 'package:frontend/common/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/features/post/screens/user_profile_screen.dart';
@@ -205,7 +205,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         builder: (_) => FullScreenMediaView(
           resources: args['resources'],
           initialIndex: args['initialIndex'],
-          postTitle: args['postTitle'] ?? '',
         ),
       );
     default:

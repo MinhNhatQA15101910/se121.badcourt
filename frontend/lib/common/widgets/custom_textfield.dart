@@ -49,7 +49,6 @@ class CustomTextfield extends StatefulWidget {
 class _CustomTextfieldState extends State<CustomTextfield> {
   var _showPassword = false;
   var _isFocused = false;
-  var _hasError = false;
 
   void _toggleVisibility() {
     setState(() {
@@ -157,17 +156,6 @@ class _CustomTextfieldState extends State<CustomTextfield> {
               ),
               errorMaxLines: 2,
             ),
-            validator: (value) {
-              final error = widget.validator?.call(value);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() {
-                    _hasError = error != null;
-                  });
-                }
-              });
-              return error;
-            },
             onChanged: widget.onChanged,
             autovalidateMode: AutovalidateMode.onUserInteraction,
           ),

@@ -8,9 +8,12 @@ import 'package:frontend/models/paginated_messages_dto.dart'; // Changed import
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:path/path.dart';
 
 class MessageService {
-  Future<PaginatedMessagesDto> fetchMessagesByOrderUserId({ // Changed return type
+  Future<PaginatedMessagesDto> fetchMessagesByOrderUserId({
+    // Changed return type
     required BuildContext context,
     required String userId,
     int pageNumber = 1,
@@ -20,7 +23,8 @@ class MessageService {
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/gateway/messages?OtherUserId=$userId&pageNumber=$pageNumber'),
+        Uri.parse(
+            '$uri/gateway/messages?OtherUserId=$userId&pageNumber=$pageNumber'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -45,7 +49,13 @@ class MessageService {
     }
 
     // Return an empty response if something went wrong, or the actual response
-    return paginatedResponse ?? PaginatedMessagesDto(items: [], currentPage: pageNumber, totalPages: pageNumber, pageSize: 20, totalCount: 0);
+    return paginatedResponse ??
+        PaginatedMessagesDto(
+            items: [],
+            currentPage: pageNumber,
+            totalPages: pageNumber,
+            pageSize: 20,
+            totalCount: 0);
   }
 
   Future<PaginatedGroupsDto> fetchGroup({
@@ -88,5 +98,47 @@ class MessageService {
             totalPages: pageNumber,
             pageSize: 20,
             totalCount: 0);
+  }
+
+  Future<void> sendMessage({
+    required BuildContext context,
+    required String recipientId,
+    required String content,
+    required List<File> resources, // image or video files
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      final uriRequest = Uri.parse('$uri/gateway/messages');
+      final request = http.MultipartRequest('POST', uriRequest)
+        ..headers['Authorization'] = 'Bearer ${userProvider.user.token}'
+        ..fields['recipientId'] = recipientId
+        ..fields['content'] = content;
+
+      for (File file in resources) {
+        final multipartFile = await http.MultipartFile.fromPath(
+          'resources',
+          file.path,
+          filename: basename(file.path),
+        );
+        request.files.add(multipartFile);
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+        },
+      );
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Failed to send message: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+    }
   }
 }

@@ -7,11 +7,12 @@ import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/message_app_bar.dart';
 import 'package:frontend/features/message/widgets/message_input_widget.dart';
 import 'package:frontend/features/message/widgets/message_list_widget.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:frontend/models/user.dart';
+import 'package:frontend/models/message_dto.dart';
 import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/online_users_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'dart:async';
@@ -28,9 +29,10 @@ class MessageDetailScreen extends StatefulWidget {
 }
 
 class _MessageDetailScreenState extends State<MessageDetailScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
+  final FocusNode _messageFocusNode = FocusNode();
+  final List<MessageDto> _messages = [];
 
   // Add SignalR services
   final MessageHubService _messageHubService = MessageHubService();
@@ -57,13 +59,21 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
   Timer? _connectionHealthTimer;
   late AnimationController _fadeController;
 
+  // Keyboard handling
+  double _keyboardHeight = 0;
+  bool _isKeyboardVisible = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+
+    // Listen to focus changes
+    _messageFocusNode.addListener(_onFocusChanged);
   }
 
   @override
@@ -75,7 +85,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
       _initializeServices();
       _loadOtherUserInfo();
 
-      // Khởi tạo OnlineUsersProvider nếu chưa được khởi tạo
+      // Initialize OnlineUsersProvider if not already initialized
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final onlineUsersProvider =
           Provider.of<OnlineUsersProvider>(context, listen: false);
@@ -84,6 +94,54 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
       }
     } else {
       print('userId is null');
+    }
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
+    final newKeyboardHeight = bottomInset / WidgetsBinding.instance.window.devicePixelRatio;
+    
+    if (newKeyboardHeight != _keyboardHeight) {
+      setState(() {
+        _keyboardHeight = newKeyboardHeight;
+        _isKeyboardVisible = newKeyboardHeight > 0;
+      });
+
+      // Auto scroll to bottom when keyboard appears
+      if (_isKeyboardVisible && _scrollController.hasClients) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom(animate: true);
+        });
+      }
+    }
+  }
+
+  void _onFocusChanged() {
+    if (_messageFocusNode.hasFocus && _scrollController.hasClients) {
+      // Delay scroll to allow keyboard animation
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && _scrollController.hasClients) {
+          _scrollToBottom(animate: true);
+        }
+      });
+    }
+  }
+
+  void _scrollToBottom({bool animate = true}) {
+    if (_scrollController.hasClients) {
+      if (animate) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(
+          _scrollController.position.maxScrollExtent,
+        );
+      }
     }
   }
 
@@ -107,7 +165,10 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _messageController.dispose();
+    _messageFocusNode.removeListener(_onFocusChanged);
+    _messageFocusNode.dispose();
     _scrollController.dispose();
     _connectionHealthTimer?.cancel();
     _fadeController.dispose();
@@ -136,25 +197,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
         print('Received new message: ${message.content}');
         if (mounted) {
           setState(() {
-            // Thêm tin nhắn mới vào cuối danh sách
-            _messages.add({
-              'isSender': message.senderId == userProvider.user.id,
-              'message': message.content,
-              'time': message.messageSent.millisecondsSinceEpoch,
-              'resources': [],
-              'senderImageUrl': message.senderPhotoUrl,
-            });
+            // Add new message to the end of the list (newest at bottom)
+            _messages.add(message);
           });
 
-          // Tự động cuộn xuống cuối danh sách khi có tin nhắn mới
+          // Auto-scroll to bottom when new message arrives
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_scrollController.hasClients) {
-              _scrollController.animateTo(
-                _scrollController.position.maxScrollExtent,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            }
+            _scrollToBottom(animate: true);
           });
         }
       };
@@ -171,41 +220,30 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
             _totalPages = paginatedMessages.totalPages;
             _hasMorePages = _currentPage < _totalPages;
 
-            // If loading more, append messages (this path is for SignalR, not REST)
+            // Sort messages by time (oldest first for proper display order)
+            final sortedMessages =
+                List<MessageDto>.from(paginatedMessages.items);
+            sortedMessages
+                .sort((a, b) => a.messageSent.compareTo(b.messageSent));
+
             if (_isLoadingMore) {
-              // Convert new messages to map format và đảo ngược thứ tự
-              final newMessages = paginatedMessages.items.reversed
-                  .map((message) => {
-                        'isSender': message.senderId == userProvider.user.id,
-                        'message': message.content,
-                        'time': message.messageSent.millisecondsSinceEpoch,
-                        'resources': [],
-                        'senderImageUrl': message.senderPhotoUrl,
-                      })
+              // When loading more (older messages), add them to the beginning
+              final existingIds = _messages.map((m) => m.id).toSet();
+              final newMessages = sortedMessages
+                  .where((m) => !existingIds.contains(m.id))
                   .toList();
 
               // Add older messages to the beginning of the list
               _messages.insertAll(0, newMessages);
               _isLoadingMore = false;
             } else {
-              // Otherwise replace all messages và đảo ngược thứ tự
+              // Initial load - replace all messages with sorted messages
               _messages.clear();
-              for (var message in paginatedMessages.items.reversed) {
-                _messages.add({
-                  'isSender': message.senderId == userProvider.user.id,
-                  'message': message.content,
-                  'time': message.messageSent.millisecondsSinceEpoch,
-                  'resources': [],
-                  'senderImageUrl': message.senderPhotoUrl,
-                });
-              }
+              _messages.addAll(sortedMessages);
 
-              // Cuộn xuống cuối danh sách sau khi tải tin nhắn ban đầu
+              // Scroll to bottom after initial load
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_scrollController.hasClients) {
-                  _scrollController
-                      .jumpTo(_scrollController.position.maxScrollExtent);
-                }
+                _scrollToBottom(animate: false);
               });
             }
 
@@ -236,7 +274,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
         _isConnecting = false;
       });
 
-      // Nếu không nhận được tin nhắn sau khi kết nối, tắt loading
+      // If no messages received after connection, stop loading
       if (_messages.isEmpty) {
         await Future.delayed(Duration(milliseconds: 3000));
         if (mounted && _messages.isEmpty) {
@@ -269,14 +307,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
           _isConnected = false;
           _fadeController.forward();
         });
-
-        // _showSnackBar(
-        //   'Connection error: $e',
-        //   action: SnackBarAction(
-        //     label: 'Retry',
-        //     onPressed: _initializeServices,
-        //   ),
-        // );
       }
     }
   }
@@ -304,21 +334,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
 
       if (mounted) {
         setState(() {
-          final userProvider =
-              Provider.of<UserProvider>(context, listen: false);
-          // Convert fetched MessageDto to the internal Map format and reverse order
-          final newMessages = paginatedResponse.items.reversed
-              .map((message) => {
-                    'isSender': message.senderId == userProvider.user.id,
-                    'message': message.content,
-                    'time': message.messageSent.millisecondsSinceEpoch,
-                    'resources':
-                        [], // Assuming no resources from this API for simplicity
-                    'senderImageUrl': message.senderPhotoUrl,
-                  })
-              .toList();
+          // Sort fetched messages by time (oldest first)
+          final sortedMessages = List<MessageDto>.from(paginatedResponse.items);
+          sortedMessages.sort((a, b) => a.messageSent.compareTo(b.messageSent));
 
           // Add older messages to the beginning of the list
+          final existingIds = _messages.map((m) => m.id).toSet();
+          final newMessages =
+              sortedMessages.where((m) => !existingIds.contains(m.id)).toList();
           _messages.insertAll(0, newMessages);
 
           // Update pagination info from REST API response
@@ -351,43 +374,19 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
     }
   }
 
-  // Removed _onScrollListener as it's now handled by MessageListWidget
-
-  Future<void> _pickMedia() async {
-    final ImagePicker _picker = ImagePicker();
-
-    // Chọn ảnh (nhiều)
-    final List<XFile>? images = await _picker.pickMultiImage();
-
-    // Chọn video (chỉ 1 lần tại 1 thời điểm, bạn có thể lặp nếu cần nhiều video)
-    final XFile? video = await _picker.pickVideo(
-      source: ImageSource.gallery,
-    );
-
-    final List<File> pickedMedia = [];
-
-    if (images != null) {
-      pickedMedia.addAll(images.map((xfile) => File(xfile.path)));
-    }
-
-    if (video != null) {
-      pickedMedia.add(File(video.path));
-    }
-
-    if (pickedMedia.isNotEmpty) {
-      setState(() {
-        _mediaFiles.addAll(pickedMedia);
-      });
-    }
-  }
-
   void _removeMedia(int index) {
     setState(() {
       _mediaFiles.removeAt(index);
     });
   }
 
-  // Enhanced _sendMessage method với better retry logic
+  void _clearMediaFiles() {
+    setState(() {
+      _mediaFiles.clear();
+    });
+  }
+
+  // Enhanced _sendMessage method - cải thiện UX
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty && _mediaFiles.isEmpty) {
       _showSnackBar('Message cannot be empty');
@@ -397,65 +396,86 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
     final content = _messageController.text.trim();
     final List<File> attachmentsToSend = List.from(_mediaFiles);
 
-    // Clear UI immediately for better UX
-    _messageController.clear();
+    // Tạo tin nhắn tạm thời để hiển thị ngay lập tức (optimistic UI)
+    final tempMessage = MessageDto(
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      senderId: Provider.of<UserProvider>(context, listen: false).user.id,
+      groupId: '',
+      content: content,
+      messageSent: DateTime.now(),
+      resources: _mediaFiles.map((file) => FileDto(
+        url: file.path,
+        isMain: false,
+        fileType: file.path.toLowerCase().endsWith('.mp4') || 
+                  file.path.toLowerCase().endsWith('.mov') ? 'video' : 'image',
+      )).toList(),
+    );
+
+    // Thêm tin nhắn tạm thời vào danh sách ngay lập tức
     setState(() {
-      _mediaFiles.clear();
+      _messages.add(tempMessage);
+      _messageController.clear(); // Xóa text ngay lập tức
+      _mediaFiles.clear(); // Xóa media files ngay lập tức
       _isSendingMessage = true;
     });
 
-    try {
-      Provider.of<UserProvider>(context, listen: false);
+    // Scroll to bottom ngay lập tức
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom(animate: true);
+    });
 
-      // Validate file sizes before sending
+    // Giữ focus trên input
+    if (_messageFocusNode.canRequestFocus) {
+      _messageFocusNode.requestFocus();
+    }
+
+    try {
+      // Validate file sizes
       for (File file in attachmentsToSend) {
         final int fileSizeInBytes = await file.length();
         final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
-
-        if (fileSizeInMB > 10) {
-          // Reduced limit for base64 transmission
+        if (fileSizeInMB > 100) {
           throw Exception(
-              'File ${file.path.split('/').last} is too large (${fileSizeInMB.toStringAsFixed(1)}MB). Maximum size is 10MB for direct upload.');
+            'File ${file.path.split('/').last} is too large (${fileSizeInMB.toStringAsFixed(1)}MB). Max size: 10MB',
+          );
         }
       }
 
-      print(
-          '[MessageDetailScreen] Sending message with ${attachmentsToSend.length} attachments');
+      print('[MessageDetailScreen] Sending message via HTTP with ${attachmentsToSend.length} file(s)');
 
-      // Send message directly with base64 attachments
-      bool success = await _messageHubService.sendMessage(
-        userId ?? "",
-        content,
-        attachments: attachmentsToSend,
+      // Send via REST API
+      await MessageService().sendMessage(
+        context: context,
+        recipientId: userId ?? '',
+        content: content,
+        resources: attachmentsToSend,
       );
 
-      if (success) {
-        print('[MessageDetailScreen] Message sent successfully');
-        if (attachmentsToSend.isNotEmpty) {
-          _showSnackBar(
-              'Message with ${attachmentsToSend.length} attachment(s) sent successfully');
-        }
-      } else {
-        throw Exception('Failed to send message');
+      print('[MessageDetailScreen] Message sent successfully');
+      
+      // Xóa tin nhắn tạm thời (tin nhắn thật sẽ được nhận từ SignalR)
+      if (mounted) {
+        setState(() {
+          _messages.removeWhere((msg) => msg.id == tempMessage.id);
+        });
       }
     } catch (e) {
       print('[MessageDetailScreen] Error sending message: $e');
 
-      // Restore message content and attachments if sending failed
-      _messageController.text = content;
-      setState(() {
-        _mediaFiles.addAll(attachmentsToSend);
-      });
-
+      // Rollback: xóa tin nhắn tạm thời và restore nội dung
       if (mounted) {
+        setState(() {
+          _messages.removeWhere((msg) => msg.id == tempMessage.id);
+          _messageController.text = content;
+          _mediaFiles.addAll(attachmentsToSend);
+        });
+
         _showSnackBar(
           'Failed to send message: ${e.toString()}',
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: 'Retry',
-            onPressed: () {
-              _sendMessage();
-            },
+            onPressed: _sendMessage,
           ),
         );
       }
@@ -488,6 +508,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: MessageAppBar(
@@ -533,17 +554,27 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
                       currentPage: _currentPage,
                       totalPages: _totalPages,
                       scrollController: _scrollController,
+                      currentUserId:
+                          Provider.of<UserProvider>(context, listen: false)
+                              .user
+                              .id,
                       onLoadMore: _loadMoreMessages,
                     ),
                   ),
                   MessageInputWidget(
                     messageController: _messageController,
+                    messageFocusNode: _messageFocusNode,
                     mediaFiles: _mediaFiles,
                     isConnected: _isConnected,
                     isSendingMessage: _isSendingMessage,
-                    onPickMedia: _pickMedia,
+                    onPickMedia: (files) {
+                      setState(() {
+                        _mediaFiles.addAll(files);
+                      });
+                    },
                     onRemoveMedia: _removeMedia,
                     onSendMessage: _sendMessage,
+                    onClearMedia: _clearMediaFiles,
                   ),
                 ],
               ),

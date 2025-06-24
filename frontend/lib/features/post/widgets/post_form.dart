@@ -2,7 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/post/screens/full_screen_media_view.dart';
+import 'package:frontend/common/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/models/post.dart';
