@@ -77,6 +77,18 @@ public class NotificationRepository : INotificationRepository
             .ContinueWith(task => (int)task.Result, cancellationToken);
     }
 
+    public Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Notification>.Filter.And(
+            Builders<Notification>.Filter.Eq(n => n.UserId, userId),
+            Builders<Notification>.Filter.Eq(n => n.IsRead, false)
+        );
+
+        return _notifications.Find(filter)
+            .ToListAsync(cancellationToken)
+            .ContinueWith(task => task.Result.AsEnumerable(), cancellationToken);
+    }
+
     public async Task UpdateNotificationAsync(Notification notification, CancellationToken cancellationToken = default)
     {
         await _notifications.ReplaceOneAsync(

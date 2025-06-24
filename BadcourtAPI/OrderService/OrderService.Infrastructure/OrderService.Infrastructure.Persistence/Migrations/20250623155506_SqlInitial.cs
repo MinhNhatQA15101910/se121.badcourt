@@ -22,7 +22,7 @@ public partial class SqlInitial : Migration
                 DateTimePeriod_HourFrom = table.Column<DateTime>(type: "TEXT", nullable: false),
                 DateTimePeriod_HourTo = table.Column<DateTime>(type: "TEXT", nullable: false),
                 Price = table.Column<decimal>(type: "TEXT", nullable: false),
-                State = table.Column<int>(type: "INTEGER", nullable: false),
+                State = table.Column<string>(type: "TEXT", nullable: false),
                 ImageUrl = table.Column<string>(type: "TEXT", nullable: false),
                 CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)

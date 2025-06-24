@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RealtimeService.Application.Commands.ReadAllNotification;
 using RealtimeService.Application.Commands.UpdateReadNotification;
 using RealtimeService.Application.Queries.GetNotifications;
 using SharedKernel;
@@ -26,6 +27,13 @@ public class NotificationsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> UpdateReadNotification(string notificationId)
     {
         await mediator.Send(new UpdateReadNotificationCommand(notificationId));
+        return NoContent();
+    }
+
+    [HttpPut("read-all")]
+    public async Task<IActionResult> ReadAllNotifications()
+    {
+        await mediator.Send(new ReadAllNotificationCommand());
         return NoContent();
     }
 }

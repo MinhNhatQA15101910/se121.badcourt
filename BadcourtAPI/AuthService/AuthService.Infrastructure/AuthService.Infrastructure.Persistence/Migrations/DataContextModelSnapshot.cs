@@ -15,9 +15,9 @@ partial class DataContextModelSnapshot : ModelSnapshot
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
-        modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
+        modelBuilder.HasAnnotation("ProductVersion", "9.0.4");
 
-        modelBuilder.Entity("Domain.Entities.Role", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.Role", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
@@ -44,7 +44,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.ToTable("AspNetRoles", (string)null);
             });
 
-        modelBuilder.Entity("Domain.Entities.User", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.User", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
@@ -66,6 +66,9 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
                 b.Property<bool>("EmailConfirmed")
                     .HasColumnType("INTEGER");
+
+                b.Property<DateTime?>("LastOnlineAt")
+                    .HasColumnType("TEXT");
 
                 b.Property<bool>("LockoutEnabled")
                     .HasColumnType("INTEGER");
@@ -115,7 +118,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.ToTable("AspNetUsers", (string)null);
             });
 
-        modelBuilder.Entity("Domain.Entities.UserPhoto", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.UserPhoto", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
@@ -141,7 +144,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.ToTable("UserPhotos");
             });
 
-        modelBuilder.Entity("Domain.Entities.UserRole", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.UserRole", b =>
             {
                 b.Property<Guid>("UserId")
                     .HasColumnType("TEXT");
@@ -240,9 +243,9 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.ToTable("AspNetUserTokens", (string)null);
             });
 
-        modelBuilder.Entity("Domain.Entities.UserPhoto", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.UserPhoto", b =>
             {
-                b.HasOne("Domain.Entities.User", "User")
+                b.HasOne("AuthService.Core.Domain.Entities.User", "User")
                     .WithMany("Photos")
                     .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
@@ -251,15 +254,15 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Navigation("User");
             });
 
-        modelBuilder.Entity("Domain.Entities.UserRole", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.UserRole", b =>
             {
-                b.HasOne("Domain.Entities.Role", "Role")
+                b.HasOne("AuthService.Core.Domain.Entities.Role", "Role")
                     .WithMany("UserRoles")
                     .HasForeignKey("RoleId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
-                b.HasOne("Domain.Entities.User", "User")
+                b.HasOne("AuthService.Core.Domain.Entities.User", "User")
                     .WithMany("UserRoles")
                     .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
@@ -272,7 +275,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
             {
-                b.HasOne("Domain.Entities.Role", null)
+                b.HasOne("AuthService.Core.Domain.Entities.Role", null)
                     .WithMany()
                     .HasForeignKey("RoleId")
                     .OnDelete(DeleteBehavior.Cascade)
@@ -281,7 +284,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
             {
-                b.HasOne("Domain.Entities.User", null)
+                b.HasOne("AuthService.Core.Domain.Entities.User", null)
                     .WithMany()
                     .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
@@ -290,7 +293,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
             {
-                b.HasOne("Domain.Entities.User", null)
+                b.HasOne("AuthService.Core.Domain.Entities.User", null)
                     .WithMany()
                     .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
@@ -299,19 +302,19 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
             {
-                b.HasOne("Domain.Entities.User", null)
+                b.HasOne("AuthService.Core.Domain.Entities.User", null)
                     .WithMany()
                     .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
             });
 
-        modelBuilder.Entity("Domain.Entities.Role", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.Role", b =>
             {
                 b.Navigation("UserRoles");
             });
 
-        modelBuilder.Entity("Domain.Entities.User", b =>
+        modelBuilder.Entity("AuthService.Core.Domain.Entities.User", b =>
             {
                 b.Navigation("Photos");
 

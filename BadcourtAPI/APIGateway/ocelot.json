@@ -237,6 +237,13 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
+      "DownstreamPathTemplate": "/api/messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/messages",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
       "DownstreamPathTemplate": "/api/notifications",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
@@ -248,6 +255,13 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/notifications/read/{notificationId}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/read-all",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications/read-all",
       "UpstreamHttpMethod": ["Put"]
     }
   ],

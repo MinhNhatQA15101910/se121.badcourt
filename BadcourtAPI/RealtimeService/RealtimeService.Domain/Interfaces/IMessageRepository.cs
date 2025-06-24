@@ -15,4 +15,5 @@ public interface IMessageRepository
         string currentUserId, MessageParams messageParams, CancellationToken cancellationToken = default);
     Task<int> GetNumberOfUnreadMessagesAsync(
         string currentUserId, CancellationToken cancellationToken = default);
+    Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default);
 }

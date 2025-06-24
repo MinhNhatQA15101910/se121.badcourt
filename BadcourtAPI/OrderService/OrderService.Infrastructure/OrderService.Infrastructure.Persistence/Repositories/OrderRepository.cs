@@ -45,17 +45,23 @@ public class OrderRepository(
         }
 
         // Filter by status
-        if (orderParams.OrderState != null)
+        if (orderParams.State != null)
         {
-            query = query.Where(o => o.State.ToString().Equals(orderParams.OrderState, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
         }
 
         // Order
         query = orderParams.OrderBy switch
         {
             "createdAt" => orderParams.SortBy == "asc"
-                        ? query.OrderBy(o => o.CreatedAt)
-                        : query.OrderByDescending(o => o.CreatedAt),
+                ? query.OrderBy(o => o.CreatedAt)
+                : query.OrderByDescending(o => o.CreatedAt),
+            "price" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.Price)
+                : query.OrderByDescending(o => o.Price),
+            "state" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.State)
+                : query.OrderByDescending(o => o.State),
             _ => query.OrderBy(o => o.CreatedAt)
         };
 

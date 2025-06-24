@@ -10,5 +10,5 @@ public class CreateMessageDto
     [Required]
     public string Content { get; set; } = string.Empty;
 
-    public List<string> Base64Resources { get; set; } = [];
+    public List<IFormFile> Resources { get; set; } = [];
 }

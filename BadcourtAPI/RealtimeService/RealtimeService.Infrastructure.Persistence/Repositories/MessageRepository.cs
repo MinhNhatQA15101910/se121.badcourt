@@ -87,7 +87,7 @@ public class MessageRepository : IMessageRepository
         }
     }
 
-    private async Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default)
+    public async Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default)
     {
         await _messages.ReplaceOneAsync(
             m => m.Id == message.Id,

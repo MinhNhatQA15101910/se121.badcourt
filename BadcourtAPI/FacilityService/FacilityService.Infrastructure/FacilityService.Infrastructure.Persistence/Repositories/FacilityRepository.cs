@@ -105,6 +105,20 @@ public class FacilityRepository : IFacilityRepository
             pipeline.Add(new BsonDocument("$match", new BsonDocument("Province", facilityParams.Province)));
         }
 
+        // Filter by search term
+        if (!string.IsNullOrEmpty(facilityParams.Search))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument
+            {
+                { "$or", new BsonArray
+                    {
+                        new BsonDocument("FacilityName", new BsonDocument("$regex", facilityParams.Search).Add("$options", "i")),
+                        new BsonDocument("Description", new BsonDocument("$regex", facilityParams.Search).Add("$options", "i"))
+                    }
+                }
+            }));
+        }
+
         // Filter by price range
         pipeline.Add(new BsonDocument("$match", new BsonDocument
         {
