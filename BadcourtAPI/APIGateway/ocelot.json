@@ -227,6 +227,13 @@
       "UpstreamPathTemplate": "/gateway/ratings/{ratingId}",
       "UpstreamHttpMethod": ["Get"]
     },
+    {
+      "DownstreamPathTemplate": "/api/ratings",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/ratings",
+      "UpstreamHttpMethod": ["Get"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",
