@@ -17,10 +17,10 @@ const getPageTitle = (pathname: string) => {
 };
 
 const searchPlaceholders: Record<string, string> = {
-  "/facility-confirm": "Tìm kiếm cơ sở cầu lông...",
-  "/customers": "Tìm kiếm người chơi...",
-  "/facility-owners": "Tìm kiếm chủ sân...",
-  "/post": "Tìm kiếm bài viết...",
+  "/facility-confirm": "Find badminton facility...",
+  "/customers": "Find player...",
+  "/facility-owners": "Find facility's owner...",
+  "/post": "Find post...",
 };
 
 interface HeaderContentProps {
@@ -69,7 +69,7 @@ export function HeaderContent({
         className
       )}
     >
-      <h1 className="w-60 text-2xl font-medium text-white">
+      <h1 className="w-60 text-xl font-medium text-white">
         {getPageTitle(pathname)}
       </h1>
       {showSearch && (

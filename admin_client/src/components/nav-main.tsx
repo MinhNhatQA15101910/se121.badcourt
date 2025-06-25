@@ -44,7 +44,7 @@ export function NavMain({
                     className={`p-6 text-base font-medium flex items-center space-x-3
                       ${
                         isActive
-                          ? "bg-green text-white"
+                          ? "bg-[#23C16B] text-white"
                           : "bg-transparent text-dark-grey"
                       }
                     `}
@@ -57,7 +57,7 @@ export function NavMain({
                     className={`p-6 text-base font-medium flex items-center space-x-3 cursor-pointer
                       ${
                         isActive
-                          ? "bg-green text-white"
+                          ? "bg-[#23C16B] text-white"
                           : "bg-transparent text-dark-grey"
                       }
                     `}
