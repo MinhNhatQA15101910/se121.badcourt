@@ -59,42 +59,26 @@ export interface ConnectionDto {
   connected: boolean
 }
 
-export interface MessageDto {
-  id: string
-  groupId: string
-  senderId: string
-  senderUsername: string
-  senderImageUrl: string
-  receiverId: string
-  content: string
-  dateRead?: string
-  messageSent: string
-  resources: FileDto[]
-}
-
-export interface GroupDto {
-  id: string
-  name: string
-  users: UserDto[]
-  lastMessage?: MessageDto
-  connections: ConnectionDto[]
-  updatedAt: string
-}
-
 // Frontend types for UI components
 export interface MessageType {
-  id: string
+  id: string | number
   text: string
   time: string
   sent: boolean
-  imageUrl?: string
-  hasImage?: boolean
-  recipientId?: string
   senderId?: string
+  recipientId?: string
   senderUsername?: string
   senderImageUrl?: string
-  resources?: FileDto[]
+  resources?: Array<{
+    id: string
+    url: string
+    fileName?: string
+    fileType?: string
+    fileSize?: number
+  }>
   groupId?: string
+  imageUrl?: string
+  hasImage?: boolean
 }
 
 export interface ConversationType {
@@ -105,19 +89,62 @@ export interface ConversationType {
   time: string
   unread: number
   online: boolean
-  starred?: boolean
-  messages: MessageType[]
-  userId?: string
+  starred: boolean
+  messages?: MessageType[]
   groupId?: string
   isGroup?: boolean
-  users?: UserDto[]
-  pagination?: PaginationState
+  users?: Array<{
+    id: string
+    username: string
+    photoUrl?: string
+  }>
+  userId?: string
 }
 
 // SignalR specific types - Use type aliases instead of empty interfaces
-export type SignalRMessage = MessageDto
+export interface SignalRMessage {
+  id: string
+  groupId?: string
+  senderId: string
+  senderUsername: string
+  senderImageUrl?: string
+  receiverId: string
+  content: string
+  dateRead?: string
+  messageSent: string
+  resources?: Array<{
+    id: string
+    url: string
+    fileName?: string
+    fileType?: string
+    fileSize?: number
+  }>
+}
 
-export type SignalRGroup = GroupDto
+export interface SignalRGroup {
+  id: string
+  name: string
+  users: Array<{
+    id: string
+    username: string
+    photoUrl?: string
+  }>
+  connections: Array<{
+    connectionId: string
+    userId: string
+    connected: boolean
+  }>
+  lastMessage?: {
+    id: string
+    content: string
+    messageSent: string
+    senderUsername: string
+    senderId: string
+    dateRead?: string | null
+  }
+  createdAt: string
+  updatedAt: string
+}
 
 // Callback interfaces with pagination support
 export interface PresenceCallbacks {
@@ -127,18 +154,13 @@ export interface PresenceCallbacks {
 }
 
 export interface MessageCallbacks {
-  onReceiveMessageThread?: (messages: SignalRMessageThread) => void
+  onReceiveMessageThread?: (messageThread: SignalRMessageThread) => void
   onNewMessage?: (message: SignalRMessage) => void
-  onMessageRead?: (messageId: string, userId: string) => void
 }
 
 export interface GroupCallbacks {
-  onReceiveGroups?: (groups: SignalRGroupList) => void
-  onJoinedGroup?: (group: SignalRGroup) => void
-  onLeftGroup?: (groupId: string) => void
-  onGroupUpdated?: (group: SignalRGroup) => void
-  onUserJoinedGroup?: (groupId: string, user: UserDto) => void
-  onUserLeftGroup?: (groupId: string, userId: string) => void
+  onReceiveGroups?: (groupList: SignalRGroupList) => void
+  onNewMessageReceived?: (groupDto: SignalRGroup) => void
 }
 
 // Legacy types for backward compatibility

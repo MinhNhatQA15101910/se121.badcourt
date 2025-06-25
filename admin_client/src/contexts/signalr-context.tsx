@@ -1,31 +1,18 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react"
 import { useSession } from "next-auth/react"
 import {
   startPresenceConnection,
-  startMessageConnection,
   startGroupConnection,
-  joinGroup,
-  leaveGroup,
-  sendMessageToGroup,
-  sendDirectMessage,
-  markMessageAsRead,
-  getMessageThread,
-  getGroups,
-  loadMoreMessages,
-  loadPreviousMessages,
-  stopAllConnections,
+  connectToUser,
+  refreshGroups,
+  stopMessageConnection,
   getConnectionStates,
 } from "@/services/signalr-service"
-import type {
-  SignalRMessage,
-  SignalRMessageThread,
-  SignalRGroup,
-  SignalRGroupList,
-  UserDto,
-  PaginationState,
-} from "@/lib/types"
+import { messageService } from "@/services/messageService"
+import { groupService } from "@/services/groupService"
+import type { SignalRMessage, SignalRMessageThread, SignalRGroup, SignalRGroupList, PaginationState } from "@/lib/types"
 
 interface SignalRContextType {
   // Connection states
@@ -36,27 +23,27 @@ interface SignalRContextType {
     group: boolean
   }
 
-  // Groups management with pagination
+  // Groups (global)
   joinedGroups: SignalRGroup[]
   groupsPagination: PaginationState
-  activeGroupId: string | null
+  unreadMessagesCount: number
 
-  // Messages with pagination
+  // Messages (local to message page)
   messageThreads: Record<string, SignalRMessageThread>
-  messagePagination: Record<string, PaginationState>
   latestMessages: Record<string, SignalRMessage>
+  messagePagination: Record<string, PaginationState>
 
   // Actions
+  refreshGroupsList: () => Promise<boolean>
+  loadMoreGroups: () => Promise<boolean>
+  connectToUserForChat: (otherUserId: string) => Promise<boolean>
+  disconnectFromUser: () => Promise<void>
+  loadMoreMessages: (otherUserId: string) => Promise<boolean>
+
+  // Compatibility methods for existing components
   loadGroups: (page?: number, pageSize?: number) => Promise<boolean>
   joinGroupChat: (groupId: string) => Promise<boolean>
-  leaveGroupChat: (groupId: string) => Promise<boolean>
-  sendGroupMessage: (groupId: string, content: string, resources?: File[]) => Promise<boolean>
-  sendUserMessage: (userId: string, content: string, resources?: File[]) => Promise<boolean>
-  markAsRead: (messageId: string) => Promise<boolean>
   loadMessageThread: (groupId: string, page?: number, pageSize?: number) => Promise<boolean>
-  loadMoreMessagesForGroup: (groupId: string) => Promise<boolean>
-  loadPreviousMessagesForGroup: (groupId: string) => Promise<boolean>
-  setActiveGroup: (groupId: string | null) => void
 }
 
 const SignalRContext = createContext<SignalRContextType | undefined>(undefined)
@@ -93,10 +80,10 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     hasPreviousPage: false,
     isLoading: false,
   })
-  const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
+  const [unreadMessagesCount] = useState(0)
   const [messageThreads, setMessageThreads] = useState<Record<string, SignalRMessageThread>>({})
-  const [messagePagination, setMessagePagination] = useState<Record<string, PaginationState>>({})
   const [latestMessages, setLatestMessages] = useState<Record<string, SignalRMessage>>({})
+  const [messagePagination, setMessagePagination] = useState<Record<string, PaginationState>>({})
 
   // Helper function to create pagination state
   const createPaginationState = (
@@ -115,107 +102,66 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     isLoading,
   })
 
-  // Initialize connections when session is available
+  // Helper function to sort messages by date (oldest first)
+  const sortMessagesByDate = (messages: SignalRMessage[]): SignalRMessage[] => {
+    return [...messages].sort((a, b) => new Date(a.messageSent).getTime() - new Date(b.messageSent).getTime())
+  }
+
+  // Helper function to update or add group to the top of the list
+  const updateOrAddGroupToTop = useCallback(
+    (newGroup: SignalRGroup) => {
+      setJoinedGroups((prevGroups) => {
+        // Check if group already exists
+        const existingGroupIndex = prevGroups.findIndex((group) => group.id === newGroup.id)
+
+        if (existingGroupIndex !== -1) {
+          // Group exists - replace it and move to top
+          console.log(`[SignalR Context] Updating existing group ${newGroup.id} and moving to top`)
+          const updatedGroups = [...prevGroups]
+          updatedGroups.splice(existingGroupIndex, 1) // Remove from current position
+          return [newGroup, ...updatedGroups] // Add to top
+        } else {
+          // Group doesn't exist - add to top
+          console.log(`[SignalR Context] Adding new group ${newGroup.id} to top`)
+          return [newGroup, ...prevGroups]
+        }
+      })
+
+      // Update total count if new group was added
+      setGroupsPagination((prev) => ({
+        ...prev,
+        totalCount: prev.totalCount + (joinedGroups.some((g) => g.id === newGroup.id) ? 0 : 1),
+      }))
+    },
+    [joinedGroups],
+  )
+
+  // GLOBAL: Initialize Presence and Group connections once
   useEffect(() => {
     if (status !== "authenticated" || !session?.token) return
 
-    const initializeConnections = async () => {
+    const initializeGlobalConnections = async () => {
       try {
-        // Start presence connection
+        console.log("[SignalR] Initializing GLOBAL connections...")
+
+        // Start presence connection (global)
         await startPresenceConnection(session.token, {
           onUserOnline: (userId) => {
-            console.log(`User ${userId} came online`)
             setOnlineUsers((prev) => [...prev.filter((id) => id !== userId), userId])
           },
           onUserOffline: (userId) => {
-            console.log(`User ${userId} went offline`)
             setOnlineUsers((prev) => prev.filter((id) => id !== userId))
           },
           onOnlineUsers: (users) => {
-            console.log("Online users:", users)
             setOnlineUsers(users)
           },
         })
 
-        // Start message connection
-        await startMessageConnection(session.token, {
-          onReceiveMessageThread: (messageThread: SignalRMessageThread) => {
-            console.log("Received message thread with pagination:", messageThread)
-
-            if (messageThread.items.length > 0) {
-              const groupId = messageThread.items[0].groupId
-
-              // Update message thread
-              setMessageThreads((prev) => ({
-                ...prev,
-                [groupId]: messageThread,
-              }))
-
-              // Update pagination state for this group
-              setMessagePagination((prev) => ({
-                ...prev,
-                [groupId]: createPaginationState(
-                  messageThread.currentPage,
-                  messageThread.totalPages,
-                  messageThread.pageSize,
-                  messageThread.totalCount,
-                ),
-              }))
-            }
-          },
-          onNewMessage: (message: SignalRMessage) => {
-            console.log("New direct message received:", message)
-
-            // Update latest messages
-            const key = message.groupId || message.senderId
-            setLatestMessages((prev) => ({
-              ...prev,
-              [key]: message,
-            }))
-
-            // Update message thread if it exists
-            if (message.groupId) {
-              setMessageThreads((prev) => {
-                const thread = prev[message.groupId!]
-                if (!thread) return prev
-
-                return {
-                  ...prev,
-                  [message.groupId!]: {
-                    ...thread,
-                    items: [...thread.items, message],
-                    totalCount: thread.totalCount + 1,
-                  },
-                }
-              })
-            }
-          },
-          onMessageRead: (messageId, userId) => {
-            console.log(`Message ${messageId} read by user ${userId}`)
-            // Update message read status in threads
-            setMessageThreads((prev) => {
-              const updatedThreads = { ...prev }
-              Object.keys(updatedThreads).forEach((groupId) => {
-                const thread = updatedThreads[groupId]
-                const updatedMessages = thread.items.map((msg) =>
-                  msg.id === messageId ? { ...msg, dateRead: new Date().toISOString() } : msg,
-                )
-                updatedThreads[groupId] = { ...thread, items: updatedMessages }
-              })
-              return updatedThreads
-            })
-          },
-        })
-
-        // Start group connection
+        // Start group connection (global)
         await startGroupConnection(session.token, {
           onReceiveGroups: (groupList: SignalRGroupList) => {
-            console.log("Received groups with pagination:", groupList)
-
-            // Update groups
+            console.log("[SignalR Context] Received groups (Page 1):", groupList)
             setJoinedGroups(groupList.items)
-
-            // Update groups pagination
             setGroupsPagination(
               createPaginationState(
                 groupList.currentPage,
@@ -225,216 +171,283 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
               ),
             )
           },
-          onJoinedGroup: (group: SignalRGroup) => {
-            console.log("Joined group:", group)
-            setJoinedGroups((prev) => {
-              const filtered = prev.filter((g) => g.id !== group.id)
-              return [...filtered, group]
-            })
-          },
-          onLeftGroup: (groupId: string) => {
-            console.log("Left group:", groupId)
-            setJoinedGroups((prev) => prev.filter((g) => g.id !== groupId))
-
-            // Clear message thread for left group
-            setMessageThreads((prev) => {
-              const updated = { ...prev }
-              delete updated[groupId]
-              return updated
-            })
-
-            // Clear pagination for left group
-            setMessagePagination((prev) => {
-              const updated = { ...prev }
-              delete updated[groupId]
-              return updated
-            })
-          },
-          onGroupUpdated: (group: SignalRGroup) => {
-            console.log("Group updated:", group)
-            setJoinedGroups((prev) => prev.map((g) => (g.id === group.id ? group : g)))
-          },
-          onUserJoinedGroup: (groupId: string, user: UserDto) => {
-            console.log(`User ${user.username} joined group ${groupId}`)
-            setJoinedGroups((prev) =>
-              prev.map((group) =>
-                group.id === groupId
-                  ? { ...group, users: [...group.users.filter((u) => u.id !== user.id), user] }
-                  : group,
-              ),
-            )
-          },
-          onUserLeftGroup: (groupId: string, userId: string) => {
-            console.log(`User ${userId} left group ${groupId}`)
-            setJoinedGroups((prev) =>
-              prev.map((group) =>
-                group.id === groupId ? { ...group, users: group.users.filter((u) => u.id !== userId) } : group,
-              ),
-            )
+          onNewMessageReceived: (groupDto: SignalRGroup) => {
+            console.log("[SignalR Context] NewMessageReceived event - Group:", groupDto)
+            updateOrAddGroupToTop(groupDto)
           },
         })
 
-        // Update connection states
-        setConnectionStates(getConnectionStates())
-
-        // Load initial groups
-        await loadGroups(1, 20)
+        console.log("[SignalR] GLOBAL connections initialized")
       } catch (error) {
-        console.error("Failed to initialize SignalR connections:", error)
+        console.error("Failed to initialize GLOBAL SignalR connections:", error)
       }
     }
 
-    initializeConnections()
+    initializeGlobalConnections()
 
     // Update connection states periodically
     const interval = setInterval(() => {
       setConnectionStates(getConnectionStates())
     }, 5000)
 
-    // Cleanup on unmount
     return () => {
       clearInterval(interval)
-      stopAllConnections()
-      setConnectionStates({ presence: false, message: false, group: false })
+      // Don't stop global connections on unmount
     }
-  }, [session?.token, status])
+  }, [session?.token, status, updateOrAddGroupToTop])
 
   // Action functions
-  const loadGroups = async (page = 1, pageSize = 20): Promise<boolean> => {
+  const refreshGroupsList = async (): Promise<boolean> => {
     try {
+      if (!session?.token) return false
+
       setGroupsPagination((prev) => ({ ...prev, isLoading: true }))
-      const success = await getGroups(page, pageSize)
+      const success = await refreshGroups(session.token)
+
       if (!success) {
         setGroupsPagination((prev) => ({ ...prev, isLoading: false }))
       }
+
       return success
     } catch (error) {
-      console.error("Failed to load groups:", error)
+      console.error("Failed to refresh groups:", error)
       setGroupsPagination((prev) => ({ ...prev, isLoading: false }))
       return false
     }
   }
 
-  const joinGroupChat = async (groupId: string): Promise<boolean> => {
+  const loadMoreGroups = async (): Promise<boolean> => {
     try {
-      const success = await joinGroup(groupId)
-      if (success) {
-        setActiveGroupId(groupId)
-        // Load message thread for the group
-        await loadMessageThread(groupId)
+      if (!session?.token) return false
+
+      const currentPagination = groupsPagination
+      if (!currentPagination.hasNextPage || currentPagination.isLoading) {
+        return false
       }
-      return success
-    } catch (error) {
-      console.error(`Failed to join group ${groupId}:`, error)
-      return false
-    }
-  }
 
-  const leaveGroupChat = async (groupId: string): Promise<boolean> => {
-    try {
-      const success = await leaveGroup(groupId)
-      if (success && activeGroupId === groupId) {
-        setActiveGroupId(null)
-      }
-      return success
-    } catch (error) {
-      console.error(`Failed to leave group ${groupId}:`, error)
-      return false
-    }
-  }
+      console.log(`[SignalR Context] Loading more groups - Page ${currentPagination.currentPage + 1}`)
 
-  const sendGroupMessage = async (groupId: string, content: string, resources?: File[]): Promise<boolean> => {
-    try {
-      return await sendMessageToGroup(groupId, content, resources)
-    } catch (error) {
-      console.error(`Failed to send message to group ${groupId}:`, error)
-      return false
-    }
-  }
-
-  const sendUserMessage = async (userId: string, content: string, resources?: File[]): Promise<boolean> => {
-    try {
-      return await sendDirectMessage(userId, content, resources)
-    } catch (error) {
-      console.error(`Failed to send message to user ${userId}:`, error)
-      return false
-    }
-  }
-
-  const markAsRead = async (messageId: string): Promise<boolean> => {
-    try {
-      return await markMessageAsRead(messageId)
-    } catch (error) {
-      console.error(`Failed to mark message ${messageId} as read:`, error)
-      return false
-    }
-  }
-
-  const loadMessageThread = async (groupId: string, page = 1, pageSize = 50): Promise<boolean> => {
-    try {
       // Set loading state
-      setMessagePagination((prev) => ({
-        ...prev,
-        [groupId]: {
-          ...prev[groupId],
-          isLoading: true,
-        },
-      }))
+      setGroupsPagination((prev) => ({ ...prev, isLoading: true }))
 
-      const success = await getMessageThread(groupId, page, pageSize)
-      if (!success) {
-        setMessagePagination((prev) => ({
-          ...prev,
-          [groupId]: {
-            ...prev[groupId],
-            isLoading: false,
-          },
-        }))
-      }
-      return success
+      // Load next page via API
+      const nextPage = currentPagination.currentPage + 1
+      const response = await groupService.getGroups({
+        pageNumber: nextPage,
+        pageSize: currentPagination.pageSize,
+      })
+
+      console.log(`[SignalR Context] Loaded groups page ${nextPage}:`, response)
+
+      // Append new groups to existing list
+      setJoinedGroups((prev) => [...prev, ...response.items])
+
+      // Update pagination state
+      setGroupsPagination(
+        createPaginationState(response.currentPage, response.totalPages, response.pageSize, response.totalCount, false),
+      )
+
+      return true
     } catch (error) {
-      console.error(`Failed to load message thread for group ${groupId}:`, error)
-      setMessagePagination((prev) => ({
-        ...prev,
-        [groupId]: {
-          ...prev[groupId],
-          isLoading: false,
-        },
-      }))
+      console.error("Failed to load more groups:", error)
+
+      // Reset loading state on error
+      setGroupsPagination((prev) => ({ ...prev, isLoading: false }))
       return false
     }
   }
 
-  const loadMoreMessagesForGroup = async (groupId: string): Promise<boolean> => {
+  const connectToUserForChat = async (otherUserId: string): Promise<boolean> => {
     try {
-      const currentPagination = messagePagination[groupId]
+      if (!session?.token) return false
+
+      console.log(`[SignalR Context] Connecting to MessageHub with otherUserId: ${otherUserId}`)
+
+      // Setup message callbacks before connecting
+      const messageCallbacks = {
+        onReceiveMessageThread: (messageThread: SignalRMessageThread) => {
+          console.log("[SignalR Context] Received message thread (Page 1):", messageThread)
+
+          // Sort messages by date (oldest first) to ensure correct order
+          const sortedMessages = sortMessagesByDate(messageThread.items)
+
+          // Store message thread by the other user ID (SignalR loads page 1)
+          setMessageThreads((prev) => ({
+            ...prev,
+            [otherUserId]: {
+              ...messageThread,
+              items: sortedMessages,
+            },
+          }))
+
+          // Set pagination state for page 1
+          setMessagePagination((prev) => ({
+            ...prev,
+            [otherUserId]: createPaginationState(
+              messageThread.currentPage,
+              messageThread.totalPages,
+              messageThread.pageSize,
+              messageThread.totalCount,
+            ),
+          }))
+
+          // Update latest message if available
+          if (sortedMessages.length > 0) {
+            const latestMessage = sortedMessages[sortedMessages.length - 1]
+            setLatestMessages((prev) => ({
+              ...prev,
+              [otherUserId]: latestMessage,
+            }))
+          }
+        },
+        onNewMessage: (message: SignalRMessage) => {
+          console.log("[SignalR Context] Received new message:", message)
+
+          // Add new message to existing thread (append to end since it's the newest)
+          setMessageThreads((prev) => {
+            const existingThread = prev[otherUserId]
+            if (existingThread) {
+              return {
+                ...prev,
+                [otherUserId]: {
+                  ...existingThread,
+                  items: [...existingThread.items, message], // Append to end
+                  totalCount: existingThread.totalCount + 1,
+                },
+              }
+            } else {
+              // Create new thread if doesn't exist
+              return {
+                ...prev,
+                [otherUserId]: {
+                  currentPage: 1,
+                  totalPages: 1,
+                  pageSize: 20,
+                  totalCount: 1,
+                  items: [message],
+                },
+              }
+            }
+          })
+
+          // Update latest message
+          setLatestMessages((prev) => ({
+            ...prev,
+            [otherUserId]: message,
+          }))
+        },
+      }
+
+      const success = await connectToUser(session.token, otherUserId, messageCallbacks)
+
+      if (success) {
+        console.log(`[SignalR Context] Successfully connected to MessageHub for user: ${otherUserId}`)
+      }
+
+      return success
+    } catch (error) {
+      console.error(`Failed to connect to user ${otherUserId}:`, error)
+      return false
+    }
+  }
+
+  const loadMoreMessages = async (otherUserId: string): Promise<boolean> => {
+    try {
+      if (!session?.token) return false
+
+      const currentPagination = messagePagination[otherUserId]
       if (!currentPagination || !currentPagination.hasNextPage || currentPagination.isLoading) {
         return false
       }
 
-      return await loadMoreMessages(groupId, currentPagination.currentPage, currentPagination.pageSize)
-    } catch (error) {
-      console.error(`Failed to load more messages for group ${groupId}:`, error)
-      return false
-    }
-  }
+      console.log(`[SignalR Context] Loading more messages for user: ${otherUserId}`)
 
-  const loadPreviousMessagesForGroup = async (groupId: string): Promise<boolean> => {
-    try {
-      const currentPagination = messagePagination[groupId]
-      if (!currentPagination || !currentPagination.hasPreviousPage || currentPagination.isLoading) {
-        return false
+      // Set loading state
+      setMessagePagination((prev) => ({
+        ...prev,
+        [otherUserId]: { ...currentPagination, isLoading: true },
+      }))
+
+      // Load next page via API
+      const nextPage = currentPagination.currentPage + 1
+      const response = await messageService.getMessages({
+        otherUserId,
+        pageNumber: nextPage,
+        pageSize: currentPagination.pageSize,
+      })
+
+      console.log(`[SignalR Context] Loaded page ${nextPage}:`, response)
+
+      // Sort the new messages and prepend to existing messages (older messages first)
+      const sortedNewMessages = sortMessagesByDate(response.items)
+
+      setMessageThreads((prev) => {
+        const existingThread = prev[otherUserId]
+        if (existingThread) {
+          return {
+            ...prev,
+            [otherUserId]: {
+              ...response,
+              items: [...sortedNewMessages, ...existingThread.items], // Prepend older messages
+            },
+          }
+        }
+        return prev
+      })
+
+      // Update pagination state
+      setMessagePagination((prev) => ({
+        ...prev,
+        [otherUserId]: createPaginationState(
+          response.currentPage,
+          response.totalPages,
+          response.pageSize,
+          response.totalCount,
+          false,
+        ),
+      }))
+
+      return true
+    } catch (error) {
+      console.error(`Failed to load more messages for user ${otherUserId}:`, error)
+
+      // Reset loading state on error
+      const currentPagination = messagePagination[otherUserId]
+      if (currentPagination) {
+        setMessagePagination((prev) => ({
+          ...prev,
+          [otherUserId]: { ...currentPagination, isLoading: false },
+        }))
       }
 
-      return await loadPreviousMessages(groupId, currentPagination.currentPage, currentPagination.pageSize)
-    } catch (error) {
-      console.error(`Failed to load previous messages for group ${groupId}:`, error)
       return false
     }
   }
 
-  const setActiveGroup = (groupId: string | null) => {
-    setActiveGroupId(groupId)
+  const disconnectFromUser = async (): Promise<void> => {
+    try {
+      await stopMessageConnection()
+      setMessageThreads({})
+      setLatestMessages({})
+      setMessagePagination({})
+      console.log("Disconnected from user chat")
+    } catch (error) {
+      console.error("Failed to disconnect from user:", error)
+    }
+  }
+
+  const loadGroups = async (): Promise<boolean> => {
+    return await refreshGroupsList()
+  }
+
+  const joinGroupChat = async (groupId: string): Promise<boolean> => {
+    console.log(`[SignalR] Group ${groupId} is automatically joined via GroupHub`)
+    return true
+  }
+
+  const loadMessageThread = async (groupId: string): Promise<boolean> => {
+    console.log(`[SignalR] Message thread for group ${groupId} is automatically loaded`)
+    return true
   }
 
   const value: SignalRContextType = {
@@ -442,20 +455,18 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     connectionStates,
     joinedGroups,
     groupsPagination,
-    activeGroupId,
+    unreadMessagesCount,
     messageThreads,
-    messagePagination,
     latestMessages,
+    messagePagination,
+    refreshGroupsList,
+    loadMoreGroups,
+    connectToUserForChat,
+    disconnectFromUser,
+    loadMoreMessages,
     loadGroups,
     joinGroupChat,
-    leaveGroupChat,
-    sendGroupMessage,
-    sendUserMessage,
-    markAsRead,
     loadMessageThread,
-    loadMoreMessagesForGroup,
-    loadPreviousMessagesForGroup,
-    setActiveGroup,
   }
 
   return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>
