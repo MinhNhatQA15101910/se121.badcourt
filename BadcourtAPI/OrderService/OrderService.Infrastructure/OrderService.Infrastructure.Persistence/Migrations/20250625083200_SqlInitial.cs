@@ -11,7 +11,7 @@ public partial class SqlInitial : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "Rating",
+            name: "Ratings",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -24,7 +24,7 @@ public partial class SqlInitial : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Rating", x => x.Id);
+                table.PrimaryKey("PK_Ratings", x => x.Id);
             });
 
         migrationBuilder.CreateTable(
@@ -50,9 +50,9 @@ public partial class SqlInitial : Migration
             {
                 table.PrimaryKey("PK_Orders", x => x.Id);
                 table.ForeignKey(
-                    name: "FK_Orders_Rating_RatingId",
+                    name: "FK_Orders_Ratings_RatingId",
                     column: x => x.RatingId,
-                    principalTable: "Rating",
+                    principalTable: "Ratings",
                     principalColumn: "Id");
             });
 
@@ -69,6 +69,6 @@ public partial class SqlInitial : Migration
             name: "Orders");
 
         migrationBuilder.DropTable(
-            name: "Rating");
+            name: "Ratings");
     }
 }

@@ -213,6 +213,13 @@
       "UpstreamPathTemplate": "/gateway/orders/cancel/{id}",
       "UpstreamHttpMethod": ["Put"]
     },
+    {
+      "DownstreamPathTemplate": "/api/orders/rate/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/rate/{id}",
+      "UpstreamHttpMethod": ["Post"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",

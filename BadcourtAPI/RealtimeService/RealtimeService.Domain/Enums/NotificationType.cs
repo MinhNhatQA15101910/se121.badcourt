@@ -5,10 +5,10 @@ public enum NotificationType
     None,
     FacilityApproved,
     FacilityRejected,
+    FacilityRated,
     CourtBookingCreated,
     CourtBookingCancelled,
     PostLiked,
     PostCommented,
     CommentLiked,
-    FacilityRated,
 }

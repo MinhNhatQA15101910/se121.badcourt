@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrderService.Core.Application.Commands.CancelOrder;
 using OrderService.Core.Application.Commands.CheckConflict;
 using OrderService.Core.Application.Commands.CreateOrder;
+using OrderService.Core.Application.Commands.CreateRating;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
 using OrderService.Presentation.Extensions;
@@ -57,5 +58,12 @@ public class OrdersController(IMediator mediator) : ControllerBase
     {
         await mediator.Send(new CancelOrderCommand(id));
         return NoContent();
+    }
+
+    [HttpPost("rate/{id}")]
+    public async Task<ActionResult<RatingDto>> CreateRating(Guid id, CreateRatingDto createRatingDto)
+    {
+        var rating = await mediator.Send(new CreateRatingCommand(id, createRatingDto));
+        return CreatedAtAction(nameof(GetOrderById), new { id }, rating);
     }
 }

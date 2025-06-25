@@ -39,7 +39,9 @@ public class OrderRepository(
 
     public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.Orders.FindAsync([id, cancellationToken], cancellationToken: cancellationToken);
+        return await context.Orders
+            .Include(o => o.Rating)
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
     public async Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default, Guid? userId = null)

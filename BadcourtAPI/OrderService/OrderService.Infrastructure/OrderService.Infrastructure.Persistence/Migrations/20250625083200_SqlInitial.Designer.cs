@@ -11,7 +11,7 @@ using OrderService.Infrastructure.Persistence;
 namespace OrderService.Infrastructure.Persistence.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250625082457_SqlInitial")]
+[Migration("20250625083200_SqlInitial")]
 partial class SqlInitial
 {
     /// <inheritdoc />
@@ -100,7 +100,7 @@ partial class SqlInitial
 
                 b.HasKey("Id");
 
-                b.ToTable("Rating");
+                b.ToTable("Ratings");
             });
 
         modelBuilder.Entity("OrderService.Core.Domain.Entities.Order", b =>

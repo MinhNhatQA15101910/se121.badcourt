@@ -97,7 +97,7 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
-                b.ToTable("Rating");
+                b.ToTable("Ratings");
             });
 
         modelBuilder.Entity("OrderService.Core.Domain.Entities.Order", b =>
