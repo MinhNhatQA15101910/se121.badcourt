@@ -78,7 +78,7 @@ export default function ConversationList({
             <ConversationItem
               key={conversation.id}
               conversation={conversation}
-              isActive={conversation.id === activeConversationId}
+              isActive={Number(conversation.id) === activeConversationId}
               onClick={() => onSelectConversation(Number(conversation.id))}
             />
           ))

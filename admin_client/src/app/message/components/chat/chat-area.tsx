@@ -2,12 +2,12 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import ChatHeader from "./chat-header"
-import MessageList from "./message-list"
-import MessageInput from "./message-input"
+
 import type { ConversationType, MessageType, SignalRMessage } from "@/lib/types"
-import { startMessageConnection, stopMessageConnection, sendMessage } from "@/services/signalRService"
+import { useSignalR } from "@/contexts/signalr-context"
+import ChatHeader from "@/app/message/components/chat/chat-header"
+import MessageList from "@/app/message/components/chat/message-list"
+import MessageInput from "@/app/message/components/chat/message-input"
 
 interface ChatAreaProps {
   conversation: ConversationType
@@ -17,87 +17,107 @@ interface ChatAreaProps {
 }
 
 export default function ChatArea({ conversation, showConversationList, onBackClick, onSendMessage }: ChatAreaProps) {
-  const { data: session } = useSession()
   const [message, setMessage] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const {
+    joinGroupChat,
+    sendGroupMessage,
+    sendUserMessage,
+    messageThreads,
+    messagePagination,
+    setActiveGroup,
+    markAsRead,
+    loadMoreMessagesForGroup,
+    loadPreviousMessagesForGroup,
+  } = useSignalR()
 
   // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [conversation.messages])
 
-  // Connect to SignalR when conversation changes
+  // Handle conversation changes
   useEffect(() => {
-    // Make sure both userId and session exist
-    if (!session?.user?.id) return
-
-    // Ensure userId is a string
-    const userId = "a3e1f5b2-7c0d-4d89-a5f3-8b2f6a3e9c1d"
-    if (!userId || typeof userId !== "string") return
-
-    const connectToSignalR = async () => {
-      try {
-        await startMessageConnection(userId, {
-          onReceiveMessageThread: (messages) => {
-            console.log("Received message thread:", messages)
-            // Handle message thread if needed
-          },
-          onNewMessage: (message: SignalRMessage) => {
-            console.log("New message received:", message)
-
-            // Convert SignalR message to our message format
-            const newMessage: MessageType = {
-              id: message.id,
-              text: message.content,
-              time: new Date(message.messageSent).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-              sent: message.senderId === session.user.id,
-              senderId: message.senderId,
-              recipientId: message.recipientId,
-            }
-
-            // Add message to conversation
-            onSendMessage(newMessage.text)
-          },
-        })
-      } catch (error) {
-        console.error("Error connecting to SignalR:", error)
+    const handleConversationChange = async () => {
+      if (conversation.isGroup && conversation.groupId) {
+        // Join group and set as active
+        setActiveGroup(conversation.groupId)
+        await joinGroupChat(conversation.groupId)
+      } else if (conversation.userId) {
+        // For direct messages, we don't need to join a group
+        setActiveGroup(null)
       }
     }
 
-    connectToSignalR()
+    handleConversationChange()
 
-    // Disconnect when component unmounts or conversation changes
+    // Cleanup when conversation changes
     return () => {
-      // Ensure userId is a string before calling stopMessageConnection
-      if (userId && typeof userId === "string") {
-        stopMessageConnection(userId)
+      if (conversation.isGroup && conversation.groupId) {
+        // Don't leave the group immediately, just set as inactive
+        setActiveGroup(null)
       }
     }
-  }, [conversation.userId, session?.user?.id, onSendMessage])
+  }, [conversation.id, conversation.groupId, conversation.userId, conversation.isGroup, joinGroupChat, setActiveGroup])
+
+  // Update conversation messages from SignalR message threads
+  useEffect(() => {
+    if (conversation.isGroup && conversation.groupId) {
+      const thread = messageThreads[conversation.groupId]
+      if (thread && thread.items.length > 0) {
+        // Convert SignalR messages to UI messages
+        const uiMessages: MessageType[] = thread.items.map((msg: SignalRMessage) => ({
+          id: msg.id,
+          text: msg.content,
+          time: new Date(msg.messageSent).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          sent: msg.senderId === conversation.userId, // Assuming current user ID is stored in conversation
+          senderId: msg.senderId,
+          recipientId: msg.receiverId,
+          senderUsername: msg.senderUsername,
+          senderImageUrl: msg.senderImageUrl,
+          resources: msg.resources,
+          groupId: msg.groupId,
+        }))
+
+        // Update the conversation with new messages
+        // Note: This would typically be handled by the parent component
+        console.log("Updated messages from SignalR:", uiMessages)
+      }
+    }
+  }, [messageThreads, conversation.groupId, conversation.isGroup, conversation.userId])
 
   // Handle sending a message
   const handleSendMessage = async (text: string, imageUrl?: string) => {
     if (text.trim() === "" && !imageUrl) return
 
-    // Ensure userId is a string
-    const userId = conversation.userId
+    try {
+      let success = false
 
-    // Send message via SignalR if we have a userId
-    if (userId && typeof userId === "string" && session?.user?.id) {
-      const success = await sendMessage(userId, text)
+      if (conversation.isGroup && conversation.groupId) {
+        // Send to group
+        success = await sendGroupMessage(conversation.groupId, text)
+      } else if (conversation.userId) {
+        // Send direct message
+        success = await sendUserMessage(conversation.userId, text)
+      }
+
       if (success) {
         // Clear the input field
         setMessage("")
+
+        // Fallback: add message to local state if SignalR doesn't update immediately
+        onSendMessage(text, imageUrl)
       } else {
         console.error("Failed to send message via SignalR")
         // Fallback to regular message sending
         onSendMessage(text, imageUrl)
         setMessage("")
       }
-    } else {
+    } catch (error) {
+      console.error("Error sending message:", error)
       // Fallback to regular message sending
       onSendMessage(text, imageUrl)
       setMessage("")
@@ -112,6 +132,33 @@ export default function ChatArea({ conversation, showConversationList, onBackCli
     }
   }
 
+  // Handle message read
+  const handleMessageRead = async (messageId: string) => {
+    try {
+      await markAsRead(messageId)
+    } catch (error) {
+      console.error("Failed to mark message as read:", error)
+    }
+  }
+
+  // Handle load more messages
+  const handleLoadMore = async () => {
+    if (conversation.isGroup && conversation.groupId) {
+      await loadMoreMessagesForGroup(conversation.groupId)
+    }
+  }
+
+  // Handle load previous messages
+  const handleLoadPrevious = async () => {
+    if (conversation.isGroup && conversation.groupId) {
+      await loadPreviousMessagesForGroup(conversation.groupId)
+    }
+  }
+
+  // Get pagination for current conversation
+  const currentPagination =
+    conversation.isGroup && conversation.groupId ? messagePagination[conversation.groupId] : undefined
+
   return (
     <div className={`${!showConversationList ? "flex" : "hidden"} md:flex flex-col flex-1 bg-white h-full`}>
       <ChatHeader conversation={conversation} onBackClick={onBackClick} />
@@ -122,6 +169,10 @@ export default function ChatArea({ conversation, showConversationList, onBackCli
           conversationName={conversation.name}
           conversationAvatar={conversation.avatar}
           messagesEndRef={messagesEndRef}
+          onMessageRead={handleMessageRead}
+          pagination={currentPagination}
+          onLoadMore={handleLoadMore}
+          onLoadPrevious={handleLoadPrevious}
         />
       </div>
 
