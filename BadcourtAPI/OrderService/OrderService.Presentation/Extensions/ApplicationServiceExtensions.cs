@@ -58,6 +58,7 @@ public static class ApplicationServiceExtensions
             );
         });
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IRatingRepository, RatingRepository>();
 
         return services;
     }

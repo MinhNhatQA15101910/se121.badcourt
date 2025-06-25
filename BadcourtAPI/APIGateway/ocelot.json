@@ -220,6 +220,13 @@
       "UpstreamPathTemplate": "/gateway/orders/rate/{id}",
       "UpstreamHttpMethod": ["Post"]
     },
+    {
+      "DownstreamPathTemplate": "/api/ratings/{ratingId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/ratings/{ratingId}",
+      "UpstreamHttpMethod": ["Get"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",
