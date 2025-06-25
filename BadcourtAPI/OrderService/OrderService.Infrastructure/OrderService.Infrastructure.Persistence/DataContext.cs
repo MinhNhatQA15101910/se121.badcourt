@@ -12,7 +12,7 @@ public class DataContext(DbContextOptions options) : DbContext(options)
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Order>(entity =>
-        { 
+        {
             entity.Property(o => o.State)
                 .HasConversion<string>()
                 .IsRequired();
@@ -20,5 +20,8 @@ public class DataContext(DbContextOptions options) : DbContext(options)
 
         modelBuilder.Entity<Order>()
             .OwnsOne(o => o.DateTimePeriod);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Rating);
     }
 }

@@ -71,6 +71,9 @@ public class FacilityRepository : IFacilityRepository
                     }))));
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("AvgPrice", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
+            case "state":
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("State", facilityParams.SortBy == "asc" ? 1 : -1)));
+                break;
             case "registeredAt":
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", facilityParams.SortBy == "asc" ? 1 : -1)));

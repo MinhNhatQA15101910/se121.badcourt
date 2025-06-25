@@ -14,6 +14,7 @@ public class Order
     public decimal Price { get; set; }
     public OrderState State { get; set; } = OrderState.NotPlay;
     public string ImageUrl { get; set; } = string.Empty;
+    public Rating? Rating { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
