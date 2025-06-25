@@ -93,7 +93,7 @@ class AddFacilityService {
       // Determine if this is an update or create operation
       final bool isUpdate = existingFacility != null;
       final String method = isUpdate ? 'PUT' : 'POST';
-      final String endpoint = isUpdate 
+      final String endpoint = isUpdate
           ? '$uri/gateway/facilities/${existingFacility.id}'
           : '$uri/gateway/facilities';
 
@@ -184,7 +184,7 @@ class AddFacilityService {
       // Send request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
@@ -194,7 +194,7 @@ class AddFacilityService {
         onSuccess: () {
           IconSnackBar.show(
             context,
-            label: isUpdate 
+            label: isUpdate
                 ? 'Facility updated successfully'
                 : 'Facility registered successfully',
             snackBarType: SnackBarType.success,

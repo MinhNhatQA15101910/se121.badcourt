@@ -40,7 +40,7 @@ class MessageDto {
             : null,
         resources: json['resources'] != null && json['resources'] is List
             ? (json['resources'] as List)
-                .map((item) => FileDto.fromJson(item))
+                .map((item) => FileDto.fromMap(item))
                 .toList()
             : [],
       );
@@ -73,7 +73,7 @@ class MessageDto {
       'senderUsername': senderUsername,
       'senderMessageUrl': senderPhotoUrl,
       'dateRead': dateRead?.toIso8601String(),
-      'resources': resources.map((f) => f.toJson()).toList(),
+      'resources': resources.map((f) => f.toMap()).toList(),
     };
   }
 

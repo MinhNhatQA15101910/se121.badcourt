@@ -5,7 +5,7 @@ import 'package:frontend/common/widgets/notification_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
-import 'package:frontend/features/manager/home/screens/home_screen.dart';
+import 'package:frontend/features/manager/manager_home/screens/manager_home_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/models/facility.dart';
@@ -28,7 +28,7 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
   String userId = "";
 
   final List<Widget> _pages = [
-    const HomeScreen(),
+    const ManagerHomeScreen(),
     const CourtManagementScreen(),
     const PostScreen(),
     const ManagerAccountScreen(),

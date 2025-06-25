@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/models/facility.dart';
-import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:frontend/models/manager_info.dart';
 
 class NewFacilityProvider extends ChangeNotifier {
@@ -29,10 +29,10 @@ class NewFacilityProvider extends ChangeNotifier {
       email: '',
       phoneNumber: '',
       citizenId: '',
-      citizenImageFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
-      citizenImageBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
-      bankCardFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
-      bankCardBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
+      citizenImageFront: FileDto(id: '', url: '', isMain: false, fileType: ''),
+      citizenImageBack: FileDto(id: '', url: '', isMain: false, fileType: ''),
+      bankCardFront: FileDto(id: '', url: '', isMain: false, fileType: ''),
+      bankCardBack: FileDto(id: '', url: '', isMain: false, fileType: ''),
       businessLicenseImages: [],
     ),
     userName: '',
@@ -96,10 +96,10 @@ class NewFacilityProvider extends ChangeNotifier {
         email: '',
         phoneNumber: '',
         citizenId: '',
-        citizenImageFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
-        citizenImageBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
-        bankCardFront: ImageCustom(id: '', url: '', isMain: false, type: ''),
-        bankCardBack: ImageCustom(id: '', url: '', isMain: false, type: ''),
+        citizenImageFront: FileDto(id: '', url: '', isMain: false, fileType: ''),
+        citizenImageBack: FileDto(id: '', url: '', isMain: false, fileType: ''),
+        bankCardFront: FileDto(id: '', url: '', isMain: false, fileType: ''),
+        bankCardBack: FileDto(id: '', url: '', isMain: false, fileType: ''),
         businessLicenseImages: [],
       ),
       userName: '',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/booking_details/services/booking_detail_service.dart';
 import 'package:frontend/features/booking_details/widgets/total_price.dart';
 import 'package:frontend/features/booking_management/services/booking_management_service.dart';
 import 'package:frontend/models/order.dart';
@@ -17,8 +18,11 @@ class BookingDetailScreen extends StatefulWidget {
 
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   final BookingManagementService _bookingService = BookingManagementService();
+  final BookingDetailService _bookingDetailService = BookingDetailService();
+
   Order? order;
   bool isLoading = true;
+  bool isCancelling = false; // Add loading state for cancel operation
   String? error;
 
   @override
@@ -29,6 +33,110 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           ModalRoute.of(context)!.settings.arguments as String;
       _fetchOrderDetails(orderId);
     }
+  }
+
+  Future<void> cancelOrder(String orderId) async {
+    // Show confirmation dialog first
+    bool? shouldCancel = await _showCancelConfirmationDialog();
+    if (shouldCancel != true) return;
+
+    setState(() {
+      isCancelling = true;
+    });
+
+    try {
+      bool success = await _bookingDetailService.cancelOrder(
+        context: context,
+        orderId: orderId,
+      );
+
+      if (success) {
+        // Refresh the order details to get updated state
+        await _fetchOrderDetails(orderId);
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Booking cancelled successfully',
+                style: GoogleFonts.inter(color: Colors.white),
+              ),
+              backgroundColor: GlobalVariables.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Show error message if cancellation fails
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to cancel booking. Please try again.',
+              style: GoogleFonts.inter(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isCancelling = false;
+        });
+      }
+    }
+  }
+
+  Future<bool?> _showCancelConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Cancel Booking',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: GlobalVariables.blackGrey,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to cancel this booking? This action cannot be undone.',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: GlobalVariables.darkGrey,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Keep Booking',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: GlobalVariables.green,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlobalVariables.red,
+                foregroundColor: GlobalVariables.white,
+              ),
+              child: Text('Cancel Booking'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _fetchOrderDetails(String orderId) async {
@@ -154,20 +262,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   // Court Image
-                  order!.image.url.isNotEmpty
-                      ? Image.network(
-                          order!.image.url,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Image.asset(
-                            'assets/images/demo_facility.png',
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Image.asset(
-                          'assets/images/demo_facility.png',
-                          fit: BoxFit.cover,
-                        ),
+                  Image.network(
+                    order!.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/demo_facility.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                   // Gradient overlay for better text visibility
                   Container(
                     decoration: BoxDecoration(
@@ -282,7 +384,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                   : GlobalVariables.darkYellow,
                           icon: order!.state == 'Played'
                               ? Icons.check_circle_outline
-                              : order!.state == 'Played'
+                              : order!.state == 'Cancelled'
                                   ? Icons.cancel
                                   : Icons.schedule,
                           iconColor: order!.state == 'Played'
@@ -512,27 +614,43 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: order!.state != 'NotPlay' 
+                            onPressed: (order!.state != 'NotPlay' ||
+                                    isCancelling)
                                 ? null
-                                : () {
-                                    // Cancel booking functionality
-                                  },
-                            icon: const Icon(
-                              Icons.cancel_outlined,
-                              color: Colors.red,
-                            ),
-                            label: const Text('Cancel Booking'),
+                                : () => cancelOrder(order!
+                                    .id), // Updated to call cancelOrder with order ID
+                            icon: isCancelling
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.red),
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.cancel_outlined,
+                                    color: Colors.red,
+                                  ),
+                            label: Text(isCancelling
+                                ? 'Cancelling...'
+                                : 'Cancel Booking'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: order!.state != 'NotPlay' 
-                                  ? Colors.grey.shade300
-                                  : Colors.white,
+                              backgroundColor:
+                                  (order!.state != 'NotPlay' || isCancelling)
+                                      ? Colors.grey.shade300
+                                      : Colors.white,
                               foregroundColor:
-                                  order!.state != 'NotPlay'  ? Colors.grey.shade600 : Colors.red,
+                                  (order!.state != 'NotPlay' || isCancelling)
+                                      ? Colors.grey.shade600
+                                      : Colors.red,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
-                                  color: order!.state != 'NotPlay' 
+                                  color: (order!.state != 'NotPlay' ||
+                                          isCancelling)
                                       ? Colors.grey.shade300
                                       : Colors.red,
                                 ),

@@ -88,27 +88,21 @@ class BookingDetailCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: GlobalVariables.lightGrey,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: order.image.url.isNotEmpty
-                          ? Image.network(
-                              order.image.url,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
-                                'assets/images/badminton_court_default.png',
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Image.asset(
-                              'assets/images/badminton_court_default.png',
-                              fit: BoxFit.cover,
-                            ),
-                    ),
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: GlobalVariables.lightGrey,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Image.network(
+                          order.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Image.asset(
+                            'assets/images/badminton_court_default.png',
+                            fit: BoxFit.cover,
+                          ),
+                        )),
                   ),
                   const SizedBox(width: 16),
 

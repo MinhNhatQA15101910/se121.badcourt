@@ -11,7 +11,7 @@ class FileDto {
     required this.fileType,
   });
 
-  factory FileDto.fromJson(Map<String, dynamic> json) {
+  factory FileDto.fromMap(Map<String, dynamic> json) {
     return FileDto(
       id: json['id']?.toString(),
       url: json['url']?.toString() ?? '',
@@ -20,7 +20,7 @@ class FileDto {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
       'url': url,

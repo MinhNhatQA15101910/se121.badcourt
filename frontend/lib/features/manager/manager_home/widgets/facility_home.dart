@@ -5,6 +5,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
+import 'package:frontend/features/manager/manager_home/services/manager_home_service.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,11 +27,22 @@ class _FacilityHomeState extends State<FacilityHome> {
   }
 
   void _navigateToFacilityInfo(Facility? facility) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (context) => FacilityInfo(existingFacility: facility),
-    ),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FacilityInfo(existingFacility: facility),
+      ),
+    );
+  }
+
+Future<void> _deleteFacility(String facilityId) async {
+  final ManagerHomeService managerHomeService = new ManagerHomeService();
+  bool success = await managerHomeService.deleteFacility(
+    context: context,
+    facilityId: facilityId,
   );
+  if(success){
+    _navigateToIntroManagerScreen();
+  }
 }
 
   String _formatPrice(int price) {
@@ -77,7 +89,6 @@ class _FacilityHomeState extends State<FacilityHome> {
               onPressed: () {
                 Navigator.of(context).pop();
                 _navigateToFacilityInfo(facility);
-                
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: GlobalVariables.yellow,
@@ -115,7 +126,7 @@ class _FacilityHomeState extends State<FacilityHome> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                print('Delete facility');
+                _deleteFacility(facility!.id);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: GlobalVariables.red,

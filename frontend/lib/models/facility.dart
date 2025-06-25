@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:frontend/models/active.dart';
-import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:frontend/models/manager_info.dart';
 
 class Facility {
@@ -11,7 +11,7 @@ class Facility {
   final String description;
   final String policy;
   final String userId;
-  final List<ImageCustom> facilityImages;
+  final List<FileDto> facilityImages;
   final int courtsAmount;
   final int minPrice;
   final int maxPrice;
@@ -60,7 +60,7 @@ class Facility {
     String? description,
     String? policy,
     String? userId,
-    List<ImageCustom>? facilityImages,
+    List<FileDto>? facilityImages,
     int? courtsAmount,
     int? minPrice,
     int? maxPrice,
@@ -141,8 +141,8 @@ class Facility {
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
       userId: map['userId'] ?? '',
-      facilityImages: List<ImageCustom>.from(
-        (map['photos'] ?? []).map((img) => ImageCustom.fromMap(img)),
+      facilityImages: List<FileDto>.from(
+        (map['photos'] ?? []).map((img) => FileDto.fromMap(img)),
       ),
       courtsAmount: map['courtsAmount'] ?? 0,
       minPrice: map['minPrice'] ?? 0,

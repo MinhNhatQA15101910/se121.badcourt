@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:frontend/models/image_custom.dart';
 import 'package:frontend/models/time_period.dart';
 
 class Order {
@@ -8,7 +7,7 @@ class Order {
   final String address;
   final double price;
   final DateTime createdAt;
-  final ImageCustom image;
+  final String imageUrl;
   final TimePeriod timePeriod;
   final String state;
 
@@ -18,7 +17,7 @@ class Order {
     required this.address,
     required this.price,
     required this.createdAt,
-    required this.image,
+    required this.imageUrl,
     required this.timePeriod,
     this.state = 'None',
   });
@@ -30,7 +29,7 @@ class Order {
       'address': address,
       'price': price,
       'createdAt': createdAt.toIso8601String(),
-      'image': image.toMap(),
+      'imageUrl': imageUrl,
       'dateTimePeriod': timePeriod.toMap(),
       'state': state,
     };
@@ -43,7 +42,7 @@ class Order {
       address: map['address'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
       createdAt: DateTime.parse(map['createdAt']),
-      image: ImageCustom.fromMap(map['image'] ?? {}),
+      imageUrl: map['imageUrl'] ?? '',
       timePeriod: TimePeriod.fromMap(map['dateTimePeriod'] ?? {}),
       state: map['state'] ?? 'None',
     );

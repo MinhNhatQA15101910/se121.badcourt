@@ -3,17 +3,17 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
-import 'package:frontend/features/manager/home/widgets/facility_home.dart';
-import 'package:frontend/features/manager/home/widgets/item_tag.dart';
+import 'package:frontend/features/manager/manager_home/widgets/facility_home.dart';
+import 'package:frontend/features/manager/manager_home/widgets/item_tag.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ManagerHomeScreen extends StatefulWidget {
+  const ManagerHomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ManagerHomeScreen> createState() => _ManagerHomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
   void _navigateToDatetimeManagementScreen() {
     Navigator.of(context).pushNamed(DatetimeManagementScreen.routeName);
   }

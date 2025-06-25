@@ -39,7 +39,7 @@ class Post {
       content: map['content']?.toString() ?? '',
       resources: map['resources'] != null
           ? List<FileDto>.from(
-              map['resources'].map((r) => FileDto.fromJson(r)))
+              map['resources'].map((r) => FileDto.fromMap(r)))
           : [],
       // Fix: Handle both string and int types for likesCount
       likesCount: _parseToInt(map['likesCount']),
@@ -72,7 +72,7 @@ class Post {
       'publisherImageUrl': publisherImageUrl,
       'title': title,
       'content': content,
-      'resources': resources.map((r) => r.toJson()).toList(),
+      'resources': resources.map((r) => r.toMap()).toList(),
       'likesCount': likesCount,
       'isLiked': isLiked,
       'commentsCount': commentsCount,
