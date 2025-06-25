@@ -105,6 +105,12 @@ public class FacilityRepository : IFacilityRepository
             pipeline.Add(new BsonDocument("$match", new BsonDocument("Province", facilityParams.Province)));
         }
 
+        // Filter by state ignore case
+        if (!string.IsNullOrEmpty(facilityParams.State))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("State", new BsonDocument("$regex", facilityParams.State).Add("$options", "i"))));
+        }
+
         // Filter by search term
         if (!string.IsNullOrEmpty(facilityParams.Search))
         {
