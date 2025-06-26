@@ -111,41 +111,6 @@ class SingleFacilityCard extends StatelessWidget {
                             ),
                     ),
                   ),
-                  // Rating overlay
-                  if (facility.ratingAvg > 0)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.75),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: GlobalVariables.yellow,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              facility.ratingAvg.toStringAsFixed(1),
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   // Courts amount badge
                   Positioned(
                     top: 8,

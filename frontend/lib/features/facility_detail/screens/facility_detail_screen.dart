@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/facility_detail/widgets/recent_ratings_widget.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
 import 'package:frontend/features/facility_detail/screens/player_map_screen.dart';
@@ -43,6 +44,26 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
       MessageDetailScreen.routeName,
       arguments: userId,
     );
+  }
+
+  String _formatPrice(int price) {
+    if (price >= 1000000) {
+      double millions = price / 1000000;
+      if (millions == millions.toInt()) {
+        return '${millions.toInt()}tr đ';
+      } else {
+        return '${millions.toStringAsFixed(1)}tr đ';
+      }
+    } else if (price >= 1000) {
+      double thousands = price / 1000;
+      if (thousands == thousands.toInt()) {
+        return '${thousands.toInt()}k đ';
+      } else {
+        return '${thousands.toStringAsFixed(1)}k đ';
+      }
+    } else {
+      return '${price}đ';
+    }
   }
 
   @override
@@ -178,7 +199,7 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         currentFacility.facilityName,
                         style: GoogleFonts.inter(
                           fontSize: 18,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: FontWeight.w500,
                           color: GlobalVariables.blackGrey,
                         ),
                       ),
@@ -187,36 +208,128 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                       ),
                       Row(
                         children: [
-                          RatingBar.builder(
-                            direction: Axis.horizontal,
-                            allowHalfRating: true,
-                            itemCount: 5,
-                            itemSize: 20,
-                            unratedColor: GlobalVariables.lightYellow,
-                            itemBuilder: (context, _) => const Icon(
-                              Icons.star,
-                              color: GlobalVariables.yellow,
+                          if (currentFacility.totalRating > 0) ...[
+                            RatingBar.builder(
+                              direction: Axis.horizontal,
+                              allowHalfRating: true,
+                              itemCount: 5,
+                              itemSize: 20,
+                              initialRating: currentFacility.ratingAvg,
+                              ignoreGestures: true,
+                              unratedColor: GlobalVariables.lightYellow,
+                              itemBuilder: (context, _) => const Icon(
+                                Icons.star,
+                                color: GlobalVariables.yellow,
+                              ),
+                              onRatingUpdate: (rating) {},
                             ),
-                            onRatingUpdate: (rating) {},
-                          ),
-                          Text(
-                            ' (0)',
-                            style: GoogleFonts.inter(
-                              color: GlobalVariables.darkGrey,
+                            const SizedBox(width: 8),
+                            Text(
+                              '${currentFacility.ratingAvg.toStringAsFixed(1)}',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: GlobalVariables.blackGrey,
+                              ),
                             ),
-                          ),
+                            Text(
+                              ' (${currentFacility.totalRating} reviews)',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: GlobalVariables.darkGrey,
+                              ),
+                            ),
+                          ] else ...[
+                            Row(
+                              children: List.generate(
+                                  5,
+                                  (index) => Icon(
+                                        Icons.star_border,
+                                        size: 20,
+                                        color: GlobalVariables.lightGrey,
+                                      )),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'No reviews yet',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: GlobalVariables.darkGrey,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       SizedBox(
                         height: 4,
                       ),
-                      Text(
-                        '${currentFacility.minPrice}đ - ${currentFacility.maxPrice}đ / h',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: GlobalVariables.blackGrey,
-                        ),
+                      Row(
+                        children: [
+                          if (currentFacility.minPrice > 0)
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: GlobalVariables.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  _formatPrice(currentFacility.minPrice),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: GlobalVariables.green,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (currentFacility.maxPrice > 0 &&
+                              currentFacility.maxPrice >
+                                  currentFacility.minPrice)
+                            Text(
+                              " to ",
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: GlobalVariables.green,
+                              ),
+                            ),
+                          if (currentFacility.maxPrice > 0 &&
+                              currentFacility.maxPrice >
+                                  currentFacility.minPrice)
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: GlobalVariables.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  _formatPrice(currentFacility.maxPrice),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: GlobalVariables.green,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (currentFacility.minPrice > 0)
+                            Text(
+                              " per hour",
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: GlobalVariables.green,
+                              ),
+                            ),
+                        ],
                       ),
                       SizedBox(
                         height: 4,
@@ -421,7 +534,6 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 color: Colors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
                       'Badminton facility detail ',
@@ -457,7 +569,6 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                 color: Colors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
                       'Badminton facility policy',
@@ -477,6 +588,14 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                     ),
                   ],
                 ),
+              ),
+              Container(
+                height: 12,
+                color: GlobalVariables.defaultColor,
+              ),
+              RecentRatingsWidget(
+                facilityId: currentFacility.id,
+                facilityName: currentFacility.facilityName,
               ),
             ],
           ),

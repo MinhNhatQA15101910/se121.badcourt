@@ -18,12 +18,12 @@ class BookingManagementScreen extends StatefulWidget {
 class _BookingManagementScreenState extends State<BookingManagementScreen> {
   final _bookingManagementService = BookingManagementService();
 
-  final List<String> _viewOptions = ['All', 'Played', 'Pending'];
+  // Updated view options to include all 4 states
+  final List<String> _viewOptions = ['All', 'Not Play', 'Played', 'Cancelled'];
+  final List<String?> _stateValues = [null, 'notPlay', 'played', 'cancelled']; // API state values
   int _selectedViewIndex = 0;
 
   List<Order> _orders = [];
-  List<Order> _playedOrders = [];
-  List<Order> _notPlayedOrders = [];
 
   // Pagination variables using dynamic
   Map<String, dynamic>? _paginationInfo;
@@ -79,6 +79,9 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     return _paginationInfo!['itemsPerPage'] as int;
   }
 
+  // Get current state filter
+  String? get _currentStateFilter => _stateValues[_selectedViewIndex];
+
   // Updated scroll listener using dynamic pagination info
   void _scrollListener() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
@@ -89,7 +92,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     }
   }
 
-  // Updated initial fetch method
+  // Updated initial fetch method with state filtering
   void _fetchOrders() async {
     setState(() {
       _isLoading = true;
@@ -100,19 +103,19 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
         context: context,
         pageNumber: 1,
         pageSize: 10,
+        state: _currentStateFilter, // Pass current state filter
       );
 
       final orders = response['orders'] as List<Order>;
       final pagination = response['pagination'] as Map<String, dynamic>;
 
-      _processOrders(orders, isRefresh: true);
-
       setState(() {
+        _orders = orders; // No need for client-side filtering anymore
         _paginationInfo = pagination;
         _isLoading = false;
       });
 
-      print('[BookingScreen] Initial fetch completed. Pagination: $pagination');
+      print('[BookingScreen] Initial fetch completed. State: $_currentStateFilter, Pagination: $pagination');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -121,7 +124,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     }
   }
 
-  // Updated load more method
+  // Updated load more method with state filtering
   void _loadMoreOrders() async {
     if (!_hasNextPage) return;
 
@@ -134,14 +137,14 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
         context: context,
         pageNumber: _nextPage,
         pageSize: _itemsPerPage,
+        state: _currentStateFilter, // Pass current state filter
       );
 
       final orders = response['orders'] as List<Order>;
       final pagination = response['pagination'] as Map<String, dynamic>;
 
-      _processOrders(orders, isRefresh: false);
-
       setState(() {
+        _orders.addAll(orders); // Simply append new orders
         _paginationInfo = pagination;
         _isLoadingMore = false;
       });
@@ -155,54 +158,25 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     }
   }
 
-  // Updated process orders method
-  void _processOrders(List<Order> newOrders, {required bool isRefresh}) {
-    if (newOrders.isEmpty && !isRefresh) {
-      return;
-    }
-
-    List<Order> playedOrders = [];
-    List<Order> notPlayedOrders = [];
-
-    for (var order in newOrders) {
-      // Use the state from the order instead of time comparison
-      if (order.state == 'Played') {
-        playedOrders.add(order);
-      } else {
-        notPlayedOrders.add(order);
-      }
-    }
-
-    setState(() {
-      if (isRefresh) {
-        // Replace all data on refresh
-        _orders = newOrders;
-        _playedOrders = playedOrders;
-        _notPlayedOrders = notPlayedOrders;
-      } else {
-        // Append data on load more
-        _orders.addAll(newOrders);
-        _playedOrders.addAll(playedOrders);
-        _notPlayedOrders.addAll(notPlayedOrders);
-      }
-    });
-  }
-
   // Updated refresh method
   void _refreshData() {
     setState(() {
       _orders = [];
-      _playedOrders = [];
-      _notPlayedOrders = [];
       _paginationInfo = null;
     });
     _fetchOrders();
   }
 
+  // Updated select view method to refetch data when tab changes
   void _selectView(int index) {
-    setState(() {
-      _selectedViewIndex = index;
-    });
+    if (_selectedViewIndex != index) {
+      setState(() {
+        _selectedViewIndex = index;
+        _orders = []; // Clear current orders
+        _paginationInfo = null; // Reset pagination
+      });
+      _fetchOrders(); // Fetch orders for new state
+    }
   }
 
   @override
@@ -247,7 +221,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
             Expanded(
               child: _orders.isEmpty && _isLoading
                   ? const Center(child: Loader())
-                  : _buildBookingList(_selectedViewIndex),
+                  : _buildBookingList(),
             ),
           ],
         ),
@@ -268,7 +242,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
               child: Container(
                 height: 36,
                 margin: EdgeInsets.only(
-                  right: index < _viewOptions.length - 1 ? 8 : 0,
+                  right: index < _viewOptions.length - 1 ? 6 : 0,
                 ),
                 decoration: BoxDecoration(
                   color: _selectedViewIndex == index
@@ -286,7 +260,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
                   child: Text(
                     _viewOptions[index],
                     style: GoogleFonts.inter(
-                      fontSize: 14,
+                      fontSize: 13, // Slightly smaller to fit 4 tabs
                       fontWeight: FontWeight.w500,
                       color: _selectedViewIndex == index
                           ? Colors.white
@@ -302,14 +276,8 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     );
   }
 
-  Widget _buildBookingList(int viewIndex) {
-    final List<Order> displayOrders = viewIndex == 0
-        ? _orders
-        : viewIndex == 1
-            ? _playedOrders
-            : _notPlayedOrders;
-            
-    return displayOrders.isEmpty && !_isLoading
+  Widget _buildBookingList() {
+    return _orders.isEmpty && !_isLoading
         ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -328,20 +296,45 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
                     color: GlobalVariables.darkGrey,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  _getEmptyStateMessage(),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: GlobalVariables.darkGrey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           )
         : ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: displayOrders.length + (_shouldShowLoadingIndicator() ? 1 : 0),
+            itemCount: _orders.length + (_shouldShowLoadingIndicator() ? 1 : 0),
             itemBuilder: (context, index) {
-              if (index == displayOrders.length) {
+              if (index == _orders.length) {
                 return _buildLoadingIndicator();
               }
-              return BookingCardItem(order: displayOrders[index]);
+              return BookingCardItem(order: _orders[index]);
             },
           );
+  }
+
+  // Get appropriate empty state message based on selected tab
+  String _getEmptyStateMessage() {
+    switch (_selectedViewIndex) {
+      case 0:
+        return 'You haven\'t made any bookings yet';
+      case 1:
+        return 'No upcoming bookings';
+      case 2:
+        return 'No completed bookings';
+      case 3:
+        return 'No cancelled bookings';
+      default:
+        return 'No bookings found';
+    }
   }
 
   // Updated method to determine when to show loading indicator

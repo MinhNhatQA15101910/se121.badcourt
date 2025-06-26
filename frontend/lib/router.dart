@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/facility_detail/screens/facility_ratings_screen.dart';
 import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
@@ -218,6 +219,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const RatingDetailScreen(),
+      );
+    case FacilityRatingsScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const FacilityRatingsScreen(),
       );
     default:
       return MaterialPageRoute(

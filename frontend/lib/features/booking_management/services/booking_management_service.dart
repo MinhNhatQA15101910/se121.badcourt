@@ -10,11 +10,11 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class BookingManagementService {
-  // Updated method to return orders with pagination info
   Future<Map<String, dynamic>> fetchAllOrdersPaginated({
     required BuildContext context,
     int pageNumber = 1,
     int pageSize = 10,
+    String? state, // Add state parameter
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -30,8 +30,14 @@ class BookingManagementService {
     };
 
     try {
+      // Build URL with state parameter if provided
+      String url = '$uri/gateway/orders?pageSize=$pageSize&pageNumber=$pageNumber';
+      if (state != null && state.isNotEmpty) {
+        url += '&state=$state';
+      }
+
       http.Response response = await http.get(
-        Uri.parse('$uri/gateway/orders?pageSize=$pageSize&pageNumber=$pageNumber'),
+        Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -113,7 +119,7 @@ class BookingManagementService {
       pageNumber: pageNumber,
       pageSize: pageSize,
     );
-    return result['orders'] as List<Order>;
+    return result['orders'];
   }
 
   Future<Order?> fetchOrderById({
