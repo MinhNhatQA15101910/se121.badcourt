@@ -235,11 +235,11 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
-      "DownstreamPathTemplate": "/api/payments/create-intent",
+      "DownstreamPathTemplate": "/api/manager-dashboard/monthly-revenue",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
-      "UpstreamPathTemplate": "/gateway/payments/create-intent",
-      "UpstreamHttpMethod": ["Post"]
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/monthly-revenue",
+      "UpstreamHttpMethod": ["Get"]
     },
 
     {

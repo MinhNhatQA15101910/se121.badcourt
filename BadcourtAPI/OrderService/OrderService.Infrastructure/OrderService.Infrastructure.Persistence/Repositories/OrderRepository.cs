@@ -45,6 +45,32 @@ public class OrderRepository(
             .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
     }
 
+    public Task<List<RevenueByMonthDto>> GetMonthlyRevenueAsync(string? userId, ManagerDashboardMonthlyRevenueParams managerDashboardMonthlyRevenueParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        if (userId != null)
+        {
+            query = query.Where(o => o.FacilityOwnerId == userId);
+        }
+
+        // Filter by year
+        query = query.Where(o => o.CreatedAt.Year == managerDashboardMonthlyRevenueParams.Year);
+
+        // Exclude pending orders
+        // query = query.Where(o => o.State != OrderState.Pending);
+
+        return query
+            .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+            .Select(g => new RevenueByMonthDto
+            {
+                Month = g.Key.Month,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .OrderBy(r => r.Month)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Orders
