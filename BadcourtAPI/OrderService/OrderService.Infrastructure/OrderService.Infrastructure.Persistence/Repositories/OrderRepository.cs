@@ -108,6 +108,24 @@ public class OrderRepository(
         );
     }
 
+    public Task<int> GetTotalCustomersAsync(string? userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return context.Orders
+                .Where(o => o.State != OrderState.Pending)
+                .Select(o => o.UserId)
+                .Distinct()
+                .CountAsync(cancellationToken);
+        }
+
+        return context.Orders
+            .Where(o => o.FacilityOwnerId == userId && o.State != OrderState.Pending)
+            .Select(o => o.UserId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+    }
+
     public Task<int> GetTotalOrdersAsync(string? userId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(userId))

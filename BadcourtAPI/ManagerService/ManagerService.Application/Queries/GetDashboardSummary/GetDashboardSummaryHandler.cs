@@ -16,11 +16,13 @@ public class GetDashboardSummaryHandler(
         
         var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(bearerToken!, cancellationToken);
         var totalOrders = await orderServiceClient.GetTotalOrdersAsync(bearerToken!, cancellationToken);
+        var totalCustomers = await orderServiceClient.GetTotalCustomersAsync(bearerToken!, cancellationToken);
 
         return new DashboardSummaryResponse
         {
             TotalRevenue = totalRevenue,
-            TotalOrders = totalOrders
+            TotalOrders = totalOrders,
+            TotalCustomers = totalCustomers
         };
     }
 }

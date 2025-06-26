@@ -11,6 +11,21 @@ public class OrderServiceClient(
     HttpClient client
 ) : IOrderServiceClient
 {
+    public Task<int> GetTotalCustomersAsync(string bearerToken, CancellationToken cancellationToken = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, config.Value.OrdersApi + "/total-customers");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+        var response = client.SendAsync(request, cancellationToken).Result;
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Failed to get total customers: {response.ReasonPhrase}");
+        }
+
+        return response.Content.ReadFromJsonAsync<int>(cancellationToken: cancellationToken);
+    }
+
     public Task<int> GetTotalOrdersAsync(string bearerToken, CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, config.Value.OrdersApi + "/total-orders");
