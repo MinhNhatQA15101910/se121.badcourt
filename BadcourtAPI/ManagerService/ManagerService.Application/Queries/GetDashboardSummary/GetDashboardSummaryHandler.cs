@@ -7,22 +7,25 @@ namespace ManagerService.Application.Queries.GetDashboardSummary;
 
 public class GetDashboardSummaryHandler(
     IHttpContextAccessor httpContextAccessor,
-    IOrderServiceClient orderServiceClient
+    IOrderServiceClient orderServiceClient,
+    IFacilityServiceClient facilityServiceClient
 ) : IQueryHandler<GetDashboardSummaryQuery, DashboardSummaryResponse>
 {
     public async Task<DashboardSummaryResponse> Handle(GetDashboardSummaryQuery request, CancellationToken cancellationToken)
     {
-        var bearerToken = httpContextAccessor.HttpContext?.GetBearerToken();
+        var bearerToken = httpContextAccessor.HttpContext.GetBearerToken();
         
-        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(bearerToken!, cancellationToken);
-        var totalOrders = await orderServiceClient.GetTotalOrdersAsync(bearerToken!, cancellationToken);
-        var totalCustomers = await orderServiceClient.GetTotalCustomersAsync(bearerToken!, cancellationToken);
+        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(bearerToken, cancellationToken);
+        var totalOrders = await orderServiceClient.GetTotalOrdersAsync(bearerToken, cancellationToken);
+        var totalCustomers = await orderServiceClient.GetTotalCustomersAsync(bearerToken, cancellationToken);
+        var totalFacilities = await facilityServiceClient.GetTotalFacilitiesAsync(bearerToken, cancellationToken);
 
         return new DashboardSummaryResponse
         {
             TotalRevenue = totalRevenue,
             TotalOrders = totalOrders,
-            TotalCustomers = totalCustomers
+            TotalCustomers = totalCustomers,
+            TotalFacilities = totalFacilities
         };
     }
 }

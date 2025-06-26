@@ -4,7 +4,7 @@ namespace ManagerService.Application.Extensions;
 
 public static class HttpContextExtensions
 {
-    public static string? GetBearerToken(this HttpContext context)
+    public static string GetBearerToken(this HttpContext context)
     {
         if (context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
@@ -14,6 +14,6 @@ public static class HttpContextExtensions
             }
         }
 
-        return null;
+        throw new InvalidOperationException("Bearer token not found in the request headers.");
     }
 }

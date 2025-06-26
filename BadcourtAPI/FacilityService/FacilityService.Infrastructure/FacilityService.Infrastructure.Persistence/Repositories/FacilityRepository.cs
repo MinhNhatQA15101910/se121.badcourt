@@ -180,4 +180,21 @@ public class FacilityRepository : IFacilityRepository
             cancellationToken: cancellationToken
         );
     }
+
+    public Task<int> GetTotalFacilitiesAsync(string? userId, CancellationToken cancellationToken = default)
+    {
+        FilterDefinition<Facility> filter;
+
+        if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
+        {
+            filter = Builders<Facility>.Filter.Eq(f => f.UserId, userGuid);
+        }
+        else
+        {
+            filter = Builders<Facility>.Filter.Empty;
+        }
+
+        return _facilities.CountDocumentsAsync(filter, cancellationToken: cancellationToken)
+            .ContinueWith(task => (int)task.Result, cancellationToken);
+    }
 }
