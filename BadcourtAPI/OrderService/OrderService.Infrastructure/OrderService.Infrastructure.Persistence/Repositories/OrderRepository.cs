@@ -37,6 +37,13 @@ public class OrderRepository(
         return await query.ToListAsync(cancellationToken);
     }
 
+    public async Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId, CancellationToken cancellationToken = default)
+    {
+        return await context.Orders
+            .Include(o => o.Rating)
+            .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
+    }
+
     public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Orders
