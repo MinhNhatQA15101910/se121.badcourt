@@ -45,6 +45,45 @@ public class OrderRepository(
             .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
     }
 
+    public async Task<List<FacilityRevenueDto>> GetFacilityRevenueAsync(
+        string? userId,
+        ManagerDashboardFacilityRevenueParams managerDashboardFacilityRevenueParams,
+        CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        if (userId != null)
+        {
+            query = query.Where(o => o.FacilityOwnerId == userId);
+        }
+
+        // Filter by year
+        query = query.Where(o => o.CreatedAt.Year == managerDashboardFacilityRevenueParams.Year);
+
+        // Filter by month
+        if (managerDashboardFacilityRevenueParams.Month.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Month == managerDashboardFacilityRevenueParams.Month.Value);
+        }
+
+        // Exclude pending orders
+        //query = query.Where(o => o.State != OrderState.Pending);
+
+        // Execute grouping and projection
+        var groupedData = await query
+            .GroupBy(o => o.FacilityId)
+            .Select(g => new FacilityRevenueDto
+            {
+                FacilityId = g.Key,
+                FacilityName = g.Select(x => x.FacilityName).FirstOrDefault()!,
+                Revenue = g.Sum(x => x.Price)
+            })
+            .ToListAsync(cancellationToken);
+
+        // Order in-memory to avoid SQLite decimal ordering limitation
+        return [.. groupedData.OrderByDescending(r => r.Revenue)];
+    }
+
     public Task<List<RevenueByMonthDto>> GetMonthlyRevenueAsync(string? userId, ManagerDashboardMonthlyRevenueParams managerDashboardMonthlyRevenueParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();

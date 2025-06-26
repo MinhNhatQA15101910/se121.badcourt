@@ -11,6 +11,8 @@ public interface IOrderRepository
     Task<bool> CompleteAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<Order>> GetAllOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default);
     Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId, CancellationToken cancellationToken = default);
+    Task<List<FacilityRevenueDto>> GetFacilityRevenueAsync(string? userId,
+        ManagerDashboardFacilityRevenueParams managerDashboardFacilityRevenueParams, CancellationToken cancellationToken = default);
     Task<List<RevenueByMonthDto>> GetMonthlyRevenueAsync(string? userId,
         ManagerDashboardMonthlyRevenueParams managerDashboardMonthlyRevenueParams, CancellationToken cancellationToken = default);
     Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
