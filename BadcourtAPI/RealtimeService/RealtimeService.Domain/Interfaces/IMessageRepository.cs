@@ -13,4 +13,7 @@ public interface IMessageRepository
         string groupId, CancellationToken cancellationToken = default);
     Task<PagedList<MessageDto>> GetMessagesAsync(
         string currentUserId, MessageParams messageParams, CancellationToken cancellationToken = default);
+    Task<int> GetNumberOfUnreadMessagesAsync(
+        string currentUserId, CancellationToken cancellationToken = default);
+    Task UpdateMessageAsync(Message message, CancellationToken cancellationToken = default);
 }

@@ -2,7 +2,8 @@ namespace FacilityService.Core.Domain.Enums;
 
 public enum FacilityState
 {
-    Pending,
-    Approved,
-    Rejected
+    None = 0,
+    Pending = 1,
+    Approved = 2,
+    Rejected = 3,
 }

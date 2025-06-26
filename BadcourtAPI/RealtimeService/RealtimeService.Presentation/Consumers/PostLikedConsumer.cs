@@ -13,6 +13,7 @@ namespace RealtimeService.Presentation.Consumers;
 public class PostLikedConsumer(
     INotificationRepository notificationRepository,
     IHubContext<NotificationHub> notificationHub,
+    NotificationHubTracker notificationHubTracker,
     IMapper mapper
 ) : IConsumer<PostLikedEvent>
 {
@@ -32,7 +33,7 @@ public class PostLikedConsumer(
 
         await notificationRepository.AddNotificationAsync(notification);
 
-        var connections = await PresenceTracker.GetConnectionsForUser(context.Message.PostOwnerId);
+        var connections = await notificationHubTracker.GetConnectionsForUserAsync(context.Message.PostOwnerId);
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);

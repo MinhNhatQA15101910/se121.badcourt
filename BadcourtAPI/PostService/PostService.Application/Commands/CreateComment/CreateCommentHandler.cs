@@ -32,6 +32,9 @@ public class CreateCommentHandler(
 
     public async Task<CommentDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
     {
+        if (request.CreateCommentDto.Content == null && !request.CreateCommentDto.Resources.Any())
+            throw new BadRequestException("Content or resources must be provided");
+
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
 
         var post = await postRepository.GetPostByIdAsync(request.CreateCommentDto.PostId, cancellationToken)
@@ -104,7 +107,7 @@ public class CreateCommentHandler(
         if (userId.ToString() != post.PublisherId.ToString())
         {
             await publishEndpoint.Publish(
-                new PostCommentedEvent(comment.Id, post.PublisherId.ToString(), user.Username, request.CreateCommentDto.Content),
+                new PostCommentedEvent(comment.Id, post.PublisherId.ToString(), user.Username, request.CreateCommentDto.Content ?? string.Empty),
                 cancellationToken
             );
         }

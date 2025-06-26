@@ -36,20 +36,30 @@ public static class ApplicationServiceExtensions
 
         services.AddScoped<ExceptionHandlingMiddleware>();
 
-        services.AddSingleton<PresenceTracker>();
+        services.AddSingleton<PresenceHubTracker>();
+        services.AddSingleton<NotificationHubTracker>();
+        services.AddSingleton<GroupHubTracker>();
 
         services.AddMassTransit(x =>
         {
             x.AddConsumer<OrderCreatedConsumer>();
+            x.AddConsumer<OrderCancelledConsumer>();
             x.AddConsumer<PostLikedConsumer>();
             x.AddConsumer<PostCommentedConsumer>();
             x.AddConsumer<CommentLikedConsumer>();
+            x.AddConsumer<FacilityApprovedConsumer>();
+            x.AddConsumer<FacilityRejectedConsumer>();
+            x.AddConsumer<FacilityRatedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
                 cfg.ReceiveEndpoint("RealtimeService-order-created-queue", e =>
                 {
                     e.ConfigureConsumer<OrderCreatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-order-cancelled-queue", e =>
+                {
+                    e.ConfigureConsumer<OrderCancelledConsumer>(ctx);
                 });
                 cfg.ReceiveEndpoint("RealtimeService-post-liked-queue", e =>
                 {
@@ -62,6 +72,18 @@ public static class ApplicationServiceExtensions
                 cfg.ReceiveEndpoint("RealtimeService-comment-liked-queue", e =>
                 {
                     e.ConfigureConsumer<CommentLikedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-facility-approved-queue", e =>
+                {
+                    e.ConfigureConsumer<FacilityApprovedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-facility-rejected-queue", e =>
+                {
+                    e.ConfigureConsumer<FacilityRejectedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("RealtimeService-facility-rated-queue", e =>
+                {
+                    e.ConfigureConsumer<FacilityRatedConsumer>(ctx);
                 });
             });
         });

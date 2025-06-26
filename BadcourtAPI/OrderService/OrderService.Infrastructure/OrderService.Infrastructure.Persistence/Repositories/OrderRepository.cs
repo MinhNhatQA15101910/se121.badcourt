@@ -1,5 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using OrderService.Core.Domain.Entities;
 using OrderService.Core.Domain.Repositories;
 using SharedKernel;
@@ -23,9 +24,31 @@ public class OrderRepository(
         return await context.SaveChangesAsync(cancellationToken) > 0;
     }
 
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by status
+        if (orderParams.State != null)
+        {
+            query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
+        }
+        
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    public async Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId, CancellationToken cancellationToken = default)
+    {
+        return await context.Orders
+            .Include(o => o.Rating)
+            .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
+    }
+
     public async Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.Orders.FindAsync([id, cancellationToken], cancellationToken: cancellationToken);
+        return await context.Orders
+            .Include(o => o.Rating)
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
     public async Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default, Guid? userId = null)
@@ -38,6 +61,12 @@ public class OrderRepository(
             query = query.Where(o => o.UserId == userId);
         }
 
+        // Filter by facilityId
+        if (orderParams.FacilityId != null)
+        {
+            query = query.Where(o => o.FacilityId == orderParams.FacilityId);
+        }
+
         // Filter by courtId
         if (orderParams.CourtId != null)
         {
@@ -45,17 +74,29 @@ public class OrderRepository(
         }
 
         // Filter by status
-        if (orderParams.OrderState != null)
+        if (orderParams.State != null)
         {
-            query = query.Where(o => o.State.ToString().Equals(orderParams.OrderState, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
         }
+
+        // Filter by date range
+        query = query.Where(o =>
+            o.DateTimePeriod.HourFrom >= orderParams.HourFrom &&
+            o.DateTimePeriod.HourTo <= orderParams.HourTo
+        );
 
         // Order
         query = orderParams.OrderBy switch
         {
             "createdAt" => orderParams.SortBy == "asc"
-                        ? query.OrderBy(o => o.CreatedAt)
-                        : query.OrderByDescending(o => o.CreatedAt),
+                ? query.OrderBy(o => o.CreatedAt)
+                : query.OrderByDescending(o => o.CreatedAt),
+            "price" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.Price)
+                : query.OrderByDescending(o => o.Price),
+            "state" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.State)
+                : query.OrderByDescending(o => o.State),
             _ => query.OrderBy(o => o.CreatedAt)
         };
 

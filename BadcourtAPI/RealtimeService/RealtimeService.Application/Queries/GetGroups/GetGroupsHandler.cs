@@ -37,7 +37,7 @@ public class GetGroupsHandler(
             {
                 var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
                     ?? throw new UserNotFoundException(Guid.Parse(userIdInGroup));
-                groupDtos[i].Users.Add(userDto);
+                groupDtos[i].Users.Add(mapper.Map<UserDto>(userDto));
             }
 
             // Set last message

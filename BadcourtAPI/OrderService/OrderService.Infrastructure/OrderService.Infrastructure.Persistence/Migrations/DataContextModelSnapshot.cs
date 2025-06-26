@@ -34,6 +34,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Property<DateTime>("CreatedAt")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("FacilityId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<string>("FacilityName")
                     .IsRequired()
                     .HasColumnType("TEXT");
@@ -42,10 +46,51 @@ partial class DataContextModelSnapshot : ModelSnapshot
                     .IsRequired()
                     .HasColumnType("TEXT");
 
+                b.Property<string>("PaymentIntentId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<decimal>("Price")
                     .HasColumnType("TEXT");
 
-                b.Property<int>("State")
+                b.Property<Guid?>("RatingId")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("State")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("RatingId");
+
+                b.ToTable("Orders");
+            });
+
+        modelBuilder.Entity("OrderService.Core.Domain.Entities.Rating", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("FacilityId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Feedback")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<int>("Stars")
                     .HasColumnType("INTEGER");
 
                 b.Property<DateTime>("UpdatedAt")
@@ -56,11 +101,15 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
-                b.ToTable("Orders");
+                b.ToTable("Ratings");
             });
 
         modelBuilder.Entity("OrderService.Core.Domain.Entities.Order", b =>
             {
+                b.HasOne("OrderService.Core.Domain.Entities.Rating", "Rating")
+                    .WithMany()
+                    .HasForeignKey("RatingId");
+
                 b.OwnsOne("OrderService.Core.Domain.Entities.DateTimePeriod", "DateTimePeriod", b1 =>
                     {
                         b1.Property<Guid>("OrderId")
@@ -82,6 +131,8 @@ partial class DataContextModelSnapshot : ModelSnapshot
 
                 b.Navigation("DateTimePeriod")
                     .IsRequired();
+
+                b.Navigation("Rating");
             });
 #pragma warning restore 612, 618
     }

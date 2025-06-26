@@ -12,6 +12,7 @@ namespace RealtimeService.Presentation.SignalR;
 
 [Authorize]
 public class GroupHub(
+    GroupHubTracker groupHubTracker,
     IGroupRepository groupRepository,
     IMessageRepository messageRepository,
     IConnectionRepository connectionRepository,
@@ -27,6 +28,8 @@ public class GroupHub(
         }
 
         var userId = Context.User.GetUserId().ToString();
+
+        await groupHubTracker.UserConnectedAsync(userId, Context.ConnectionId);
 
         var groups = await groupRepository.GetGroupsRawAsync(userId, new GroupParams
         {
@@ -46,7 +49,7 @@ public class GroupHub(
             {
                 var userDto = await userApiRepository.GetUserByIdAsync(Guid.Parse(userIdInGroup))
                     ?? throw new HubException($"User with ID {userIdInGroup} not found");
-                groupDtos[i].Users.Add(userDto);
+                groupDtos[i].Users.Add(mapper.Map<UserDto>(userDto));
             }
 
             // Set last message
@@ -67,5 +70,20 @@ public class GroupHub(
         };
 
         await Clients.Caller.SendAsync("ReceiveGroups", pagedGroupDtos);
+
+        var numberOfUnreadMessages = await messageRepository.GetNumberOfUnreadMessagesAsync(userId);
+        await Clients.Caller.SendAsync("ReceiveNumberOfUnreadMessages", numberOfUnreadMessages);
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (Context.User is null)
+        {
+            throw new HubException("Cannot get current user claims");
+        }
+
+        await groupHubTracker.UserDisconnectedAsync(Context.User.GetUserId().ToString(), Context.ConnectionId);
+
+        await base.OnDisconnectedAsync(exception);
     }
 }

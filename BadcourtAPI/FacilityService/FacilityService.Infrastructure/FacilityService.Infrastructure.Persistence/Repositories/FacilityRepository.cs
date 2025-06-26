@@ -59,17 +59,20 @@ public class FacilityRepository : IFacilityRepository
                     { "near", new BsonDocument("type", "Point").Add("coordinates", new BsonArray { facilityParams.Lon, facilityParams.Lat }) },
                     { "distanceField", "Distance" },
                     { "spherical", true },
-                    { "sort", new BsonDocument("Distance", facilityParams.SortBy == "asc" ? 1 : -1) }
                 }));
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("Distance", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
             case "price":
-                pipeline.Add(new BsonDocument("$addFields", new BsonDocument("avgPrice",
+                pipeline.Add(new BsonDocument("$addFields", new BsonDocument("AvgPrice",
                     new BsonDocument("$avg", new BsonArray
                     {
                         new BsonDocument("$ifNull", new BsonArray { "$MinPrice", 0 }),
                         new BsonDocument("$ifNull", new BsonArray { "$MaxPrice", 0 })
                     }))));
-                pipeline.Add(new BsonDocument("$sort", new BsonDocument("avgPrice", facilityParams.SortBy == "asc" ? 1 : -1)));
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("AvgPrice", facilityParams.SortBy == "asc" ? 1 : -1)));
+                break;
+            case "state":
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("State", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
             case "registeredAt":
             default:
@@ -103,6 +106,26 @@ public class FacilityRepository : IFacilityRepository
         if (!string.IsNullOrEmpty(facilityParams.Province))
         {
             pipeline.Add(new BsonDocument("$match", new BsonDocument("Province", facilityParams.Province)));
+        }
+
+        // Filter by state ignore case
+        if (!string.IsNullOrEmpty(facilityParams.State))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("State", new BsonDocument("$regex", facilityParams.State).Add("$options", "i"))));
+        }
+
+        // Filter by search term
+        if (!string.IsNullOrEmpty(facilityParams.Search))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument
+            {
+                { "$or", new BsonArray
+                    {
+                        new BsonDocument("FacilityName", new BsonDocument("$regex", facilityParams.Search).Add("$options", "i")),
+                        new BsonDocument("Description", new BsonDocument("$regex", facilityParams.Search).Add("$options", "i"))
+                    }
+                }
+            }));
         }
 
         // Filter by price range
@@ -146,6 +169,14 @@ public class FacilityRepository : IFacilityRepository
         await _facilities.ReplaceOneAsync(
             f => f.Id == facility.Id,
             facility,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task DeleteFacilityAsync(Facility facility, CancellationToken cancellationToken = default)
+    {
+        await _facilities.DeleteOneAsync(
+            f => f.Id == facility.Id,
             cancellationToken: cancellationToken
         );
     }

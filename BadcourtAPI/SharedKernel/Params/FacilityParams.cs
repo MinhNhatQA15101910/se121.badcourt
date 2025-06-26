@@ -7,8 +7,10 @@ public class FacilityParams : PaginationParams
     public double Lat { get; set; }
     public double Lon { get; set; }
     public string? Province { get; set; }
+    public string? State { get; set; }
     public decimal MinPrice { get; set; } = decimal.MinValue;
     public decimal MaxPrice { get; set; } = decimal.MaxValue;
+    public string? Search { get; set; }
     public string OrderBy { get; set; } = "registeredAt";
     public string SortBy { get; set; } = "desc";
 }

@@ -4,7 +4,6 @@ namespace FacilityService.Core.Application.DTOs;
 
 public class RegisterFacilityDto
 {
-    public Guid UserId { get; set; }
     public required string FacilityName { get; set; }
     public double Lat { get; set; }
     public double Lon { get; set; }

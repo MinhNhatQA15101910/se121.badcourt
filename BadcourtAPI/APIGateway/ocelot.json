@@ -36,6 +36,13 @@
       "UpstreamHttpMethod": ["Patch"]
     },
     {
+      "DownstreamPathTemplate": "/api/auth/fully-access-token",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/fully-access-token",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
       "DownstreamPathTemplate": "/api/users/me",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
@@ -107,11 +114,39 @@
       "UpstreamHttpMethod": ["Post"]
     },
     {
+      "DownstreamPathTemplate": "/api/facilities/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
       "DownstreamPathTemplate": "/api/facilities/update-active/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
       "UpstreamPathTemplate": "/gateway/facilities/update-active/{id}",
       "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities/approve/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/approve/{id}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities/reject/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/reject/{id}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/facilities/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 2000 }],
+      "UpstreamPathTemplate": "/gateway/facilities/{id}",
+      "UpstreamHttpMethod": ["Delete"]
     },
 
     {
@@ -169,6 +204,41 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
       "UpstreamPathTemplate": "/gateway/orders/check-conflict",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/cancel/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/cancel/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/rate/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/rate/{id}",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ratings/{ratingId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/ratings/{ratingId}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ratings",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/ratings",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments/create-intent",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/payments/create-intent",
       "UpstreamHttpMethod": ["Post"]
     },
 
@@ -237,11 +307,32 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
+      "DownstreamPathTemplate": "/api/messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/messages",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
       "DownstreamPathTemplate": "/api/notifications",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/notifications",
       "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/read/{notificationId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications/read/{notificationId}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/read-all",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications/read-all",
+      "UpstreamHttpMethod": ["Put"]
     }
   ],
   "GlobalConfiguration": {

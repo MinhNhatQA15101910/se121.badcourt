@@ -14,11 +14,13 @@ public class OrderCreatedConsumer(
     INotificationRepository notificationRepository,
     IHubContext<NotificationHub> notificationHub,
     IHubContext<CourtHub> courtHub,
+    NotificationHubTracker notificationHubTracker,
     IMapper mapper
 ) : IConsumer<OrderCreatedEvent>
 {
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
     {
+        // Notify the user about the order creation
         var notification = new Notification
         {
             UserId = context.Message.UserId,
@@ -34,7 +36,7 @@ public class OrderCreatedConsumer(
 
         await notificationRepository.AddNotificationAsync(notification);
 
-        var connections = await PresenceTracker.GetConnectionsForUser(context.Message.UserId);
+        var connections = await notificationHubTracker.GetConnectionsForUserAsync(context.Message.UserId);
         if (connections != null && connections.Count != 0)
         {
             var notificationDto = mapper.Map<NotificationDto>(notification);

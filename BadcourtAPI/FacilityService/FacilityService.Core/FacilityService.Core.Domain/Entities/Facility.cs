@@ -12,6 +12,8 @@ public class Facility
 
     [BsonRepresentation(BsonType.String)]
     public Guid UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string? UserImageUrl { get; set; }
     public string FacilityName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? FacebookUrl { get; set; }
@@ -30,7 +32,7 @@ public class Facility
     public Active? ActiveAt { get; set; }
 
     [BsonRepresentation(BsonType.String)]
-    public FacilityState State { get; set; }
+    public FacilityState State { get; set; } = FacilityState.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -38,5 +40,7 @@ public class Facility
     public ManagerInfo ManagerInfo { get; set; } = null!;
 
     [BsonIgnoreIfNull]
-    public double Distance { get; set; }
+    public double? Distance { get; set; }
+    [BsonIgnoreIfNull]
+    public decimal? AvgPrice { get; set; }
 }

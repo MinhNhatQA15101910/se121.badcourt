@@ -5,7 +5,9 @@ using SharedKernel.Events;
 
 namespace RealtimeService.Presentation.Consumers;
 
-public class CourtInactiveUpdatedConsumer(IHubContext<CourtHub> courtHub) : IConsumer<CourtInactiveUpdatedEvent>
+public class CourtInactiveUpdatedConsumer(
+    IHubContext<CourtHub> courtHub
+) : IConsumer<CourtInactiveUpdatedEvent>
 {
     public async Task Consume(ConsumeContext<CourtInactiveUpdatedEvent> context)
     {

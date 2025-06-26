@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using RealtimeService.Application.ApiRepositories;
 
 namespace RealtimeService.Presentation.SignalR;
 
+[Authorize]
 public class CourtHub(ICourtApiRepository courtApiRepository) : Hub
 {
     public override async Task OnConnectedAsync()
