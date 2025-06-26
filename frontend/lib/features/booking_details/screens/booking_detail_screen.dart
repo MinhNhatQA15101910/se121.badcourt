@@ -53,36 +53,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       if (success) {
         // Refresh the order details to get updated state
         await _fetchOrderDetails(orderId);
-
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Booking cancelled successfully',
-                style: GoogleFonts.inter(color: Colors.white),
-              ),
-              backgroundColor: GlobalVariables.green,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
       }
-    } catch (e) {
-      // Show error message if cancellation fails
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to cancel booking. Please try again.',
-              style: GoogleFonts.inter(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    } finally {
+    } catch (e) {} finally {
       if (mounted) {
         setState(() {
           isCancelling = false;

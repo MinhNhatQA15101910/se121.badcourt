@@ -48,8 +48,6 @@ class CourtHubProvider extends ChangeNotifier {
         notifyListeners();
       });
 
-      // In the connectToCourt method, after setting up the court update callback, add:
-
       // Set up new order callback
       _courtHubService.setNewOrderCallback(courtId, (periodTime) {
         print('[CourtHubProvider] New order period for court $courtId: ${periodTime.toString()}');
@@ -75,6 +73,21 @@ class CourtHubProvider extends ChangeNotifier {
 
         notifyListeners();
       });
+
+      // Add this new callback for cancel order
+      _courtHubService.setCancelOrderCallback(courtId, (periodTime) {
+        print('[CourtHubProvider] Cancel order period for court $courtId: ${periodTime.toString()}');
+
+        // Remove the period from new order periods list
+        if (_newOrderPeriods.containsKey(courtId)) {
+          _newOrderPeriods[courtId]!.removeWhere((p) => 
+            p.hourFrom == periodTime.hourFrom && p.hourTo == periodTime.hourTo);
+          
+          print('[CourtHubProvider] Removed cancelled period from new orders. Remaining periods: ${_newOrderPeriods[courtId]!.length}');
+        }
+
+        notifyListeners();
+      });
       
       // Connect to the court
       await _courtHubService.connectToCourt(accessToken, courtId);
@@ -97,7 +110,7 @@ class CourtHubProvider extends ChangeNotifier {
       _connectionStatus[courtId] = false;
       // Keep court data but mark as disconnected
 
-      // In the disconnectFromCourt method, after updating connection status, add:
+      // Clear the period lists when disconnecting
       _newOrderPeriods.remove(courtId);
       _courtInactivePeriods.remove(courtId);
 
@@ -113,7 +126,7 @@ class CourtHubProvider extends ChangeNotifier {
       await _courtHubService.disconnectFromAllCourts();
       _connectionStatus.clear();
 
-      // In the disconnectFromAllCourts method, after clearing connection status, add:
+      // Clear all period lists when disconnecting from all courts
       _newOrderPeriods.clear();
       _courtInactivePeriods.clear();
 

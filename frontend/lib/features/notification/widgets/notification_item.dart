@@ -22,7 +22,6 @@ class _NotificationItemState extends State<NotificationItem>
   late AnimationController _thumbUpController;
   late AnimationController _pulseController;
 
-
   @override
   void initState() {
     super.initState();
@@ -69,64 +68,73 @@ class _NotificationItemState extends State<NotificationItem>
   }
 
   IconData _getNotificationIcon(String type) {
-  switch (type.toLowerCase()) {
-    case 'courtbookingcreated':
-      return Icons.event_available;
-    case 'courtbookingcancelled':
-      return Icons.event_busy;
-    case 'postliked':
-      return Icons.thumb_up;
-    case 'postcommented':
-      return Icons.comment;
-    case 'commentliked':
-      return Icons.thumb_up_alt;
-    case 'facilityrated':
-      return Icons.star;
-    default:
-      return Icons.notifications;
+    switch (type.toLowerCase()) {
+      case 'courtbookingcreated':
+        return Icons.event_available;
+      case 'courtbookingcancelled':
+        return Icons.event_busy;
+      case 'postliked':
+        return Icons.thumb_up;
+      case 'postcommented':
+        return Icons.comment;
+      case 'commentliked':
+        return Icons.thumb_up_alt;
+      case 'facilityrated':
+        return Icons.star;
+      case 'facilityapproved':
+        return Icons.check_circle;
+      case 'facilityrejected':
+        return Icons.cancel;
+      default:
+        return Icons.notifications;
+    }
   }
-}
-
 
   Color _getNotificationColor(String type) {
-  switch (type.toLowerCase()) {
-    case 'courtbookingcreated':
-      return GlobalVariables.green;
-    case 'courtbookingcancelled':
-      return Colors.red;
-    case 'postliked':
-      return GlobalVariables.green;
-    case 'postcommented':
-      return Colors.orange;
-    case 'commentliked':
-      return Colors.blue;
-    case 'facilityrated':
-      return Colors.amber;
-    default:
-      return Colors.grey;
+    switch (type.toLowerCase()) {
+      case 'courtbookingcreated':
+        return GlobalVariables.green;
+      case 'courtbookingcancelled':
+        return Colors.red;
+      case 'postliked':
+        return GlobalVariables.green;
+      case 'postcommented':
+        return Colors.orange;
+      case 'commentliked':
+        return Colors.blue;
+      case 'facilityrated':
+        return Colors.amber;
+      case 'facilityapproved':
+        return GlobalVariables.green;
+      case 'facilityrejected':
+        return GlobalVariables.red;
+      default:
+        return Colors.grey;
+    }
   }
-}
-
 
   String _getNotificationTypeText(String type) {
-  switch (type.toLowerCase()) {
-    case 'courtbookingcreated':
-      return 'Court Booking Created';
-    case 'courtbookingcancelled':
-      return 'Court Booking Cancelled';
-    case 'postliked':
-      return 'Post Liked';
-    case 'postcommented':
-      return 'Post Commented';
-    case 'commentliked':
-      return 'Comment Liked';
-    case 'facilityrated':
-      return 'Facility Rated';
-    default:
-      return 'Notification';
+    switch (type.toLowerCase()) {
+      case 'courtbookingcreated':
+        return 'Court Booking Created';
+      case 'courtbookingcancelled':
+        return 'Court Booking Cancelled';
+      case 'postliked':
+        return 'Post Liked';
+      case 'postcommented':
+        return 'Post Commented';
+      case 'commentliked':
+        return 'Comment Liked';
+      case 'facilityrated':
+        return 'Facility Rated';
+      case 'facilityapproved':
+        return 'Facility Approved';
+      case 'facilityrejected':
+        return 'Facility Rejected';
+      default:
+        return 'Notification';
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {

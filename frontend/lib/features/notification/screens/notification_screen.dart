@@ -542,7 +542,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         break;
       case 'courtbookingcancelled':
         if (data.orderId != null) {
-          print('Navigate to booking details: ${data.orderId}');
+          Navigator.of(context).pushNamed(
+            BookingDetailScreen.routeName,
+            arguments: data.orderId,
+          );
         }
         break;
 

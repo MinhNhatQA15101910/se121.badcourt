@@ -97,6 +97,7 @@ class SearchService {
     final Map<String, String> queryParams = {};
 
     // Add pagination parameters
+    queryParams['state'] = 'approved';
     queryParams['pageNumber'] = page.toString();
     queryParams['pageSize'] = limit.toString();
 
@@ -147,7 +148,7 @@ class SearchService {
         context: context,
         onSuccess: () {
           final responseData = jsonDecode(response.body);
-          
+
           // Handle both array response and paginated response
           if (responseData is List) {
             // Old format - just array of facilities

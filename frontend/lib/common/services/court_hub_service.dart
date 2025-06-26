@@ -14,6 +14,7 @@ class CourtHubService {
   final Map<String, Function(Court)> _courtUpdateCallbacks = {};
   final Map<String, Function(PeriodTime)> _newOrderCallbacks = {};
   final Map<String, Function(PeriodTime)> _courtInactiveCallbacks = {};
+  final Map<String, Function(PeriodTime)> _cancelOrderCallbacks = {}; // Add this line
   final Map<String, Timer> _monitorTimers = {};
 
   // Connect to a specific court
@@ -73,6 +74,26 @@ class CourtHubService {
             }
           } catch (e) {
             print('[CourtHub] Error parsing new order time period data: $e');
+          }
+        }
+      });
+
+      // Add this new event handler for CancelOrderTimePeriod
+      connection.on('CancelOrderTimePeriod', (arguments) {
+        if (arguments != null && arguments.isNotEmpty) {
+          try {
+            final periodData = arguments[0] as Map<String, dynamic>;
+            final periodTime = PeriodTime.fromMap(periodData);
+            
+            print('[CourtHub] Received cancel order time period for court $courtId: ${periodTime.toString()}');
+            
+            // Notify callback if exists
+            final callback = _cancelOrderCallbacks[courtId];
+            if (callback != null) {
+              callback(periodTime);
+            }
+          } catch (e) {
+            print('[CourtHub] Error parsing cancel order time period data: $e');
           }
         }
       });
@@ -164,6 +185,7 @@ class CourtHubService {
         _courtUpdateCallbacks.remove(courtId);
         _newOrderCallbacks.remove(courtId);
         _courtInactiveCallbacks.remove(courtId);
+        _cancelOrderCallbacks.remove(courtId); // Add this line
         
         print('✅ [CourtHub] Disconnected from court: $courtId');
         print('[CourtHub] Remaining active connections: ${_connections.length}');
@@ -222,6 +244,12 @@ class CourtHubService {
     print('[CourtHub] Set court inactive callback for court: $courtId');
   }
 
+  // Add this new method for cancel order callback
+  void setCancelOrderCallback(String courtId, Function(PeriodTime) callback) {
+    _cancelOrderCallbacks[courtId] = callback;
+    print('[CourtHub] Set cancel order callback for court: $courtId');
+  }
+
   // Remove callback for new order time periods
   void removeNewOrderCallback(String courtId) {
     _newOrderCallbacks.remove(courtId);
@@ -232,6 +260,12 @@ class CourtHubService {
   void removeCourtInactiveCallback(String courtId) {
     _courtInactiveCallbacks.remove(courtId);
     print('[CourtHub] Removed court inactive callback for court: $courtId');
+  }
+
+  // Add this new method to remove cancel order callback
+  void removeCancelOrderCallback(String courtId) {
+    _cancelOrderCallbacks.remove(courtId);
+    print('[CourtHub] Removed cancel order callback for court: $courtId');
   }
 
   // Check if connected to a specific court

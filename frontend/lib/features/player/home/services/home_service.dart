@@ -17,36 +17,30 @@ class HomeService {
     String? sort,
     String? order,
   }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-    final prefs = await SharedPreferences.getInstance();
-    List<Facility> facilities = [];
-    bool isQuery = false;
-
-    String requestUri = '$uri/gateway/facilities';
-    if (province != null) {
-      requestUri += '?province=$province';
-      isQuery = true;
-    }
-    if (sort != null && order != null) {
-      if (isQuery)
-        requestUri += '&sort=$sort&order=$order';
-      else
-        requestUri += '?sort=$sort&order=$order';
-
-      if (sort == "location") {
-        final latitude = prefs.getDouble('latitude');
-        final longitude = prefs.getDouble('longitude');
-        requestUri += '&lat=$latitude&lon=$longitude';
-      }
-    }
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final facilities = <Facility>[];
 
     try {
-      http.Response response = await http.get(
-        Uri.parse(requestUri),
-        headers: <String, String>{
+      final prefs = await SharedPreferences.getInstance();
+      final queryParams = {
+        'state': 'approved',
+        if (province != null) 'province': province,
+        if (sort != null && order != null) ...{
+          'sort': sort,
+          'order': order,
+          if (sort == 'location') ...{
+            'lat': prefs.getDouble('latitude')?.toString() ?? '',
+            'lon': prefs.getDouble('longitude')?.toString() ?? '',
+          }
+        },
+      };
+
+      final requestUri = Uri.parse('$uri/gateway/facilities')
+          .replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        requestUri,
+        headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
         },
@@ -56,13 +50,9 @@ class HomeService {
         response: response,
         context: context,
         onSuccess: () {
-          for (var object in jsonDecode(response.body)) {
-            facilities.add(
-              Facility.fromJson(
-                jsonEncode(object),
-              ),
-            );
-          }
+          final data = jsonDecode(response.body) as List;
+          facilities
+              .addAll(data.map((item) => Facility.fromJson(jsonEncode(item))));
         },
       );
     } catch (error) {

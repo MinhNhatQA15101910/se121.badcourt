@@ -23,7 +23,7 @@ public class PostCommentedConsumer(
         {
             UserId = context.Message.PostOwnerId,
             Type = NotificationType.PostCommented,
-            Title = "Post Liked",
+            Title = "Post commented",
             Content = $"{context.Message.CommentedUserUsername} commented on your post: {context.Message.CommentContent}",
             Data = new NotificationData
             {
