@@ -38,10 +38,10 @@ public class OrdersController(IMediator mediator) : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<OrderDto>> CreateOrder(CreateOrderDto createOrderDto)
+    public async Task<ActionResult<OrderIntentDto>> CreateOrder(CreateOrderDto createOrderDto)
     {
-        var order = await mediator.Send(new CreateOrderCommand(createOrderDto));
-        return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+        var orderIntent = await mediator.Send(new CreateOrderCommand(createOrderDto));
+        return Ok(orderIntent);
     }
 
     [HttpPost("check-conflict")]

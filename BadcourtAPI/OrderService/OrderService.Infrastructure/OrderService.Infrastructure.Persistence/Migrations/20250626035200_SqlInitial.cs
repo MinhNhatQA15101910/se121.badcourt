@@ -42,6 +42,7 @@ public partial class SqlInitial : Migration
                 Price = table.Column<decimal>(type: "TEXT", nullable: false),
                 State = table.Column<string>(type: "TEXT", nullable: false),
                 ImageUrl = table.Column<string>(type: "TEXT", nullable: false),
+                PaymentIntentId = table.Column<string>(type: "TEXT", nullable: false),
                 RatingId = table.Column<Guid>(type: "TEXT", nullable: true),
                 CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)

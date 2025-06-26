@@ -46,6 +46,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                     .IsRequired()
                     .HasColumnType("TEXT");
 
+                b.Property<string>("PaymentIntentId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<decimal>("Price")
                     .HasColumnType("TEXT");
 

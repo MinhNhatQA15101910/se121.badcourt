@@ -3,8 +3,9 @@ namespace OrderService.Core.Domain.Enums;
 public enum OrderState
 {
     None = 0,
-    NotPlay = 1,
-    Playing = 2,
-    Played = 3,
-    Cancelled = 4,
+    Pending = 1,
+    NotPlay = 2,
+    Playing = 3,
+    Played = 4,
+    Cancelled = 5,
 }
