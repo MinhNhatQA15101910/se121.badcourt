@@ -6,6 +6,7 @@ public class Order
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public string FacilityOwnerId { get; set; } = null!;
     public string FacilityId { get; set; } = null!;
     public string CourtId { get; set; } = null!;
     public string FacilityName { get; set; } = string.Empty;
@@ -14,6 +15,7 @@ public class Order
     public decimal Price { get; set; }
     public OrderState State { get; set; } = OrderState.NotPlay;
     public string ImageUrl { get; set; } = string.Empty;
+    public string PaymentIntentId { get; set; } = null!;
     public Rating? Rating { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

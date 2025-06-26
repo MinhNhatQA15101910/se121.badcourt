@@ -409,7 +409,7 @@ class _LoginFormState extends State<LoginForm> {
                         ),
                       ),
                       child: Text(
-                        'Continue as a guest',
+                        'Guest',
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

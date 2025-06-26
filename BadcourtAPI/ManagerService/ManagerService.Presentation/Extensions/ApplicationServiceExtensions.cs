@@ -1,3 +1,9 @@
+using ManagerService.Application;
+using ManagerService.Application.Interfaces.ServiceClients;
+using ManagerService.Infrastructure.Services.Configurations;
+using ManagerService.Infrastructure.Services.ServiceClients;
+using ManagerService.Presentation.Middlewares;
+
 namespace ManagerService.Presentation.Extensions;
 
 public static class ApplicationServiceExtensions
@@ -7,23 +13,28 @@ public static class ApplicationServiceExtensions
         services.AddControllers();
         services.AddHttpContextAccessor();
 
-        return services.AddPersistence(configuration)
+        services.AddScoped<ExceptionHandlingMiddleware>();
+
+        return services
             .AddExternalServices(configuration)
             .AddApplication(configuration);
     }
 
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
+        var applicationAssembly = typeof(AssemblyReference).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+
         return services;
     }
 
-    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration configuration)
     {
-        return services;
-    }
+        services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
-    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
-    {
+        services.AddHttpClient<IFacilityServiceClient, FacilityServiceClient>();
+        services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
+
         return services;
     }
 }

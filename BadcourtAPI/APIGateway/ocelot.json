@@ -234,6 +234,27 @@
       "UpstreamPathTemplate": "/gateway/ratings",
       "UpstreamHttpMethod": ["Get"]
     },
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/monthly-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/monthly-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/facility-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/facility-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/orders",
+      "UpstreamHttpMethod": ["Get"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",
@@ -326,6 +347,14 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/notifications/read-all",
       "UpstreamHttpMethod": ["Put"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/summary",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 9000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/summary",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {

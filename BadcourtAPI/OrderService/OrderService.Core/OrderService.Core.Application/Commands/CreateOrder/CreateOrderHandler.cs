@@ -1,12 +1,12 @@
 using AutoMapper;
-using MassTransit;
 using Microsoft.AspNetCore.Http;
 using OrderService.Core.Application.ApiRepository;
 using OrderService.Core.Application.Extensions;
+using OrderService.Core.Application.Interfaces;
 using OrderService.Core.Domain.Entities;
+using OrderService.Core.Domain.Enums;
 using OrderService.Core.Domain.Repositories;
 using SharedKernel.DTOs;
-using SharedKernel.Events;
 using SharedKernel.Exceptions;
 
 namespace OrderService.Core.Application.Commands.CreateOrder;
@@ -16,11 +16,11 @@ public class CreateOrderHandler(
     IOrderRepository orderRepository,
     ICourtApiRepository courtApiRepository,
     IFacilityApiRepository facilityApiRepository,
-    IPublishEndpoint publishEndpoint,
+    IStripeService stripeService,
     IMapper mapper
-) : ICommandHandler<CreateOrderCommand, OrderDto>
+) : ICommandHandler<CreateOrderCommand, OrderIntentDto>
 {
-    public async Task<OrderDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<OrderIntentDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         var court = await courtApiRepository.GetCourtByIdAsync(request.CreateOrderDto.CourtId)
             ?? throw new CourtNotFoundException(request.CreateOrderDto.CourtId);
@@ -96,39 +96,45 @@ public class CreateOrderHandler(
             }
         }
 
+        // Calculate price
+        var price = court.PricePerHour * (decimal)(request.CreateOrderDto.DateTimePeriod.HourTo - request.CreateOrderDto.DateTimePeriod.HourFrom).TotalHours;
+
+        // Create PaymentIntent via StripeService
+        var paymentIntent = await stripeService.CreatePaymentIntentAsync(
+            (long)price,
+            cancellationToken: cancellationToken
+        );
+
         // Create order
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
         var facilityMainPhoto = facility.Photos.FirstOrDefault(p => p.IsMain);
-        var order = new Order
+        var draftOrder = new Order
         {
             UserId = userId,
+            FacilityOwnerId = facility.UserId.ToString(),
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
             FacilityName = facility.FacilityName,
             Address = facility.DetailAddress,
             DateTimePeriod = mapper.Map<DateTimePeriod>(request.CreateOrderDto.DateTimePeriod),
-            Price = court.PricePerHour * (decimal)(request.CreateOrderDto.DateTimePeriod.HourTo - request.CreateOrderDto.DateTimePeriod.HourFrom).TotalHours,
+            Price = price,
             ImageUrl = facilityMainPhoto?.Url ?? string.Empty,
+            PaymentIntentId = paymentIntent.Id,
+            State = OrderState.Pending
         };
 
-        orderRepository.AddOrder(order);
+        orderRepository.AddOrder(draftOrder);
 
         if (!await orderRepository.CompleteAsync(cancellationToken))
         {
             throw new BadRequestException("Failed to create order.");
         }
 
-        // Publish order created event
-        await publishEndpoint.Publish(
-            new OrderCreatedEvent(
-                order.Id.ToString(),
-                request.CreateOrderDto.CourtId,
-                userId.ToString(),
-                request.CreateOrderDto.DateTimePeriod)
-            , cancellationToken
-        );
-
-        return mapper.Map<OrderDto>(order);
+        return new OrderIntentDto
+        {
+            ClientSecret = paymentIntent.ClientSecret,
+            OrderId = draftOrder.Id.ToString()
+        };
     }
 
     private static bool IsTimePeriodInside(TimePeriodDto inner, TimePeriodDto outer)

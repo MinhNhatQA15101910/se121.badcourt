@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
+using RealtimeService.Application.ApiRepositories;
 using RealtimeService.Application.Interfaces;
 using RealtimeService.Domain.Entities;
 using RealtimeService.Domain.Enums;
@@ -19,6 +20,7 @@ public class MessageHub(
     IMessageRepository messageRepository,
     IGroupRepository groupRepository,
     IConnectionRepository connectionRepository,
+    IUserApiRepository userApiRepository,
     IFileService fileService,
     IMapper mapper
 ) : Hub
@@ -27,16 +29,21 @@ public class MessageHub(
     {
         // Get the user ID from the context
         var httpContext = Context.GetHttpContext();
-        var otherUser = httpContext?.Request.Query["user"];
+        var otherUserId = httpContext?.Request.Query["user"];
 
         // If the user is not authenticated or the other user is not specified, throw an exception
-        if (Context.User == null || string.IsNullOrEmpty(otherUser))
+        if (Context.User == null || string.IsNullOrEmpty(otherUserId))
         {
             throw new HubException("Cannot join group");
         }
 
-        var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUser);
+        var groupName = GetGroupName(Context.User.GetUserId().ToString(), otherUserId);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+        var currentUser = await userApiRepository.GetUserByIdAsync(Context.User.GetUserId())
+            ?? throw new HubException("Current user not found");
+        var otherUser = await userApiRepository.GetUserByIdAsync(Guid.Parse(otherUserId!))
+            ?? throw new HubException("Other user not found");
 
         var group = await groupRepository.GetGroupByNameAsync(groupName);
         if (group == null)
@@ -44,7 +51,8 @@ public class MessageHub(
             group = new Group
             {
                 Name = groupName,
-                UserIds = [Context.User.GetUserId().ToString(), otherUser],
+                UserIds = [Context.User.GetUserId().ToString(), otherUserId],
+                Usernames = [currentUser.Username, otherUser.Username],
             };
             await groupRepository.AddGroupAsync(group);
         }

@@ -1,6 +1,12 @@
 namespace SharedKernel.Exceptions;
 
-public class OrderNotFoundException(Guid orderId)
-    : NotFoundException($"The order with the identifier {orderId} was not found.")
+public class OrderNotFoundException : NotFoundException
 {
+    public OrderNotFoundException(Guid orderId) : base($"Order with ID '{orderId}' not found.")
+    {
+    }
+
+    public OrderNotFoundException(string paymentIntentId) : base($"Order with Payment Intent ID '{paymentIntentId}' not found.")
+    {
+    }
 }
