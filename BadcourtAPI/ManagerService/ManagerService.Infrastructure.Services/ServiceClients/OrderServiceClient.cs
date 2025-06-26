@@ -15,13 +15,15 @@ public class OrderServiceClient(
     public Task<int> GetTotalCustomersAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
+        var apiUrl = config.Value.OrdersApi;
+        apiUrl += "/total-customers";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            config.Value.OrdersApi += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"?year={summaryParams.Year.Value}";
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, config.Value.OrdersApi + "/total-customers");
+        var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
         var response = client.SendAsync(request, cancellationToken).Result;
@@ -37,13 +39,15 @@ public class OrderServiceClient(
     public Task<int> GetTotalOrdersAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
+        var apiUrl = config.Value.OrdersApi;
+        apiUrl += "/total-orders";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            config.Value.OrdersApi += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"?year={summaryParams.Year.Value}";
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, config.Value.OrdersApi + "/total-orders");
+        var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
         var response = client.SendAsync(request, cancellationToken).Result;
@@ -59,13 +63,15 @@ public class OrderServiceClient(
     public async Task<decimal> GetTotalRevenueAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
+        var apiUrl = config.Value.OrdersApi;
+        apiUrl += "/total-revenue";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            config.Value.OrdersApi += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"?year={summaryParams.Year.Value}";
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, config.Value.OrdersApi + "/total-revenue");
+        var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
         var response = await client.SendAsync(request, cancellationToken);

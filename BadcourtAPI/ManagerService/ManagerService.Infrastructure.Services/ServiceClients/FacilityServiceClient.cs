@@ -15,13 +15,15 @@ public class FacilityServiceClient(
     public Task<int> GetTotalFacilitiesAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
+        var apiUrl = config.Value.FacilitiesApi;
+        apiUrl += "/total-facilities";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            config.Value.FacilitiesApi += $"?year={summaryParams.Year}";
+            apiUrl += $"?year={summaryParams.Year.Value}";
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, config.Value.FacilitiesApi + "/total-facilities");
+        var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
         var response = client.SendAsync(request, cancellationToken).Result;
