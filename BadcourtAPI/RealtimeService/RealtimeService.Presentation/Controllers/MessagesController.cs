@@ -75,6 +75,7 @@ public class MessagesController(
                 Id = ObjectId.GenerateNewId().ToString(),
                 Name = groupName,
                 UserIds = [sender.Id.ToString(), recipient.Id.ToString()],
+                Usernames = [sender.Username, recipient.Username],
                 HasMessage = false,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

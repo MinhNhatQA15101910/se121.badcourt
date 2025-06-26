@@ -65,6 +65,11 @@ public class GroupRepository : IGroupRepository
             new("$match", new BsonDocument("UserIds", userId))
         };
 
+        if (!string.IsNullOrEmpty(groupParams.Username))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("Usernames", groupParams.Username)));
+        }
+
         switch (groupParams.OrderBy)
         {
             case "updatedAt":
@@ -80,13 +85,6 @@ public class GroupRepository : IGroupRepository
             groupParams.PageSize,
             cancellationToken
         );
-    }
-
-    public async Task<List<Group>> GetGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        return await _groups
-            .Find(g => g.UserIds.Contains(userId) && g.HasMessage)
-            .ToListAsync(cancellationToken);
     }
 
     public async Task UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
