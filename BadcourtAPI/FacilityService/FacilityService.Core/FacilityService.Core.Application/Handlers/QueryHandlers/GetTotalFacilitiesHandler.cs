@@ -15,10 +15,10 @@ public class GetTotalFacilitiesHandler(
         var roles = httpContextAccessor.HttpContext.User.GetRoles();
         if (roles.Contains("Admin"))
         {
-            return facilityRepository.GetTotalFacilitiesAsync(null, cancellationToken);
+            return facilityRepository.GetTotalFacilitiesAsync(null, request.Year, cancellationToken);
         }
 
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
-        return facilityRepository.GetTotalFacilitiesAsync(userId.ToString(), cancellationToken);
+        return facilityRepository.GetTotalFacilitiesAsync(userId.ToString(), request.Year, cancellationToken);
     }
 }

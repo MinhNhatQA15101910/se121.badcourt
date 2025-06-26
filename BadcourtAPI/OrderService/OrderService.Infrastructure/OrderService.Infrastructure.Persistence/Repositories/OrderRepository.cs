@@ -108,52 +108,68 @@ public class OrderRepository(
         );
     }
 
-    public Task<int> GetTotalCustomersAsync(string? userId, CancellationToken cancellationToken)
+    public Task<int> GetTotalCustomersAsync(string? userId, int? year, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(userId))
+        var query = context.Orders.AsQueryable();
+
+        if (userId != null)
         {
-            return context.Orders
-                .Where(o => o.State != OrderState.Pending)
-                .Select(o => o.UserId)
-                .Distinct()
-                .CountAsync(cancellationToken);
+            query = query.Where(o => o.FacilityOwnerId == userId);
         }
 
-        return context.Orders
-            .Where(o => o.FacilityOwnerId == userId && o.State != OrderState.Pending)
+        if (year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == year.Value);
+        }
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        // Select distinct user IDs and count them
+        return query
             .Select(o => o.UserId)
             .Distinct()
             .CountAsync(cancellationToken);
     }
 
-    public Task<int> GetTotalOrdersAsync(string? userId, CancellationToken cancellationToken = default)
+    public Task<int> GetTotalOrdersAsync(string? userId, int? year, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(userId))
+        var query = context.Orders.AsQueryable();
+
+        if (userId != null)
         {
-            return context.Orders
-                .Where(o => o.State != OrderState.Pending)
-                .CountAsync(cancellationToken);
+            query = query.Where(o => o.FacilityOwnerId == userId);
         }
 
-        return context.Orders
-            .Where(o => o.FacilityOwnerId == userId && o.State != OrderState.Pending)
-            .CountAsync(cancellationToken);
+        if (year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == year.Value);
+        }
 
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return query.CountAsync(cancellationToken);
     }
 
-    public async Task<decimal> GetTotalRevenueAsync(string? userId, CancellationToken cancellationToken = default)
+    public async Task<decimal> GetTotalRevenueAsync(string? userId, int? year, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(userId))
+        var query = context.Orders.AsQueryable();
+
+        if (userId != null)
         {
-            return await context.Orders
-                .Where(o => o.State != OrderState.Pending)
-                .SumAsync(o => o.Price, cancellationToken);
+            query = query.Where(o => o.FacilityOwnerId == userId);
         }
-        else
+
+        if (year.HasValue)
         {
-            return await context.Orders
-                .Where(o => o.FacilityOwnerId == userId && o.State != OrderState.Pending)
-                .SumAsync(o => o.Price, cancellationToken);
+            query = query.Where(o => o.CreatedAt.Year == year.Value);
         }
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        // Sum the total revenue
+        return await query.SumAsync(o => o.Price, cancellationToken);
     }
 }

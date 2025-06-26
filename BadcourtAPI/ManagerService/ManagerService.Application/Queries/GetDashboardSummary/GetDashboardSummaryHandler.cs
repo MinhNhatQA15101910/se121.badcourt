@@ -14,11 +14,15 @@ public class GetDashboardSummaryHandler(
     public async Task<DashboardSummaryResponse> Handle(GetDashboardSummaryQuery request, CancellationToken cancellationToken)
     {
         var bearerToken = httpContextAccessor.HttpContext.GetBearerToken();
-        
-        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(bearerToken, cancellationToken);
-        var totalOrders = await orderServiceClient.GetTotalOrdersAsync(bearerToken, cancellationToken);
-        var totalCustomers = await orderServiceClient.GetTotalCustomersAsync(bearerToken, cancellationToken);
-        var totalFacilities = await facilityServiceClient.GetTotalFacilitiesAsync(bearerToken, cancellationToken);
+
+        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(
+            bearerToken, request.SummaryParams, cancellationToken);
+        var totalOrders = await orderServiceClient.GetTotalOrdersAsync(
+            bearerToken, request.SummaryParams, cancellationToken);
+        var totalCustomers = await orderServiceClient.GetTotalCustomersAsync(
+            bearerToken, request.SummaryParams, cancellationToken);
+        var totalFacilities = await facilityServiceClient.GetTotalFacilitiesAsync(
+            bearerToken, request.SummaryParams, cancellationToken);
 
         return new DashboardSummaryResponse
         {

@@ -15,10 +15,10 @@ public class GetTotalOrdersHandler(
         var roles = httpContextAccessor.HttpContext.User.GetRoles();
         if (roles.Contains("Admin"))
         {
-            return orderRepository.GetTotalOrdersAsync(null, cancellationToken);
+            return orderRepository.GetTotalOrdersAsync(null, request.Year, cancellationToken);
         }
 
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
-        return orderRepository.GetTotalOrdersAsync(userId.ToString(), cancellationToken);
+        return orderRepository.GetTotalOrdersAsync(userId.ToString(), request.Year, cancellationToken);
     }
 }

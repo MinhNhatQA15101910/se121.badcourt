@@ -181,20 +181,32 @@ public class FacilityRepository : IFacilityRepository
         );
     }
 
-    public Task<int> GetTotalFacilitiesAsync(string? userId, CancellationToken cancellationToken = default)
+    public async Task<int> GetTotalFacilitiesAsync(string? userId, int? year, CancellationToken cancellationToken = default)
     {
-        FilterDefinition<Facility> filter;
+        var filters = new List<FilterDefinition<Facility>>();
 
-        if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
+        // Filter by UserId if provided
+        if (!string.IsNullOrWhiteSpace(userId) && Guid.TryParse(userId, out var userGuid))
         {
-            filter = Builders<Facility>.Filter.Eq(f => f.UserId, userGuid);
-        }
-        else
-        {
-            filter = Builders<Facility>.Filter.Empty;
+            filters.Add(Builders<Facility>.Filter.Eq(f => f.UserId, userGuid));
         }
 
-        return _facilities.CountDocumentsAsync(filter, cancellationToken: cancellationToken)
-            .ContinueWith(task => (int)task.Result, cancellationToken);
+        // Filter by CreatedAt year if provided
+        if (year.HasValue)
+        {
+            var startOfYear = new DateTime(year.Value, 1, 1);
+            var startOfNextYear = startOfYear.AddYears(1);
+
+            filters.Add(Builders<Facility>.Filter.Gte(f => f.CreatedAt, startOfYear));
+            filters.Add(Builders<Facility>.Filter.Lt(f => f.CreatedAt, startOfNextYear));
+        }
+
+        var filter = filters.Count != 0
+            ? Builders<Facility>.Filter.And(filters)
+            : Builders<Facility>.Filter.Empty;
+
+        var count = await _facilities.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return (int)count;
     }
+
 }

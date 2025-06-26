@@ -2,6 +2,7 @@ using ManagerService.Application;
 using ManagerService.Application.Interfaces.ServiceClients;
 using ManagerService.Infrastructure.Services.Configurations;
 using ManagerService.Infrastructure.Services.ServiceClients;
+using ManagerService.Presentation.Middlewares;
 
 namespace ManagerService.Presentation.Extensions;
 
@@ -11,6 +12,8 @@ public static class ApplicationServiceExtensions
     {
         services.AddControllers();
         services.AddHttpContextAccessor();
+
+        services.AddScoped<ExceptionHandlingMiddleware>();
 
         return services
             .AddExternalServices(configuration)

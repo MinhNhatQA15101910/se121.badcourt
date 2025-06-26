@@ -104,25 +104,25 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
 
     [Authorize(Roles = "Manager, Admin")]
     [HttpGet("total-revenue")]
-    public async Task<ActionResult<decimal>> GetTotalRevenue()
+    public async Task<ActionResult<decimal>> GetTotalRevenue([FromQuery] int? year)
     {
-        var totalRevenue = await mediator.Send(new GetTotalRevenueQuery());
+        var totalRevenue = await mediator.Send(new GetTotalRevenueQuery(year));
         return Ok(totalRevenue);
     }
 
     [Authorize(Roles = "Manager, Admin")]
     [HttpGet("total-orders")]
-    public async Task<ActionResult<decimal>> GetTotalOrders()
+    public async Task<ActionResult<decimal>> GetTotalOrders([FromQuery] int? year)
     {
-        var totalOrders = await mediator.Send(new GetTotalOrdersQuery());
+        var totalOrders = await mediator.Send(new GetTotalOrdersQuery(year));
         return Ok(totalOrders);
     }
 
     [Authorize(Roles = "Manager, Admin")]
     [HttpGet("total-customers")]
-    public async Task<ActionResult<decimal>> GetTotalCustomers()
+    public async Task<ActionResult<decimal>> GetTotalCustomers([FromQuery] int? year)
     {
-        var totalCustomers = await mediator.Send(new GetTotalCustomersQuery());
+        var totalCustomers = await mediator.Send(new GetTotalCustomersQuery(year));
         return Ok(totalCustomers);
     }
 }

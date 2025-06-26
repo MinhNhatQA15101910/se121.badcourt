@@ -1,3 +1,3 @@
 namespace FacilityService.Core.Application.Queries;
 
-public record GetTotalFacilitiesQuery : IQuery<int>;
+public record GetTotalFacilitiesQuery(int? Year) : IQuery<int>;

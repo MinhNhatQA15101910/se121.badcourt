@@ -92,9 +92,9 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
 
     [Authorize(Roles = "Admin, Manager")]
     [HttpGet("total-facilities")]
-    public async Task<ActionResult<int>> GetTotalFacilities()
+    public async Task<ActionResult<int>> GetTotalFacilities([FromQuery] int? year)
     {
-        var totalFacilities = await mediator.Send(new GetTotalFacilitiesQuery());
+        var totalFacilities = await mediator.Send(new GetTotalFacilitiesQuery(year));
         return Ok(totalFacilities);
     }
 }

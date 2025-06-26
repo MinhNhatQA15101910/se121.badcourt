@@ -15,10 +15,10 @@ public class GetTotalRevenueHandler(
         var roles = httpContextAccessor.HttpContext.User.GetRoles();
         if (roles.Contains("Admin"))
         {
-            return await orderRepository.GetTotalRevenueAsync(null, cancellationToken);
+            return await orderRepository.GetTotalRevenueAsync(null, request.Year, cancellationToken);
         }
 
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
-        return await orderRepository.GetTotalRevenueAsync(userId.ToString(), cancellationToken);
+        return await orderRepository.GetTotalRevenueAsync(userId.ToString(), request.Year, cancellationToken);
     }
 }
