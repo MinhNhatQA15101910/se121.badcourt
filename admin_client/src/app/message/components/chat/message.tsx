@@ -127,7 +127,6 @@ export default function Message({ message, conversationName, conversationAvatar,
                   const fileType = getFileType(resource.url, resource)
                   const isImage = fileType.includes("image")
                   const isVideo = fileType.includes("video")
-                  const isFile = !isImage && !isVideo
 
                   if (isImage) {
                     return (

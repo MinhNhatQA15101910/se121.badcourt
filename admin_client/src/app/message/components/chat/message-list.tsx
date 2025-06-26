@@ -32,7 +32,6 @@ export default function MessageList({
   onMessageRead,
   pagination,
   onLoadMore,
-  onLoadPrevious,
   onScroll,
 }: MessageListProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)

@@ -58,7 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               size="lg"
               className="p-3 flex items-center gap-3 mb-4"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-transparent text-[#23C16B]">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-transparent text-sidebar-primary-foreground">
                 <Image src="/logo.png" alt="Logo" width={32} height={32} />
               </div>
               <span className="truncate font-semibold text-2xl">BadCourt</span>
@@ -68,7 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <div className="relative flex flex-col w-auto h-auto items-center justify-center rounded-lg text-[#23C16B] ml-6 mr-6 mt-4">
+        <div className="relative flex flex-col w-auto h-auto items-center justify-center rounded-lg text-sidebar-primary-foreground ml-6 mr-6 mt-4">
           <Image
             src="/info-sidebar.png"
             alt="Logo"

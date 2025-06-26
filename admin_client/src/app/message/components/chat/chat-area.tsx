@@ -18,7 +18,7 @@ interface ChatAreaProps {
   onSendMessage: (message: string, imageUrl?: string) => void
 }
 
-export default function ChatArea({ conversation, showConversationList, onBackClick, onSendMessage }: ChatAreaProps) {
+export default function ChatArea({ conversation, showConversationList, onBackClick }: ChatAreaProps) {
   const [message, setMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [isUserNearBottom, setIsUserNearBottom] = useState(true)
@@ -28,8 +28,8 @@ export default function ChatArea({ conversation, showConversationList, onBackCli
   const previousMessagesLengthRef = useRef(0)
   const previousConversationIdRef = useRef<string | null>(null)
 
-  const { messageThreads, messagePagination, loadMoreMessages, connectToUserForChat, disconnectFromUser } = useSignalR()
-  const { data: session } = useSession()
+  const { messagePagination, loadMoreMessages } = useSignalR()
+  useSession()
 
   // Get pagination info for current conversation
   const currentPagination = conversation.userId ? messagePagination[conversation.userId] : undefined

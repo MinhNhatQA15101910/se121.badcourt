@@ -222,7 +222,7 @@ export default function OwnerDetailPage() {
 
               <div className="space-y-4">
                 <Button
-                  className="w-full bg-green hover:bg-green-700 py-6"
+                  className="w-full bg-[#23C16B] hover:bg-green-700 py-6"
                   onClick={handleChatWithOwner}
                 >
                   <MessageCircle className="mr-2 h-5 w-5" />

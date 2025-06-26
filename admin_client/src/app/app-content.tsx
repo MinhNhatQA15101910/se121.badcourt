@@ -35,7 +35,7 @@ export default function AppContent({
       <div className="flex h-full w-full">
         <AppSidebar />
         <div className="flex flex-col flex-1 h-full">
-          <header className="flex flex-row h-16 shrink-0 items-center gap-2 bg-green">
+          <header className="flex flex-row h-16 shrink-0 items-center gap-2 bg-[#23C16B]">
             <div className="flex w-full items-center px-2">
               <div className="flex-shrink-0">
                 <SidebarTrigger className="flex -ml-1 text-white hover:bg-light-green hover:text-green font-bold" />

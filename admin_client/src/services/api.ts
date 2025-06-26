@@ -87,8 +87,7 @@ export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = 
           errorDetails = errorText
           errorMessage += ` - ${errorText}`
         }
-      } catch (e) {
-        // Ignore error parsing error message
+      } catch {
       }
 
       console.error("❌ API Error:", {
@@ -190,7 +189,7 @@ export async function fetchWithPagination<T>(
         if (errorText) {
           errorMessage += ` - ${errorText}`
         }
-      } catch (e) {
+      } catch{
         // Ignore error parsing error message
       }
 
