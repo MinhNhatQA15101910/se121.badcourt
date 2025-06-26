@@ -117,8 +117,8 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     _selectedDays.forEach((day) {
       String dayName = _getDayName(day); // Helper function to get day name
       activeSchedule[dayName] = {
-        'hour_from': _hourMinuteToMilliseconds(_startHour, _startMinute),
-        'hour_to': _hourMinuteToMilliseconds(_endHour, _endMinute),
+        'hourFrom': _hourMinuteToMilliseconds(_startHour, _startMinute),
+        'hourTo': _hourMinuteToMilliseconds(_endHour, _endMinute),
       };
     });
     await _courtManagementService.updateActiveSchedule(
@@ -187,9 +187,8 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
       _startMinute = startMinute;
       _endHour = endHour;
       _endMinute = endMinute;
-
-      _updateActiveSchedule();
     });
+    _updateActiveSchedule();
   }
 
   void _fetchCourtByFacilityId() async {
@@ -198,9 +197,36 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
       listen: false,
     );
 
+    final currentFacility = currentFacilityProvider.currentFacility;
+
+    if (currentFacility.activeAt.schedule.isNotEmpty) {
+      final firstDaySchedule = currentFacility.activeAt.schedule.values.first;
+
+      setState(() {
+        // Chuyển đổi từ milliseconds sang giờ và phút
+        _startHour =
+            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourFrom).hour;
+        _startMinute =
+            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourFrom)
+                .minute;
+        _endHour =
+            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourTo).hour;
+        _endMinute =
+            DateTime.fromMillisecondsSinceEpoch(firstDaySchedule.hourTo).minute;
+      });
+    } else {
+      // Giá trị mặc định
+      setState(() {
+        _startHour = 9;
+        _startMinute = 0;
+        _endHour = 17;
+        _endMinute = 0;
+      });
+    }
+
     _courts = await _courtManagementService.fetchCourtByFacilityId(
       context,
-      currentFacilityProvider.currentFacility.id,
+      currentFacility.id,
     );
 
     setState(() {});
@@ -209,6 +235,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
   @override
   void initState() {
     super.initState();
+
     _fetchCourtByFacilityId();
   }
 
@@ -217,43 +244,6 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'COURTS',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       body: Stack(
         children: [
           Container(
@@ -268,7 +258,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                       image: DecorationImage(
                         image: NetworkImage(
                           currentFacilityProvider
-                              .currentFacility.imageUrls.first,
+                              .currentFacility.facilityImages.first.url,
                         ),
                         fit: BoxFit.fill,
                       ),
@@ -289,7 +279,7 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _interRegular18(
-                          currentFacilityProvider.currentFacility.name,
+                          currentFacilityProvider.currentFacility.facilityName,
                           GlobalVariables.blackGrey,
                           1,
                         ),

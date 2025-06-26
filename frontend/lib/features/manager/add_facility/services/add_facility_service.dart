@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
@@ -87,102 +86,89 @@ class AddFacilityService {
     );
 
     try {
-      final cloudinary = CloudinaryPublic('dauyd6npv', 'nkklif97');
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$uri/api/facilities'),
+      );
 
-      List<String> uploadedFacilityImageUrls = [];
-      List<String> uploadedBusinessLicenseImageUrls = [];
+      // Thêm thông tin JSON dưới dạng fields
+      request.fields.addAll({
+        "facilityName": newFacilityProvider.newFacility.facilityName,
+        "lon": newFacilityProvider.newFacility.lat.toString(),
+        "lat": newFacilityProvider.newFacility.lon.toString(),
+        "detailAddress": newFacilityProvider.newFacility.detailAddress,
+        "province": newFacilityProvider.newFacility.province,
+        "fullName": newFacilityProvider.newFacility.managerInfo.fullName,
+        "email": newFacilityProvider.newFacility.managerInfo.email,
+        "facebookUrl": newFacilityProvider.newFacility.facebookUrl,
+        "phoneNumber": newFacilityProvider.newFacility.managerInfo.phoneNumber,
+        "citizenId": newFacilityProvider.newFacility.managerInfo.citizenId,
+        "description": newFacilityProvider.newFacility.description,
+        "policy": newFacilityProvider.newFacility.policy,
+      });
 
-      // Upload facility images
+      // Thêm các file ảnh dạng nhiều (facilityImages)
       for (File file in newFacilityProvider.facilityImages) {
-        CloudinaryResponse response = await cloudinary.uploadFile(
-          CloudinaryFile.fromFile(
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'facilityImages', // Tên key trong API
             file.path,
-            folder: 'facilities/${newFacilityProvider.newFacility.name}',
           ),
         );
-        uploadedFacilityImageUrls.add(response.secureUrl);
       }
 
-      // Upload business license images
+      // Thêm các file ảnh dạng nhiều (businessLicenseImages)
       for (File file in newFacilityProvider.licenseImages) {
-        CloudinaryResponse response = await cloudinary.uploadFile(
-          CloudinaryFile.fromFile(
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'businessLicenseImages', // Tên key trong API
             file.path,
-            folder: 'business_license/${newFacilityProvider.newFacility.name}',
           ),
         );
-        uploadedBusinessLicenseImageUrls.add(response.secureUrl);
       }
 
-      // Upload citizen image front
-      CloudinaryResponse citizenFrontResponse = await cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
+      // Thêm các file đơn lẻ
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'citizenImageFront', // Tên key trong API
           newFacilityProvider.frontCitizenIdImage.path,
-          folder: 'citizen_images/${newFacilityProvider.newFacility.name}',
         ),
       );
-      String? citizenImageUrlFront = citizenFrontResponse.secureUrl;
 
-      // Upload citizen image back
-      CloudinaryResponse citizenBackResponse = await cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'citizenImageBack', // Tên key trong API
           newFacilityProvider.backCitizenIdImage.path,
-          folder: 'citizen_images/${newFacilityProvider.newFacility.name}',
         ),
       );
-      String? citizenImageUrlBack = citizenBackResponse.secureUrl;
 
-      // Upload bank card front
-      CloudinaryResponse bankCardFrontResponse = await cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'bankCardFront', // Tên key trong API
           newFacilityProvider.frontBankCardImage.path,
-          folder: 'bank_cards/${newFacilityProvider.newFacility.name}',
         ),
       );
-      String? bankCardUrlFront = bankCardFrontResponse.secureUrl;
 
-      // Upload bank card back
-      CloudinaryResponse bankCardBackResponse = await cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'bankCardBack', // Tên key trong API
           newFacilityProvider.backBankCardImage.path,
-          folder: 'bank_cards/${newFacilityProvider.newFacility.name}',
         ),
       );
-      String? bankCardUrlBack = bankCardBackResponse.secureUrl;
 
-      // Prepare and send the POST request
-      http.Response response = await http.post(
-        Uri.parse('$uri/manager/register-facility'),
-        body: jsonEncode(
-          {
-            "facility_name": newFacilityProvider.newFacility.name,
-            "lat": newFacilityProvider.newFacility.latitude,
-            "lon": newFacilityProvider.newFacility.longitude,
-            "detail_address": newFacilityProvider.newFacility.detailAddress,
-            "province": newFacilityProvider.newFacility.province,
-            "facility_image_urls": uploadedFacilityImageUrls,
-            "full_name": newFacilityProvider.newFacility.managerInfo.fullName,
-            "email": newFacilityProvider.newFacility.managerInfo.email,
-            "facebook_url": newFacilityProvider.newFacility.facebookUrl,
-            "phone_number":
-                newFacilityProvider.newFacility.managerInfo.phoneNumber,
-            "citizen_id": newFacilityProvider.newFacility.managerInfo.citizenId,
-            "citizen_image_url_front": citizenImageUrlFront,
-            "citizen_image_url_back": citizenImageUrlBack,
-            "bank_card_url_front": bankCardUrlFront,
-            "bank_card_url_back": bankCardUrlBack,
-            "business_license_image_urls": uploadedBusinessLicenseImageUrls,
-            "description": newFacilityProvider.newFacility.description,
-            "policy": newFacilityProvider.newFacility.policy,
-          },
-        ),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
-        },
-      );
+      // Thêm headers
+      request.headers.addAll({
+        'Authorization': 'Bearer ${userProvider.user.token}',
+      });
 
-      // Handle response
+      // Gửi request
+      final streamedResponse = await request.send();
+
+      // Xử lý response
+      final response = await http.Response.fromStream(streamedResponse);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       httpErrorHandler(
         response: response,
         context: context,

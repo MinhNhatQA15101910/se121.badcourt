@@ -98,7 +98,7 @@ class _ItemCourtState extends State<ItemCourt> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  _semiBoldSizeText(widget.court.name),
+                  _semiBoldSizeText(widget.court.courtName),
                   _detailText(widget.court.description),
                 ],
               ),

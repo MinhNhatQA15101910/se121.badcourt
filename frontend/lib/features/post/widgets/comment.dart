@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/common/widgets/custom_avatar.dart';
 import 'package:frontend/constants/global_variables.dart';
 
 class CommentWidget extends StatefulWidget {
   final String profileImageUrl;
   final String username;
+  final String userId;
   final String commentText;
   final String date;
   final int initialLikesCount;
@@ -13,6 +15,7 @@ class CommentWidget extends StatefulWidget {
     Key? key,
     required this.profileImageUrl,
     required this.username,
+    required this.userId,
     required this.commentText,
     required this.date,
     required this.initialLikesCount,
@@ -58,9 +61,10 @@ class _CommentWidgetState extends State<CommentWidget> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Avatar
-              CircleAvatar(
+              CustomAvatar(
                 radius: 16,
-                backgroundImage: NetworkImage(widget.profileImageUrl),
+                imageUrl: widget.profileImageUrl,
+                userId: widget.userId,
               ),
               const SizedBox(width: 8), // Space between avatar and name
 
@@ -70,16 +74,18 @@ class _CommentWidgetState extends State<CommentWidget> {
                   widget.username,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
+                  maxLines: 1,
                 ),
               ),
               Text(
                 widget.date,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: Colors.grey[500],
                 ),
+                maxLines: 1,
               ),
             ],
           ),
@@ -100,7 +106,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             child: Text(
               widget.commentText,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: GlobalVariables.darkGrey,
               ),
             ),

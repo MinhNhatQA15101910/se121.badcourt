@@ -26,7 +26,8 @@ class _FacilityHomeState extends State<FacilityHome> {
   Widget build(BuildContext context) {
     final currentFacilityProvider = context.watch<CurrentFacilityProvider>();
 
-    final imageCount = currentFacilityProvider.currentFacility.imageUrls.length;
+    final imageCount =
+        currentFacilityProvider.currentFacility.facilityImages.length;
     final minPrice = currentFacilityProvider.currentFacility.minPrice;
     final maxPrice = currentFacilityProvider.currentFacility.maxPrice;
 
@@ -44,7 +45,7 @@ class _FacilityHomeState extends State<FacilityHome> {
               children: [
                 Expanded(
                   child: _interMedium16(
-                    currentFacilityProvider.currentFacility.name,
+                    currentFacilityProvider.currentFacility.facilityName,
                     GlobalVariables.white,
                     1,
                   ),
@@ -65,11 +66,9 @@ class _FacilityHomeState extends State<FacilityHome> {
                     onSelected: (String result) {
                       switch (result) {
                         case 'Edit':
-                          // Xử lý khi chọn Edit
                           print('Edit selected');
                           break;
                         case 'Delete':
-                          // Xử lý khi chọn Delete
                           print('Delete selected');
                           break;
                       }
@@ -108,7 +107,7 @@ class _FacilityHomeState extends State<FacilityHome> {
                       image: DecorationImage(
                         image: NetworkImage(
                           currentFacilityProvider
-                              .currentFacility.imageUrls[index],
+                              .currentFacility.facilityImages[index].url,
                         ),
                         fit: BoxFit.fill,
                       ),
@@ -152,7 +151,7 @@ class _FacilityHomeState extends State<FacilityHome> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _interRegular18(
-                  currentFacilityProvider.currentFacility.name,
+                  currentFacilityProvider.currentFacility.facilityName,
                   GlobalVariables.blackGrey,
                   1,
                 ),

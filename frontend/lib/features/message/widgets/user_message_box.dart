@@ -9,6 +9,8 @@ class UserMessageBox extends StatelessWidget {
   final String lastMessage;
   final String timestamp;
   final String userImageUrl;
+  final String role;
+  final String userId; // Thay vì roomId, truyền userId
 
   const UserMessageBox({
     Key? key,
@@ -16,21 +18,26 @@ class UserMessageBox extends StatelessWidget {
     required this.lastMessage,
     required this.timestamp,
     required this.userImageUrl,
+    required this.role,
+    required this.userId, // Thay đổi từ roomId sang userId
   }) : super(key: key);
+
+  void _navigateToMessageScreen(BuildContext context, String userId) {
+    Navigator.of(context).pushNamed(
+      MessageDetailScreen.routeName,
+      arguments: userId, // Truyền userId thay vì roomId
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    void _navigateToMessageScreen() {
-      Navigator.of(context).pushNamed(MessageDetailScreen.routeName);
-    }
-
     return GestureDetector(
-      onTap: _navigateToMessageScreen,
+      onTap: () => _navigateToMessageScreen(context, userId),
       child: CustomContainer(
         child: Row(
           children: [
             CircleAvatar(
-              radius: 30,
+              radius: 28,
               backgroundImage: NetworkImage(userImageUrl),
             ),
             const SizedBox(width: 16),
@@ -41,58 +48,40 @@ class UserMessageBox extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _customText(
-                        userName,
-                        16,
-                        FontWeight.w600,
-                        GlobalVariables.blackGrey,
-                        1,
+                      Expanded(
+                        child: _customText(
+                          userName,
+                          14,
+                          FontWeight.w600,
+                          GlobalVariables.blackGrey,
+                          1,
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       _customText(
-                        "  •  ",
-                        16,
-                        FontWeight.w600,
-                        GlobalVariables.blackGrey,
-                        1,
-                      ),
-                      _customText(
-                        timestamp,
-                        14,
+                        role,
+                        12,
                         FontWeight.w500,
-                        GlobalVariables.blackGrey,
+                        GlobalVariables.green,
                         1,
                       ),
                     ],
                   ),
                   _customText(
-                    "Sân cầu lông Nhật Duy",
-                    14,
-                    FontWeight.w500,
+                    timestamp,
+                    10,
+                    FontWeight.w400,
                     GlobalVariables.darkGrey,
                     1,
                   ),
-                  Text(
+                  _customText(
                     lastMessage,
-                    style: const TextStyle(color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
+                    12,
+                    FontWeight.w400,
+                    GlobalVariables.darkGrey,
+                    1,
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(8), // Đảm bảo bán kính bo tròn ở đây
-                child: Image.network(
-                  'https://via.placeholder.com/150',
-                  fit: BoxFit.cover,
-                ),
               ),
             ),
           ],

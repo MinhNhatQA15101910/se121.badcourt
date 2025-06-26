@@ -34,7 +34,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
     final order = ModalRoute.of(context)!.settings.arguments as Order;
-    DateTime playTime = order.period.hourFrom;
+    DateTime playTime = order.timePeriod.hourFrom;
     bool isPlayed = now.isAfter(playTime);
 
     return SafeArea(
@@ -120,7 +120,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                               _InterMedium14(
                                   'Booking date', GlobalVariables.blackGrey, 1),
                               _InterBold14(
-                                '${order.orderedAt.hour}:${order.orderedAt.minute}, ${order.orderedAt.day}/${order.orderedAt.month}/${order.orderedAt.year}',
+                                '${order.createdAt.hour}:${order.createdAt.minute}, ${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year}',
                                 GlobalVariables.blackGrey,
                                 1,
                               ),
@@ -265,7 +265,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       children: [
                         _InterBold16(
                           DateFormat('EEEE, dd/MM/yyyy')
-                              .format(order.period.hourFrom),
+                              .format(order.timePeriod.hourFrom),
                           GlobalVariables.blackGrey,
                           1,
                         ),
@@ -285,10 +285,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                 children: [
                                   _InterRegular14(
                                     DateFormat('hh:mm')
-                                            .format(order.period.hourFrom) +
+                                            .format(order.timePeriod.hourFrom) +
                                         ' to ' +
                                         DateFormat('hh:mm')
-                                            .format(order.period.hourTo),
+                                            .format(order.timePeriod.hourTo),
                                     GlobalVariables.blackGrey,
                                     1,
                                   ),

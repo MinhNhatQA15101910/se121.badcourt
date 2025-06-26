@@ -7,8 +7,8 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/widgets/forgot_password_form.dart';
 import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
-import 'package:frontend/features/post/screens/post_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -182,21 +182,18 @@ class AuthService {
         onSuccess: () async {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(
-              'x-auth-token', jsonDecode(response.body)['token']);
+              'Authorization', 'Bearer ${jsonDecode(response.body)['token']}');
 
           userProvider.setUser(response.body);
 
           if (jsonDecode(response.body)['role'] == 'player') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              // PlayerBottomBar.routeName,
-              PostScreen.routeName,
+              PlayerBottomBar.routeName,
               (route) => false,
             );
           } else if (jsonDecode(response.body)['role'] == 'manager') {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              // IntroManagerScreen.routeName,
-              PostScreen.routeName,
-
+              IntroManagerScreen.routeName,
               (route) => false,
             );
           }
@@ -286,17 +283,21 @@ class AuthService {
     }
   }
 
-  // Validate email
   Future<bool> validateEmail({
     required BuildContext context,
     required String email,
   }) async {
+    final authProvider = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/email-exists'),
+        Uri.parse('$uri/api/auth/email-exists'),
         body: jsonEncode(
           {
             'email': email,
+            'role': authProvider.isPlayer ? 'player' : 'manager',
           },
         ),
         headers: <String, String>{
@@ -304,41 +305,45 @@ class AuthService {
         },
       );
 
-      var isExistingEmail = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        var responseBody = jsonDecode(response.body);
 
-      if (isExistingEmail) {
-        final authProvider = Provider.of<AuthProvider>(
-          context,
-          listen: false,
-        );
+        if (responseBody['token'] != null) {
+          authProvider.setAuthToken(responseBody['token']);
 
-        authProvider.setResentEmail(
-          email,
-        );
+          authProvider.setResentEmail(
+            email,
+          );
 
-        authProvider.setPreviousForm(
-          ForgotPasswordForm(),
-        );
+          authProvider.setPreviousForm(
+            ForgotPasswordForm(),
+          );
 
-        authProvider.setForm(
-          PinputForm(
-            isMoveBack: false,
-            isValidateSignUpEmail: false,
-          ),
-        );
+          authProvider.setForm(
+            PinputForm(
+              isMoveBack: false,
+              isValidateSignUpEmail: false,
+            ),
+          );
+
+          return true;
+        } else {
+          IconSnackBar.show(
+            context,
+            label: 'Token not found in response.',
+            snackBarType: SnackBarType.fail,
+          );
+          return false;
+        }
       } else {
         IconSnackBar.show(
           context,
-          label: 'Email not found.',
+          label:
+              'Failed to validate email. Status Code: ${response.statusCode}',
           snackBarType: SnackBarType.fail,
         );
-      }
-
-      if (response.statusCode != 200) {
         return false;
       }
-
-      return true;
     } catch (error) {
       IconSnackBar.show(
         context,
@@ -362,16 +367,16 @@ class AuthService {
 
     try {
       http.Response response = await http.patch(
-        Uri.parse('$uri/change-password'),
+        Uri.parse('$uri/api/users/change-password'),
         body: jsonEncode(
           {
-            'email': email,
-            'role': authProvider.isPlayer ? 'player' : 'manager',
+            'currentPassword': email,
             'new_password': newPassword,
           },
         ),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
+        headers: {
+          'Authorization': 'Bearer ${authProvider.authToken}',
+          'Content-Type': 'application/json',
         },
       );
 

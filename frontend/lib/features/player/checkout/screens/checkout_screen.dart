@@ -106,7 +106,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               child: Image(
                                 image: NetworkImage(
                                   currentFacilityProvider
-                                      .currentFacility.imageUrls.first,
+                                      .currentFacility.facilityImages.first.url,
                                 ),
                                 fit: BoxFit.fill,
                               ),
@@ -119,7 +119,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 vertical: 12,
                               ),
                               child: _interMedium18(
-                                currentFacilityProvider.currentFacility.name,
+                                currentFacilityProvider
+                                    .currentFacility.facilityName,
                                 GlobalVariables.blackGrey,
                                 2,
                               ),

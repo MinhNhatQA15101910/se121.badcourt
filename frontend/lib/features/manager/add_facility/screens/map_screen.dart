@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/manager/add_facility/providers/address_provider.dart';
+import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
-import 'package:frontend/features/manager/add_facility/services/add_facility_service.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 
 class MapScreen extends StatefulWidget {
@@ -21,10 +20,10 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final _searchController = TextEditingController();
-  final _addFacilityService = AddFacilityService();
   VietmapController? _mapController;
   LatLng markerPosition = LatLng(10.762317, 106.654551);
-  String _searchCode = "";
+  final _addFacilityService = AddFacilityService();
+  String _refId = "";
   DetailAddress _detailAddress = DetailAddress(
     display: '',
     name: '',
@@ -41,77 +40,108 @@ class _MapScreenState extends State<MapScreen> {
     lng: 0.0,
   );
 
-  Future<void> _fetchSearchCode() async {
-    final searchCode = await _addFacilityService.fetchAddressRefId(
-      context: context,
-      searchText: _searchController.text,
-    );
-    if (searchCode != null) {
-      setState(() {
-        _searchCode = searchCode;
-      });
-    }
-  }
+  @override
+  void initState() {
+    super.initState();
 
-  Future<void> _fetchDetailAddress() async {
-    final detailAddress = await _addFacilityService.fetchDetailAddress(
-      refId: _searchCode,
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
     );
-
-    if (detailAddress != null) {
+    final currentAddess = addressProvider.currentAddress;
+    if (currentAddess.lat != 0.0 && currentAddess.lng != 0.0) {
       setState(() {
-        _detailAddress = detailAddress;
-        markerPosition = LatLng(_detailAddress.lat, _detailAddress.lng);
+        markerPosition = LatLng(
+          currentAddess.lat,
+          currentAddess.lng,
+        );
+        _detailAddress = currentAddess;
       });
 
-      _mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(target: markerPosition, zoom: 15),
-        ),
-      );
-    }
-  }
-
-  void _pingMarker() async {
-    if (_mapController != null) {
-      LatLng? currentLocation = await _mapController?.requestMyLocationLatLng();
-
-      if (currentLocation != null) {
-        setState(() {
-          markerPosition = currentLocation;
-        });
-
-        _mapController!.animateCamera(
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapController?.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(target: markerPosition, zoom: 15),
           ),
         );
-
-        setState(() {});
-
-        Future.delayed(Duration(seconds: 1), () {
-          setState(() {});
-        });
-      }
+      });
     }
   }
 
-  void _selectLocation() {
-    if (_detailAddress.lat != 0.0 && _detailAddress.lng != 0.0) {
-      final addressProvider = Provider.of<AddressProvider>(
-        context,
-        listen: false,
+  Future<void> _updateAddress(LatLng latLng) async {
+    try {
+      final refId = await _addFacilityService.fetchAddressRefId(
+        context: context,
+        lat: latLng.latitude,
+        lng: latLng.longitude,
       );
 
-      addressProvider.setAddress(_detailAddress);
+      if (refId != null) {
+        setState(() {
+          _refId = refId;
+        });
 
-      Navigator.of(context).pop(_detailAddress);
-    } else {
-      IconSnackBar.show(
-        context,
-        label: 'Please choose your location!',
-        snackBarType: SnackBarType.fail,
-      );
+        final detailAddress = await _addFacilityService.fetchDetailAddress(
+          refId: _refId,
+        );
+
+        if (detailAddress != null) {
+          setState(() {
+            _detailAddress = detailAddress;
+            markerPosition = LatLng(_detailAddress.lat, _detailAddress.lng);
+          });
+
+          final addressProvider = Provider.of<AddressProvider>(
+            context,
+            listen: false,
+          );
+          addressProvider.setAddress(detailAddress);
+        }
+      }
+    } catch (e) {
+      print('Error during search: $e');
+    }
+
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: latLng, zoom: 15),
+      ),
+    );
+  }
+
+  Future<void> _performSearch(String value) async {
+    if (value.isNotEmpty) {
+      try {
+        final refId = await _addFacilityService.fetchAddressRefId(
+          context: context,
+          searchText: value,
+        );
+
+        if (refId != null) {
+          setState(() {
+            _refId = refId;
+          });
+
+          final detailAddress = await _addFacilityService.fetchDetailAddress(
+            refId: _refId,
+          );
+
+          if (detailAddress != null) {
+            setState(() {
+              _detailAddress = detailAddress;
+              markerPosition = LatLng(_detailAddress.lat, _detailAddress.lng);
+            });
+
+            _mapController?.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(target: markerPosition, zoom: 15),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        print('Error during search: $e');
+      }
     }
   }
 
@@ -149,6 +179,9 @@ class _MapScreenState extends State<MapScreen> {
                 _mapController = controller;
               });
             },
+            onMapClick: (point, latLng) {
+              _updateAddress(latLng);
+            },
           ),
           _mapController == null
               ? SizedBox.shrink()
@@ -158,10 +191,22 @@ class _MapScreenState extends State<MapScreen> {
                       alignment: Alignment.bottomCenter,
                       height: 50,
                       width: 50,
-                      child: const Icon(
-                        Icons.location_on_outlined,
-                        color: GlobalVariables.red,
-                        size: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 0.2,
+                              blurRadius: 32,
+                            ),
+                          ],
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/vectors/vector_location_icon.svg',
+                          width: 80,
+                          height: 80,
+                        ),
                       ),
                       latLng: markerPosition,
                     )
@@ -179,13 +224,12 @@ class _MapScreenState extends State<MapScreen> {
                       child: TextFormField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Find badminton facilities',
+                          hintText: 'Find address',
                           hintStyle: GoogleFonts.inter(
                             color: GlobalVariables.darkGrey,
                             fontSize: 16,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                          contentPadding: const EdgeInsets.all(16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(
@@ -208,33 +252,11 @@ class _MapScreenState extends State<MapScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                         ),
-                        validator: (facilityName) {
-                          if (facilityName == null || facilityName.isEmpty) {
-                            return 'Please enter your facility name.';
+                        onFieldSubmitted: (value) async {
+                          if (value.isNotEmpty) {
+                            _performSearch(value);
                           }
-                          return null;
                         },
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: _pingMarker,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: GlobalVariables.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'assets/vectors/vector_reality_location.svg',
-                            width: 32,
-                            height: 32,
-                            color: GlobalVariables.green,
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -252,19 +274,8 @@ class _MapScreenState extends State<MapScreen> {
                     Expanded(
                       child: CustomButton(
                         onTap: () {
-                          _fetchSearchCode();
-                          _fetchDetailAddress();
+                          Navigator.of(context).pop(_detailAddress);
                         },
-                        buttonText: 'Search',
-                        borderColor: GlobalVariables.green,
-                        fillColor: Colors.white,
-                        textColor: GlobalVariables.green,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: CustomButton(
-                        onTap: _selectLocation,
                         buttonText: 'Select',
                         borderColor: GlobalVariables.green,
                         fillColor: GlobalVariables.green,

@@ -20,7 +20,6 @@ class AccountService {
         AuthOptionsScreen.routeName,
         (route) => false,
       );
-
       IconSnackBar.show(
         context,
         label: 'Log out successfully!',

@@ -22,4 +22,6 @@ class AddressProvider extends ChangeNotifier {
     _address = detailAddress;
     notifyListeners();
   }
+
+  DetailAddress get currentAddress => _address;
 }

@@ -81,16 +81,17 @@ class _FacilityInfoState extends State<FacilityInfo> {
         );
 
         Facility facility = newFacilityProvider.newFacility.copyWith(
-          name: _facilityNameController.text,
+          facilityName: _facilityNameController.text,
           facebookUrl: _facebookUrlController.text,
           description: _descriptionController.text,
           policy: _policyController.text,
           detailAddress:
               '${_streetNameController.text}, ${_wardNameController.text}, ${_districtNameController.text}, ${_provinceNameController.text}',
           province: _selectedAddress!.city,
-          latitude: _selectedAddress!.lat,
-          longitude: _selectedAddress!.lng,
+          lat: _selectedAddress!.lng,
+          lon: _selectedAddress!.lat,
         );
+
         newFacilityProvider.setFacility(facility);
         newFacilityProvider.setFacilityImageUrls(_images!);
 

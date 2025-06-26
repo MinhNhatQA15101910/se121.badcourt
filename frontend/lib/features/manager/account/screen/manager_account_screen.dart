@@ -52,43 +52,6 @@ class ManagerAccountScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'ACCOUNT',
-                  style: GoogleFonts.alfaSlabOne(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () => {},
-                iconSize: 24,
-                icon: const Icon(
-                  Icons.message_outlined,
-                  color: GlobalVariables.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
       body: Container(
         color: GlobalVariables.defaultColor,
         child: SingleChildScrollView(
