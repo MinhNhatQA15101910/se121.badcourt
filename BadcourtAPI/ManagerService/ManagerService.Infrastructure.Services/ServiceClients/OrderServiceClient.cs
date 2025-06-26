@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using ManagerService.Application.Interfaces.ServiceClients;
 using ManagerService.Infrastructure.Services.Configurations;
@@ -10,9 +11,18 @@ public class OrderServiceClient(
     HttpClient client
 ) : IOrderServiceClient
 {
-    public async Task<decimal> GetTotalRevenueAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<decimal> GetTotalRevenueAsync(string bearerToken, CancellationToken cancellationToken = default)
     {
-        var orderApiEndpoint = config.Value.OrdersApi;
-        return await client.GetFromJsonAsync<decimal>($"{orderApiEndpoint}/total-revenue", cancellationToken: cancellationToken);
+        var request = new HttpRequestMessage(HttpMethod.Get, config.Value.OrdersApi + "/total-revenue");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+        var response = await client.SendAsync(request, cancellationToken);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Failed to get total revenue: {response.ReasonPhrase}");
+        }
+
+        return await response.Content.ReadFromJsonAsync<decimal>(cancellationToken: cancellationToken);
     }
 }

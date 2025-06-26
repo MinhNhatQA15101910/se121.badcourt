@@ -12,9 +12,9 @@ public class GetDashboardSummaryHandler(
 {
     public async Task<DashboardSummaryResponse> Handle(GetDashboardSummaryQuery request, CancellationToken cancellationToken)
     {
-        var userId = httpContextAccessor.HttpContext.User.GetUserId();
+        var bearerToken = httpContextAccessor.HttpContext?.GetBearerToken();
         
-        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(userId, cancellationToken);
+        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(bearerToken!, cancellationToken);
 
         return new DashboardSummaryResponse
         {
