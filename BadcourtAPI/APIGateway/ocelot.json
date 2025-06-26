@@ -234,6 +234,13 @@
       "UpstreamPathTemplate": "/gateway/ratings",
       "UpstreamHttpMethod": ["Get"]
     },
+    {
+      "DownstreamPathTemplate": "/api/payments/create-intent",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/payments/create-intent",
+      "UpstreamHttpMethod": ["Post"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",

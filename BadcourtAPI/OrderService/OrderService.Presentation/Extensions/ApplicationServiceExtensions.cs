@@ -4,12 +4,15 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Core.Application;
 using OrderService.Core.Application.ApiRepository;
+using OrderService.Core.Application.Interfaces;
 using OrderService.Core.Domain.Repositories;
 using OrderService.Infrastructure.Configuration;
 using OrderService.Infrastructure.ExternalServices.BackgroundServices;
+using OrderService.Infrastructure.ExternalServices.Services;
 using OrderService.Infrastructure.Persistence;
 using OrderService.Infrastructure.Persistence.Repositories;
 using OrderService.Presentation.Middlewares;
+using Stripe;
 
 namespace OrderService.Presentation.Extensions;
 
@@ -22,6 +25,8 @@ public static class ApplicationServiceExtensions
 
         // Middleware
         services.AddScoped<ExceptionHandlingMiddleware>();
+
+        StripeConfiguration.ApiKey = config["StripeSettings:SecretKey"];
 
         // MassTransit
         services.AddMassTransit(x =>
@@ -65,6 +70,8 @@ public static class ApplicationServiceExtensions
 
     public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
     {
+        services.AddScoped<IStripeService, StripeService>();
+
         // Background Services
         services.AddHostedService<UpdateOrderStateBackgroundService>();
 
