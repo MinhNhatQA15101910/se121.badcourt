@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:frontend/models/file_dto.dart';
 
 class Post {
@@ -38,28 +37,21 @@ class Post {
       title: map['title']?.toString() ?? '',
       content: map['content']?.toString() ?? '',
       resources: map['resources'] != null
-          ? List<FileDto>.from(
-              map['resources'].map((r) => FileDto.fromMap(r)))
+          ? List<FileDto>.from(map['resources'].map((r) => FileDto.fromMap(r)))
           : [],
-      // Fix: Handle both string and int types for likesCount
       likesCount: _parseToInt(map['likesCount']),
-      // Fix: Handle both string and bool types for isLiked
       isLiked: map['isLiked'] is bool
           ? map['isLiked']
           : map['isLiked'].toString().toLowerCase() == 'true',
-      // Fix: Handle both string and int types for commentsCount
       commentsCount: _parseToInt(map['commentsCount']),
-      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '')?.toLocal() ?? DateTime.now(),
     );
   }
 
-  // Helper method to safely parse int from dynamic value
   static int _parseToInt(dynamic value) {
     if (value == null) return 0;
     if (value is int) return value;
-    if (value is String) {
-      return int.tryParse(value) ?? 0;
-    }
+    if (value is String) return int.tryParse(value) ?? 0;
     if (value is double) return value.toInt();
     return 0;
   }
@@ -76,7 +68,7 @@ class Post {
       'likesCount': likesCount,
       'isLiked': isLiked,
       'commentsCount': commentsCount,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt.toUtc().toIso8601String(),
     };
   }
 
@@ -84,7 +76,6 @@ class Post {
 
   factory Post.fromJson(String source) => Post.fromMap(json.decode(source));
 
-  // Helper method to create a copy with updated values
   Post copyWith({
     String? id,
     String? publisherId,

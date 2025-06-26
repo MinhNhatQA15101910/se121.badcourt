@@ -1,4 +1,3 @@
-
 class NotificationDto {
   final String id;
   final String userId;
@@ -21,6 +20,15 @@ class NotificationDto {
   });
 
   factory NotificationDto.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(String? raw) {
+      if (raw == null || raw.isEmpty) return DateTime.now();
+      try {
+        return DateTime.parse(raw).toLocal(); // Convert UTC -> local
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
     return NotificationDto(
       id: json['id'] ?? '',
       userId: json['userId'] ?? '',
@@ -29,9 +37,7 @@ class NotificationDto {
       content: json['content'] ?? '',
       data: NotificationDataDto.fromJson(json['data'] ?? {}),
       isRead: json['isRead'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
+      createdAt: parseDate(json['createdAt']),
     );
   }
 
@@ -44,11 +50,10 @@ class NotificationDto {
       'content': content,
       'data': data.toJson(),
       'isRead': isRead,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt.toUtc().toIso8601String(), // Convert back to UTC
     };
   }
 
-  // Add copyWith method to create a copy with modified fields
   NotificationDto copyWith({
     String? id,
     String? userId,

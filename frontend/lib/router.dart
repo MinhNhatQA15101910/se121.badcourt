@@ -26,6 +26,8 @@ import 'package:frontend/features/facility_detail/screens/single_court_detail_sc
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
+import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
+import 'package:frontend/features/player/rating/screens/rating_screen.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
 import 'package:frontend/common/screens/full_screen_media_view.dart';
@@ -206,6 +208,16 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
           resources: args['resources'],
           initialIndex: args['initialIndex'],
         ),
+      );
+    case RatingScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const RatingScreen(),
+      );
+    case RatingDetailScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const RatingDetailScreen(),
       );
     default:
       return MaterialPageRoute(

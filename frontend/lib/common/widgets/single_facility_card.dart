@@ -268,23 +268,6 @@ class SingleFacilityCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    // Total rating count - dòng riêng bên dưới rating
-                    if (facility.ratingAvg > 0 && facility.totalRating > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              '(${facility.totalRating} đánh giá)',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                color: GlobalVariables.darkGrey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ),

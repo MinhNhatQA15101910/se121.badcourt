@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/loader.dart';
 import 'package:frontend/features/booking_management/services/booking_management_service.dart';
-import 'package:frontend/features/booking_management/widgets/booking_detail_card.dart';
+import 'package:frontend/features/booking_management/widgets/booking_card_item.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
@@ -25,11 +25,10 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
   List<Order> _playedOrders = [];
   List<Order> _notPlayedOrders = [];
 
-  // Pagination variables
-  int _currentPage = 1;
-  final int _pageSize = 4;
+  // Pagination variables using dynamic
+  Map<String, dynamic>? _paginationInfo;
   bool _isLoading = false;
-  bool _hasMoreData = true;
+  bool _isLoadingMore = false;
   
   // Scroll controller for infinite scrolling
   late ScrollController _scrollController;
@@ -61,64 +60,104 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     super.dispose();
   }
 
-  // Scroll listener to detect when user reaches the bottom
+  // Helper methods for pagination
+  bool get _hasNextPage {
+    if (_paginationInfo == null) return false;
+    final currentPage = _paginationInfo!['currentPage'] as int;
+    final totalPages = _paginationInfo!['totalPages'] as int;
+    return currentPage < totalPages;
+  }
+
+  int get _nextPage {
+    if (_paginationInfo == null) return 1;
+    final currentPage = _paginationInfo!['currentPage'] as int;
+    return _hasNextPage ? currentPage + 1 : currentPage;
+  }
+
+  int get _itemsPerPage {
+    if (_paginationInfo == null) return 10;
+    return _paginationInfo!['itemsPerPage'] as int;
+  }
+
+  // Updated scroll listener using dynamic pagination info
   void _scrollListener() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading &&
-        _hasMoreData) {
+        !_isLoadingMore &&
+        _hasNextPage) {
       _loadMoreOrders();
     }
   }
 
-  // Initial fetch of orders
+  // Updated initial fetch method
   void _fetchOrders() async {
     setState(() {
       _isLoading = true;
     });
 
-    List<Order> newOrders = await _bookingManagementService.fetchAllOrders(
-      context: context,
-      pageNumber: _currentPage,
-      pageSize: _pageSize,
-    );
+    try {
+      Map<String, dynamic> response = await _bookingManagementService.fetchAllOrdersPaginated(
+        context: context,
+        pageNumber: 1,
+        pageSize: 10,
+      );
 
-    _processOrders(newOrders);
+      final orders = response['orders'] as List<Order>;
+      final pagination = response['pagination'] as Map<String, dynamic>;
 
-    setState(() {
-      _isLoading = false;
-      _hasMoreData = newOrders.length == _pageSize;
-    });
-  }
+      _processOrders(orders, isRefresh: true);
 
-  // Load more orders when scrolling
-  void _loadMoreOrders() async {
-    if (_isLoading) return;
-
-    setState(() {
-      _isLoading = true;
-      _currentPage++;
-    });
-
-    List<Order> newOrders = await _bookingManagementService.fetchAllOrders(
-      context: context,
-      pageNumber: _currentPage,
-      pageSize: _pageSize,
-    );
-
-    _processOrders(newOrders);
-
-    setState(() {
-      _isLoading = false;
-      _hasMoreData = newOrders.length == _pageSize;
-    });
-  }
-
-  // Process and categorize orders
-  void _processOrders(List<Order> newOrders) {
-    if (newOrders.isEmpty) {
       setState(() {
-        _hasMoreData = false;
+        _paginationInfo = pagination;
+        _isLoading = false;
       });
+
+      print('[BookingScreen] Initial fetch completed. Pagination: $pagination');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('[BookingScreen] Error fetching orders: $e');
+    }
+  }
+
+  // Updated load more method
+  void _loadMoreOrders() async {
+    if (!_hasNextPage) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      Map<String, dynamic> response = await _bookingManagementService.fetchAllOrdersPaginated(
+        context: context,
+        pageNumber: _nextPage,
+        pageSize: _itemsPerPage,
+      );
+
+      final orders = response['orders'] as List<Order>;
+      final pagination = response['pagination'] as Map<String, dynamic>;
+
+      _processOrders(orders, isRefresh: false);
+
+      setState(() {
+        _paginationInfo = pagination;
+        _isLoadingMore = false;
+      });
+
+      print('[BookingScreen] Load more completed. Current page: ${pagination['currentPage']}/${pagination['totalPages']}');
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+      print('[BookingScreen] Error loading more orders: $e');
+    }
+  }
+
+  // Updated process orders method
+  void _processOrders(List<Order> newOrders, {required bool isRefresh}) {
+    if (newOrders.isEmpty && !isRefresh) {
       return;
     }
 
@@ -126,9 +165,8 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     List<Order> notPlayedOrders = [];
 
     for (var order in newOrders) {
-      DateTime now = DateTime.now();
-      DateTime playTime = order.timePeriod.hourFrom;
-      if (now.isAfter(playTime)) {
+      // Use the state from the order instead of time comparison
+      if (order.state == 'Played') {
         playedOrders.add(order);
       } else {
         notPlayedOrders.add(order);
@@ -136,21 +174,27 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
     }
 
     setState(() {
-      _orders.addAll(newOrders);
-      _playedOrders.addAll(playedOrders);
-      _notPlayedOrders.addAll(notPlayedOrders);
-      
+      if (isRefresh) {
+        // Replace all data on refresh
+        _orders = newOrders;
+        _playedOrders = playedOrders;
+        _notPlayedOrders = notPlayedOrders;
+      } else {
+        // Append data on load more
+        _orders.addAll(newOrders);
+        _playedOrders.addAll(playedOrders);
+        _notPlayedOrders.addAll(notPlayedOrders);
+      }
     });
   }
 
-  // Refresh all data
+  // Updated refresh method
   void _refreshData() {
     setState(() {
       _orders = [];
       _playedOrders = [];
       _notPlayedOrders = [];
-      _currentPage = 1;
-      _hasMoreData = true;
+      _paginationInfo = null;
     });
     _fetchOrders();
   }
@@ -188,6 +232,18 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
         child: Column(
           children: [
             _buildCustomTabSelector(),
+            // Add pagination info display (optional, for debugging)
+            if (_paginationInfo != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  'Page ${_paginationInfo!['currentPage']} of ${_paginationInfo!['totalPages']} (${_paginationInfo!['totalItems']} total)',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: GlobalVariables.darkGrey,
+                  ),
+                ),
+              ),
             Expanded(
               child: _orders.isEmpty && _isLoading
                   ? const Center(child: Loader())
@@ -278,23 +334,30 @@ class _BookingManagementScreenState extends State<BookingManagementScreen> {
         : ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: displayOrders.length + (_hasMoreData ? 1 : 0),
+            itemCount: displayOrders.length + (_shouldShowLoadingIndicator() ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == displayOrders.length) {
                 return _buildLoadingIndicator();
               }
-              return BookingDetailCard(order: displayOrders[index]);
+              return BookingCardItem(order: displayOrders[index]);
             },
           );
+  }
+
+  // Updated method to determine when to show loading indicator
+  bool _shouldShowLoadingIndicator() {
+    return _isLoadingMore || (_hasNextPage && !_isLoading);
   }
 
   Widget _buildLoadingIndicator() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       alignment: Alignment.center,
-      child: const CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
-      ),
+      child: _isLoadingMore
+          ? const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+            )
+          : const SizedBox.shrink(),
     );
   }
 }

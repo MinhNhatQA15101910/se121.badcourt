@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:frontend/models/time_period.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/models/period_time.dart';
 
 class CourtHubService {
   static final CourtHubService _instance = CourtHubService._internal();
@@ -12,9 +12,9 @@ class CourtHubService {
 
   final Map<String, HubConnection> _connections = {};
   final Map<String, Function(Court)> _courtUpdateCallbacks = {};
-  final Map<String, Function(PeriodTime)> _newOrderCallbacks = {};
-  final Map<String, Function(PeriodTime)> _courtInactiveCallbacks = {};
-  final Map<String, Function(PeriodTime)> _cancelOrderCallbacks = {}; // Add this line
+  final Map<String, Function(TimePeriod)> _newOrderCallbacks = {};
+  final Map<String, Function(TimePeriod)> _courtInactiveCallbacks = {};
+  final Map<String, Function(TimePeriod)> _cancelOrderCallbacks = {}; // Add this line
   final Map<String, Timer> _monitorTimers = {};
 
   // Connect to a specific court
@@ -63,7 +63,7 @@ class CourtHubService {
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final periodData = arguments[0] as Map<String, dynamic>;
-            final periodTime = PeriodTime.fromMap(periodData);
+            final periodTime = TimePeriod.fromMap(periodData);
             
             print('[CourtHub] Received new order time period for court $courtId: ${periodTime.toString()}');
             
@@ -83,7 +83,7 @@ class CourtHubService {
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final periodData = arguments[0] as Map<String, dynamic>;
-            final periodTime = PeriodTime.fromMap(periodData);
+            final periodTime = TimePeriod.fromMap(periodData);
             
             print('[CourtHub] Received cancel order time period for court $courtId: ${periodTime.toString()}');
             
@@ -102,7 +102,7 @@ class CourtHubService {
         if (arguments != null && arguments.isNotEmpty) {
           try {
             final periodData = arguments[0] as Map<String, dynamic>;
-            final periodTime = PeriodTime.fromMap(periodData);
+            final periodTime = TimePeriod.fromMap(periodData);
             
             print('[CourtHub] Received court inactive update for court $courtId: ${periodTime.toString()}');
             
@@ -233,19 +233,19 @@ class CourtHubService {
   }
 
   // Set callback for new order time periods
-  void setNewOrderCallback(String courtId, Function(PeriodTime) callback) {
+  void setNewOrderCallback(String courtId, Function(TimePeriod) callback) {
     _newOrderCallbacks[courtId] = callback;
     print('[CourtHub] Set new order callback for court: $courtId');
   }
 
   // Set callback for court inactive updates
-  void setCourtInactiveCallback(String courtId, Function(PeriodTime) callback) {
+  void setCourtInactiveCallback(String courtId, Function(TimePeriod) callback) {
     _courtInactiveCallbacks[courtId] = callback;
     print('[CourtHub] Set court inactive callback for court: $courtId');
   }
 
   // Add this new method for cancel order callback
-  void setCancelOrderCallback(String courtId, Function(PeriodTime) callback) {
+  void setCancelOrderCallback(String courtId, Function(TimePeriod) callback) {
     _cancelOrderCallbacks[courtId] = callback;
     print('[CourtHub] Set cancel order callback for court: $courtId');
   }

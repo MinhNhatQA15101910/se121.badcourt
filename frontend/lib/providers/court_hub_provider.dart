@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/services/court_hub_service.dart';
 import 'package:frontend/models/court.dart';
-import 'package:frontend/models/period_time.dart';
+import 'package:frontend/models/time_period.dart';
 
 class CourtHubProvider extends ChangeNotifier {
   final CourtHubService _courtHubService = CourtHubService();
@@ -13,8 +13,8 @@ class CourtHubProvider extends ChangeNotifier {
   final Map<String, bool> _connectionStatus = {};
 
   // Add these properties after the existing ones
-  final Map<String, List<PeriodTime>> _newOrderPeriods = {};
-  final Map<String, List<PeriodTime>> _courtInactivePeriods = {};
+  final Map<String, List<TimePeriod>> _newOrderPeriods = {};
+  final Map<String, List<TimePeriod>> _courtInactivePeriods = {};
   
   // Get a court by ID
   Court? getCourt(String courtId) => _courts[courtId];
@@ -26,10 +26,10 @@ class CourtHubProvider extends ChangeNotifier {
   Map<String, Court> get courts => _courts;
 
   // Get new order periods for a court
-  List<PeriodTime> getNewOrderPeriods(String courtId) => _newOrderPeriods[courtId] ?? [];
+  List<TimePeriod> getNewOrderPeriods(String courtId) => _newOrderPeriods[courtId] ?? [];
 
   // Get court inactive periods for a court
-  List<PeriodTime> getCourtInactivePeriods(String courtId) => _courtInactivePeriods[courtId] ?? [];
+  List<TimePeriod> getCourtInactivePeriods(String courtId) => _courtInactivePeriods[courtId] ?? [];
   
   // Connect to a court
   Future<void> connectToCourt(String accessToken, String courtId, {Court? initialCourt}) async {
@@ -149,14 +149,14 @@ class CourtHubProvider extends ChangeNotifier {
   }
 
   // Remove a specific period from new orders
-  void removeNewOrderPeriod(String courtId, PeriodTime period) {
+  void removeNewOrderPeriod(String courtId, TimePeriod period) {
     _newOrderPeriods[courtId]?.removeWhere((p) => 
       p.hourFrom == period.hourFrom && p.hourTo == period.hourTo);
     notifyListeners();
   }
 
   // Remove a specific period from inactive periods
-  void removeCourtInactivePeriod(String courtId, PeriodTime period) {
+  void removeCourtInactivePeriod(String courtId, TimePeriod period) {
     _courtInactivePeriods[courtId]?.removeWhere((p) => 
       p.hourFrom == period.hourFrom && p.hourTo == period.hourTo);
     notifyListeners();

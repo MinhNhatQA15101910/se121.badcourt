@@ -6,7 +6,7 @@ class GroupDto {
   final String name;
   final List<User> users;
   final MessageDto? lastMessage;
-  final List<String> connections; // Changed from ConnectionDto to String
+  final List<String> connections;
   final DateTime updatedAt;
 
   GroupDto({
@@ -18,76 +18,56 @@ class GroupDto {
     required this.updatedAt,
   });
 
-  // Computed properties for backward compatibility
   List<String> get userIds => users.map((user) => user.id).toList();
-  
-  // Sửa lại logic hasMessage để dựa vào dateRead
+
   bool get hasMessage {
     if (lastMessage == null) return false;
-    return lastMessage!.dateRead == null; // Tin nhắn chưa đọc nếu dateRead là null
+    return lastMessage!.dateRead == null;
   }
-  
-  DateTime get createdAt => updatedAt; // Use updatedAt as fallback
-  
-  String? get lastMessageAttachment => null; // Backend doesn't have this field
+
+  DateTime get createdAt => updatedAt;
+
+  String? get lastMessageAttachment => null;
 
   factory GroupDto.fromJson(Map<String, dynamic> json) {
-    try {
-      // Parse users list
-      final usersList = json['users'] as List<dynamic>? ?? [];
-      final users = usersList.map((userJson) {
-        if (userJson is Map<String, dynamic>) {
-          return User.fromJson(userJson);
-        } else {
-          print('[GroupDto] Invalid user format: $userJson');
-          return null;
-        }
-      }).where((user) => user != null).cast<User>().toList();
+    final users = (json['users'] as List<dynamic>? ?? [])
+        .map((userJson) =>
+            userJson is Map<String, dynamic> ? User.fromJson(userJson) : null)
+        .whereType<User>()
+        .toList();
 
-      // Parse connections list - now as simple strings
-      final connectionsList = json['connections'] as List<dynamic>? ?? [];
-      final connections = connectionsList.map((conn) => conn.toString()).toList();
+    final connections = (json['connections'] as List<dynamic>? ?? [])
+        .map((conn) => conn.toString())
+        .toList();
 
-      // Parse last message
-      MessageDto? lastMessage;
-      final lastMessageJson = json['lastMessage'];
-      if (lastMessageJson != null && lastMessageJson is Map<String, dynamic>) {
-        try {
-          lastMessage = MessageDto.fromJson(lastMessageJson);
-        } catch (e) {
-          print('[GroupDto] Error parsing lastMessage: $e');
-          lastMessage = null;
-        }
-      }
-
-      // Parse updatedAt
-      DateTime updatedAt;
+    final lastMessageJson = json['lastMessage'];
+    MessageDto? lastMessage;
+    if (lastMessageJson is Map<String, dynamic>) {
       try {
-        final updatedAtStr = json['updatedAt'] as String?;
-        if (updatedAtStr != null) {
-          updatedAt = DateTime.parse(updatedAtStr);
-        } else {
-          updatedAt = DateTime.now();
-        }
-      } catch (e) {
-        print('[GroupDto] Error parsing updatedAt: $e');
-        updatedAt = DateTime.now();
+        lastMessage = MessageDto.fromJson(lastMessageJson);
+      } catch (_) {
+        lastMessage = null;
       }
-
-      return GroupDto(
-        id: json['id'] as String? ?? '',
-        name: json['name'] as String? ?? '',
-        users: users,
-        lastMessage: lastMessage,
-        connections: connections,
-        updatedAt: updatedAt,
-      );
-    } catch (e, stackTrace) {
-      print('[GroupDto] Error parsing JSON: $e');
-      print('[GroupDto] Stack trace: $stackTrace');
-      print('[GroupDto] JSON data: $json');
-      rethrow;
     }
+
+    DateTime updatedAt;
+    try {
+      final updatedAtStr = json['updatedAt'] as String?;
+      updatedAt = updatedAtStr != null
+          ? DateTime.parse(updatedAtStr).toLocal()
+          : DateTime.now();
+    } catch (_) {
+      updatedAt = DateTime.now();
+    }
+
+    return GroupDto(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      users: users,
+      lastMessage: lastMessage,
+      connections: connections,
+      updatedAt: updatedAt,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -97,7 +77,7 @@ class GroupDto {
       'users': users.map((user) => user.toJson()).toList(),
       'lastMessage': lastMessage?.toJson(),
       'connections': connections,
-      'updatedAt': updatedAt.toIso8601String(),
+      'updatedAt': updatedAt.toUtc().toIso8601String(),
     };
   }
 

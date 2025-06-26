@@ -26,6 +26,18 @@ class Comment {
   });
 
   factory Comment.fromMap(Map<String, dynamic> map) {
+    DateTime _parseCreatedAt(dynamic raw) {
+      if (raw == null || raw.toString().isEmpty) return DateTime.now();
+      try {
+        // ISO-8601 string hoặc int millisecond
+        return raw is int
+            ? DateTime.fromMillisecondsSinceEpoch(raw, isUtc: true).toLocal()
+            : DateTime.parse(raw as String).toLocal();
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
     return Comment(
       id: map['id'] ?? '',
       postId: map['postId'] ?? '',
@@ -36,7 +48,7 @@ class Comment {
       resources: map['resources'] ?? [],
       likesCount: map['likesCount'] ?? 0,
       isLiked: map['isLiked'] ?? false,
-      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+      createdAt: _parseCreatedAt(map['createdAt']),
     );
   }
 
@@ -51,12 +63,11 @@ class Comment {
       'resources': resources,
       'likesCount': likesCount,
       'isLiked': isLiked,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt.toUtc().toIso8601String(),
     };
   }
 
   String toJson() => json.encode(toMap());
-
   factory Comment.fromJson(String source) =>
       Comment.fromMap(json.decode(source));
 }

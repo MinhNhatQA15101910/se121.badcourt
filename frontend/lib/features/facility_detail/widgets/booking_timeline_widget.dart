@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/booking_time.dart';
-import 'package:frontend/models/period_time.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/models/time_period.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/court_hub_provider.dart';
@@ -57,37 +57,39 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   }
 
   // Chuyển đổi PeriodTime thành BookingTime
-  BookingTime? _convertPeriodTimeToBookingTime(PeriodTime period, int virtualId) {
+  BookingTime? _convertPeriodTimeToBookingTime(
+      TimePeriod period, int virtualId) {
     try {
       // Xử lý nhiều định dạng có thể có
       DateTime? startDate;
       DateTime? endDate;
-      
+
       // Thử parse trực tiếp nếu là ISO format
       try {
-        if (period.hourFrom.contains('T')) {
-          startDate = DateTime.parse(period.hourFrom);
+        if (period.hourFrom.toIso8601String().contains('T')) {
+          startDate = period.hourFrom;
         }
       } catch (e) {
         // Bỏ qua lỗi
       }
-      
+
       try {
-        if (period.hourTo.contains('T')) {
-          endDate = DateTime.parse(period.hourTo);
+        if (period.hourTo.toIso8601String().contains('T')) {
+          endDate = period.hourTo;
         }
       } catch (e) {
         // Bỏ qua lỗi
       }
-      
+
       // Nếu không phải ISO format, thử parse như HH:MM
       if (startDate == null) {
         try {
-          final startParts = period.hourFrom.split(':');
+          final startParts =
+              period.hourFrom.toIso8601String().split('T')[1].split(':');
           if (startParts.length >= 2) {
             final startHour = int.parse(startParts[0]);
             final startMinute = int.parse(startParts[1]);
-            
+
             startDate = DateTime(
               widget.startTime.year,
               widget.startTime.month,
@@ -100,14 +102,15 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           // Bỏ qua lỗi
         }
       }
-      
+
       if (endDate == null) {
         try {
-          final endParts = period.hourTo.split(':');
+          final endParts = period.hourTo.toIso8601String().split('T')[1].split(':');
+
           if (endParts.length >= 2) {
             final endHour = int.parse(endParts[0]);
             final endMinute = int.parse(endParts[1]);
-            
+
             endDate = DateTime(
               widget.startTime.year,
               widget.startTime.month,
@@ -120,7 +123,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           // Bỏ qua lỗi
         }
       }
-      
+
       // Nếu parse thành công cả hai
       if (startDate != null && endDate != null) {
         // CHỈ LẤY GIỜ VÀ PHÚT, BỎ QUA NGÀY
@@ -131,7 +134,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           startDate.hour,
           startDate.minute,
         );
-        
+
         final normalizedEndDate = DateTime(
           widget.startTime.year,
           widget.startTime.month,
@@ -139,7 +142,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           endDate.hour,
           endDate.minute,
         );
-        
+
         // Tạo BookingTime giống existing booking
         final bookingTime = BookingTime(
           id: virtualId,
@@ -147,13 +150,13 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           endDate: normalizedEndDate,
           status: 1, // Giống existing booking
         );
-        
+
         return bookingTime;
       }
     } catch (e) {
       // Bỏ qua lỗi
     }
-    
+
     return null;
   }
 
@@ -163,36 +166,40 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       builder: (context, courtProvider, child) {
         // BẮT ĐẦU VỚI EXISTING BOOKINGS
         List<BookingTime> allBookings = List.from(widget.bookingTimeList);
-        
+
         // Lấy realtime periods
-        final newOrderPeriods = courtProvider.getNewOrderPeriods(widget.court.id);
-        final inactivePeriods = courtProvider.getCourtInactivePeriods(widget.court.id);
-        
+        final newOrderPeriods =
+            courtProvider.getNewOrderPeriods(widget.court.id);
+        final inactivePeriods =
+            courtProvider.getCourtInactivePeriods(widget.court.id);
+
         int virtualId = 10000;
-        
+
         // CHUYỂN ĐỔI NEW ORDER PERIODS
         for (var period in newOrderPeriods) {
-          final bookingTime = _convertPeriodTimeToBookingTime(period, virtualId++);
+          final bookingTime =
+              _convertPeriodTimeToBookingTime(period, virtualId++);
           if (bookingTime != null) {
             allBookings.add(bookingTime);
           }
         }
-        
+
         // CHUYỂN ĐỔI INACTIVE PERIODS
         for (var period in inactivePeriods) {
-          final bookingTime = _convertPeriodTimeToBookingTime(period, virtualId++);
+          final bookingTime =
+              _convertPeriodTimeToBookingTime(period, virtualId++);
           if (bookingTime != null) {
             allBookings.add(bookingTime);
           }
         }
-        
+
         // XỬ LÝ TẤT CẢ BOOKING GIỐNG NHAU
         List<Widget> bookingOverlays = [];
-        
+
         for (int i = 0; i < allBookings.length; i++) {
           try {
             var booking = allBookings[i];
-            
+
             // Kiểm tra intersection
             if (_isBookingIntersectingTimeline(booking)) {
               Widget overlay = _createBookingOverlay(booking, i);
@@ -203,11 +210,15 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           }
         }
 
-        List<Widget> timeContainer = generateTimeContainer(widget.startTime, widget.endTime);
-        List<Widget> timeText = generateTimeText(widget.startTime, widget.endTime);
+        List<Widget> timeContainer =
+            generateTimeContainer(widget.startTime, widget.endTime);
+        List<Widget> timeText =
+            generateTimeText(widget.startTime, widget.endTime);
 
         // Tính tổng số booking để hiển thị
-        int totalBookingsCount = widget.bookingTimeList.length + newOrderPeriods.length + inactivePeriods.length;
+        int totalBookingsCount = widget.bookingTimeList.length +
+            newOrderPeriods.length +
+            inactivePeriods.length;
 
         return Container(
           padding: EdgeInsets.only(
@@ -225,7 +236,9 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                 children: [
                   Expanded(
                     child: _InterMedium14(
-                        'Playtime ' + calculateTimeDifference(widget.startTime, widget.endTime),
+                        'Playtime ' +
+                            calculateTimeDifference(
+                                widget.startTime, widget.endTime),
                         GlobalVariables.green,
                         1),
                   ),
@@ -287,20 +300,20 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       },
     );
   }
-  
+
   // Kiểm tra booking có giao với timeline không
   bool _isBookingIntersectingTimeline(BookingTime booking) {
     int timelineStartMinutes = _timeToMinutes(widget.startTime);
     int timelineEndMinutes = _timeToMinutes(widget.endTime);
     int bookingStartMinutes = _timeToMinutes(booking.startDate);
     int bookingEndMinutes = _timeToMinutes(booking.endDate);
-    
-    bool intersects = bookingStartMinutes < timelineEndMinutes && 
-                     bookingEndMinutes > timelineStartMinutes;
-    
+
+    bool intersects = bookingStartMinutes < timelineEndMinutes &&
+        bookingEndMinutes > timelineStartMinutes;
+
     return intersects;
   }
-  
+
   // Tạo overlay
   Widget _createBookingOverlay(BookingTime booking, int index) {
     // Tính toán vị trí effective
@@ -308,15 +321,15 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     int timelineEndMinutes = _timeToMinutes(widget.endTime);
     int bookingStartMinutes = _timeToMinutes(booking.startDate);
     int bookingEndMinutes = _timeToMinutes(booking.endDate);
-    
+
     // Effective intersection
-    int effectiveStartMinutes = bookingStartMinutes < timelineStartMinutes 
-        ? timelineStartMinutes 
+    int effectiveStartMinutes = bookingStartMinutes < timelineStartMinutes
+        ? timelineStartMinutes
         : bookingStartMinutes;
-    int effectiveEndMinutes = bookingEndMinutes > timelineEndMinutes 
-        ? timelineEndMinutes 
+    int effectiveEndMinutes = bookingEndMinutes > timelineEndMinutes
+        ? timelineEndMinutes
         : bookingEndMinutes;
-    
+
     // Tạo DateTime cho effective range
     DateTime effectiveStart = DateTime(
       widget.startTime.year,
@@ -325,7 +338,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       effectiveStartMinutes ~/ 60,
       effectiveStartMinutes % 60,
     );
-    
+
     DateTime effectiveEnd = DateTime(
       widget.startTime.year,
       widget.startTime.month,
@@ -333,18 +346,19 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       effectiveEndMinutes ~/ 60,
       effectiveEndMinutes % 60,
     );
-    
+
     double top = calculateMarginTop(widget.startTime, effectiveStart);
     double height = calculateHeight(effectiveStart, effectiveEnd);
-    
+
     // Tính thời gian booking theo phút
     int durationInMinutes = effectiveEnd.difference(effectiveStart).inMinutes;
     bool isShortBooking = durationInMinutes <= 30;
-    
-    String timeRange = '${effectiveStart.hour.toString().padLeft(2, '0')}:${effectiveStart.minute.toString().padLeft(2, '0')} - ${effectiveEnd.hour.toString().padLeft(2, '0')}:${effectiveEnd.minute.toString().padLeft(2, '0')}';
-    
+
+    String timeRange =
+        '${effectiveStart.hour.toString().padLeft(2, '0')}:${effectiveStart.minute.toString().padLeft(2, '0')} - ${effectiveEnd.hour.toString().padLeft(2, '0')}:${effectiveEnd.minute.toString().padLeft(2, '0')}';
+
     bool isFromSignalR = booking.id >= 10000;
-    
+
     return Positioned(
       top: top,
       left: 40,
@@ -366,30 +380,30 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
             ),
           ],
         ),
-        child: isShortBooking 
-          ? Container() // Nếu booking ngắn, không hiển thị nội dung
-          : Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      timeRange,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: GlobalVariables.green,
+        child: isShortBooking
+            ? Container() // Nếu booking ngắn, không hiển thị nội dung
+            : Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        timeRange,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: GlobalVariables.green,
+                        ),
                       ),
                     ),
-                  ),
-                  Icon(
-                    isFromSignalR ? Icons.new_releases : Icons.lock,
-                    size: 14,
-                    color: GlobalVariables.green,
-                  ),
-                ],
+                    Icon(
+                      isFromSignalR ? Icons.new_releases : Icons.lock,
+                      size: 14,
+                      color: GlobalVariables.green,
+                    ),
+                  ],
+                ),
               ),
-            ),
       ),
     );
   }
@@ -476,7 +490,8 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       ));
     }
 
-    int initialHour = startTime.minute > 0 ? startTime.hour + 1 : startTime.hour;
+    int initialHour =
+        startTime.minute > 0 ? startTime.hour + 1 : startTime.hour;
 
     for (int i = initialHour; i <= endTime.hour; i++) {
       children.add(Container(
@@ -516,7 +531,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   double calculateMarginTop(DateTime startTime, DateTime bookingStartTime) {
     int minutesFromStart = bookingStartTime.difference(startTime).inMinutes;
     if (minutesFromStart < 0) minutesFromStart = 0;
-    
+
     double result = 10.0 + (minutesFromStart / 60.0) * 40.0;
     return result;
   }
@@ -524,7 +539,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   double calculateHeight(DateTime startTime, DateTime endTime) {
     int durationInMinutes = endTime.difference(startTime).inMinutes;
     if (durationInMinutes <= 0) return 0;
-    
+
     double result = (durationInMinutes / 60.0) * 40.0;
     return result;
   }

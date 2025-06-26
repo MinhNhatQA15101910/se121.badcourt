@@ -22,7 +22,7 @@ class Facility {
   final double ratingAvg;
   final int totalRating;
   final String state;
-  final DateTime registeredAt;
+  final DateTime registeredAt; // giữ LOCAL (UTC+7)
   final ManagerInfo managerInfo;
   final Active? activeAt;
   final String userName;
@@ -103,6 +103,49 @@ class Facility {
     );
   }
 
+  factory Facility.fromMap(Map<String, dynamic> map) {
+    final coordinates = map['location']?['coordinates'] ?? [0.0, 0.0];
+
+    DateTime _parseDate(dynamic raw) {
+      if (raw == null || raw.toString().isEmpty) return DateTime.now();
+      try {
+        return raw is int
+            ? DateTime.fromMillisecondsSinceEpoch(raw, isUtc: true).toLocal()
+            : DateTime.parse(raw as String).toLocal();
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
+    return Facility(
+      id: map['id'] ?? '',
+      facilityName: map['facilityName'] ?? '',
+      facebookUrl: map['facebookUrl'] ?? '',
+      description: map['description'] ?? '',
+      policy: map['policy'] ?? '',
+      userId: map['userId'] ?? '',
+      facilityImages: List<FileDto>.from(
+        (map['photos'] ?? []).map((img) => FileDto.fromMap(img)),
+      ),
+      courtsAmount: map['courtsAmount'] ?? 0,
+      minPrice: map['minPrice'] ?? 0,
+      maxPrice: map['maxPrice'] ?? 0,
+      detailAddress: map['detailAddress'] ?? '',
+      province: map['province'] ?? '',
+      lon: (coordinates[0] ?? 0.0).toDouble(),
+      lat: (coordinates[1] ?? 0.0).toDouble(),
+      ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
+      totalRating: map['totalRatings'] ?? 0,
+      state: map['state'] ?? '',
+      registeredAt: _parseDate(map['registeredAt']),
+      managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
+      activeAt:
+          map['activeAt'] != null ? Active.fromMap(map['activeAt']) : null,
+      userName: map['userName'] ?? '',
+      userImageUrl: map['userImageUrl'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -132,44 +175,10 @@ class Facility {
     };
   }
 
-  factory Facility.fromMap(Map<String, dynamic> map) {
-    final coordinates = map['location']?['coordinates'] ?? [0.0, 0.0];
-    return Facility(
-      id: map['id'] ?? '',
-      facilityName: map['facilityName'] ?? '',
-      facebookUrl: map['facebookUrl'] ?? '',
-      description: map['description'] ?? '',
-      policy: map['policy'] ?? '',
-      userId: map['userId'] ?? '',
-      facilityImages: List<FileDto>.from(
-        (map['photos'] ?? []).map((img) => FileDto.fromMap(img)),
-      ),
-      courtsAmount: map['courtsAmount'] ?? 0,
-      minPrice: map['minPrice'] ?? 0,
-      maxPrice: map['maxPrice'] ?? 0,
-      detailAddress: map['detailAddress'] ?? '',
-      province: map['province'] ?? '',
-      lon: (coordinates[0] ?? 0.0).toDouble(),
-      lat: (coordinates[1] ?? 0.0).toDouble(),
-      ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
-      totalRating: map['totalRatings'] ?? 0,
-      state: map['state'] ?? '',
-      registeredAt:
-          DateTime.tryParse(map['registeredAt'] ?? '') ?? DateTime.now(),
-      managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
-      activeAt:
-          map['activeAt'] != null ? Active.fromMap(map['activeAt']) : null,
-      userName: map['userName'] ?? '',
-      userImageUrl: map['userImageUrl'],
-    );
-  }
-
   String toJson() => json.encode(toMap());
-
   factory Facility.fromJson(String source) =>
       Facility.fromMap(json.decode(source));
 
-  bool hasDay(String day) {
-    return activeAt?.schedule.containsKey(day.toLowerCase()) ?? false;
-  }
+  bool hasDay(String day) =>
+      activeAt?.schedule.containsKey(day.toLowerCase()) ?? false;
 }

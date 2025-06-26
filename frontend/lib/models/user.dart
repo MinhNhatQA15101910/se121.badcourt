@@ -29,65 +29,66 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    try {
-      List<String> rolesList = [];
-      final rolesJson = json['roles'];
-      if (rolesJson != null) {
-        if (rolesJson is List) {
-          rolesList = rolesJson.map((role) => role.toString()).toList();
-        } else if (rolesJson is String) {
-          rolesList = [rolesJson];
-        }
+  try {
+    List<String> rolesList = [];
+    final rolesJson = json['roles'];
+    if (rolesJson != null) {
+      if (rolesJson is List) {
+        rolesList = rolesJson.map((role) => role.toString()).toList();
+      } else if (rolesJson is String) {
+        rolesList = [rolesJson];
       }
-
-      List<Photo> photoList = [];
-      final photosJson = json['photos'];
-      if (photosJson != null && photosJson is List) {
-        photoList = photosJson.map((p) => Photo.fromJson(p)).toList();
-      }
-
-      return User(
-        id: json['id'] as String? ?? '',
-        username: json['username'] as String? ?? '',
-        email: json['email'] as String? ?? '',
-        photoUrl: json['photoUrl'] as String? ?? '',
-        token: json['token'] as String? ?? '',
-        roles: rolesList,
-        photos: photoList,
-        lastOnlineAt: json['lastOnlineAt'] != null
-            ? DateTime.tryParse(json['lastOnlineAt'])
-            : null,
-      );
-    } catch (e, stackTrace) {
-      print('[User] Error parsing JSON: $e');
-      print('[User] Stack trace: $stackTrace');
-      print('[User] JSON data: $json');
-
-      return User(
-        id: json['id'] as String? ?? 'unknown',
-        username: json['username'] as String? ?? 'Unknown User',
-        email: json['email'] as String? ?? 'unknown@example.com',
-        photoUrl: '',
-        token: '',
-        roles: const ['User'],
-        photos: const [],
-        lastOnlineAt: null,
-      );
     }
-  }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'email': email,
-      'photoUrl': photoUrl,
-      'token': token,
-      'roles': roles,
-      'photos': photos.map((p) => p.toJson()).toList(),
-      'lastOnlineAt': lastOnlineAt?.toIso8601String(), // <-- serialize
-    };
+    List<Photo> photoList = [];
+    final photosJson = json['photos'];
+    if (photosJson != null && photosJson is List) {
+      photoList = photosJson.map((p) => Photo.fromJson(p)).toList();
+    }
+
+    return User(
+      id: json['id'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      photoUrl: json['photoUrl'] as String? ?? '',
+      token: json['token'] as String? ?? '',
+      roles: rolesList,
+      photos: photoList,
+      lastOnlineAt: json['lastOnlineAt'] != null
+          ? DateTime.tryParse(json['lastOnlineAt'])?.toLocal()
+          : null,
+    );
+  } catch (e, stackTrace) {
+    print('[User] Error parsing JSON: $e');
+    print('[User] Stack trace: $stackTrace');
+    print('[User] JSON data: $json');
+
+    return User(
+      id: json['id'] as String? ?? 'unknown',
+      username: json['username'] as String? ?? 'Unknown User',
+      email: json['email'] as String? ?? 'unknown@example.com',
+      photoUrl: '',
+      token: '',
+      roles: const ['User'],
+      photos: const [],
+      lastOnlineAt: null,
+    );
   }
+}
+
+Map<String, dynamic> toJson() {
+  return {
+    'id': id,
+    'username': username,
+    'email': email,
+    'photoUrl': photoUrl,
+    'token': token,
+    'roles': roles,
+    'photos': photos.map((p) => p.toJson()).toList(),
+    'lastOnlineAt': lastOnlineAt?.toUtc().toIso8601String(),
+  };
+}
+
 
   factory User.empty() {
     return User(

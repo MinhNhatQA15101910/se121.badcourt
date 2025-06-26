@@ -4,6 +4,8 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/booking_details/services/booking_detail_service.dart';
 import 'package:frontend/features/booking_details/widgets/total_price.dart';
 import 'package:frontend/features/booking_management/services/booking_management_service.dart';
+import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
+import 'package:frontend/features/player/rating/screens/rating_screen.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +24,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
   Order? order;
   bool isLoading = true;
-  bool isCancelling = false; // Add loading state for cancel operation
+  bool isCancelling = false;
   String? error;
 
   @override
@@ -60,6 +62,29 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           isCancelling = false;
         });
       }
+    }
+  }
+
+  // Add method to navigate to rating screen
+  Future<void> _navigateToRatingScreen() async {
+    final result = await Navigator.of(context).pushNamed(
+      RatingScreen.routeName,
+      arguments: order,
+    );
+
+    if (result == true) {
+      final String orderId =
+          ModalRoute.of(context)!.settings.arguments as String;
+      await _fetchOrderDetails(orderId);
+    }
+  }
+
+  void _navigateToRatingDetailScreen() {
+    if (order!.rating != null) {
+      Navigator.of(context).pushNamed(
+        RatingDetailScreen.routeName,
+        arguments: order!.rating!.id,
+      );
     }
   }
 
@@ -365,6 +390,53 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                                   ? GlobalVariables.darkRed
                                   : GlobalVariables.darkYellow,
                         ),
+                        // Show rating if it exists
+                        if (order!.rating != null) ...[
+                          _buildDivider(),
+                          _buildDetailRow(
+                            context,
+                            'Your Rating',
+                            '${order!.rating!.stars} stars',
+                            valueColor: Colors.amber,
+                            icon: Icons.star,
+                            iconColor: Colors.amber,
+                          ),
+                          if (order!.rating!.feedback.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: GlobalVariables.green.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: GlobalVariables.green.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Your Feedback:',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: GlobalVariables.darkGrey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    order!.rating!.feedback,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: GlobalVariables.blackGrey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ],
                     ),
                   ),
@@ -567,11 +639,17 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              // Download receipt functionality
-                            },
-                            icon: const Icon(Icons.receipt_long_outlined),
-                            label: const Text('Download Receipt'),
+                            onPressed: _shouldShowRatingButton()
+                                ? _navigateToRatingScreen
+                                : order!.rating != null
+                                    ? _navigateToRatingDetailScreen
+                                    : null,
+                            icon: Icon(_shouldShowRatingButton()
+                                ? Icons.star_outline
+                                : Icons.visibility_outlined),
+                            label: Text(_shouldShowRatingButton()
+                                ? 'Rate Experience'
+                                : 'View Rating'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: GlobalVariables.green,
@@ -589,8 +667,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                             onPressed: (order!.state != 'NotPlay' ||
                                     isCancelling)
                                 ? null
-                                : () => cancelOrder(order!
-                                    .id), // Updated to call cancelOrder with order ID
+                                : () => cancelOrder(order!.id),
                             icon: isCancelling
                                 ? const SizedBox(
                                     width: 16,
@@ -642,6 +719,11 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         ],
       ),
     );
+  }
+
+  // Add method to determine if rating button should be shown
+  bool _shouldShowRatingButton() {
+    return order!.rating == null && order!.state == 'Played';
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {

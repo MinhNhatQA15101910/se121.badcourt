@@ -1,13 +1,13 @@
-class PeriodTime {
+class HourMinute {
   final String hourFrom;
   final String hourTo;
 
-  PeriodTime({
+  HourMinute({
     required this.hourFrom,
     required this.hourTo,
   });
 
-  factory PeriodTime.fromMap(Map<String, dynamic> map) {
+  factory HourMinute.fromMap(Map<String, dynamic> map) {
     // Kiểm tra dữ liệu đầu vào hợp lệ
     if (map['hourFrom'] == null || map['hourTo'] == null) {
       throw ArgumentError('hourFrom and hourTo are required fields.');
@@ -21,7 +21,7 @@ class PeriodTime {
       return time;
     }
 
-    return PeriodTime(
+    return HourMinute(
       hourFrom: formatTime(map['hourFrom'].toString()),
       hourTo: formatTime(map['hourTo'].toString()),
     );
@@ -37,11 +37,11 @@ class PeriodTime {
   @override
   String toString() => 'PeriodTime(hourFrom: $hourFrom, hourTo: $hourTo)';
 
-  PeriodTime copyWith({
+  HourMinute copyWith({
     String? hourFrom,
     String? hourTo,
   }) {
-    return PeriodTime(
+    return HourMinute(
       hourFrom: hourFrom ?? this.hourFrom,
       hourTo: hourTo ?? this.hourTo,
     );

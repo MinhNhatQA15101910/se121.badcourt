@@ -5,8 +5,8 @@ import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-class BookingDetailCard extends StatelessWidget {
-  const BookingDetailCard({
+class BookingCardItem extends StatelessWidget {
+  const BookingCardItem({
     super.key,
     required this.order,
   });
@@ -186,7 +186,7 @@ class BookingDetailCard extends StatelessWidget {
               ),
             ),
 
-            // Footer with payment method
+            // Footer with payment method and rating status
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -200,13 +200,7 @@ class BookingDetailCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Payment Method',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: GlobalVariables.darkGrey,
-                    ),
-                  ),
+                  // Payment method
                   Row(
                     children: [
                       Icon(
@@ -225,11 +219,54 @@ class BookingDetailCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  
+                  // Rating status for played bookings
+                  if (order.state == 'Played')
+                    _buildRatingStatus(),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRatingStatus() {
+    final bool hasRating = order.rating != null;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: hasRating 
+            ? Colors.amber.withOpacity(0.1)
+            : GlobalVariables.lightGrey.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasRating 
+              ? Colors.amber.withOpacity(0.3)
+              : GlobalVariables.darkGrey.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            hasRating ? Icons.star : Icons.star_border,
+            size: 14,
+            color: hasRating ? Colors.amber : GlobalVariables.darkGrey,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            hasRating ? 'Rated' : 'Not Rated',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: hasRating ? Colors.amber.shade700 : GlobalVariables.darkGrey,
+            ),
+          ),
+        ],
       ),
     );
   }

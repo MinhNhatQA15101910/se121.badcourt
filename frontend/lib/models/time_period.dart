@@ -2,22 +2,27 @@ class TimePeriod {
   final DateTime hourFrom;
   final DateTime hourTo;
 
-  TimePeriod({
+  const TimePeriod({
     required this.hourFrom,
     required this.hourTo,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'hourFrom': hourFrom.toUtc().toIso8601String(),
-      'hourTo': hourTo.toUtc().toIso8601String(),
-    };
-  }
-
   factory TimePeriod.fromMap(Map<String, dynamic> map) {
     return TimePeriod(
-      hourFrom: DateTime.parse(map['hourFrom'] ?? DateTime.now().toUtc().toIso8601String()),
-      hourTo: DateTime.parse(map['hourTo'] ?? DateTime.now().toUtc().toIso8601String()),
+      hourFrom:
+          DateTime.tryParse(map['hourFrom'] ?? '')?.toLocal() ?? DateTime.now(),
+      hourTo:
+          DateTime.tryParse(map['hourTo'] ?? '')?.toLocal() ?? DateTime.now(),
     );
   }
+
+  Map<String, dynamic> toMap() => {
+        'hourFrom': hourFrom.toUtc().toIso8601String(),
+        'hourTo': hourTo.toUtc().toIso8601String(),
+      };
+  String get hourFromStr =>
+      '${hourFrom.hour.toString().padLeft(2, '0')}:${hourFrom.minute.toString().padLeft(2, '0')}';
+  String get hourToStr =>
+      '${hourTo.hour.toString().padLeft(2, '0')}:${hourTo.minute.toString().padLeft(2, '0')}';
+
 }
