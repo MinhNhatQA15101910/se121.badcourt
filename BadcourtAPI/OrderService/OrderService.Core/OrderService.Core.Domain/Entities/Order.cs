@@ -6,6 +6,7 @@ public class Order
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public string FacilityOwnerId { get; set; } = null!;
     public string FacilityId { get; set; } = null!;
     public string CourtId { get; set; } = null!;
     public string FacilityName { get; set; } = string.Empty;

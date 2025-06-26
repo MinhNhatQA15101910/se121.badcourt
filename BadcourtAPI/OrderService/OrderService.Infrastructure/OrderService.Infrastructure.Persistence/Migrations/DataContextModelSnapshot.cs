@@ -42,6 +42,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                     .IsRequired()
                     .HasColumnType("TEXT");
 
+                b.Property<string>("FacilityOwnerId")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<string>("ImageUrl")
                     .IsRequired()
                     .HasColumnType("TEXT");

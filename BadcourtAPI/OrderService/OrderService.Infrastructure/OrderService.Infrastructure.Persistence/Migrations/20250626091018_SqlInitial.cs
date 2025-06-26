@@ -33,6 +33,7 @@ public partial class SqlInitial : Migration
             {
                 Id = table.Column<Guid>(type: "TEXT", nullable: false),
                 UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                FacilityOwnerId = table.Column<string>(type: "TEXT", nullable: false),
                 FacilityId = table.Column<string>(type: "TEXT", nullable: false),
                 CourtId = table.Column<string>(type: "TEXT", nullable: false),
                 FacilityName = table.Column<string>(type: "TEXT", nullable: false),

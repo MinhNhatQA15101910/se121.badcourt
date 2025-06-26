@@ -8,6 +8,7 @@ using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Commands.CreateRating;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
+using OrderService.Core.Application.Queries.GetTotalRevenue;
 using OrderService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -63,6 +64,7 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
     }
 
     [HttpPost("rate/{id}")]
+    [Authorize]
     public async Task<ActionResult<RatingDto>> CreateRating(Guid id, CreateRatingDto createRatingDto)
     {
         var rating = await mediator.Send(new CreateRatingCommand(id, createRatingDto));
@@ -96,5 +98,13 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
         {
             return BadRequest();
         }
+    }
+
+    [Authorize(Roles = "Manager, Admin")]
+    [HttpGet("total-revenue")]
+    public async Task<ActionResult<decimal>> GetTotalRevenue()
+    {
+        var totalRevenue = await mediator.Send(new GetTotalRevenueQuery());
+        return Ok(totalRevenue);
     }
 }

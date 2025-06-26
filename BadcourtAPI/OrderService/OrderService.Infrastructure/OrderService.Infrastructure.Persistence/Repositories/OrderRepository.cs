@@ -33,7 +33,7 @@ public class OrderRepository(
         {
             query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
         }
-        
+
         return await query.ToListAsync(cancellationToken);
     }
 
@@ -105,5 +105,20 @@ public class OrderRepository(
             orderParams.PageNumber,
             orderParams.PageSize
         );
+    }
+
+    public async Task<decimal> GetTotalRevenueAsync(string? userId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return await context.Orders
+                .SumAsync(o => o.Price, cancellationToken);
+        }
+        else
+        {
+            return await context.Orders
+                .Where(o => o.FacilityOwnerId == userId)
+                .SumAsync(o => o.Price, cancellationToken);
+        }
     }
 }
