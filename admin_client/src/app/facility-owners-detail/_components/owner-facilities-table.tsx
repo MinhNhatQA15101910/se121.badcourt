@@ -17,7 +17,7 @@ import { TooltipText } from "@/components/ui/tooltip-text";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getFacilitiesByOwnerId, formatDate, formatCurrency } from "@/lib/data";
 import type { Facility } from "@/lib/types";
-import { FacilityDetails } from "@/components/facility-detail";
+import { FacilityDetails } from "@/app/facility-confirm/_components/facility-detail";
 
 interface OwnerFacilitiesTableProps {
   ownerId: string;

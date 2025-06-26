@@ -1,226 +1,310 @@
 import { getSession } from "next-auth/react"
 
-// Đảm bảo API_URL luôn có giá trị mặc định hợp lệ
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
-// Cờ để kiểm soát việc sử dụng mock data
-let USE_MOCK_DATA = false
+// Helper function to get auth token from NextAuth session
+export async function getAuthToken(): Promise<string> {
+  if (typeof window !== "undefined") {
+    try {
+      // Get token from NextAuth session
+      const session = await getSession()
+      
+      console.log("🔑 NextAuth Session:", {
+        hasSession: !!session,
+        hasToken: !!(session?.token),
+        tokenLength: session?.token?.length || 0,
+        tokenPreview: session?.token ? `${session.token.substring(0, 20)}...` : "No token found",
+        userInfo: session?.user ? {
+          id: session.user.id,
+          username: session.user.username,
+          roles: session.user.roles,
+        } : "No user info",
+      })
 
-// Định nghĩa type cho options với FormData
-type FetchOptions = Omit<RequestInit, "body"> & {
-  body?: FormData | string | object | null
+      return session?.token || ""
+    } catch (error) {
+      console.error("❌ Error getting NextAuth session:", error)
+      return ""
+    }
+  }
+  return ""
 }
 
-// Định nghĩa interface cho custom headers
-interface CustomHeaders {
-  "Content-Type"?: string
-  Authorization: string
-  [key: string]: string | undefined
+// Synchronous version for backward compatibility (will be empty on first call)
+export function getAuthTokenSync(): string {
+  // This is a fallback - the async version should be used
+  console.warn("⚠️ Using sync token getter - token may not be available")
+  return ""
 }
 
-export async function fetchWithAuth<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+// Enhanced fetch function with auth and proper error handling
+export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`
+
+  // Get token from NextAuth session
+  const token = await getAuthToken()
+
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  }
+
+  // Remove Content-Type for FormData
+  if (options.body instanceof FormData) {
+    delete (config.headers as Record<string, string>)["Content-Type"]
+  }
+
+  console.log("🚀 API Request:", {
+    url,
+    method: config.method || "GET",
+    headers: config.headers,
+    hasToken: !!token,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : "No token",
+  })
+
   try {
-    // Nếu đang sử dụng mock data, trả về mock data
-    if (USE_MOCK_DATA) {
-      console.log(`Using mock data for: ${endpoint}`)
-      return getMockData<T>(endpoint)
-    }
+    const response = await fetch(url, config)
 
-    const session = await getSession()
-
-    if (!session?.token) {
-      throw new Error("No token available")
-    }
-
-    // Kiểm tra xem body có phải là FormData không
-    const isFormData = options.body instanceof FormData
-
-    // Tạo headers mặc định với type cụ thể
-    const defaultHeaders: CustomHeaders = {
-      Authorization: `Bearer ${session.token}`,
-    }
-
-    // Chỉ thêm Content-Type nếu không phải FormData
-    if (!isFormData && options.body && typeof options.body !== "string") {
-      defaultHeaders["Content-Type"] = "application/json"
-    }
-
-    // Chuẩn bị body
-    let finalBody = options.body
-    if (!isFormData && typeof finalBody === "object" && finalBody !== null) {
-      finalBody = JSON.stringify(finalBody)
-    }
-
-    // Merge headers với type cụ thể
-    const headers: CustomHeaders = {
-      ...defaultHeaders,
-      ...(options.headers as Record<string, string>),
-    }
-
-    // Nếu là FormData, xóa Content-Type để trình duyệt tự thêm
-    if (isFormData && headers["Content-Type"]) {
-      delete headers["Content-Type"]
-    }
-
-    // Log thông tin request để debug
-    console.log(`Fetching: ${API_URL}${endpoint}`)
-
-    // Chuyển đổi CustomHeaders thành Record<string, string> bằng cách loại bỏ các giá trị undefined
-    const cleanedHeaders: Record<string, string> = {}
-    Object.entries(headers).forEach(([key, value]) => {
-      if (value !== undefined) {
-        cleanedHeaders[key] = value
-      }
-    })
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers: cleanedHeaders, // Sử dụng headers đã được làm sạch
-      body: finalBody as BodyInit | null,
+    console.log("📡 API Response:", {
+      status: response.status,
+      statusText: response.statusText,
+      url: response.url,
+      headers: Object.fromEntries(response.headers.entries()),
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`API error (${response.status}):`, errorText)
-      throw new Error(`API error: ${response.status} - ${errorText}`)
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+      let errorDetails = ""
+
+      try {
+        const errorText = await response.text()
+        if (errorText) {
+          errorDetails = errorText
+          errorMessage += ` - ${errorText}`
+        }
+      } catch (e) {
+        // Ignore error parsing error message
+      }
+
+      console.error("❌ API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        errorMessage,
+        errorDetails,
+        hasToken: !!token,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : "No token",
+      })
+
+      // Special handling for 401 Unauthorized
+      if (response.status === 401) {
+        console.error("🔐 Unauthorized - Token may be invalid or expired")
+        console.error("🔍 Debug info:", {
+          tokenExists: !!token,
+          tokenLength: token?.length || 0,
+          tokenFormat: token?.includes(".") ? "JWT-like" : "Simple string",
+          authHeader: config.headers ? (config.headers as never)["Authorization"] : "No auth header",
+        })
+      }
+
+      throw new Error(errorMessage)
     }
 
-    // Kiểm tra nếu response là rỗng
-    const contentType = response.headers.get("content-type")
-    if (contentType && contentType.includes("application/json")) {
-      return response.json()
-    } else {
-      // Trả về một đối tượng rỗng nếu không có JSON
+    // Handle empty responses (204 No Content)
+    if (response.status === 204) {
       return {} as T
     }
-  } catch (error) {
-    // Xử lý lỗi mạng hoặc lỗi khác
-    console.error("Fetch error:", error)
 
-    // Kiểm tra lỗi mạng
-    if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
-      console.error("Network error. Please check your connection and API server status.")
-      throw new Error(
-        `Network error: Could not connect to ${API_URL}. Please check your connection and API server status.`,
-      )
+    const contentType = response.headers.get("content-type")
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json()
+      console.log("✅ API Success:", data)
+      return data
     }
 
+    const textData = await response.text()
+    console.log("✅ API Success (text):", textData)
+    return textData as unknown as T
+  } catch (error) {
+    console.error("💥 Fetch error:", {
+      error,
+      url,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : "No token",
+    })
     throw error
   }
 }
 
-// Hàm tiện ích để kiểm tra kết nối API
-export async function checkApiConnection(): Promise<boolean> {
+// Custom fetch function that handles pagination headers
+export async function fetchWithPagination<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<{
+  items: T[]
+  currentPage: number
+  totalPages: number
+  pageSize: number
+  totalCount: number
+}> {
+  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`
+
+  // Get token from NextAuth session
+  const token = await getAuthToken()
+
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  }
+
+  console.log("🚀 Paginated API Request:", {
+    url,
+    method: config.method || "GET",
+    headers: config.headers,
+    hasToken: !!token,
+  })
+
   try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+    const response = await fetch(url, config)
 
-    // Thay đổi endpoint từ /health thành một endpoint có khả năng cao hơn là tồn tại
-    // Ví dụ: /gateway/posts hoặc bất kỳ endpoint nào khác mà API server của bạn hỗ trợ
-    const testEndpoint = "/gateway/posts"
-    console.log(`Testing API connection with: ${API_URL}${testEndpoint}`)
-
-    const response = await fetch(`${API_URL}${testEndpoint}`, {
-      method: "GET",
-      signal: controller.signal,
+    console.log("📡 Paginated API Response:", {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
     })
 
-    clearTimeout(timeoutId)
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+
+      try {
+        const errorText = await response.text()
+        if (errorText) {
+          errorMessage += ` - ${errorText}`
+        }
+      } catch (e) {
+        // Ignore error parsing error message
+      }
+
+      console.error("❌ Paginated API Error:", errorMessage)
+      throw new Error(errorMessage)
+    }
+
+    // Get pagination from headers
+    const paginationHeader = response.headers.get("Pagination") || response.headers.get("pagination")
+    let paginationData = {
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 10,
+      totalCount: 0,
+    }
+
+    if (paginationHeader) {
+      try {
+        console.log("📄 Raw pagination header:", paginationHeader)
+        const parsed = JSON.parse(paginationHeader)
+        console.log("📊 Parsed pagination:", parsed)
+
+        paginationData = {
+          currentPage: parsed.currentPage || parsed.CurrentPage || 1,
+          totalPages: parsed.totalPages || parsed.TotalPages || 1,
+          pageSize: parsed.itemsPerPage || parsed.ItemsPerPage || parsed.pageSize || parsed.PageSize || 10,
+          totalCount: parsed.totalItems || parsed.TotalItems || parsed.totalCount || parsed.TotalCount || 0,
+        }
+      } catch (error) {
+        console.error("❌ Failed to parse pagination header:", error)
+      }
+    }
+
+    // Get the actual data
+    let items: T[] = []
+
+    // Handle empty responses (204 No Content)
+    if (response.status === 204) {
+      items = []
+    } else {
+      const contentType = response.headers.get("content-type")
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json()
+        items = Array.isArray(data) ? data : []
+        console.log("✅ Paginated data received:", {
+          itemsCount: items.length,
+          sampleItem: items[0] || null,
+        })
+      }
+    }
+
+    const result = {
+      items,
+      ...paginationData,
+    }
+
+    console.log("🎯 Final pagination result:", {
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      pageSize: result.pageSize,
+      totalCount: result.totalCount,
+      itemsCount: result.items.length,
+    })
+
+    return result
+  } catch (error) {
+    console.error("💥 Fetch with pagination error:", error)
+    throw error
+  }
+}
+
+// Health check function
+export async function checkApiHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
     return response.ok
   } catch (error) {
-    console.error("API connection check failed:", error)
+    console.error("❌ API Health check failed:", error)
     return false
   }
 }
 
-// Hàm tiện ích để lấy thông tin API
-export function getApiInfo() {
-  return {
-    apiUrl: API_URL,
-    isConfigured: !!process.env.NEXT_PUBLIC_API_URL,
-    useMockData: USE_MOCK_DATA,
+// Test connection function
+export async function testConnection(): Promise<{
+  success: boolean
+  message: string
+  baseUrl: string
+}> {
+  try {
+    const isHealthy = await checkApiHealth()
+
+    if (isHealthy) {
+      return {
+        success: true,
+        message: "API connection successful",
+        baseUrl: API_BASE_URL,
+      }
+    } else {
+      return {
+        success: false,
+        message: "API server is not responding",
+        baseUrl: API_BASE_URL,
+      }
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      baseUrl: API_BASE_URL,
+    }
   }
-}
-
-// Hàm để bật/tắt chế độ sử dụng mock data
-export function setUseMockData(useMock: boolean): void {
-  USE_MOCK_DATA = useMock
-  console.log(`Mock data mode ${useMock ? "enabled" : "disabled"}`)
-}
-
-// Hàm để lấy mock data dựa trên endpoint
-function getMockData<T>(endpoint: string): T {
-  // Tạo mock data cho các endpoint khác nhau
-  if (endpoint.includes("/gateway/posts")) {
-    return [
-      {
-        id: "mock-post-1",
-        publisherId: "mock-user-1",
-        publisherUsername: "John Doe",
-        publisherImageUrl: "/abstract-geometric-shapes.png",
-        title: "Mock Post 1",
-        content: "This is a mock post for testing when API is not available.",
-        category: "Sharing",
-        resources: [],
-        likesCount: 5,
-        commentsCount: 2,
-        isLiked: false,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "mock-post-2",
-        publisherId: "mock-user-2",
-        publisherUsername: "Jane Smith",
-        publisherImageUrl: "/abstract-geometric-shapes.png",
-        title: "Mock Post 2",
-        content: "Another mock post with some sample content for testing.",
-        category: "Question",
-        resources: [
-          {
-            id: "mock-resource-1",
-            url: "/lush-forest-stream.png",
-            isMain: true,
-            fileType: "Image",
-          },
-        ],
-        likesCount: 10,
-        commentsCount: 3,
-        isLiked: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      },
-    ] as unknown as T
-  }
-
-  if (endpoint.includes("/gateway/comments")) {
-    return [
-      {
-        id: "mock-comment-1",
-        publisherId: "mock-user-3",
-        postId: endpoint.includes("?postId=") ? endpoint.split("?postId=")[1] : "mock-post-1",
-        publisherUsername: "Alice Johnson",
-        publisherImageUrl: "/abstract-geometric-shapes.png",
-        content: "This is a mock comment for testing.",
-        resources: [],
-        likesCount: 2,
-        isLiked: false,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "mock-comment-2",
-        publisherId: "mock-user-4",
-        postId: endpoint.includes("?postId=") ? endpoint.split("?postId=")[1] : "mock-post-1",
-        publisherUsername: "Bob Williams",
-        publisherImageUrl: "/abstract-geometric-shapes.png",
-        content: "Another mock comment for testing purposes.",
-        resources: [],
-        likesCount: 1,
-        isLiked: true,
-        createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      },
-    ] as unknown as T
-  }
-
-  // Trả về một đối tượng rỗng nếu không có mock data cho endpoint
-  console.warn(`No mock data available for endpoint: ${endpoint}`)
-  return {} as T
 }

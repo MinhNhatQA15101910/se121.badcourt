@@ -1,377 +1,424 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowUpDown, ArrowUp, ArrowDown, Filter, Star } from "lucide-react";
+import Image from "next/image";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
+import { TooltipText } from "@/components/ui/tooltip-text";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import {
+  FacilityConfirmFilter,
+  type FilterValues,
+} from "@/app/facility-confirm/_components/facility-confirm-filter";
+import type { Facility } from "@/lib/types";
+import { facilityService } from "@/services/facilityService";
+import { FacilityDetails } from "./facility-detail";
 
-import { useState } from "react"
-import { ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react"
-import Image from "next/image"
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
-import { Pagination } from "@/components/ui/pagination"
-import { TooltipText } from "@/components/ui/tooltip-text"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { FacilityConfirmFilter, type FilterValues } from "@/app/facility-confirm/_components/facility-confirm-filter"
-import { FacilityDetails } from "../../../components/facility-detail"
+// Star Rating Component
+const StarRating = ({
+  rating,
+  totalRatings,
+}: {
+  rating: number;
+  totalRatings: number;
+}) => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 !== 0;
 
-const facilities = [
-  {
-    id: 1,
-    facilityName: "Central Hospital",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "123 Main St, New York, NY 10001, United States of America - Medical District Area",
-    facilityId: "FAC001",
-    ownerName: "John Smith",
-    ownerEmail: "john.smith@example.com",
-    registerDate: "2023-01-15",
-    status: "Active",
-    province: "p1",
-    district: "d1",
-    revenue: 150000,
-  },
-  {
-    id: 2,
-    facilityName: "Westside Clinic",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "456 West Ave, Los Angeles, CA 90001",
-    facilityId: "FAC002",
-    ownerName: "Sarah Johnson",
-    ownerEmail: "sarah.j@example.com",
-    registerDate: "2023-02-20",
-    status: "Pending",
-    province: "p2",
-    district: "d6",
-    revenue: 90000,
-  },
-  {
-    id: 3,
-    facilityName: "Eastside Medical Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "789 East Blvd, Chicago, IL 60007",
-    facilityId: "FAC003",
-    ownerName: "Robert Williams",
-    ownerEmail: "r.williams@example.com",
-    registerDate: "2022-11-05",
-    status: "Active",
-    province: "p5",
-    district: "d18",
-    revenue: 220000,
-  },
-  {
-    id: 4,
-    facilityName: "North Health Services",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "321 North Rd, Boston, MA 02108",
-    facilityId: "FAC004",
-    ownerName: "Emily Davis",
-    ownerEmail: "emily.d@example.com",
-    registerDate: "2023-03-10",
-    status: "Inactive",
-    province: "p1",
-    district: "d2",
-    revenue: 60000,
-  },
-  {
-    id: 5,
-    facilityName: "South Community Hospital",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "654 South St, Miami, FL 33101",
-    facilityId: "FAC005",
-    ownerName: "Michael Brown",
-    ownerEmail: "m.brown@example.com",
-    registerDate: "2022-09-18",
-    status: "Active",
-    province: "p4",
-    district: "d14",
-    revenue: 180000,
-  },
-  {
-    id: 6,
-    facilityName: "Downtown Medical Plaza",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "987 Downtown Ave, Seattle, WA 98101",
-    facilityId: "FAC006",
-    ownerName: "Jennifer Wilson",
-    ownerEmail: "j.wilson@example.com",
-    registerDate: "2023-04-22",
-    status: "Pending",
-    province: "p2",
-    district: "d7",
-    revenue: 110000,
-  },
-  {
-    id: 7,
-    facilityName: "Riverside Health Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "159 Riverside Dr, Austin, TX 78701",
-    facilityId: "FAC007",
-    ownerName: "David Miller",
-    ownerEmail: "david.m@example.com",
-    registerDate: "2022-12-30",
-    status: "Active",
-    province: "p3",
-    district: "d11",
-    revenue: 200000,
-  },
-  {
-    id: 8,
-    facilityName: "Mountain View Hospital",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "753 Mountain Rd, Denver, CO 80202",
-    facilityId: "FAC008",
-    ownerName: "Lisa Taylor",
-    ownerEmail: "lisa.t@example.com",
-    registerDate: "2023-05-15",
-    status: "Active",
-    province: "p3",
-    district: "d12",
-    revenue: 160000,
-  },
-  {
-    id: 9,
-    facilityName: "Oceanside Medical Group",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "426 Ocean Dr, San Diego, CA 92101",
-    facilityId: "FAC009",
-    ownerName: "Thomas Anderson",
-    ownerEmail: "t.anderson@example.com",
-    registerDate: "2023-01-28",
-    status: "Inactive",
-    province: "p2",
-    district: "d8",
-    revenue: 75000,
-  },
-  {
-    id: 10,
-    facilityName: "Valley Care Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "871 Valley Blvd, Phoenix, AZ 85001",
-    facilityId: "FAC010",
-    ownerName: "Amanda Martinez",
-    ownerEmail: "a.martinez@example.com",
-    registerDate: "2022-10-12",
-    status: "Active",
-    province: "p3",
-    district: "d10",
-    revenue: 190000,
-  },
-  {
-    id: 11,
-    facilityName: "Lakeside Wellness Clinic",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "329 Lake St, Chicago, IL 60007",
-    facilityId: "FAC011",
-    ownerName: "Kevin Johnson",
-    ownerEmail: "k.johnson@example.com",
-    registerDate: "2023-06-05",
-    status: "Pending",
-    province: "p5",
-    district: "d18",
-    revenue: 120000,
-  },
-  {
-    id: 12,
-    facilityName: "Parkview Medical Center",
-    facilityImage: "/placeholder.svg?height=40&width=40",
-    facilityAddress: "512 Park Ave, Atlanta, GA 30301",
-    facilityId: "FAC012",
-    ownerName: "Nicole White",
-    ownerEmail: "n.white@example.com",
-    registerDate: "2022-08-22",
-    status: "Active",
-    province: "p4",
-    district: "d15",
-    revenue: 210000,
-  },
-]
+  // Add full stars
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(
+      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+    );
+  }
+
+  // Add half star if needed
+  if (hasHalfStar) {
+    stars.push(
+      <div key="half" className="relative">
+        <Star className="h-4 w-4 text-gray-300" />
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{ width: `${(rating % 1) * 100}%` }}
+        >
+          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+        </div>
+      </div>
+    );
+  }
+
+  // Add empty stars
+  const remainingStars = 5 - Math.ceil(rating);
+  for (let i = 0; i < remainingStars; i++) {
+    stars.push(<Star key={`empty-${i}`} className="h-4 w-4 text-gray-300" />);
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex items-center">{stars}</div>
+      <span className="text-sm text-gray-600 ml-1">
+        {rating.toFixed(1)} ({totalRatings})
+      </span>
+    </div>
+  );
+};
+
+// Price Range Component
+const PriceRange = ({
+  minPrice,
+  maxPrice,
+}: {
+  minPrice: number;
+  maxPrice: number;
+}) => {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
+
+  if (minPrice === maxPrice) {
+    return <span className="font-medium">{formatCurrency(minPrice)}</span>;
+  }
+
+  return (
+    <div className="flex flex-col">
+      <span className="font-medium">{formatCurrency(minPrice)}</span>
+      <span className="text-xs text-muted-foreground">
+        to {formatCurrency(maxPrice)}
+      </span>
+    </div>
+  );
+};
 
 export function FacilityConfirmTable() {
-  const [sortColumn, setSortColumn] = useState("")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
-  const [selectAll, setSelectAll] = useState(false)
-  const [filterOpen, setFilterOpen] = useState(false)
+  const searchParams = useSearchParams();
+  const [sortColumn, setSortColumn] = useState("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+  const [selectAll, setSelectAll] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
     province: "all",
-    district: "all",
     status: "all",
     searchTerm: "",
-  })
-  const [selectedFacility, setSelectedFacility] = useState<string | null>(null)
+  });
+  const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
+
+  // API state
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // Get search term from URL parameters
+  const headerSearchTerm = searchParams.get("q") || "";
+
+  // Wrap fetchFacilities in useCallback to fix dependency warning
+  const fetchFacilities = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Combine header search with filter search term
+      const combinedSearchTerm = headerSearchTerm || activeFilters.searchTerm;
+
+      const params = {
+        pageNumber: currentPage,
+        pageSize: itemsPerPage,
+        state:
+          activeFilters.status === "all"
+            ? undefined
+            : (activeFilters.status as "pending" | "approved" | "rejected"),
+        province:
+          activeFilters.province === "all" ? undefined : activeFilters.province,
+        search: combinedSearchTerm || undefined,
+        orderBy: sortColumn as "price" | "registeredAt" | undefined,
+        sortBy: sortDirection,
+      };
+
+      console.log("Fetching with params:", params);
+      const response = await facilityService.getFacilities(params);
+      console.log("API Response:", response);
+
+      // Handle the paginated response from headers
+      if (response && typeof response === "object") {
+        setFacilities(response.items || []);
+        setTotalPages(response.totalPages || 0);
+        setTotalItems(response.totalCount || 0);
+
+        console.log("Pagination info:", {
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
+          totalItems: response.totalCount,
+          pageSize: response.pageSize,
+        });
+      } else {
+        console.warn("Invalid response:", response);
+        setFacilities([]);
+        setTotalPages(0);
+        setTotalItems(0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch facilities:", err);
+      setError(
+        `Failed to load facilities: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+      setFacilities([]);
+      setTotalPages(0);
+      setTotalItems(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    currentPage,
+    itemsPerPage,
+    activeFilters,
+    sortColumn,
+    sortDirection,
+    headerSearchTerm,
+  ]);
+
+  // Callback to handle facility state updates from detail modal
+  const handleFacilityUpdate = useCallback(
+    (facilityId: string, newState: "Pending" | "Approved" | "Rejected") => {
+      console.log("Updating facility state:", facilityId, newState);
+
+      setFacilities((prevFacilities) =>
+        prevFacilities.map((facility) =>
+          facility.id === facilityId
+            ? { ...facility, state: newState }
+            : facility
+        )
+      );
+    },
+    []
+  );
+
+  // Fetch data when filters, pagination, sorting, or header search changes
+  useEffect(() => {
+    // Reset to first page when search term changes
+    if (headerSearchTerm !== (activeFilters.searchTerm || "")) {
+      setCurrentPage(1);
+    }
+    fetchFacilities();
+  }, [fetchFacilities, headerSearchTerm, activeFilters.searchTerm]);
+
+  // Update active filters when header search changes
+  useEffect(() => {
+    if (headerSearchTerm !== activeFilters.searchTerm) {
+      setActiveFilters((prev) => ({
+        ...prev,
+        searchTerm: headerSearchTerm,
+      }));
+    }
+  }, [headerSearchTerm, activeFilters.searchTerm]);
 
   const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortColumn(column)
-      setSortDirection("asc")
+    // Only allow sorting for price and registeredAt
+    if (column !== "price" && column !== "registeredAt") {
+      return;
     }
-  }
+
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
 
   const handleSelectAll = () => {
-    const newSelectAll = !selectAll
-    setSelectAll(newSelectAll)
+    const newSelectAll = !selectAll;
+    setSelectAll(newSelectAll);
 
-    const newSelectedRows: Record<string, boolean> = {}
+    const newSelectedRows: Record<string, boolean> = {};
     if (newSelectAll) {
-      paginatedFacilities.forEach((facility) => {
-        newSelectedRows[facility.facilityId] = true
-      })
+      facilities.forEach((facility) => {
+        newSelectedRows[facility.id] = true;
+      });
     }
-    setSelectedRows(newSelectedRows)
-  }
+    setSelectedRows(newSelectedRows);
+  };
 
-  const handleSelectRow = (facilityId: string, checked: boolean, event: React.MouseEvent) => {
-    // Stop propagation to prevent row click navigation when clicking checkbox
-    event.stopPropagation()
+  const handleSelectRow = (
+    facilityId: string,
+    checked: boolean,
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation();
 
     setSelectedRows((prev) => ({
       ...prev,
       [facilityId]: checked,
-    }))
+    }));
 
-    // Update selectAll state based on whether all rows are selected
-    const allSelected = Object.keys(selectedRows).length === paginatedFacilities.length - 1 && checked
-    setSelectAll(allSelected)
-  }
+    const allSelected =
+      Object.keys(selectedRows).length === facilities.length - 1 && checked;
+    setSelectAll(allSelected);
+  };
 
   const handleRowClick = (facilityId: string) => {
-    setSelectedFacility(facilityId)
-  }
+    setSelectedFacility(facilityId);
+  };
 
   const handleApplyFilter = (filters: FilterValues) => {
-    setActiveFilters(filters)
-    setCurrentPage(1) // Reset to first page when applying filters
-  }
-
-  // Apply filters to facilities
-  const filteredFacilities = facilities.filter((facility) => {
-    // Filter by search term (keeping this for compatibility)
-    if (
-      activeFilters.searchTerm &&
-      !facility.facilityName.toLowerCase().includes(activeFilters.searchTerm.toLowerCase()) &&
-      !facility.facilityId.toLowerCase().includes(activeFilters.searchTerm.toLowerCase())
-    ) {
-      return false
-    }
-
-    // Filter by province (skip if empty or "all")
-    if (activeFilters.province && activeFilters.province !== "all" && facility.province !== activeFilters.province) {
-      return false
-    }
-
-    // Filter by district (skip if empty or "all")
-    if (activeFilters.district && activeFilters.district !== "all" && facility.district !== activeFilters.district) {
-      return false
-    }
-
-    // Filter by status (skip if "all")
-    if (activeFilters.status !== "all" && facility.status.toLowerCase() !== activeFilters.status) {
-      return false
-    }
-
-    return true
-  })
-
-  const sortedFacilities = [...filteredFacilities].sort((a, b) => {
-    if (sortColumn === "") return 0
-
-    const aValue = a[sortColumn as keyof typeof a]
-    const bValue = b[sortColumn as keyof typeof a]
-
-    if (sortColumn === "registerDate") {
-      // Sort dates
-      const aDate = new Date(aValue.toString())
-      const bDate = new Date(bValue.toString())
-      return sortDirection === "asc" ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime()
-    }
-
-    // Sort strings
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
-    return 0
-  })
-
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedFacilities.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedFacilities = sortedFacilities.slice(startIndex, startIndex + itemsPerPage)
+    setActiveFilters(filters);
+    setCurrentPage(1);
+  };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page);
+  };
 
   const handleItemsPerPageChange = (value: string) => {
-    setItemsPerPage(Number(value))
-    setCurrentPage(1) // Reset to first page when changing items per page
-  }
+    const newItemsPerPage = Number(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
 
   const getSortIcon = (column: string) => {
-    if (sortColumn !== column) return <ArrowUpDown className="ml-2 h-4 w-4" />
-    return sortDirection === "asc" ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
-  }
+    // Only show sort icons for sortable columns
+    if (column !== "price" && column !== "registeredAt") {
+      return null;
+    }
 
-  // Format date to be more readable
+    if (sortColumn !== column) return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4" />
+    );
+  };
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount)
-  }
+  const selectedCount = Object.values(selectedRows).filter(Boolean).length;
 
-  // Count selected rows
-  const selectedCount = Object.values(selectedRows).filter(Boolean).length
-
-  // Check if any filters are active
   const hasActiveFilters =
     (activeFilters.province !== "" && activeFilters.province !== "all") ||
-    (activeFilters.district !== "" && activeFilters.district !== "all") ||
     activeFilters.status !== "all" ||
-    activeFilters.searchTerm !== ""
+    activeFilters.searchTerm !== "" ||
+    headerSearchTerm !== "";
+
+  const getMainPhotoUrl = (photos: Facility["photos"]) => {
+    if (!photos || !Array.isArray(photos) || photos.length === 0) {
+      return "/placeholder.svg?height=40&width=40";
+    }
+    const mainPhoto = photos.find((photo) => photo.isMain);
+    return (
+      mainPhoto?.url || photos[0]?.url || "/placeholder.svg?height=40&width=40"
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-white">
+        <div className="text-center bg-white p-8 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading facilities...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-white">
+        <div className="text-center bg-white p-8 rounded-lg">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button
+            onClick={fetchFacilities}
+            variant="outline"
+            className="bg-white border border-gray-300"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold text-gray-800">Facility Management</h2>
-
+      <div className="space-y-4 bg-white p-4">
+        <div className="flex items-center justify-between bg-white">
+          <div className="flex items-center space-x-4 bg-white">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Facility Management
+            </h2>
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogTrigger asChild>
                 <Button
                   variant={hasActiveFilters ? "default" : "outline"}
                   size="sm"
-                  className={hasActiveFilters ? "bg-green-600 hover:bg-green-700" : ""}
+                  className={
+                    hasActiveFilters
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }
                 >
                   <Filter className="mr-2 h-4 w-4" />
                   {hasActiveFilters ? "Filters Applied" : "Filter"}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] p-4">
-                <DialogTitle className="text-2xl text-black-grey">Filter Facilities</DialogTitle>
-                <FacilityConfirmFilter onClose={() => setFilterOpen(false)} onApplyFilter={handleApplyFilter} />
+              <DialogContent className="sm:max-w-[425px] bg-white border border-gray-200 shadow-xl rounded-lg">
+                <VisuallyHidden>
+                  <DialogTitle>Filter Facilities</DialogTitle>
+                </VisuallyHidden>
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Filter Facilities
+                  </h2>
+                  <FacilityConfirmFilter
+                    onClose={() => setFilterOpen(false)}
+                    onApplyFilter={handleApplyFilter}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           </div>
 
           {selectedCount > 0 && (
             <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-              {selectedCount} {selectedCount === 1 ? "facility" : "facilities"} selected
+              {selectedCount} {selectedCount === 1 ? "facility" : "facilities"}{" "}
+              selected
             </div>
           )}
         </div>
@@ -380,139 +427,195 @@ export function FacilityConfirmTable() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/30 hover:bg-muted/40">
-                  <TableHead className="w-[60px] rounded-tl-xl">No</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("facilityName")}>
-                    <div className="flex items-center">
-                      Facility Name
-                      {getSortIcon("facilityName")}
-                    </div>
+                <TableRow className="bg-gray-50 hover:bg-gray-100">
+                  <TableHead className="w-[60px] rounded-tl-xl bg-gray-50">
+                    No
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("facilityId")}>
-                    <div className="flex items-center">
-                      Facility ID
-                      {getSortIcon("facilityId")}
-                    </div>
+                  <TableHead className="w-[300px] bg-gray-50">
+                    <div className="flex items-center">Facility Name</div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("ownerName")}>
-                    <div className="flex items-center">
-                      Owner Name
-                      {getSortIcon("ownerName")}
-                    </div>
+                  <TableHead className="w-[200px] bg-gray-50">
+                    <div className="flex items-center">Manager Name</div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("registerDate")}>
+                  <TableHead
+                    className="w-[150px] cursor-pointer bg-gray-50"
+                    onClick={() => handleSort("registeredAt")}
+                  >
                     <div className="flex items-center">
                       Register Date
-                      {getSortIcon("registerDate")}
+                      {getSortIcon("registeredAt")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("revenue")}>
+                  <TableHead
+                    className="w-[150px] cursor-pointer bg-gray-50"
+                    onClick={() => handleSort("price")}
+                  >
                     <div className="flex items-center">
-                    Revenue
-                      {getSortIcon("revenue")}
+                      Price
+                      {getSortIcon("price")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
-                    <div className="flex items-center">
-                      Status
-                      {getSortIcon("status")}
-                    </div>
+                  <TableHead className="w-[150px] bg-gray-50">
+                    <div className="flex items-center">Rating</div>
                   </TableHead>
-                  <TableHead className="w-[100px] rounded-tr-xl">
-                    <div className="flex items-center cursor-pointer" onClick={handleSelectAll}>
+                  <TableHead className="w-[120px] bg-gray-50">
+                    <div className="flex items-center">Status</div>
+                  </TableHead>
+                  <TableHead className="w-[100px] rounded-tr-xl bg-gray-50">
+                    <div
+                      className="flex items-center cursor-pointer"
+                      onClick={handleSelectAll}
+                    >
                       {selectAll ? "Unselect All" : "Select All"}
                     </div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {paginatedFacilities.map((facility, index) => (
-                  <TableRow
-                    key={facility.facilityId}
-                    className={`${
-                      selectedRows[facility.facilityId] ? "bg-green-50" : ""
-                    } hover:bg-muted/20 transition-colors cursor-pointer`}
-                    onClick={() => handleRowClick(facility.facilityId)}
-                  >
-                    <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg overflow-hidden shadow-sm border">
-                          <Image
-                            src={facility.facilityImage || "/placeholder.svg"}
-                            alt={facility.facilityName}
-                            width={40}
-                            height={40}
-                            className="object-cover"
-                          />
+              <TableBody className="bg-white">
+                {facilities && facilities.length > 0 ? (
+                  facilities.map((facility, index) => (
+                    <TableRow
+                      key={facility.id}
+                      className={`${
+                        selectedRows[facility.id] ? "bg-green-50" : "bg-white"
+                      } hover:bg-gray-50 transition-colors cursor-pointer`}
+                      onClick={() => handleRowClick(facility.id)}
+                    >
+                      <TableCell className="font-medium bg-white">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell className="w-[300px] bg-white">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-lg overflow-hidden shadow-sm border flex-shrink-0 bg-white">
+                            <Image
+                              src={
+                                getMainPhotoUrl(facility.photos) ||
+                                "/placeholder.svg"
+                              }
+                              alt={facility.facilityName}
+                              width={48}
+                              height={48}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0 bg-white">
+                            <div className="font-medium text-gray-900 truncate">
+                              <TooltipText
+                                text={facility.facilityName}
+                                maxLength={30}
+                              />
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              <TooltipText
+                                text={facility.detailAddress}
+                                maxLength={40}
+                              />
+                            </div>
+                          </div>
                         </div>
+                      </TableCell>
+                      <TableCell className="w-[200px] bg-white">
                         <div>
-                          <div className="font-medium text-gray-900 max-w-[200px]">
-                            <TooltipText text={facility.facilityName} maxLength={25} />
+                          <div className="font-medium text-gray-900 truncate">
+                            <TooltipText
+                              text={facility.managerInfo?.fullName || "N/A"}
+                              maxLength={20}
+                            />
                           </div>
-                          <div className="text-xs text-muted-foreground max-w-[200px]">
-                            <TooltipText text={facility.facilityAddress} maxLength={30} />
+                          <div className="text-xs text-muted-foreground truncate">
+                            <TooltipText
+                              text={facility.managerInfo?.email || "N/A"}
+                              maxLength={25}
+                            />
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{facility.facilityId}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-gray-900 max-w-[150px]">
-                          <TooltipText text={facility.ownerName} maxLength={20} />
-                        </div>
-                        <div className="text-xs text-muted-foreground max-w-[150px]">
-                          <TooltipText text={facility.ownerEmail} maxLength={25} />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(facility.registerDate)}</TableCell>
-                    <TableCell className="font-medium text-start">{formatCurrency(facility.revenue)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          facility.status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : facility.status === "Pending"
+                      </TableCell>
+                      <TableCell className="w-[150px] bg-white">
+                        {formatDate(facility.registeredAt)}
+                      </TableCell>
+                      <TableCell className="w-[150px] bg-white">
+                        <PriceRange
+                          minPrice={facility.minPrice}
+                          maxPrice={facility.maxPrice}
+                        />
+                      </TableCell>
+                      <TableCell className="w-[150px] bg-white">
+                        <StarRating
+                          rating={facility.ratingAvg}
+                          totalRatings={facility.totalRatings}
+                        />
+                      </TableCell>
+                      <TableCell className="w-[120px] bg-white">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            facility.state === "Approved"
+                              ? "bg-green-100 text-green-800"
+                              : facility.state === "Pending"
                               ? "bg-yellow-100 text-yellow-800"
                               : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {facility.status}
-                      </span>
-                    </TableCell>
-                    <TableCell
-                      className="text-center"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                      }}
-                    >
-                      <Checkbox
-                        checked={selectedRows[facility.facilityId] || false}
-                        onCheckedChange={(checked) => {
-                          // Create a synthetic mouse event
-                          const syntheticEvent = {
-                            stopPropagation: () => {},
-                          } as React.MouseEvent
-                          handleSelectRow(facility.facilityId, checked as boolean, syntheticEvent)
+                          }`}
+                        >
+                          {facility.state}
+                        </span>
+                      </TableCell>
+                      <TableCell
+                        className="w-[100px] text-center bg-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
                         }}
-                        aria-label={`Select ${facility.facilityName}`}
-                        className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                      />
+                      >
+                        <Checkbox
+                          checked={selectedRows[facility.id] || false}
+                          onCheckedChange={(checked) => {
+                            const syntheticEvent = {
+                              stopPropagation: () => {},
+                            } as React.MouseEvent;
+                            handleSelectRow(
+                              facility.id,
+                              checked as boolean,
+                              syntheticEvent
+                            );
+                          }}
+                          aria-label={`Select ${facility.facilityName}`}
+                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 bg-white border border-gray-300"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow className="bg-white">
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-8 text-gray-500 bg-white"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <p>No facilities found</p>
+                        <p className="text-sm text-gray-400">
+                          {hasActiveFilters
+                            ? "Try adjusting your filters or search term"
+                            : "No data available"}
+                        </p>
+                        {headerSearchTerm && (
+                          <p className="text-sm text-gray-400">
+                            {'No results for "'}
+                            {headerSearchTerm}
+                            {'"'}
+                          </p>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={8} className="rounded-b-xl p-0">
+              <TableFooter className="bg-white">
+                <TableRow className="bg-white">
+                  <TableCell colSpan={8} className="rounded-b-xl p-0 bg-white">
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
-                      totalItems={filteredFacilities.length}
+                      totalItems={totalItems}
                       itemsPerPage={itemsPerPage}
-                      startIndex={startIndex}
+                      startIndex={(currentPage - 1) * itemsPerPage}
                       onPageChange={handlePageChange}
                       onItemsPerPageChange={handleItemsPerPageChange}
                     />
@@ -528,11 +631,11 @@ export function FacilityConfirmTable() {
           facilityId={selectedFacility}
           open={!!selectedFacility}
           onOpenChange={(open) => {
-            if (!open) setSelectedFacility(null)
+            if (!open) setSelectedFacility(null);
           }}
+          onFacilityUpdate={handleFacilityUpdate}
         />
       )}
     </TooltipProvider>
-  )
+  );
 }
-

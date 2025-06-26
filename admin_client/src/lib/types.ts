@@ -180,22 +180,6 @@ export interface Owner {
   gender: string
 }
 
-export interface Facility {
-  id: number
-  facilityName: string
-  facilityImage: string
-  facilityAddress: string
-  facilityId: string
-  ownerName: string
-  ownerEmail: string
-  ownerId: string
-  registerDate: string
-  status: "Active" | "Pending" | "Inactive"
-  province: string
-  district: string
-  revenue: number
-}
-
 export interface FilterValues {
   province: string
   district: string
@@ -267,4 +251,102 @@ export interface CreateCommentParams {
   postId: string
   content: string
   resources?: File[]
+}
+
+export interface Facility {
+  id: string
+  userId: string
+  userName: string
+  userImageUrl: string | null
+  facilityName: string
+  description: string
+  facebookUrl?: string
+  policy: string
+  courtsAmount: number
+  minPrice: number
+  maxPrice: number
+  detailAddress: string
+  province: string
+  location: {
+    type: "Point"
+    coordinates: [number, number] // [longitude, latitude]
+  }
+  ratingAvg: number
+  totalRatings: number
+  activeAt: string | null
+  state: "Pending" | "Approved" | "Rejected"
+  registeredAt: string
+  photos: Array<{
+    id: string
+    url: string
+    isMain: boolean
+  }>
+  managerInfo: {
+    fullName: string
+    email: string
+    phoneNumber: string
+    citizenId: string
+    citizenImageFront: {
+      id: string | null
+      url: string
+      isMain: boolean
+    }
+    citizenImageBack: {
+      id: string | null
+      url: string
+      isMain: boolean
+    }
+    bankCardFront: {
+      id: string | null
+      url: string
+      isMain: boolean
+    }
+    bankCardBack: {
+      id: string | null
+      url: string
+      isMain: boolean
+    }
+    businessLicenseImages: Array<{
+      id: string | null
+      url: string
+      isMain: boolean
+    }>
+  }
+}
+
+// Province is just a string based on the API response
+export type Province = string
+
+// Pagination types matching backend PagedList<T>
+export interface PagedList<T> {
+  currentPage: number
+  totalPages: number
+  pageSize: number
+  totalCount: number
+  items: T[]
+}
+
+// Update existing FilterValues interface if needed
+export interface FilterValues {
+  province: string
+  status: string
+  searchTerm: string
+}
+
+export interface Court {
+  id: string
+  facilityId: string
+  courtName: string
+  description: string
+  pricePerHour: number
+  state: string
+  orderPeriods: Array<{
+    hourFrom: string
+    hourTo: string
+  }>
+  inactivePeriods: Array<{
+    hourFrom: string
+    hourTo: string
+  }>
+  createdAt: string
 }
