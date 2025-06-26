@@ -13,5 +13,6 @@ public interface IOrderRepository
     Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId, CancellationToken cancellationToken = default);
     Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default, Guid? userId = null);
+    Task<int> GetTotalOrdersAsync(string? userId, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalRevenueAsync(string? userId, CancellationToken cancellationToken = default);
 }

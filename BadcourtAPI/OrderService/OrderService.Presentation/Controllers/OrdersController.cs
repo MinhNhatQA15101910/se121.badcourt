@@ -8,6 +8,7 @@ using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Commands.CreateRating;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
+using OrderService.Core.Application.Queries.GetTotalOrders;
 using OrderService.Core.Application.Queries.GetTotalRevenue;
 using OrderService.Presentation.Extensions;
 using SharedKernel;
@@ -105,6 +106,14 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
     public async Task<ActionResult<decimal>> GetTotalRevenue()
     {
         var totalRevenue = await mediator.Send(new GetTotalRevenueQuery());
+        return Ok(totalRevenue);
+    }
+
+    [Authorize(Roles = "Manager, Admin")]
+    [HttpGet("total-orders")]
+    public async Task<ActionResult<decimal>> GetTotalOrders()
+    {
+        var totalRevenue = await mediator.Send(new GetTotalOrdersQuery());
         return Ok(totalRevenue);
     }
 }

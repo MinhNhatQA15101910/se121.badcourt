@@ -15,10 +15,12 @@ public class GetDashboardSummaryHandler(
         var bearerToken = httpContextAccessor.HttpContext?.GetBearerToken();
         
         var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(bearerToken!, cancellationToken);
+        var totalOrders = await orderServiceClient.GetTotalOrdersAsync(bearerToken!, cancellationToken);
 
         return new DashboardSummaryResponse
         {
-            TotalRevenue = totalRevenue
+            TotalRevenue = totalRevenue,
+            TotalOrders = totalOrders
         };
     }
 }

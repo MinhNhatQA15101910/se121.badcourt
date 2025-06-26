@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Core.Domain.Entities;
+using OrderService.Core.Domain.Enums;
 using OrderService.Core.Domain.Repositories;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -107,17 +108,33 @@ public class OrderRepository(
         );
     }
 
+    public Task<int> GetTotalOrdersAsync(string? userId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return context.Orders
+                .Where(o => o.State != OrderState.Pending)
+                .CountAsync(cancellationToken);
+        }
+
+        return context.Orders
+            .Where(o => o.FacilityOwnerId == userId && o.State != OrderState.Pending)
+            .CountAsync(cancellationToken);
+
+    }
+
     public async Task<decimal> GetTotalRevenueAsync(string? userId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(userId))
         {
             return await context.Orders
+                .Where(o => o.State != OrderState.Pending)
                 .SumAsync(o => o.Price, cancellationToken);
         }
         else
         {
             return await context.Orders
-                .Where(o => o.FacilityOwnerId == userId)
+                .Where(o => o.FacilityOwnerId == userId && o.State != OrderState.Pending)
                 .SumAsync(o => o.Price, cancellationToken);
         }
     }
