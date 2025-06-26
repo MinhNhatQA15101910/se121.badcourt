@@ -117,6 +117,57 @@ public class OrderRepository(
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
+    public Task<PagedList<OrderDto>> GetOrderDetailsAsync(string? userId, OrderParams orderParams, CancellationToken cancellationToken)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by userId
+        if (userId != null)
+        {
+            query = query.Where(o => o.FacilityOwnerId == userId);
+        }
+
+        // Filter by facilityId
+        if (orderParams.FacilityId != null)
+        {
+            query = query.Where(o => o.FacilityId == orderParams.FacilityId);
+        }
+
+        // Filter by courtId
+        if (orderParams.CourtId != null)
+        {
+            query = query.Where(o => o.CourtId == orderParams.CourtId);
+        }
+
+        // Filter by status
+        if (orderParams.State != null)
+        {
+            query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
+        }
+
+        // Order
+        query = orderParams.OrderBy switch
+        {
+            "createdAt" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.CreatedAt)
+                : query.OrderByDescending(o => o.CreatedAt),
+            "price" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.Price)
+                : query.OrderByDescending(o => o.Price),
+            "state" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.State)
+                : query.OrderByDescending(o => o.State),
+            _ => query.OrderBy(o => o.CreatedAt)
+        };
+
+        return PagedList<OrderDto>.CreateAsync(
+            query.ProjectTo<OrderDto>(mapper.ConfigurationProvider),
+            orderParams.PageNumber,
+            orderParams.PageSize,
+            cancellationToken
+        );
+    }
+
     public async Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default, Guid? userId = null)
     {
         var query = context.Orders.AsQueryable();

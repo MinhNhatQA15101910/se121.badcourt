@@ -16,6 +16,7 @@ public interface IOrderRepository
     Task<List<RevenueByMonthDto>> GetMonthlyRevenueAsync(string? userId,
         ManagerDashboardMonthlyRevenueParams managerDashboardMonthlyRevenueParams, CancellationToken cancellationToken = default);
     Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<PagedList<OrderDto>> GetOrderDetailsAsync(string? userId, OrderParams orderParams, CancellationToken cancellationToken);
     Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams, CancellationToken cancellationToken = default, Guid? userId = null);
     Task<int> GetTotalCustomersAsync(string? userId, int? year, CancellationToken cancellationToken);
     Task<int> GetTotalOrdersAsync(string? userId, int? year, CancellationToken cancellationToken = default);
