@@ -333,6 +333,14 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/notifications/read-all",
       "UpstreamHttpMethod": ["Put"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/summary",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 9000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/summary",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {
