@@ -9,6 +9,7 @@ public class OrderDto
     public decimal Price { get; set; }
     public string State { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
+    public RatingDto? Rating { get; set; }
     public DateTimePeriodDto DateTimePeriod { get; set; } = new DateTimePeriodDto();
     public DateTime CreatedAt { get; set; }
 }

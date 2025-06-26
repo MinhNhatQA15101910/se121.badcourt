@@ -71,6 +71,9 @@ public class FacilityRepository : IFacilityRepository
                     }))));
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("AvgPrice", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
+            case "state":
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("State", facilityParams.SortBy == "asc" ? 1 : -1)));
+                break;
             case "registeredAt":
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", facilityParams.SortBy == "asc" ? 1 : -1)));
@@ -103,6 +106,12 @@ public class FacilityRepository : IFacilityRepository
         if (!string.IsNullOrEmpty(facilityParams.Province))
         {
             pipeline.Add(new BsonDocument("$match", new BsonDocument("Province", facilityParams.Province)));
+        }
+
+        // Filter by state ignore case
+        if (!string.IsNullOrEmpty(facilityParams.State))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("State", new BsonDocument("$regex", facilityParams.State).Add("$options", "i"))));
         }
 
         // Filter by search term

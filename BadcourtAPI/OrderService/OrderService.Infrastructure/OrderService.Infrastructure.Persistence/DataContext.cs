@@ -6,13 +6,14 @@ namespace OrderService.Infrastructure.Persistence;
 public class DataContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<Order> Orders { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Order>(entity =>
-        { 
+        {
             entity.Property(o => o.State)
                 .HasConversion<string>()
                 .IsRequired();
@@ -20,5 +21,8 @@ public class DataContext(DbContextOptions options) : DbContext(options)
 
         modelBuilder.Entity<Order>()
             .OwnsOne(o => o.DateTimePeriod);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Rating);
     }
 }
