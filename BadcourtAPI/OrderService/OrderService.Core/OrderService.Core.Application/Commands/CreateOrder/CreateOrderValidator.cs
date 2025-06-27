@@ -13,6 +13,5 @@ public class CreateOrderValidator : AbstractValidator<CreateOrderCommand>
         RuleFor(x => x.CreateOrderDto.DateTimePeriod)
             .NotNull()
             .WithMessage("DateTimePeriod is required.");
-        
     }
 }
