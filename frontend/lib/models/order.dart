@@ -1,7 +1,7 @@
+// order.dart
 import 'dart:convert';
-
-import 'package:frontend/models/image_custom.dart';
-import 'package:frontend/models/order_period.dart';
+import 'package:frontend/models/time_period.dart';
+import 'package:frontend/models/rating.dart';
 
 class Order {
   final String id;
@@ -9,8 +9,10 @@ class Order {
   final String address;
   final double price;
   final DateTime createdAt;
-  final ImageCustom image;
-  final OrderPeriod timePeriod;
+  final String imageUrl;
+  final TimePeriod timePeriod;
+  final String state;
+  final Rating? rating;
 
   const Order({
     required this.id,
@@ -18,37 +20,52 @@ class Order {
     required this.address,
     required this.price,
     required this.createdAt,
-    required this.image,
+    required this.imageUrl,
     required this.timePeriod,
+    this.state = 'None',
+    this.rating,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      '_id': id,
-      'facilityName': facilityName,
-      'address': address,
-      'price': price,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'image': image.toMap(),
-      'timePeriod': timePeriod.toMap(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'facilityName': facilityName,
+        'address': address,
+        'price': price,
+        'createdAt': createdAt.toUtc().toIso8601String(),
+        'imageUrl': imageUrl,
+        'dateTimePeriod': timePeriod.toMap(),
+        'state': state,
+        'rating': rating?.toMap(),
+      };
 
   factory Order.fromMap(Map<String, dynamic> map) {
+    DateTime _parseDate(String? raw) {
+      if (raw == null || raw.isEmpty) return DateTime.now();
+      try {
+        return DateTime.parse(raw).toLocal();
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
     return Order(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       facilityName: map['facilityName'] ?? '',
       address: map['address'] ?? '',
-      price: map['price']?.toDouble() ?? 0.0,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        map['createdAt']?.toInt() ?? 0,
-      ),
-      image: ImageCustom.fromMap(map['image'] ?? {}),
-      timePeriod: OrderPeriod.fromMap(map['timePeriod']),
+      price: (map['price'] ?? 0).toDouble(),
+      createdAt: _parseDate(map['createdAt']),
+      imageUrl: map['imageUrl'] ?? '',
+      timePeriod: TimePeriod.fromMap(map['dateTimePeriod'] ?? {}),
+      state: map['state'] ?? 'None',
+      rating: map['rating'] != null ? Rating.fromMap(map['rating']) : null,
     );
   }
 
+  factory Order.fromJson(String source) => Order.fromMap(json.decode(source));
+
   String toJson() => json.encode(toMap());
 
-  factory Order.fromJson(String source) => Order.fromMap(json.decode(source));
+  @override
+  String toString() => 'Order(id: $id, facilityName: $facilityName, '
+      'state: $state, rating: $rating)';
 }

@@ -194,7 +194,7 @@ class _PinputFormState extends State<PinputForm> {
         color: GlobalVariables.defaultColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: GlobalVariables.lightGreen.withOpacity(0.5),
+          color: GlobalVariables.lightGreen..withOpacity(0.5),
         ),
       ),
       padding: EdgeInsets.symmetric(

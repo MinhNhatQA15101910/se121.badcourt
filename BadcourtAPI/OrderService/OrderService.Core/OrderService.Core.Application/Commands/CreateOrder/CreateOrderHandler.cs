@@ -111,6 +111,7 @@ public class CreateOrderHandler(
         var draftOrder = new Order
         {
             UserId = userId,
+            FacilityOwnerId = facility.UserId.ToString(),
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
             FacilityName = facility.FacilityName,

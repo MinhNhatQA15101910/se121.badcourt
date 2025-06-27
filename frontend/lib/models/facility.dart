@@ -1,10 +1,8 @@
 import 'dart:convert';
 
 import 'package:frontend/models/active.dart';
-import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:frontend/models/manager_info.dart';
-
-
 
 class Facility {
   final String id;
@@ -13,9 +11,7 @@ class Facility {
   final String description;
   final String policy;
   final String userId;
-  final String userImageUrl;
-  final String facilityImageUrl;
-  final List<ImageCustom> facilityImages;
+  final List<FileDto> facilityImages;
   final int courtsAmount;
   final int minPrice;
   final int maxPrice;
@@ -26,9 +22,11 @@ class Facility {
   final double ratingAvg;
   final int totalRating;
   final String state;
-  final int createdAt;
+  final DateTime registeredAt; // giữ LOCAL (UTC+7)
   final ManagerInfo managerInfo;
-  final Active activeAt; // Added Active field
+  final Active? activeAt;
+  final String userName;
+  final String? userImageUrl;
 
   Facility({
     required this.id,
@@ -37,8 +35,6 @@ class Facility {
     required this.description,
     required this.policy,
     required this.userId,
-    required this.userImageUrl,
-    required this.facilityImageUrl,
     required this.facilityImages,
     required this.courtsAmount,
     required this.minPrice,
@@ -50,9 +46,11 @@ class Facility {
     required this.ratingAvg,
     required this.totalRating,
     required this.state,
-    required this.createdAt,
+    required this.registeredAt,
     required this.managerInfo,
-    required this.activeAt, // Include Active in the constructor
+    this.activeAt,
+    required this.userName,
+    this.userImageUrl,
   });
 
   Facility copyWith({
@@ -62,9 +60,7 @@ class Facility {
     String? description,
     String? policy,
     String? userId,
-    String? userImageUrl,
-    String? facilityImageUrl,
-    List<ImageCustom>? facilityImages,
+    List<FileDto>? facilityImages,
     int? courtsAmount,
     int? minPrice,
     int? maxPrice,
@@ -75,9 +71,11 @@ class Facility {
     double? ratingAvg,
     int? totalRating,
     String? state,
-    int? createdAt,
+    DateTime? registeredAt,
     ManagerInfo? managerInfo,
-    Active? activeAt, // Add Active to copyWith
+    Active? activeAt,
+    String? userName,
+    String? userImageUrl,
   }) {
     return Facility(
       id: id ?? this.id,
@@ -86,8 +84,6 @@ class Facility {
       description: description ?? this.description,
       policy: policy ?? this.policy,
       userId: userId ?? this.userId,
-      userImageUrl: userImageUrl ?? this.userImageUrl,
-      facilityImageUrl: facilityImageUrl ?? this.facilityImageUrl,
       facilityImages: facilityImages ?? this.facilityImages,
       courtsAmount: courtsAmount ?? this.courtsAmount,
       minPrice: minPrice ?? this.minPrice,
@@ -99,75 +95,90 @@ class Facility {
       ratingAvg: ratingAvg ?? this.ratingAvg,
       totalRating: totalRating ?? this.totalRating,
       state: state ?? this.state,
-      createdAt: createdAt ?? this.createdAt,
+      registeredAt: registeredAt ?? this.registeredAt,
       managerInfo: managerInfo ?? this.managerInfo,
-      activeAt: activeAt ?? this.activeAt, // Include Active in copyWith
+      activeAt: activeAt ?? this.activeAt,
+      userName: userName ?? this.userName,
+      userImageUrl: userImageUrl ?? this.userImageUrl,
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      '_id': id,
-      'facilityName': facilityName,
-      'facebookUrl': facebookUrl,
-      'description': description,
-      'policy': policy,
-      'userId': userId,
-      'userImageUrl': userImageUrl,
-      'facilityImageUrl': facilityImageUrl,
-      'facilityImages': facilityImages.map((img) => img.toMap()).toList(),
-      'courtsAmount': courtsAmount,
-      'minPrice': minPrice,
-      'maxPrice': maxPrice,
-      'detailAddress': detailAddress,
-      'province': province,
-      'lat': lat,
-      'lon': lon,
-      'ratingAvg': ratingAvg,
-      'totalRating': totalRating,
-      'state': state,
-      'createdAt': createdAt,
-      'managerInfo': managerInfo.toMap(),
-      'activeAt': activeAt.toMap(), // Include Active in toMap
-    };
-  }
-
   factory Facility.fromMap(Map<String, dynamic> map) {
+    final coordinates = map['location']?['coordinates'] ?? [0.0, 0.0];
+
+    DateTime _parseDate(dynamic raw) {
+      if (raw == null || raw.toString().isEmpty) return DateTime.now();
+      try {
+        return raw is int
+            ? DateTime.fromMillisecondsSinceEpoch(raw, isUtc: true).toLocal()
+            : DateTime.parse(raw as String).toLocal();
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
     return Facility(
-      id: map['_id'] ?? '',
+      id: map['id'] ?? '',
       facilityName: map['facilityName'] ?? '',
       facebookUrl: map['facebookUrl'] ?? '',
       description: map['description'] ?? '',
       policy: map['policy'] ?? '',
       userId: map['userId'] ?? '',
-      userImageUrl: map['userImageUrl'] ?? '',
-      facilityImageUrl: map['facilityImageUrl'] ?? '',
-      facilityImages: List<ImageCustom>.from(
-        (map['facilityImages'] ?? []).map((img) => ImageCustom.fromMap(img)),
+      facilityImages: List<FileDto>.from(
+        (map['photos'] ?? []).map((img) => FileDto.fromMap(img)),
       ),
       courtsAmount: map['courtsAmount'] ?? 0,
       minPrice: map['minPrice'] ?? 0,
       maxPrice: map['maxPrice'] ?? 0,
       detailAddress: map['detailAddress'] ?? '',
       province: map['province'] ?? '',
-      lat: map['lat']?.toDouble() ?? 0.0,
-      lon: map['lon']?.toDouble() ?? 0.0,
+      lon: (coordinates[0] ?? 0.0).toDouble(),
+      lat: (coordinates[1] ?? 0.0).toDouble(),
       ratingAvg: map['ratingAvg']?.toDouble() ?? 0.0,
-      totalRating: map['totalRating'] ?? 0,
+      totalRating: map['totalRatings'] ?? 0,
       state: map['state'] ?? '',
-      createdAt: map['createdAt'] ?? 0,
+      registeredAt: _parseDate(map['registeredAt']),
       managerInfo: ManagerInfo.fromMap(map['managerInfo'] ?? {}),
       activeAt:
-          Active.fromMap(map['activeAt'] ?? {}), // Include Active in fromMap
+          map['activeAt'] != null ? Active.fromMap(map['activeAt']) : null,
+      userName: map['userName'] ?? '',
+      userImageUrl: map['userImageUrl'],
     );
   }
 
-  String toJson() => json.encode(toMap());
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'facilityName': facilityName,
+      'facebookUrl': facebookUrl,
+      'description': description,
+      'policy': policy,
+      'userId': userId,
+      'photos': facilityImages.map((img) => img.toMap()).toList(),
+      'courtsAmount': courtsAmount,
+      'minPrice': minPrice,
+      'maxPrice': maxPrice,
+      'detailAddress': detailAddress,
+      'province': province,
+      'location': {
+        'type': 'Point',
+        'coordinates': [lon, lat],
+      },
+      'ratingAvg': ratingAvg,
+      'totalRatings': totalRating,
+      'state': state,
+      'registeredAt': registeredAt.toUtc().toIso8601String(),
+      'managerInfo': managerInfo.toMap(),
+      'activeAt': activeAt?.toMap(),
+      'userName': userName,
+      'userImageUrl': userImageUrl,
+    };
+  }
 
+  String toJson() => json.encode(toMap());
   factory Facility.fromJson(String source) =>
       Facility.fromMap(json.decode(source));
 
-  bool hasDay(String day) {
-    return activeAt.schedule.containsKey(day.toLowerCase());
-  }
+  bool hasDay(String day) =>
+      activeAt?.schedule.containsKey(day.toLowerCase()) ?? false;
 }

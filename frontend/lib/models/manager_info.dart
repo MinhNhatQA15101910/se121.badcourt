@@ -1,15 +1,15 @@
-import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/file_dto.dart';
 
 class ManagerInfo {
   final String fullName;
   final String email;
   final String phoneNumber;
   final String citizenId;
-  final ImageCustom citizenImageFront;
-  final ImageCustom citizenImageBack;
-  final ImageCustom bankCardFront;
-  final ImageCustom bankCardBack;
-  final List<ImageCustom> businessLicenseImages;
+  final FileDto citizenImageFront;
+  final FileDto citizenImageBack;
+  final FileDto bankCardFront;
+  final FileDto bankCardBack;
+  final List<FileDto> businessLicenseImages;
 
   ManagerInfo({
     required this.fullName,
@@ -43,11 +43,11 @@ class ManagerInfo {
     String? email,
     String? phoneNumber,
     String? citizenId,
-    ImageCustom? citizenImageFront,
-    ImageCustom? citizenImageBack,
-    ImageCustom? bankCardFront,
-    ImageCustom? bankCardBack,
-    List<ImageCustom>? businessLicenseImages,
+    FileDto? citizenImageFront,
+    FileDto? citizenImageBack,
+    FileDto? bankCardFront,
+    FileDto? bankCardBack,
+    List<FileDto>? businessLicenseImages,
   }) {
     return ManagerInfo(
       fullName: fullName ?? this.fullName,
@@ -69,13 +69,13 @@ class ManagerInfo {
       email: map['email'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       citizenId: map['citizenId'] ?? '',
-      citizenImageFront: ImageCustom.fromMap(map['citizenImageFront'] ?? {}),
-      citizenImageBack: ImageCustom.fromMap(map['citizenImageBack'] ?? {}),
-      bankCardFront: ImageCustom.fromMap(map['bankCardFront'] ?? {}),
-      bankCardBack: ImageCustom.fromMap(map['bankCardBack'] ?? {}),
-      businessLicenseImages: List<ImageCustom>.from(
+      citizenImageFront: FileDto.fromMap(map['citizenImageFront'] ?? {}),
+      citizenImageBack: FileDto.fromMap(map['citizenImageBack'] ?? {}),
+      bankCardFront: FileDto.fromMap(map['bankCardFront'] ?? {}),
+      bankCardBack: FileDto.fromMap(map['bankCardBack'] ?? {}),
+      businessLicenseImages: List<FileDto>.from(
         (map['businessLicenseImages'] ?? [])
-            .map((img) => ImageCustom.fromMap(img)),
+            .map((img) => FileDto.fromMap(img)),
       ),
     );
   }

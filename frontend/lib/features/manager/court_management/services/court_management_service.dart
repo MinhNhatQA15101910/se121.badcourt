@@ -29,7 +29,7 @@ class CourtManagementService {
     Court? court = null;
     try {
       http.Response response = await http.post(
-        Uri.parse('$uri/api/courts'),
+        Uri.parse('$uri/gateway/courts'),
         body: jsonEncode({
           'facilityId': currentFacilityProvider.currentFacility.id,
           'courtName': name,
@@ -82,7 +82,7 @@ class CourtManagementService {
     Court? court = null;
     try {
       http.Response response = await http.put(
-        Uri.parse('$uri/api/courts/$courtId'),
+        Uri.parse('$uri/gateway/courts/$courtId'),
         body: jsonEncode({
           'courtName': name,
           'description': description,
@@ -104,8 +104,8 @@ class CourtManagementService {
             description: description,
             pricePerHour: pricePerHour,
             state: 'Active',
-            createdAt: DateTime.now().millisecondsSinceEpoch,
-            orderPeriods: [],
+            createdAt: DateTime.now().toUtc().toIso8601String(),
+            orderPeriods: [], inactivePeriods: [],
           );
 
           IconSnackBar.show(
@@ -131,7 +131,7 @@ class CourtManagementService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/api/courts?facilityId=$facilityId'),
+        Uri.parse('$uri/gateway/courts?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -174,7 +174,7 @@ class CourtManagementService {
 
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/manager/facilities/$facilityId'),
+        Uri.parse('$uri/gateway/facilities/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -215,7 +215,7 @@ class CourtManagementService {
 
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/api/courts/$courtId'),
+        Uri.parse('$uri/gateway/courts/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -282,31 +282,36 @@ class CourtManagementService {
     }
   }
 
-  Future<void> updateActiveSchedule(BuildContext context, String facilityId,
-      Map<String, dynamic> activeSchedule) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
+  Future<void> updateActiveSchedule(
+    BuildContext context,
+    String facilityId,
+    Map<String, dynamic> activeSchedule,
+  ) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     try {
       // Khởi tạo requestBody rỗng
-      Map<String, dynamic> requestBody = {"active": {}};
+      Map<String, dynamic> requestBody = {};
 
       // Lặp qua từng ngày trong activeSchedule
       activeSchedule.forEach((day, schedule) {
-        if (schedule != null &&
-            schedule['hourFrom'] != null &&
-            schedule['hourTo'] != null) {
+        if (schedule != null) {
+          final from = schedule['hourFrom'];
+          final to = schedule['hourTo'];
+
+          print('[$day] hourFrom: $from, hourTo: $to');
+
           requestBody[day] = {
-            "hourFrom": schedule['hourFrom'],
-            "hourTo": schedule['hourTo'],
+            "hourFrom": from,
+            "hourTo": to,
           };
         }
       });
 
-      // Gửi request PATCH
-      final response = await http.patch(
-        Uri.parse('$uri/api/facilities/update-active/$facilityId'),
+      print("Request Body JSON: ${jsonEncode(requestBody)}");
+
+      final response = await http.put(
+        Uri.parse('$uri/gateway/facilities/update-active/$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -317,18 +322,12 @@ class CourtManagementService {
       httpErrorHandler(
         response: response,
         context: context,
-        onSuccess: () {
-          IconSnackBar.show(
-            context,
-            label: 'Active schedule updated successfully',
-            snackBarType: SnackBarType.success,
-          );
-        },
+        onSuccess: () {},
       );
     } catch (error) {
       IconSnackBar.show(
         context,
-        label: error.toString(),
+        label: 'Failed to update active schedule',
         snackBarType: SnackBarType.fail,
       );
     }

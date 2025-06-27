@@ -7,6 +7,7 @@ import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/add_facility/models/detail_address.dart';
 import 'package:frontend/features/manager/add_facility/providers/new_facility_provider.dart';
+import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -75,7 +76,10 @@ class AddFacilityService {
     return null;
   }
 
-  Future<void> registerFacility({required BuildContext context}) async {
+  Future<void> submitFacility({
+    required BuildContext context,
+    Facility? existingFacility, // Optional parameter for update mode
+  }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
@@ -86,12 +90,16 @@ class AddFacilityService {
     );
 
     try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$uri/api/facilities'),
-      );
+      // Determine if this is an update or create operation
+      final bool isUpdate = existingFacility != null;
+      final String method = isUpdate ? 'PUT' : 'POST';
+      final String endpoint = isUpdate
+          ? '$uri/gateway/facilities/${existingFacility.id}'
+          : '$uri/gateway/facilities';
 
-      // Thêm thông tin JSON dưới dạng fields
+      final request = http.MultipartRequest(method, Uri.parse(endpoint));
+
+      // Add form fields
       request.fields.addAll({
         "facilityName": newFacilityProvider.newFacility.facilityName,
         "lon": newFacilityProvider.newFacility.lat.toString(),
@@ -107,65 +115,76 @@ class AddFacilityService {
         "policy": newFacilityProvider.newFacility.policy,
       });
 
-      // Thêm các file ảnh dạng nhiều (facilityImages)
-      for (File file in newFacilityProvider.facilityImages) {
+      // Add facility images (only if new images are selected)
+      if (newFacilityProvider.facilityImages.isNotEmpty) {
+        for (File file in newFacilityProvider.facilityImages) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'facilityImages',
+              file.path,
+            ),
+          );
+        }
+      }
+
+      // Add business license images (only if new images are selected)
+      if (newFacilityProvider.licenseImages.isNotEmpty) {
+        for (File file in newFacilityProvider.licenseImages) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'businessLicenseImages',
+              file.path,
+            ),
+          );
+        }
+      }
+
+      // Add individual document images (only if new images are selected)
+      if (newFacilityProvider.frontCitizenIdImage.path.isNotEmpty) {
         request.files.add(
           await http.MultipartFile.fromPath(
-            'facilityImages', // Tên key trong API
-            file.path,
+            'citizenImageFront',
+            newFacilityProvider.frontCitizenIdImage.path,
           ),
         );
       }
 
-      // Thêm các file ảnh dạng nhiều (businessLicenseImages)
-      for (File file in newFacilityProvider.licenseImages) {
+      if (newFacilityProvider.backCitizenIdImage.path.isNotEmpty) {
         request.files.add(
           await http.MultipartFile.fromPath(
-            'businessLicenseImages', // Tên key trong API
-            file.path,
+            'citizenImageBack',
+            newFacilityProvider.backCitizenIdImage.path,
           ),
         );
       }
 
-      // Thêm các file đơn lẻ
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'citizenImageFront', // Tên key trong API
-          newFacilityProvider.frontCitizenIdImage.path,
-        ),
-      );
+      if (newFacilityProvider.frontBankCardImage.path.isNotEmpty) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'bankCardFront',
+            newFacilityProvider.frontBankCardImage.path,
+          ),
+        );
+      }
 
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'citizenImageBack', // Tên key trong API
-          newFacilityProvider.backCitizenIdImage.path,
-        ),
-      );
+      if (newFacilityProvider.backBankCardImage.path.isNotEmpty) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'bankCardBack',
+            newFacilityProvider.backBankCardImage.path,
+          ),
+        );
+      }
 
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'bankCardFront', // Tên key trong API
-          newFacilityProvider.frontBankCardImage.path,
-        ),
-      );
-
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'bankCardBack', // Tên key trong API
-          newFacilityProvider.backBankCardImage.path,
-        ),
-      );
-
-      // Thêm headers
+      // Add headers
       request.headers.addAll({
         'Authorization': 'Bearer ${userProvider.user.token}',
       });
 
-      // Gửi request
+      // Send request
       final streamedResponse = await request.send();
-
-      // Xử lý response
       final response = await http.Response.fromStream(streamedResponse);
+
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
@@ -175,7 +194,9 @@ class AddFacilityService {
         onSuccess: () {
           IconSnackBar.show(
             context,
-            label: 'Facility registered successfully',
+            label: isUpdate
+                ? 'Facility updated successfully'
+                : 'Facility registered successfully',
             snackBarType: SnackBarType.success,
           );
         },
@@ -187,5 +208,18 @@ class AddFacilityService {
         snackBarType: SnackBarType.fail,
       );
     }
+  }
+
+  // Keep the old method for backward compatibility
+  Future<void> registerFacility({required BuildContext context}) async {
+    return submitFacility(context: context);
+  }
+
+  // New method specifically for updating
+  Future<void> updateFacility({
+    required BuildContext context,
+    required Facility facility,
+  }) async {
+    return submitFacility(context: context, existingFacility: facility);
   }
 }

@@ -1,13 +1,21 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend/common/services/socket_service.dart';
+import 'package:frontend/common/services/message_hub_service.dart';
+import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/services/message_service.dart';
-import 'package:frontend/features/message/widgets/message_widget.dart';
+import 'package:frontend/features/message/widgets/message_app_bar.dart';
+import 'package:frontend/features/message/widgets/message_input_widget.dart';
+import 'package:frontend/features/message/widgets/message_list_widget.dart';
+import 'package:frontend/models/file_dto.dart';
+import 'package:frontend/models/user.dart';
+import 'package:frontend/models/message_dto.dart';
+import 'package:frontend/providers/group_provider.dart';
+import 'package:frontend/providers/online_users_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/user_provider.dart';
+import 'dart:async';
 
 class MessageDetailScreen extends StatefulWidget {
   static const String routeName = '/messageDetailScreen';
@@ -20,32 +28,52 @@ class MessageDetailScreen extends StatefulWidget {
   _MessageDetailScreenState createState() => _MessageDetailScreenState();
 }
 
-class _MessageDetailScreenState extends State<MessageDetailScreen> {
+class _MessageDetailScreenState extends State<MessageDetailScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
-  final _messageService = MessageService();
-  final SocketService _socketService = SocketService();
-  late String? userId;
+  final FocusNode _messageFocusNode = FocusNode();
+  final List<MessageDto> _messages = [];
 
-  final ImagePicker _picker = ImagePicker();
-  List<File>? _imageFiles = [];
+  // Add SignalR services
+  final MessageHubService _messageHubService = MessageHubService();
+  late String? userId;
+  User? _otherUser;
+
+  List<File> _mediaFiles = [];
 
   bool _isLoading = true;
   bool _isLoadingMore = false;
-  bool _hasMoreMessages = true;
+  bool _hasMorePages = false;
   bool _isSendingMessage = false;
+  bool _isConnecting = false;
+  bool _isConnected = false;
 
-  int _pageNumber = 1;
-  final int _pageSize = 10;
+  // Pagination info
+  int _currentPage = 1;
+  int _totalPages = 1;
 
-  String roomId = "";
+  String groupId = "";
 
   final ScrollController _scrollController = ScrollController();
+
+  Timer? _connectionHealthTimer;
+  late AnimationController _fadeController;
+
+  // Keyboard handling
+  double _keyboardHeight = 0;
+  bool _isKeyboardVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScrollListener);
+    WidgetsBinding.instance.addObserver(this);
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    // Listen to focus changes
+    _messageFocusNode.addListener(_onFocusChanged);
   }
 
   @override
@@ -55,388 +83,502 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
     if (userId != null) {
       _initializeServices();
+      _loadOtherUserInfo();
+
+      // Initialize OnlineUsersProvider if not already initialized
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final onlineUsersProvider =
+          Provider.of<OnlineUsersProvider>(context, listen: false);
+      if (!PresenceService().isConnected) {
+        onlineUsersProvider.initialize(userProvider.user.token);
+      }
     } else {
       print('userId is null');
     }
   }
 
   @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
+    final newKeyboardHeight = bottomInset / WidgetsBinding.instance.window.devicePixelRatio;
+    
+    if (newKeyboardHeight != _keyboardHeight) {
+      setState(() {
+        _keyboardHeight = newKeyboardHeight;
+        _isKeyboardVisible = newKeyboardHeight > 0;
+      });
+
+      // Auto scroll to bottom when keyboard appears
+      if (_isKeyboardVisible && _scrollController.hasClients) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom(animate: true);
+        });
+      }
+    }
+  }
+
+  void _onFocusChanged() {
+    if (_messageFocusNode.hasFocus && _scrollController.hasClients) {
+      // Delay scroll to allow keyboard animation
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && _scrollController.hasClients) {
+          _scrollToBottom(animate: true);
+        }
+      });
+    }
+  }
+
+  void _scrollToBottom({bool animate = true}) {
+    if (_scrollController.hasClients) {
+      if (animate) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(
+          _scrollController.position.maxScrollExtent,
+        );
+      }
+    }
+  }
+
+  void _loadOtherUserInfo() {
+    if (userId == null) return;
+
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+
+    // Find the group that contains this user
+    for (var group in groupProvider.groups) {
+      for (var user in group.users) {
+        if (user.id == userId) {
+          setState(() {
+            _otherUser = user;
+          });
+          return;
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _messageController.dispose();
+    _messageFocusNode.removeListener(_onFocusChanged);
+    _messageFocusNode.dispose();
     _scrollController.dispose();
+    _connectionHealthTimer?.cancel();
+    _fadeController.dispose();
+
+    // Disconnect from MessageHub for this user
+    if (userId != null) {
+      _messageHubService.stopConnection(userId!);
+    }
     super.dispose();
   }
 
+  // Enhanced _initializeServices method with paginated message loading
   Future<void> _initializeServices() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    try {
-      roomId = await _messageService.getOrCreatePersonalMessageRoom(
-        context: context,
-        userId: userId ?? "",
-      );
-      _socketService.onNewMessage((data) {
-        print('Received new message: $data');
+    setState(() {
+      _isConnecting = true;
+      _isLoading = true;
+    });
 
-        setState(() {
-          // Parse và thêm tin nhắn vào danh sách
-          _messages.insert(0, {
-            'isSender': data['senderId'] == userProvider.user.id,
-            'message': data['content'] ?? '',
-            'time': data['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
-            'resources': (data['resources'] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toList(),
-            'senderImageUrl': data['senderImageUrl'],
+    try {
+      print('[MessageDetailScreen] Initializing services for user: $userId');
+
+      // Set up message callbacks first
+      _messageHubService.onNewMessage = (message) {
+        print('Received new message: ${message.content}');
+        if (mounted) {
+          setState(() {
+            // Add new message to the end of the list (newest at bottom)
+            _messages.add(message);
           });
 
-          _isSendingMessage = false;
-        });
+          // Auto-scroll to bottom when new message arrives
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottom(animate: true);
+          });
+        }
+      };
+
+      // Update to handle paginated messages
+      _messageHubService.onReceiveMessageThread = (paginatedMessages) {
+        print(
+            'Received paginated message thread: ${paginatedMessages.items.length} messages on page ${paginatedMessages.currentPage}/${paginatedMessages.totalPages}');
+
+        if (mounted) {
+          setState(() {
+            // Update pagination info from SignalR initial load
+            _currentPage = paginatedMessages.currentPage;
+            _totalPages = paginatedMessages.totalPages;
+            _hasMorePages = _currentPage < _totalPages;
+
+            // Sort messages by time (oldest first for proper display order)
+            final sortedMessages =
+                List<MessageDto>.from(paginatedMessages.items);
+            sortedMessages
+                .sort((a, b) => a.messageSent.compareTo(b.messageSent));
+
+            if (_isLoadingMore) {
+              // When loading more (older messages), add them to the beginning
+              final existingIds = _messages.map((m) => m.id).toSet();
+              final newMessages = sortedMessages
+                  .where((m) => !existingIds.contains(m.id))
+                  .toList();
+
+              // Add older messages to the beginning of the list
+              _messages.insertAll(0, newMessages);
+              _isLoadingMore = false;
+            } else {
+              // Initial load - replace all messages with sorted messages
+              _messages.clear();
+              _messages.addAll(sortedMessages);
+
+              // Scroll to bottom after initial load
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scrollToBottom(animate: false);
+              });
+            }
+
+            _isLoading = false;
+            _fadeController.forward();
+          });
+
+          print(
+              '[MessageDetailScreen] Updated UI with ${_messages.length} messages, page $_currentPage/$_totalPages');
+        }
+      };
+
+      // Connect to MessageHub for this specific user
+      await _messageHubService.startConnection(
+        userProvider.user.token,
+        userId ?? "",
+      );
+
+      // Wait a bit for connection to stabilize
+      await Future.delayed(Duration(milliseconds: 2000));
+
+      // Check connection state
+      final isReady = _messageHubService.isConnectionReady(userId ?? "");
+      print('[MessageDetailScreen] Connection ready: $isReady');
+
+      setState(() {
+        _isConnected = isReady;
+        _isConnecting = false;
       });
 
-      await _fetchMessages();
+      // If no messages received after connection, stop loading
+      if (_messages.isEmpty) {
+        await Future.delayed(Duration(milliseconds: 3000));
+        if (mounted && _messages.isEmpty) {
+          setState(() {
+            _isLoading = false;
+            _fadeController.forward();
+          });
+          print(
+              '[MessageDetailScreen] No messages received, stopping loading indicator');
+        }
+      }
+
+      if (!isReady) {
+        if (mounted) {
+          _showSnackBar(
+            'Failed to connect to user. Please try again.',
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _initializeServices,
+            ),
+          );
+        }
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error initializing message services: $e')),
-      );
+      print('[MessageDetailScreen] Error initializing services: $e');
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _isLoading = false;
+          _isConnected = false;
+          _fadeController.forward();
+        });
+      }
     }
   }
 
-  Future<void> _fetchMessages({bool isLoadingMore = false}) async {
-    if (isLoadingMore) {
-      if (_isLoadingMore || !_hasMoreMessages) return;
-      setState(() {
-        _isLoadingMore = true;
-      });
-    } else {
-      setState(() {
-        _isLoading = true;
-      });
-    }
+  // Updated to load more messages with pagination using MessageService
+  Future<void> _loadMoreMessages() async {
+    // Ensure we don't load more if already loading, no more pages, or initial loading
+    if (_isLoading || _isLoadingMore || !_hasMorePages) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
 
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final nextPage = _currentPage + 1;
+      print(
+          '[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
 
-      final messages = await _messageService.getMessages(
-        roomId: roomId,
+      final messageService = MessageService();
+      final paginatedResponse = await messageService.fetchMessagesByOrderUserId(
         context: context,
-        pageNumber: _pageNumber,
-        pageSize: _pageSize,
+        userId: userId ?? "",
+        pageNumber: nextPage,
       );
 
-      setState(() {
-        if (messages.isEmpty || messages.length < _pageSize) {
-          _hasMoreMessages = false;
-        } else {
-          _pageNumber++;
-        }
+      if (mounted) {
+        setState(() {
+          // Sort fetched messages by time (oldest first)
+          final sortedMessages = List<MessageDto>.from(paginatedResponse.items);
+          sortedMessages.sort((a, b) => a.messageSent.compareTo(b.messageSent));
 
-        final newMessages = messages.map<Map<String, dynamic>>((msg) {
-          return {
-            'isSender': msg['senderId'] == userProvider.user.id,
-            'message': msg['content'] ?? '',
-            'time': msg['createdAt'] as int? ?? 0,
-            'resources': msg['resources'] ?? [],
-          };
-        }).toList();
+          // Add older messages to the beginning of the list
+          final existingIds = _messages.map((m) => m.id).toSet();
+          final newMessages =
+              sortedMessages.where((m) => !existingIds.contains(m.id)).toList();
+          _messages.insertAll(0, newMessages);
 
-        _messages.addAll(newMessages);
-      });
+          // Update pagination info from REST API response
+          _currentPage = paginatedResponse.currentPage;
+          _totalPages = paginatedResponse.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
+          _isLoadingMore = false;
+        });
+
+        print(
+            '[MessageDetailScreen] Loaded ${_messages.length} messages, now on page $_currentPage/$_totalPages');
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching messages: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
-    }
-  }
+      print(
+          '[MessageDetailScreen] Error loading more messages via REST API: $e');
 
-  void _onScrollListener() {
-    if (_isLoading || _isLoadingMore || !_hasMoreMessages) return;
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
 
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      _fetchMessages(isLoadingMore: true);
-    }
-  }
-
-  Future<void> _pickImages() async {
-    final List<XFile>? selectedImages = await _picker.pickMultiImage();
-    if (selectedImages != null) {
-      setState(() {
-        _imageFiles?.addAll(
-          selectedImages.map((xfile) => File(xfile.path)).toList(),
+        _showSnackBar(
+          'Error loading more messages: $e',
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: _loadMoreMessages,
+          ),
         );
-      });
+      }
     }
   }
 
+  void _removeMedia(int index) {
+    setState(() {
+      _mediaFiles.removeAt(index);
+    });
+  }
+
+  void _clearMediaFiles() {
+    setState(() {
+      _mediaFiles.clear();
+    });
+  }
+
+  // Enhanced _sendMessage method - cải thiện UX
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty && _imageFiles!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message cannot be empty')),
-      );
+    if (_messageController.text.trim().isEmpty && _mediaFiles.isEmpty) {
+      _showSnackBar('Message cannot be empty');
       return;
     }
 
     final content = _messageController.text.trim();
-    _messageController.clear();
+    final List<File> attachmentsToSend = List.from(_mediaFiles);
 
-    final List<File> imagesToSend = List<File>.from(_imageFiles!);
+    // Tạo tin nhắn tạm thời để hiển thị ngay lập tức (optimistic UI)
+    final tempMessage = MessageDto(
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      senderId: Provider.of<UserProvider>(context, listen: false).user.id,
+      groupId: '',
+      content: content,
+      messageSent: DateTime.now(),
+      resources: _mediaFiles.map((file) => FileDto(
+        url: file.path,
+        isMain: false,
+        fileType: file.path.toLowerCase().endsWith('.mp4') || 
+                  file.path.toLowerCase().endsWith('.mov') ? 'video' : 'image',
+      )).toList(),
+    );
 
+    // Thêm tin nhắn tạm thời vào danh sách ngay lập tức
     setState(() {
-      _imageFiles = [];
-      _isSendingMessage = false; // Bắt đầu trạng thái loading
+      _messages.add(tempMessage);
+      _messageController.clear(); // Xóa text ngay lập tức
+      _mediaFiles.clear(); // Xóa media files ngay lập tức
+      _isSendingMessage = true;
     });
 
+    // Scroll to bottom ngay lập tức
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom(animate: true);
+    });
+
+    // Giữ focus trên input
+    if (_messageFocusNode.canRequestFocus) {
+      _messageFocusNode.requestFocus();
+    }
+
     try {
-      await _messageService.sendMessageToRoom(
-        roomId: roomId,
-        content: content,
-        imageFiles: imagesToSend,
+      // Validate file sizes
+      for (File file in attachmentsToSend) {
+        final int fileSizeInBytes = await file.length();
+        final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+        if (fileSizeInMB > 100) {
+          throw Exception(
+            'File ${file.path.split('/').last} is too large (${fileSizeInMB.toStringAsFixed(1)}MB). Max size: 10MB',
+          );
+        }
+      }
+
+      print('[MessageDetailScreen] Sending message via HTTP with ${attachmentsToSend.length} file(s)');
+
+      // Send via REST API
+      await MessageService().sendMessage(
         context: context,
+        recipientId: userId ?? '',
+        content: content,
+        resources: attachmentsToSend,
       );
 
-      _socketService.sendMessageWithImages(
-        roomId,
-        content,
-        imagesToSend.map((file) => file.path).toList(),
-      );
+      print('[MessageDetailScreen] Message sent successfully');
+      
+      // Xóa tin nhắn tạm thời (tin nhắn thật sẽ được nhận từ SignalR)
+      if (mounted) {
+        setState(() {
+          _messages.removeWhere((msg) => msg.id == tempMessage.id);
+        });
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
-      setState(() {
-        _isSendingMessage = false;
-      });
+      print('[MessageDetailScreen] Error sending message: $e');
+
+      // Rollback: xóa tin nhắn tạm thời và restore nội dung
+      if (mounted) {
+        setState(() {
+          _messages.removeWhere((msg) => msg.id == tempMessage.id);
+          _messageController.text = content;
+          _mediaFiles.addAll(attachmentsToSend);
+        });
+
+        _showSnackBar(
+          'Failed to send message: ${e.toString()}',
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: _sendMessage,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSendingMessage = false;
+        });
+      }
     }
+  }
+
+  void _showSnackBar(String message,
+      {Duration? duration, SnackBarAction? action}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: duration ?? const Duration(seconds: 3),
+        action: action,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
-        child: AppBar(
-          backgroundColor: GlobalVariables.green,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Message',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.none,
-                    color: GlobalVariables.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        child: MessageAppBar(
+          otherUser: _otherUser,
+          isConnected: _isConnected,
         ),
       ),
-      body: Column(
-        children: [
-          _isLoading
-              ? Expanded(child: Center(child: CircularProgressIndicator()))
-              : Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    itemCount: _messages.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == _messages.length) {
-                        return _isLoadingMore
-                            ? const Center(
-                                child: CircularProgressIndicator(),
-                              )
-                            : const SizedBox.shrink();
-                      }
-
-                      final message = _messages[index];
-                      final nextMessage =
-                          index > 0 ? _messages[index - 1] : null;
-
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: MessageWidget(
-                          isSender: message['isSender'] ?? false,
-                          message: message['message'] ?? '',
-                          time: message['time'],
-                          nextTime: nextMessage?['time'],
-                          imageUrls: (message['resources'] as List<dynamic>?)
-                              ?.map((e) => e.toString())
-                              .toList(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-          _buildMessageInput(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageInput() {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            width: 1,
-            color: GlobalVariables.grey,
-          ),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        child: Column(
-          children: [
-            if (_imageFiles != null && _imageFiles!.isNotEmpty)
-              _buildImagePreview(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: _pickImages,
-                    child: const Icon(
-                      Icons.add_photo_alternate_outlined,
+      body: _isConnecting
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
                       color: GlobalVariables.green,
-                      size: 28,
+                      strokeWidth: 3,
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    controller: _messageController,
-                    maxLines: 4,
-                    minLines: 1,
-                    decoration: InputDecoration(
-                      hintText: 'Type your message...',
-                      hintStyle: GoogleFonts.inter(
-                        color: GlobalVariables.darkGrey,
-                        fontSize: 14,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: GlobalVariables.lightGreen,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: GlobalVariables.lightGreen,
-                        ),
-                      ),
-                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Connecting to user...',
                     style: GoogleFonts.inter(
-                      fontSize: 14,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: GlobalVariables.darkGreen,
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (_messageController.text.trim().isNotEmpty ||
-                          _imageFiles!.isNotEmpty) {
-                        _sendMessage();
-                      }
+                ],
+              ),
+            )
+          : FadeTransition(
+              opacity: _fadeController,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: MessageListWidget(
+                      messages: _messages,
+                      isLoading: _isLoading,
+                      isLoadingMore: _isLoadingMore,
+                      hasMorePages: _hasMorePages,
+                      currentPage: _currentPage,
+                      totalPages: _totalPages,
+                      scrollController: _scrollController,
+                      currentUserId:
+                          Provider.of<UserProvider>(context, listen: false)
+                              .user
+                              .id,
+                      onLoadMore: _loadMoreMessages,
+                    ),
+                  ),
+                  MessageInputWidget(
+                    messageController: _messageController,
+                    messageFocusNode: _messageFocusNode,
+                    mediaFiles: _mediaFiles,
+                    isConnected: _isConnected,
+                    isSendingMessage: _isSendingMessage,
+                    onPickMedia: (files) {
+                      setState(() {
+                        _mediaFiles.addAll(files);
+                      });
                     },
-                    child: _isSendingMessage
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: GlobalVariables.green,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.send,
-                            color: GlobalVariables.green,
-                            size: 28,
-                          ),
+                    onRemoveMedia: _removeMedia,
+                    onSendMessage: _sendMessage,
+                    onClearMedia: _clearMediaFiles,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePreview() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5, // Số cột trong lưới
-          crossAxisSpacing: 4, // Khoảng cách ngang
-          mainAxisSpacing: 4, // Khoảng cách dọc
-        ),
-        itemCount: _imageFiles!.length,
-        itemBuilder: (context, index) {
-          final imageFile = _imageFiles![index];
-          return Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: AspectRatio(
-                  aspectRatio: 1, // Đảm bảo khung ảnh là hình vuông
-                  child: Image.file(
-                    imageFile,
-                    fit: BoxFit.cover, // Đảm bảo ảnh luôn bao phủ khung
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _imageFiles?.removeAt(index);
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }

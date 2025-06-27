@@ -1,8 +1,8 @@
 class BookingTime {
-  int id;
-  DateTime startDate;
-  DateTime endDate;
-  int status;
+  final int id;
+  final DateTime startDate;
+  final DateTime endDate; 
+  final int status;
 
   BookingTime({
     required this.id,
@@ -11,24 +11,21 @@ class BookingTime {
     required this.status,
   });
 
-  // Convert a Booking into a Map. The keys must correspond to the names of the
-  // fields in the database.
+  factory BookingTime.fromJson(Map<String, dynamic> json) {
+    return BookingTime(
+      id: json['id'] as int,
+      startDate: DateTime.parse(json['startDate']).toLocal(),
+      endDate: DateTime.parse(json['endDate']).toLocal(),
+      status: json['status'] as int,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
+      'startDate': startDate.toUtc().toIso8601String(),
+      'endDate': endDate.toUtc().toIso8601String(),
       'status': status,
     };
-  }
-
-  // A factory constructor to create a Booking from JSON.
-  factory BookingTime.fromJson(Map<String, dynamic> json) {
-    return BookingTime(
-      id: json['id'],
-      startDate: DateTime.parse(json['startDate']),
-      endDate: DateTime.parse(json['endDate']),
-      status: json['status'],
-    );
   }
 }

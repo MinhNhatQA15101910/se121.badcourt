@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/services/socket_service.dart';
 import 'package:frontend/common/widgets/message_button.dart';
 import 'package:frontend/common/widgets/notification_button.dart';
+
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_screen.dart';
-import 'package:frontend/features/manager/home/screens/home_screen.dart';
+import 'package:frontend/features/manager/manager_home/screens/manager_home_screen.dart';
+import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
+import 'package:frontend/models/facility.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -23,14 +26,29 @@ class ManagerBottomBar extends StatefulWidget {
 class _ManagerBottomBarState extends State<ManagerBottomBar> {
   int _selectedIndex = 0;
   String userId = "";
-  int _unreadMessages = 0; // Lưu số tin nhắn chưa đọc
-  final SocketService _socketService = SocketService();
+
   final List<Widget> _pages = [
-    const HomeScreen(),
+    const ManagerHomeScreen(),
     const CourtManagementScreen(),
     const PostScreen(),
     const ManagerAccountScreen(),
   ];
+
+  Future<void> onPageChanged(int index) async {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(
+      context,
+      listen: false,
+    );
+    Facility facility = currentFacilityProvider.currentFacility;
+    IntroManagerService introManagerService = IntroManagerService();
+    facility = (await introManagerService.fetchFacilityById(
+        context: context, facilityId: facility.id))!;
+    currentFacilityProvider.setFacility(facility);
+  }
 
   @override
   void initState() {
@@ -41,32 +59,21 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
     );
     final id = userProvider.user.id;
     if (id.isNotEmpty) {
-      _socketService.connect(userProvider.user.token, userProvider.user.id);
-
       setState(() {
         userId = id;
-      });
-
-      // Lắng nghe sự kiện newMessage
-      _socketService.onNewMessage((data) {
-        setState(() {
-          _unreadMessages++; // Tăng số tin nhắn chưa đọc
-        });
       });
     }
   }
 
-  // Callback function để reset index và unreadMessages
+  // Callback function để reset index
   void _resetIndex() {
     setState(() {
       _selectedIndex = 0; // Chuyển về tab đầu tiên (Home)
-      _unreadMessages = 0; // Reset số tin nhắn chưa đọc
     });
   }
 
   @override
   void dispose() {
-    _socketService.disconnect();
     super.dispose();
   }
 
@@ -99,12 +106,13 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
                   ),
                 ),
               ),
-              NotificationButton(userId: userId),
-              // Pass the callback to reset index
+              NotificationButton(
+                userId: userId,
+                onNotificationButtonPressed: _resetIndex,
+              ), // Sử dụng MessageButton mới không cần truyền unreadMessages
               MessageButton(
                 userId: userId,
-                unreadMessages: _unreadMessages,
-                onMessageButtonPressed: _resetIndex, // Truyền callback để reset
+                onMessageButtonPressed: _resetIndex,
               ),
             ],
           ),
@@ -125,27 +133,13 @@ class _ManagerBottomBarState extends State<ManagerBottomBar> {
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
             selectedIndex: _selectedIndex,
             onTabChange: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
+              onPageChanged(index); // Gọi async handler
             },
             tabs: const [
-              GButton(
-                icon: Icons.home,
-                text: 'Home',
-              ),
-              GButton(
-                icon: Icons.vertical_split_outlined,
-                text: 'Courts',
-              ),
-              GButton(
-                icon: Icons.dashboard,
-                text: 'Post',
-              ),
-              GButton(
-                icon: Icons.account_circle,
-                text: 'Account',
-              ),
+              GButton(icon: Icons.home, text: 'Home'),
+              GButton(icon: Icons.vertical_split_outlined, text: 'Courts'),
+              GButton(icon: Icons.dashboard, text: 'Post'),
+              GButton(icon: Icons.account_circle, text: 'Account'),
             ],
           ),
         ),

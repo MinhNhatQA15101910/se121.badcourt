@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/manager/account/services/account_service.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -20,8 +20,8 @@ class ManagerDrawer extends StatelessWidget {
             // The "Yes" button
             TextButton(
               onPressed: () {
-                final accountService = AccountService();
-                accountService.logOut(context);
+                final authService = AuthService();
+                authService.logOutUser(context);
 
                 Navigator.of(context).pop();
               },
@@ -50,7 +50,7 @@ class ManagerDrawer extends StatelessWidget {
 
     final username = userProvider.user.username;
     final email = userProvider.user.email;
-    final imageUrl = userProvider.user.imageUrl;
+    final imageUrl = userProvider.user.photoUrl;
 
     return Drawer(
       backgroundColor: GlobalVariables.green,

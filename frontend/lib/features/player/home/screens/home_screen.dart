@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 12,
                     ),
                     Container(
-                      height: 240,
+                      height: 248,
                       child: _nearbyFacilities == null
                           ? const Loader()
                           : _nearbyFacilities!.isNotEmpty
@@ -259,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 12,
                     ),
                     Container(
-                      height: 240,
+                      height: 248,
                       child: _selectedCityFacilities == null
                           ? const Loader()
                           : _selectedCityFacilities!.isNotEmpty

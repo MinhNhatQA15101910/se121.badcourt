@@ -256,7 +256,7 @@ class _TimeSlotBottomSheetState extends State<TimeSlotBottomSheet> {
                         );
                         Navigator.pop(context);
                       },
-                      buttonText: 'Add',
+                      buttonText: 'Update time',
                       borderColor: GlobalVariables.green,
                       fillColor: GlobalVariables.green,
                       textColor: Colors.white,

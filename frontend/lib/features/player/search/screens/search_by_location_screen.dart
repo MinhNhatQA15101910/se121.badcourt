@@ -6,7 +6,7 @@ import 'package:frontend/features/manager/add_facility/models/detail_address.dar
 import 'package:frontend/features/player/search/services/search_service.dart';
 import 'package:frontend/models/active.dart';
 import 'package:frontend/models/facility.dart';
-import 'package:frontend/models/image_custom.dart';
+import 'package:frontend/models/file_dto.dart';
 import 'package:frontend/models/manager_info.dart';
 import 'package:frontend/providers/sort_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -56,20 +56,18 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     facebookUrl: 'https://www.facebook.com/default',
     description: 'This is a default facility description.',
     policy: 'Default policy for this facility.',
-    userImageUrl: 'https://via.placeholder.com/150',
-    facilityImageUrl: 'https://via.placeholder.com/150',
     facilityImages: [
-      ImageCustom(
+      FileDto(
         id: 'default_image_id_1',
         url: 'https://via.placeholder.com/150',
         isMain: true,
-        type: 'image',
+        fileType: 'image',
       ),
-      ImageCustom(
+      FileDto(
         id: 'default_image_id_2',
         url: 'https://via.placeholder.com/200',
         isMain: false,
-        type: 'image',
+        fileType: 'image',
       ),
     ],
     courtsAmount: 1,
@@ -80,7 +78,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
     ratingAvg: 4.5,
     totalRating: 100,
     state: 'Pending',
-    createdAt: DateTime.now().millisecondsSinceEpoch,
+    registeredAt: DateTime.now(),
     minPrice: 0,
     maxPrice: 0,
     managerInfo: ManagerInfo(
@@ -88,56 +86,60 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
       email: 'manager@example.com',
       phoneNumber: '0123456789',
       citizenId: '123456789',
-      citizenImageFront: ImageCustom(
+      citizenImageFront: FileDto(
         id: 'default_citizen_front_id',
         url: 'https://via.placeholder.com/150',
         isMain: true,
-        type: 'image',
+        fileType: 'image',
       ),
-      citizenImageBack: ImageCustom(
+      citizenImageBack: FileDto(
         id: 'default_citizen_back_id',
         url: 'https://via.placeholder.com/150',
         isMain: true,
-        type: 'image',
+        fileType: 'image',
       ),
-      bankCardFront: ImageCustom(
+      bankCardFront: FileDto(
         id: 'default_bank_front_id',
         url: 'https://via.placeholder.com/150',
         isMain: true,
-        type: 'image',
+        fileType: 'image',
       ),
-      bankCardBack: ImageCustom(
+      bankCardBack: FileDto(
         id: 'default_bank_back_id',
         url: 'https://via.placeholder.com/150',
         isMain: true,
-        type: 'image',
+        fileType: 'image',
       ),
       businessLicenseImages: [
-        ImageCustom(
+        FileDto(
           id: 'default_license_id_1',
           url: 'https://via.placeholder.com/150',
           isMain: true,
-          type: 'image',
+          fileType: 'image',
         ),
-        ImageCustom(
+        FileDto(
           id: 'default_license_id_2',
           url: 'https://via.placeholder.com/200',
           isMain: false,
-          type: 'image',
+          fileType: 'image',
         ),
       ],
     ),
     activeAt: Active(
       schedule: {},
-    ),
+    ), userName: '',
   );
 
   void _fetchAllFacilities() async {
     try {
-      _facilities = await _searchService.fetchAllFacilities(
+      // Sửa lỗi: lấy facilities từ Map result
+      final result = await _searchService.fetchAllFacilities(
         context: context,
         sort: Sort.location_asc,
       );
+
+      // Extract facilities từ Map result
+      _facilities = result['facilities'] as List<Facility>;
 
       print("Fetched facilities: ${_facilities.length}");
       for (var facility in _facilities) {
@@ -333,9 +335,9 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                                 hintText: 'Find badminton facilities',
                                 hintStyle: GoogleFonts.inter(
                                   color: GlobalVariables.darkGrey,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
-                                contentPadding: const EdgeInsets.all(16),
+                                contentPadding: const EdgeInsets.all(8),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
@@ -379,8 +381,8 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                         GestureDetector(
                           onTap: _pingMarker,
                           child: Container(
-                            width: 54,
-                            height: 54,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(
@@ -426,7 +428,7 @@ class _SearchByLocationScreenState extends State<SearchByLocationScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 16,
                                 ),

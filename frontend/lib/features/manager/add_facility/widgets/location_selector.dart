@@ -14,10 +14,14 @@ class LocationSelector extends StatefulWidget {
     super.key,
     required this.selectedAddress,
     required this.onAddressSelected,
+    this.lat,
+    this.lng,
   });
 
   final DetailAddress? selectedAddress;
   final void Function(DetailAddress) onAddressSelected;
+  final double? lat;
+  final double? lng;
 
   @override
   State<LocationSelector> createState() => _LocationSelectorState();
@@ -33,10 +37,19 @@ class _LocationSelectorState extends State<LocationSelector> {
       return '';
     }
 
-    final lng = widget.selectedAddress!.lng;
-    final lat = widget.selectedAddress!.lat;
+    final lng = widget.lng != 0.0 ? widget.lng : widget.selectedAddress!.lng;
+    final lat = widget.lat != 0.0 ? widget.lat : widget.selectedAddress!.lat;
 
     return 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l-a+f00($lng,$lat)/$lng,$lat,14/600x300?access_token=${dotenv.env['MAPBOX_ACCESS_TOKEN']}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.lat != null && widget.lng != null) {
+      _savePlace(widget.lat!, widget.lng!);
+    }
   }
 
   void _getCurrentLocation() async {
@@ -153,7 +166,7 @@ class _LocationSelectorState extends State<LocationSelector> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 10),
+              padding: const EdgeInsets.only(left: 0),
               child: InkWell(
                 onTap: _getCurrentLocation,
                 child: Row(
@@ -165,7 +178,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Get Current Location',
+                      'Current location',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: GlobalVariables.green,
@@ -188,7 +201,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Select on Map',
+                      'Select map',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: GlobalVariables.green,

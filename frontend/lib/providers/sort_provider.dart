@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 
 enum Sort {
-  location_asc('location', 'asc', 'Location: Near to far'),
-  location_desc('location', 'desc', 'Location: Far to near'),
-  registered_at_asc('registered_at', 'asc', 'Register date: Old to new'),
-  registered_at_desc('registered_at', 'desc', 'Register date: New to old'),
-  price_asc('price', 'asc', 'Price: Low to high'),
-  price_desc('price', 'desc', 'Price: High to low');
+  location_asc('asc', 'location', 'Near your location'),
+  registered_at_asc('asc', 'registeredAt', 'Oldest facilities'),
+  registered_at_desc('desc', 'registeredAt', 'Newest facilities'),
+  price_asc('asc', 'price', 'Ascending price order'),
+  price_desc('desc', 'price', 'Descending price order');
 
-  const Sort(this.sort, this.order, this.value);
-  final String sort;
+  const Sort(this.order, this.sort, this.value);
   final String order;
+  final String sort;
   final String value;
 }
 

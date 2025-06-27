@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:frontend/models/comment.dart';
+import 'package:frontend/models/file_dto.dart';
 
 class Post {
   final String id;
@@ -7,13 +7,12 @@ class Post {
   final String publisherUsername;
   final String publisherImageUrl;
   final String title;
-  final String description;
-  final String category;
-  final List<String> resources;
-  final int createdAt;
-  final List<Comment> comments; // New field
-  final int commentsCount; // New field for comment count
-  final int likesCount; // New field for likes count
+  final String content;
+  final List<FileDto> resources;
+  final int likesCount;
+  final bool isLiked;
+  final int commentsCount;
+  final DateTime createdAt;
 
   const Post({
     required this.id,
@@ -21,57 +20,87 @@ class Post {
     required this.publisherUsername,
     required this.publisherImageUrl,
     required this.title,
-    required this.description,
-    required this.category,
+    required this.content,
     required this.resources,
-    required this.createdAt,
-    required this.comments,
-    required this.commentsCount,
     required this.likesCount,
+    required this.isLiked,
+    required this.commentsCount,
+    required this.createdAt,
   });
+
+  factory Post.fromMap(Map<String, dynamic> map) {
+    return Post(
+      id: map['id']?.toString() ?? '',
+      publisherId: map['publisherId']?.toString() ?? '',
+      publisherUsername: map['publisherUsername']?.toString() ?? '',
+      publisherImageUrl: map['publisherImageUrl']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+      content: map['content']?.toString() ?? '',
+      resources: map['resources'] != null
+          ? List<FileDto>.from(map['resources'].map((r) => FileDto.fromMap(r)))
+          : [],
+      likesCount: _parseToInt(map['likesCount']),
+      isLiked: map['isLiked'] is bool
+          ? map['isLiked']
+          : map['isLiked'].toString().toLowerCase() == 'true',
+      commentsCount: _parseToInt(map['commentsCount']),
+      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '')?.toLocal() ?? DateTime.now(),
+    );
+  }
+
+  static int _parseToInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    if (value is double) return value.toInt();
+    return 0;
+  }
 
   Map<String, dynamic> toMap() {
     return {
-      '_id': id,
+      'id': id,
       'publisherId': publisherId,
       'publisherUsername': publisherUsername,
       'publisherImageUrl': publisherImageUrl,
       'title': title,
-      'description': description,
-      'category': category,
-      'resources': resources,
-      'createdAt': createdAt,
-      'comments': comments
-          .map((comment) => comment.toMap())
-          .toList(), // Convert each comment to a map
-      'commentsCount': commentsCount, // Add comments count to map
-      'likesCount': likesCount, // Add likes count to map
+      'content': content,
+      'resources': resources.map((r) => r.toMap()).toList(),
+      'likesCount': likesCount,
+      'isLiked': isLiked,
+      'commentsCount': commentsCount,
+      'createdAt': createdAt.toUtc().toIso8601String(),
     };
-  }
-
-  factory Post.fromMap(Map<String, dynamic> map) {
-    return Post(
-      id: map['_id'] ?? '',
-      publisherId: map['publisherId'] ?? '',
-      publisherUsername: map['publisherUsername'] ?? '',
-      publisherImageUrl: map['publisherImageUrl'] ?? '',
-      title: map['title'] ?? '',
-      description: map['description'] ?? '',
-      category: map['category'] ?? '',
-      resources: List<String>.from(map['resources'] ?? []),
-      createdAt: map['createdAt'] ?? 0,
-      comments: map['comments'] != null
-          ? List<Comment>.from(
-              (map['comments'] as List)
-                  .map((comment) => Comment.fromMap(comment)),
-            )
-          : [],
-      commentsCount: map['commentsCount'] != null ? map['commentsCount'] : 0,
-      likesCount: map['likesCount'] != null ? map['likesCount'] : 0,
-    );
   }
 
   String toJson() => json.encode(toMap());
 
   factory Post.fromJson(String source) => Post.fromMap(json.decode(source));
+
+  Post copyWith({
+    String? id,
+    String? publisherId,
+    String? publisherUsername,
+    String? publisherImageUrl,
+    String? title,
+    String? content,
+    List<FileDto>? resources,
+    int? likesCount,
+    bool? isLiked,
+    int? commentsCount,
+    DateTime? createdAt,
+  }) {
+    return Post(
+      id: id ?? this.id,
+      publisherId: publisherId ?? this.publisherId,
+      publisherUsername: publisherUsername ?? this.publisherUsername,
+      publisherImageUrl: publisherImageUrl ?? this.publisherImageUrl,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      resources: resources ?? this.resources,
+      likesCount: likesCount ?? this.likesCount,
+      isLiked: isLiked ?? this.isLiked,
+      commentsCount: commentsCount ?? this.commentsCount,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

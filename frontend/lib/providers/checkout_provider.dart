@@ -8,8 +8,8 @@ class CheckoutProvider extends ChangeNotifier {
     description: 'Default description for the court.',
     pricePerHour: 100000,
     state: 'Active',
-    createdAt: DateTime.now().millisecondsSinceEpoch,
-    orderPeriods: [],
+    createdAt: DateTime.now().toUtc().toIso8601String(),
+    orderPeriods: [], inactivePeriods: [],
   );
 
   DateTime _startDate = DateTime.now();
@@ -60,8 +60,8 @@ class CheckoutProvider extends ChangeNotifier {
       description: 'Default description for the court.',
       pricePerHour: 100000,
       state: 'Active',
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      orderPeriods: [],
+      createdAt: DateTime.now().toUtc().toIso8601String(),
+      orderPeriods: [], inactivePeriods: [],
     );
     _startDate = DateTime.now();
     _endDate = DateTime.now();

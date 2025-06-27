@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/common/services/socket_service.dart';
 import 'package:frontend/common/widgets/message_button.dart';
 import 'package:frontend/common/widgets/notification_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/constants/utils.dart';
-import 'package:frontend/features/player/account/screens/account_screen.dart';
+import 'package:frontend/features/player/account/screens/player_account_screen.dart';
 import 'package:frontend/features/player/home/screens/home_screen.dart';
 import 'package:frontend/features/player/search/screens/search_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
@@ -24,14 +23,12 @@ class PlayerBottomBar extends StatefulWidget {
 class _PlayerBottomBarState extends State<PlayerBottomBar> {
   int _selectedIndex = 0;
   String userId = "";
-  int _unreadMessages = 0; // Lưu số tin nhắn chưa đọc
 
-  final SocketService _socketService = SocketService();
   final List<Widget> _pages = [
     const HomeScreen(),
     const SearchScreen(),
     const PostScreen(),
-    const AccountScreen(),
+    const PlayerAccountScreen(),
   ];
 
   @override
@@ -44,30 +41,21 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
     );
     final id = userProvider.user.id;
     if (id.isNotEmpty) {
-      _socketService.connect(userProvider.user.token, userProvider.user.id);
       setState(() {
         userId = id;
-      });
-
-      _socketService.onNewMessage((data) {
-        setState(() {
-          _unreadMessages++; // Tăng số tin nhắn chưa đọc
-        });
       });
     }
   }
 
   @override
   void dispose() {
-    _socketService.disconnect();
     super.dispose();
   }
 
-  // Callback function để reset index và unreadMessages
+  // Callback function để reset index
   void _resetIndex() {
     setState(() {
       _selectedIndex = 0; // Chuyển về tab đầu tiên (Home)
-      _unreadMessages = 0; // Reset số tin nhắn chưa đọc
     });
   }
 
@@ -100,12 +88,14 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
                   ),
                 ),
               ),
-              NotificationButton(userId: userId),
-              // Pass the callback to reset index
+              NotificationButton(
+                userId: userId,
+                onNotificationButtonPressed: _resetIndex,
+              ),
+              // Sử dụng MessageButton mới không cần truyền unreadMessages
               MessageButton(
                 userId: userId,
-                unreadMessages: _unreadMessages,
-                onMessageButtonPressed: _resetIndex, // Truyền callback để reset
+                onMessageButtonPressed: _resetIndex,
               ),
             ],
           ),

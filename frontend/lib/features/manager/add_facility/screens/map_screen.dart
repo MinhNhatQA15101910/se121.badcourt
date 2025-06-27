@@ -196,7 +196,7 @@ class _MapScreenState extends State<MapScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withOpacity(0.5),
                               spreadRadius: 0.2,
                               blurRadius: 32,
                             ),

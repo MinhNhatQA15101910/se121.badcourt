@@ -180,4 +180,33 @@ public class FacilityRepository : IFacilityRepository
             cancellationToken: cancellationToken
         );
     }
+
+    public async Task<int> GetTotalFacilitiesAsync(string? userId, int? year, CancellationToken cancellationToken = default)
+    {
+        var filters = new List<FilterDefinition<Facility>>();
+
+        // Filter by UserId if provided
+        if (!string.IsNullOrWhiteSpace(userId) && Guid.TryParse(userId, out var userGuid))
+        {
+            filters.Add(Builders<Facility>.Filter.Eq(f => f.UserId, userGuid));
+        }
+
+        // Filter by CreatedAt year if provided
+        if (year.HasValue)
+        {
+            var startOfYear = new DateTime(year.Value, 1, 1);
+            var startOfNextYear = startOfYear.AddYears(1);
+
+            filters.Add(Builders<Facility>.Filter.Gte(f => f.CreatedAt, startOfYear));
+            filters.Add(Builders<Facility>.Filter.Lt(f => f.CreatedAt, startOfNextYear));
+        }
+
+        var filter = filters.Count != 0
+            ? Builders<Facility>.Filter.And(filters)
+            : Builders<Facility>.Filter.Empty;
+
+        var count = await _facilities.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return (int)count;
+    }
+
 }

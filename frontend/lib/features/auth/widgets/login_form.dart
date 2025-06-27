@@ -31,6 +31,82 @@ class _LoginFormState extends State<LoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Email validator
+  String? _validateEmail(String? email) {
+    if (email == null || email.isEmpty) {
+      return 'Please enter your email.';
+    }
+
+    // Check basic email format
+    if (!EmailValidator.validate(email)) {
+      return 'Please enter a valid email address.';
+    }
+
+    // Additional validation
+    if (email.length > 254) {
+      return 'Email too long (maximum 254 characters).';
+    }
+
+    if (email.contains('..')) {
+      return 'Email cannot contain consecutive periods.';
+    }
+
+    // Check for valid domain
+    final parts = email.split('@');
+    if (parts.length != 2) {
+      return 'Invalid email.';
+    }
+
+    final domain = parts[1];
+    if (domain.isEmpty || domain.startsWith('.') || domain.endsWith('.')) {
+      return 'Invalid email domain.';
+    }
+
+    return null;
+  }
+
+  bool containsUppercase(String input) {
+    final uppercaseRegex = RegExp(r'[A-Z]');
+    return uppercaseRegex.hasMatch(input);
+  }
+
+  bool containsLowercase(String input) {
+    final lowercaseRegex = RegExp(r'[a-z]');
+    return lowercaseRegex.hasMatch(input);
+  }
+
+  // Password validator for login
+  String? _validatePassword(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Please enter your password.';
+    }
+
+    if (!containsUppercase(password) || !containsLowercase(password)) {
+      return 'Password must contain uppercase and lowercase letters.';
+    }
+
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters.';
+    }
+
+    // Additional security check - prevent common weak passwords
+    final commonPasswords = [
+      '12345678',
+      'password',
+      'qwerty123',
+      'abc12345',
+      '11111111',
+      '00000000',
+      'password123'
+    ];
+
+    if (commonPasswords.contains(password.toLowerCase())) {
+      return 'Password is too simple, please choose another password.';
+    }
+
+    return null;
+  }
+
   void _logInUser() {
     if (_loginFormKey.currentState!.validate()) {
       setState(() {
@@ -142,17 +218,7 @@ class _LoginFormState extends State<LoginForm> {
                 controller: _emailController,
                 hintText: 'Email address',
                 isEmail: true,
-                validator: (email) {
-                  if (email == null || email.isEmpty) {
-                    return 'Please enter your email.';
-                  }
-
-                  if (!EmailValidator.validate(email)) {
-                    return 'Please enter a valid email address.';
-                  }
-
-                  return null;
-                },
+                validator: _validateEmail,
               ),
               const SizedBox(height: 16),
 
@@ -161,17 +227,7 @@ class _LoginFormState extends State<LoginForm> {
                 controller: _passwordController,
                 isPassword: true,
                 hintText: 'Password',
-                validator: (password) {
-                  if (password == null || password.isEmpty) {
-                    return 'Please enter your password.';
-                  }
-
-                  if (password.length < 8) {
-                    return 'Password must be at least 8 characters long.';
-                  }
-
-                  return null;
-                },
+                validator: _validatePassword,
               ),
               const SizedBox(height: 16),
 
@@ -190,7 +246,7 @@ class _LoginFormState extends State<LoginForm> {
                           fontWeight: FontWeight.w300),
                       children: [
                         TextSpan(
-                            text: 'Password?',
+                            text: 'password?',
                             style: GoogleFonts.inter(
                                 color: GlobalVariables.darkGreen,
                                 fontSize: 12,
@@ -259,8 +315,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               if (authProvider.isPlayer) const SizedBox(height: 16),
 
-              // OAuth buttons
-              // Sign up with Google button.
+              // Sign in with Google button
               if (authProvider.isPlayer)
                 Align(
                   alignment: Alignment.center,
@@ -334,7 +389,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               if (authProvider.isPlayer) const SizedBox(height: 16),
 
-              // Continue as a guess button
+              // Continue as a guest button
               if (authProvider.isPlayer)
                 Align(
                   alignment: Alignment.center,

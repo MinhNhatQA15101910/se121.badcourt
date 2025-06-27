@@ -9,14 +9,7 @@ class AuthProvider extends ChangeNotifier {
   String _resentEmail = "";
   String _password = "";
   String _authToken = "";
-  User _signUpUser = User(
-    id: '',
-    username: '',
-    email: '',
-    imageUrl: '',
-    role: '',
-    token: '',
-  );
+  User _signUpUser = User.empty();
 
   // Getters
   Widget get authForm => _authForm;

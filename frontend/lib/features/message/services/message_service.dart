@@ -1,110 +1,32 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/models/message_room.dart';
+import 'package:frontend/models/paginated_groups_dto.dart';
+import 'package:frontend/models/paginated_messages_dto.dart'; // Changed import
+import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:path/path.dart';
 
 class MessageService {
-  Future<String> getOrCreatePersonalMessageRoom({
+  Future<PaginatedMessagesDto> fetchMessagesByOrderUserId({
+    // Changed return type
     required BuildContext context,
     required String userId,
-  }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-
-    final response = await http.get(
-      Uri.parse('$uri/api/messages/room/$userId'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ${userProvider.user.token}",
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data["_id"];
-    } else if (response.statusCode == 404) {
-      return await _createMessageRoom(context: context, userId: userId);
-    } else {
-      throw Exception('Failed to fetch personal message room');
-    }
-  }
-
-  Future<String> _createMessageRoom({
-    required BuildContext context,
-    required String userId,
-  }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-
-    final response = await http.post(
-      Uri.parse('$uri/api/messages/create-room'),
-      headers: {
-        "Authorization": "Bearer ${userProvider.user.token}",
-        "Content-Type": "application/json",
-      },
-      body: jsonEncode({
-        "users": [userId],
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return data["_id"];
-    } else {
-      throw Exception('Failed to create personal message room');
-    }
-  }
-
-  Future<dynamic> getMessages({
-    required String roomId,
-    required BuildContext context,
     int pageNumber = 1,
-    int pageSize = 10,
   }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-
-    final response = await http.get(
-      Uri.parse(
-          '$uri/api/messages?roomId=$roomId&pageNumber=$pageNumber&pageSize=$pageSize'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ${userProvider.user.token}",
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to fetch messages');
-    }
-  }
-
-  Future<List<MessageRoom>> getMessageRooms({
-    required BuildContext context,
-  }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-    List<MessageRoom> messageRoomList = [];
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    PaginatedMessagesDto? paginatedResponse; // Changed type
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/api/users/me/message-rooms'),
-        headers: <String, String>{
+        Uri.parse(
+            '$uri/gateway/messages?OtherUserId=$userId&pageNumber=$pageNumber&pageSize=20'),
+        headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
         },
@@ -114,11 +36,9 @@ class MessageService {
         response: response,
         context: context,
         onSuccess: () {
-          for (var object in jsonDecode(response.body)) {
-            messageRoomList.add(
-              MessageRoom.fromMap(object),
-            );
-          }
+          // Assuming the API returns a JSON object with 'items', 'currentPage', 'totalPages', 'pageSize'
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
+          paginatedResponse = PaginatedMessagesDto.fromJson(responseBody);
         },
       );
     } catch (error) {
@@ -129,51 +49,146 @@ class MessageService {
       );
     }
 
-    return messageRoomList;
+    // Return an empty response if something went wrong, or the actual response
+    return paginatedResponse ??
+        PaginatedMessagesDto(
+            items: [],
+            currentPage: pageNumber,
+            totalPages: pageNumber,
+            pageSize: 20,
+            totalCount: 0);
   }
 
-  Future<dynamic> sendMessageToRoom({
-    required String roomId,
-    required String content,
-    List<File>? imageFiles,
+  Future<PaginatedGroupsDto> fetchGroup({
+    // Changed return type
     required BuildContext context,
+    int pageNumber = 1,
   }) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    PaginatedGroupsDto? paginatedResponse; // Changed type
 
     try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$uri/api/messages/send-to-room'),
+      final response = await http.get(
+        Uri.parse('$uri/gateway/groups?pageNumber=$pageNumber'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
       );
-      request.headers['Authorization'] = 'Bearer ${userProvider.user.token}';
 
-      request.fields['roomId'] = roomId;
-      request.fields['content'] = content;
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
+          paginatedResponse = PaginatedGroupsDto.fromJson(responseBody);
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
 
-      if (imageFiles != null && imageFiles.isNotEmpty) {
-        for (File file in imageFiles) {
-          var multipartFile = await http.MultipartFile.fromPath(
-            'resources',
-            file.path,
-          );
-          request.files.add(multipartFile);
-        }
+    return paginatedResponse ??
+        PaginatedGroupsDto(
+            items: [],
+            currentPage: pageNumber,
+            totalPages: pageNumber,
+            pageSize: 20,
+            totalCount: 0);
+  }
+
+  Future<void> sendMessage({
+    required BuildContext context,
+    required String recipientId,
+    required String content,
+    required List<File> resources, // image or video files
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      final uriRequest = Uri.parse('$uri/gateway/messages');
+      final request = http.MultipartRequest('POST', uriRequest)
+        ..headers['Authorization'] = 'Bearer ${userProvider.user.token}'
+        ..fields['recipientId'] = recipientId
+        ..fields['content'] = content;
+
+      for (File file in resources) {
+        final multipartFile = await http.MultipartFile.fromPath(
+          'resources',
+          file.path,
+          filename: basename(file.path),
+        );
+        request.files.add(multipartFile);
       }
 
-      var response = await request.send();
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
-      if (response.statusCode == 201) {
-        var responseBody = await response.stream.bytesToString();
-        return jsonDecode(responseBody);
-      } else {
-        var responseBody = await response.stream.bytesToString();
-        throw Exception('Failed to send message: $responseBody');
-      }
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+        },
+      );
     } catch (e) {
-      throw Exception('Error: ${e.toString()}');
+      IconSnackBar.show(
+        context,
+        label: 'Failed to send message: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+    }
+  }
+  
+  Future<User?> fetchUserById({
+    required BuildContext context,
+    required String userId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      final Uri currentUri = Uri.parse('$uri/gateway/users/$userId');
+
+      http.Response res = await http.get(
+        currentUri,
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      User? user;
+
+      httpErrorHandler(
+        response: res,
+        context: context,
+        onSuccess: () {
+          try {
+            final data = jsonDecode(res.body);
+            user = User.fromJson(data);
+          } catch (e) {
+            print('Error parsing post by ID: $e');
+            print('Post data: ${res.body}');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing post data',
+              snackBarType: SnackBarType.fail,
+            );
+          }
+        },
+      );
+
+      return user;
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
     }
   }
 }

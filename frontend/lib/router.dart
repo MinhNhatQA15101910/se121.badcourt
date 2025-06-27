@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
+import 'package:frontend/features/facility_detail/screens/facility_ratings_screen.dart';
 import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
@@ -8,8 +9,6 @@ import 'package:frontend/features/manager/add_facility/screens/contracts_screen.
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
-import 'package:frontend/features/manager/booking_details_manager/screens/booking_detail_manager_screen.dart';
-import 'package:frontend/features/manager/booking_management_manager/screens/booking_management_screen.dart';
 import 'package:frontend/features/manager/court_management/screen/court_management_detail_screen.dart';
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
@@ -17,18 +16,25 @@ import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
-import 'package:frontend/features/player/booking_details/screens/booking_detail_screen.dart';
-import 'package:frontend/features/player/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
+import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/court_detail_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/facility_detail_screen.dart';
-import 'package:frontend/features/player/facility_detail/screens/player_map_screen.dart';
+import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
+import 'package:frontend/features/facility_detail/screens/player_map_screen.dart';
+import 'package:frontend/features/facility_detail/screens/single_court_detail_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
+import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
+import 'package:frontend/features/player/rating/screens/rating_screen.dart';
 import 'package:frontend/features/player/search/screens/search_by_location_screen.dart';
 import 'package:frontend/features/post/screens/create_post_screen.dart';
+import 'package:frontend/common/screens/full_screen_media_view.dart';
+import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_screen.dart';
+import 'package:frontend/features/post/screens/user_profile_screen.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
   switch (routeSettings.name) {
@@ -76,11 +82,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const BookingManagementScreen(),
-      );
-    case BookingManagementManagerScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BookingManagementManagerScreen(),
       );
     case BookingDetailScreen.routeName:
       return MaterialPageRoute(
@@ -132,11 +133,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const CourtManagementDetailScreen(),
       );
-    case BookingDetailManagerScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BookingDetailManagerScreen(),
-      );
     case CheckoutScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
@@ -180,6 +176,54 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => NotificationScreen(),
+      );
+    case SingleCourtDetailScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const SingleCourtDetailScreen(),
+      );
+    case BookingSuccessScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const BookingSuccessScreen(),
+      );
+    case PostDetailScreen.routeName:
+      final postId = routeSettings.arguments as String;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => PostDetailScreen(postId: postId),
+      );
+    case UserProfileScreen.routeName:
+      final userId = routeSettings.arguments as String;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => UserProfileScreen(
+          userId: userId,
+        ),
+      );
+    case FullScreenMediaView.routeName:
+      final args = routeSettings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => FullScreenMediaView(
+          resources: args['resources'],
+          initialIndex: args['initialIndex'],
+        ),
+      );
+    case RatingScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const RatingScreen(),
+      );
+    case RatingDetailScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const RatingDetailScreen(),
+      );
+    case FacilityRatingsScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const FacilityRatingsScreen(),
       );
     default:
       return MaterialPageRoute(
