@@ -12,6 +12,11 @@ public class CheckConflictHandler(
 {
     public async Task<bool> Handle(CheckConflictCommand request, CancellationToken cancellationToken)
     {
+        // Convert HourFrom and HourTo from user-local time to UTC
+        var timeZoneId = request.CheckConflictDto.TimeZoneId;
+        DateTime hourFromUtc = ConvertToUtc(request.CheckConflictDto.DateTimePeriod.HourFrom, timeZoneId);
+        DateTime hourToUtc = ConvertToUtc(request.CheckConflictDto.DateTimePeriod.HourTo, timeZoneId);
+
         var court = await courtApiRepository.GetCourtByIdAsync(request.CheckConflictDto.CourtId)
             ?? throw new CourtNotFoundException(request.CheckConflictDto.CourtId);
 
@@ -19,13 +24,13 @@ public class CheckConflictHandler(
             ?? throw new FacilityNotFoundException(court.FacilityId);
 
         // Check if the DateTimePeriod is in the future
-        if (request.CheckConflictDto.DateTimePeriod.HourFrom < DateTime.UtcNow)
+        if (hourFromUtc < DateTime.UtcNow)
         {
             throw new BadRequestException("The start date must be in the future.");
         }
 
         // Check if the DateTimePeriod HourFrom and HourTo are in the same day
-        if (request.CheckConflictDto.DateTimePeriod.HourFrom.Date != request.CheckConflictDto.DateTimePeriod.HourTo.Date)
+        if (hourFromUtc.Date != hourToUtc.Date)
         {
             throw new BadRequestException("The start and end date must be in the same day.");
         }
@@ -38,7 +43,7 @@ public class CheckConflictHandler(
 
         // Check if the DateTimePeriod date is the facility's active date
         /// Get the order date's day in week
-        var orderDate = request.CheckConflictDto.DateTimePeriod.HourFrom.Date.DayOfWeek.ToString();
+        var orderDate = hourFromUtc.Date.DayOfWeek.ToString();
 
         /// Check if facility.ActiveAt.orderDate is not null
         var activeDays = new Dictionary<string, object?>
@@ -60,8 +65,8 @@ public class CheckConflictHandler(
         // Convert DateTimePeriod to TimePeriodDto
         var newOrderTimePeriod = new TimePeriodDto
         {
-            HourFrom = TimeOnly.FromTimeSpan(request.CheckConflictDto.DateTimePeriod.HourFrom.TimeOfDay),
-            HourTo = TimeOnly.FromTimeSpan(request.CheckConflictDto.DateTimePeriod.HourTo.TimeOfDay)
+            HourFrom = TimeOnly.FromTimeSpan(hourFromUtc.TimeOfDay),
+            HourTo = TimeOnly.FromTimeSpan(hourToUtc.TimeOfDay)
         };
         if (!IsTimePeriodInside(newOrderTimePeriod, (TimePeriodDto)isActive))
         {
@@ -97,5 +102,16 @@ public class CheckConflictHandler(
     private static bool IsTimePeriodOverlapping(DateTimePeriodDto period1, DateTimePeriodDto period2)
     {
         return period1.HourFrom < period2.HourTo && period2.HourFrom < period1.HourTo;
+    }
+
+    private static DateTime ConvertToUtc(DateTime localDateTime, string timeZoneId)
+    {
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
+        if (localDateTime.Kind == DateTimeKind.Utc)
+            return localDateTime;
+
+        var unspecified = DateTime.SpecifyKind(localDateTime, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, timeZone);
     }
 }
