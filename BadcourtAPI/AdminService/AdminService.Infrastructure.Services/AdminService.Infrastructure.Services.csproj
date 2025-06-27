@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AdminService.Application\AdminService.Application.csproj" />
+  </ItemGroup>
+
 </Project>

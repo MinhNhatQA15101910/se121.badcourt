@@ -15,7 +15,7 @@ public class UpdateOrderStateBackgroundService(IServiceProvider serviceProvider)
             using var scope = serviceProvider.CreateScope();
             var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
 
-            var currentTime = DateTime.Now;
+            var currentTime = DateTime.UtcNow;
 
             Console.WriteLine("[UpdateOrderStateBackgroundService] Running...");
             Console.WriteLine($"[UpdateOrderStateBackgroundService] Current time: {currentTime}");
