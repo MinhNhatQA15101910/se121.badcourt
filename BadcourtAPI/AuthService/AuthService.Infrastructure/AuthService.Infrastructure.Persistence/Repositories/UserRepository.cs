@@ -19,12 +19,13 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken: cancellationToken);
     }
 
-    public async Task<PagedList<UserDto>> GetUsersAsync(UserParams userParams)
+    public async Task<PagedList<UserDto>> GetUsersAsync(Guid userId, UserParams userParams,
+        CancellationToken cancellationToken = default)
     {
         var query = context.Users.AsQueryable();
 
         // Remove current user
-        query = query.Where(u => u.Id != userParams.CurrentUserId);
+        query = query.Where(u => u.Id != userId);
 
         // Filter by email
         if (userParams.Email != null)
