@@ -6,4 +6,5 @@ public class CreateOrderDto
 {
     public string CourtId { get; set; } = null!;
     public DateTimePeriodDto DateTimePeriod { get; set; } = null!;
+    public string TimeZoneId { get; set; } = "UTC";
 }
