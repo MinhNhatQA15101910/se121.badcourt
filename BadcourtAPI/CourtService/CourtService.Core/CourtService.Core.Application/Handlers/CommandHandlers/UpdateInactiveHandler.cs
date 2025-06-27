@@ -22,8 +22,18 @@ public class UpdateInactiveHandler(
 {
     public async Task<bool> Handle(UpdateInactiveCommand request, CancellationToken cancellationToken)
     {
+        // Convert HourFrom and HourTo from user-local time to UTC
+        var timeZoneId = request.UpdateInactiveDto.TimeZoneId;
+        DateTime hourFromUtc = ConvertToUtc(request.UpdateInactiveDto.DateTimePeriod.HourFrom, timeZoneId);
+        DateTime hourToUtc = ConvertToUtc(request.UpdateInactiveDto.DateTimePeriod.HourTo, timeZoneId);
+        var newInactiveDateTimePeriodDto = new DateTimePeriodDto
+        {
+            HourFrom = hourFromUtc,
+            HourTo = hourToUtc
+        };
+
         var userId = httpContextAccessor.HttpContext?.User.GetUserId();
-        
+
         var court = await courtRepository.GetCourtByIdAsync(request.CourtId, cancellationToken)
             ?? throw new CourtNotFoundException(request.CourtId);
 
@@ -37,7 +47,7 @@ public class UpdateInactiveHandler(
 
         foreach (var inactivePeriod in court.InactivePeriods)
         {
-            if (IsIntersecting(mapper.Map<DateTimePeriodDto>(inactivePeriod), request.DateTimePeriodDto))
+            if (IsIntersecting(mapper.Map<DateTimePeriodDto>(inactivePeriod), newInactiveDateTimePeriodDto))
             {
                 throw new BadRequestException("The specified period intersects with an existing inactive period.");
             }
@@ -45,20 +55,20 @@ public class UpdateInactiveHandler(
 
         foreach (var orderPeriod in court.OrderPeriods)
         {
-            if (IsIntersecting(mapper.Map<DateTimePeriodDto>(orderPeriod), request.DateTimePeriodDto))
+            if (IsIntersecting(mapper.Map<DateTimePeriodDto>(orderPeriod), newInactiveDateTimePeriodDto))
             {
                 throw new BadRequestException("The specified period intersects with an existing order period.");
             }
         }
 
-        var dateTimePeriod = mapper.Map<DateTimePeriod>(request.DateTimePeriodDto);
+        var dateTimePeriod = mapper.Map<DateTimePeriod>(newInactiveDateTimePeriodDto);
         court.InactivePeriods = [.. court.InactivePeriods, dateTimePeriod];
         court.UpdatedAt = DateTime.UtcNow;
 
         await courtRepository.UpdateCourtAsync(court, cancellationToken);
 
         await publishEndpoint.Publish(
-            new CourtInactiveUpdatedEvent(request.CourtId, request.DateTimePeriodDto),
+            new CourtInactiveUpdatedEvent(request.CourtId, newInactiveDateTimePeriodDto),
             cancellationToken
         );
 
@@ -71,5 +81,16 @@ public class UpdateInactiveHandler(
     )
     {
         return period1.HourFrom < period2.HourTo && period2.HourFrom < period1.HourTo;
+    }
+
+    private static DateTime ConvertToUtc(DateTime localDateTime, string timeZoneId)
+    {
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
+        if (localDateTime.Kind == DateTimeKind.Utc)
+            return localDateTime;
+
+        var unspecified = DateTime.SpecifyKind(localDateTime, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, timeZone);
     }
 }

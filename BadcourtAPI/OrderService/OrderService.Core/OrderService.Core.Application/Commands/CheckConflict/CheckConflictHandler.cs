@@ -16,6 +16,11 @@ public class CheckConflictHandler(
         var timeZoneId = request.CheckConflictDto.TimeZoneId;
         DateTime hourFromUtc = ConvertToUtc(request.CheckConflictDto.DateTimePeriod.HourFrom, timeZoneId);
         DateTime hourToUtc = ConvertToUtc(request.CheckConflictDto.DateTimePeriod.HourTo, timeZoneId);
+        var newOrderDateTimePeriodDto = new DateTimePeriodDto
+        {
+            HourFrom = hourFromUtc,
+            HourTo = hourToUtc
+        };
 
         var court = await courtApiRepository.GetCourtByIdAsync(request.CheckConflictDto.CourtId)
             ?? throw new CourtNotFoundException(request.CheckConflictDto.CourtId);
@@ -76,7 +81,7 @@ public class CheckConflictHandler(
         // Check if the order time period is overlapping with existing orders
         foreach (var orderTimePeriod in court.OrderPeriods)
         {
-            if (IsTimePeriodOverlapping(request.CheckConflictDto.DateTimePeriod, orderTimePeriod))
+            if (IsTimePeriodOverlapping(newOrderDateTimePeriodDto, orderTimePeriod))
             {
                 throw new BadRequestException("The order time period overlaps with an existing order.");
             }
@@ -85,7 +90,7 @@ public class CheckConflictHandler(
         // Check if the order time period is overlapping with the court's inactive hours
         foreach (var inactiveTimePeriod in court.InactivePeriods)
         {
-            if (IsTimePeriodOverlapping(request.CheckConflictDto.DateTimePeriod, inactiveTimePeriod))
+            if (IsTimePeriodOverlapping(newOrderDateTimePeriodDto, inactiveTimePeriod))
             {
                 throw new BadRequestException("The order time period overlaps with the court's inactive hours.");
             }

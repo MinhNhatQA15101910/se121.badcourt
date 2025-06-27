@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using OrderService.Core.Application.ApiRepository;
 using OrderService.Core.Application.Extensions;
@@ -25,6 +24,11 @@ public class CreateOrderHandler(
         var timeZoneId = request.CreateOrderDto.TimeZoneId;
         DateTime hourFromUtc = ConvertToUtc(request.CreateOrderDto.DateTimePeriod.HourFrom, timeZoneId);
         DateTime hourToUtc = ConvertToUtc(request.CreateOrderDto.DateTimePeriod.HourTo, timeZoneId);
+        var newOrderDateTimePeriodDto = new DateTimePeriodDto
+        {
+            HourFrom = hourFromUtc,
+            HourTo = hourToUtc
+        };
 
         var court = await courtApiRepository.GetCourtByIdAsync(request.CreateOrderDto.CourtId)
             ?? throw new CourtNotFoundException(request.CreateOrderDto.CourtId);
@@ -85,7 +89,7 @@ public class CreateOrderHandler(
         // Check if the order time period is overlapping with existing orders
         foreach (var orderTimePeriod in court.OrderPeriods)
         {
-            if (IsTimePeriodOverlapping(request.CreateOrderDto.DateTimePeriod, orderTimePeriod))
+            if (IsTimePeriodOverlapping(newOrderDateTimePeriodDto, orderTimePeriod))
             {
                 throw new BadRequestException("The order time period overlaps with an existing order.");
             }
@@ -94,7 +98,7 @@ public class CreateOrderHandler(
         // Check if the order time period is overlapping with the court's inactive hours
         foreach (var inactiveTimePeriod in court.InactivePeriods)
         {
-            if (IsTimePeriodOverlapping(request.CreateOrderDto.DateTimePeriod, inactiveTimePeriod))
+            if (IsTimePeriodOverlapping(newOrderDateTimePeriodDto, inactiveTimePeriod))
             {
                 throw new BadRequestException("The order time period overlaps with the court's inactive hours.");
             }
