@@ -13,6 +13,7 @@ import 'package:frontend/features/manager/court_management/screen/court_manageme
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
+import 'package:frontend/features/manager/statistic/screens/statistic_screen.dart';
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
@@ -224,6 +225,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const FacilityRatingsScreen(),
+      );
+    case StatisticScreen.routeName:
+      return MaterialPageRoute(
+        settings: routeSettings,
+        builder: (_) => const StatisticScreen(),
       );
     default:
       return MaterialPageRoute(

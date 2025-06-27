@@ -89,51 +89,6 @@ class FacilityDetailService {
     }
   }
 
-  Future<void> bookCourt(BuildContext context, String courtId,
-      DateTime startTime, DateTime endTime) async {
-    final userProvider = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    );
-
-    final requestBody = {
-      "courtId": courtId,
-      "dateTimePeriod": {
-        "hourFrom": startTime.toIso8601String(),
-        "hourTo": endTime.toIso8601String(),
-      }
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse('$uri/gateway/orders'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer ${userProvider.user.token}',
-        },
-        body: jsonEncode(requestBody),
-      );
-
-      httpErrorHandler(
-        response: response,
-        context: context,
-        onSuccess: () {
-          IconSnackBar.show(
-            context,
-            label: 'Booking successfully',
-            snackBarType: SnackBarType.success,
-          );
-        },
-      );
-    } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-    }
-  }
-
   Future<bool> checkIntersect(
     BuildContext context,
     String courtId,

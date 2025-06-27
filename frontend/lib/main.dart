@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:frontend/common/services/presence_service_hub.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_options_screen.dart';
@@ -64,7 +65,33 @@ List<SingleChildWidget> providers = [
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  
+  // Khởi tạo Stripe với error handling
+  await _initializeStripe();
+  
   runApp(const MyApp());
+}
+
+// Tách riêng function khởi tạo Stripe
+Future<void> _initializeStripe() async {
+  try {
+    print('🔄 Initializing Stripe...');
+    
+    final stripeKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'];
+    
+    if (stripeKey == null || stripeKey.isEmpty) {
+      print('⚠️ STRIPE_PUBLISHABLE_KEY not found in .env file');
+      return;
+    }
+    
+    Stripe.publishableKey = stripeKey;
+    await Stripe.instance.applySettings();
+    
+    print('✅ Stripe initialized successfully');
+  } catch (error) {
+    print('❌ Error initializing Stripe: $error');
+    // App vẫn tiếp tục chạy ngay cả khi Stripe init fail
+  }
 }
 
 class MyApp extends StatelessWidget {
