@@ -5,7 +5,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
-import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/order/screens/order_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -37,7 +37,7 @@ class PlayerAccountScreen extends StatelessWidget {
   }
 
   void navigateToBookingManagementScreen(BuildContext context) {
-    Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
+    Navigator.of(context).pushNamed(OrderScreen.routeName);
   }
 
   void navigateToFavouriteScreen(BuildContext context) {

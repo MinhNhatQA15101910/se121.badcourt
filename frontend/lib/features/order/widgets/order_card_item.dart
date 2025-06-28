@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
+import 'package:frontend/features/booking_details/screens/order_detail_screen.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +19,7 @@ class BookingCardItem extends StatelessWidget {
 
     void _navigateToBookingDetailScreen() {
       Navigator.of(context).pushNamed(
-        BookingDetailScreen.routeName,
+        OrderDetailScreen.routeName,
         arguments: order.id,
       );
     }

@@ -17,8 +17,8 @@ import 'package:frontend/features/manager/statistic/screens/statistic_screen.dar
 import 'package:frontend/features/message/pages/message_detail_screen.dart';
 import 'package:frontend/features/message/pages/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
-import 'package:frontend/features/booking_details/screens/booking_detail_screen.dart';
-import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/order/screens/order_detail_screen.dart';
+import 'package:frontend/features/order/screens/order_screen.dart';
 import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
@@ -79,15 +79,15 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const CourtDetailScreen(),
       );
-    case BookingManagementScreen.routeName:
+    case OrderScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const BookingManagementScreen(),
+        builder: (_) => const OrderScreen(),
       );
-    case BookingDetailScreen.routeName:
+    case OrderDetailScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const BookingDetailScreen(),
+        builder: (_) => const OrderDetailScreen(),
       );
     case IntroManagerScreen.routeName:
       return MaterialPageRoute(

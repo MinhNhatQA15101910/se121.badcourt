@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/loader.dart';
-import 'package:frontend/features/booking_management/services/booking_management_service.dart';
-import 'package:frontend/features/booking_management/widgets/booking_card_item.dart';
+import 'package:frontend/features/order/services/order_service.dart';
+import 'package:frontend/features/order/widgets/order_card_item.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frontend/constants/global_variables.dart';
 
-class BookingManagementScreen extends StatefulWidget {
+class OrderScreen extends StatefulWidget {
   static const String routeName = '/booking-management';
-  const BookingManagementScreen({super.key});
+  const OrderScreen({super.key});
 
   @override
-  State<BookingManagementScreen> createState() =>
-      _BookingManagementScreenState();
+  State<OrderScreen> createState() =>
+      _OrderScreenState();
 }
 
-class _BookingManagementScreenState extends State<BookingManagementScreen> {
-  final _bookingManagementService = BookingManagementService();
+class _OrderScreenState extends State<OrderScreen> {
+  final _bookingManagementService = OrderService();
 
   // Updated view options to include all 4 states
   final List<String> _viewOptions = ['All', 'Not Play', 'Played', 'Cancelled'];

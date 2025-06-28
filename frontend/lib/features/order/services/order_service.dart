@@ -9,12 +9,12 @@ import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-class BookingManagementService {
+class OrderService {
   Future<Map<String, dynamic>> fetchAllOrdersPaginated({
     required BuildContext context,
     int pageNumber = 1,
     int pageSize = 10,
-    String? state, // Add state parameter
+    String? state,
   }) async {
     final userProvider = Provider.of<UserProvider>(
       context,
@@ -30,15 +30,19 @@ class BookingManagementService {
     };
 
     try {
-      // Build URL with state parameter if provided
-      String url = '$uri/gateway/orders?pageSize=$pageSize&pageNumber=$pageNumber';
+      String baseUrl = userProvider.user.roles.contains('Manager')
+          ? '$uri/gateway/manager-dashboard/orders'
+          : '$uri/gateway/orders';
+
+      String url = '$baseUrl?pageSize=$pageSize&pageNumber=$pageNumber';
+
       if (state != null && state.isNotEmpty) {
         url += '&state=$state';
       }
 
-      http.Response response = await http.get(
+      final response = await http.get(
         Uri.parse(url),
-        headers: <String, String>{
+        headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
         },
@@ -48,24 +52,18 @@ class BookingManagementService {
         response: response,
         context: context,
         onSuccess: () {
-          // Parse the response body for orders
           final responseData = jsonDecode(response.body);
-          
-          // Handle both array response and object response with data field
-          List<dynamic> ordersData;
-          if (responseData is List) {
-            ordersData = responseData;
-          } else if (responseData is Map && responseData.containsKey('data')) {
-            ordersData = responseData['data'] ?? [];
-          } else {
-            ordersData = [];
-          }
 
-          for (var object in ordersData) {
-            orders.add(Order.fromJson(jsonEncode(object)));
-          }
+          final List<dynamic> ordersData = responseData is List
+              ? responseData
+              : (responseData is Map && responseData['data'] is List)
+                  ? responseData['data']
+                  : [];
 
-          // Parse pagination info from headers
+          orders = ordersData.map((orderJson) {
+            return Order.fromJson(jsonEncode(orderJson));
+          }).toList();
+
           final paginationHeader = response.headers['pagination'];
           if (paginationHeader != null && paginationHeader.isNotEmpty) {
             try {
@@ -79,17 +77,17 @@ class BookingManagementService {
               print('[BookingService] Pagination from header: $paginationInfo');
             } catch (e) {
               print('[BookingService] Error parsing pagination header: $e');
-              // Keep default pagination info
             }
           } else {
-            // Fallback pagination calculation when header is not available
             paginationInfo = {
               'currentPage': pageNumber,
               'itemsPerPage': pageSize,
               'totalItems': orders.length,
-              'totalPages': orders.length < pageSize ? pageNumber : pageNumber + 1,
+              'totalPages':
+                  orders.length < pageSize ? pageNumber : pageNumber + 1,
             };
-            print('[BookingService] No pagination header found, using fallback');
+            print(
+                '[BookingService] No pagination header found, using fallback');
           }
         },
       );
@@ -158,6 +156,48 @@ class BookingManagementService {
         snackBarType: SnackBarType.fail,
       );
       return null;
+    }
+  }
+
+  Future<bool> cancelOrder({
+    required BuildContext context,
+    required String orderId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      http.Response response = await http.put(
+        Uri.parse('$uri/gateway/orders/cancel/$orderId'),
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          IconSnackBar.show(
+            context,
+            label: 'Cancel booking successfully',
+            snackBarType: SnackBarType.success,
+          );
+        },
+      );
+
+      return true;
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: 'Error: ${e.toString()}',
+        snackBarType: SnackBarType.fail,
+      );
+
+      return false;
     }
   }
 }

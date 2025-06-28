@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/order/screens/order_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/manager_home/widgets/facility_home.dart';
@@ -20,7 +20,7 @@ class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
   }
 
   void _navigateToBookingManagementScreen() {
-    Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
+    Navigator.of(context).pushNamed(OrderScreen.routeName);
   }
 
   void _navigateToFacilityDetailScreen() {

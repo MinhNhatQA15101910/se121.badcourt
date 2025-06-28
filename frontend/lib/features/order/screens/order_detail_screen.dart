@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/booking_details/services/booking_detail_service.dart';
-import 'package:frontend/features/booking_details/widgets/total_price.dart';
-import 'package:frontend/features/booking_management/services/booking_management_service.dart';
+import 'package:frontend/features/order/widgets/total_price.dart';
+import 'package:frontend/features/order/services/order_service.dart';
 import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
 import 'package:frontend/features/player/rating/screens/rating_screen.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-class BookingDetailScreen extends StatefulWidget {
+class OrderDetailScreen extends StatefulWidget {
   static const String routeName = '/booking-detail-screen';
-  const BookingDetailScreen({Key? key}) : super(key: key);
+  const OrderDetailScreen({Key? key}) : super(key: key);
 
   @override
-  State<BookingDetailScreen> createState() => _BookingDetailScreenState();
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _BookingDetailScreenState extends State<BookingDetailScreen> {
-  final BookingManagementService _bookingService = BookingManagementService();
-  final BookingDetailService _bookingDetailService = BookingDetailService();
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final OrderService _bookingService = OrderService();
 
   Order? order;
   bool isLoading = true;
@@ -47,7 +45,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     });
 
     try {
-      bool success = await _bookingDetailService.cancelOrder(
+      bool success = await _bookingService.cancelOrder(
         context: context,
         orderId: orderId,
       );
