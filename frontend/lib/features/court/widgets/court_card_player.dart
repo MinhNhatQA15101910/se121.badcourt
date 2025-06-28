@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/facility_detail/screens/single_court_detail_screen.dart';
+import 'package:frontend/features/court/screens/court_detail_screen.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:frontend/providers/player/selected_court_provider.dart';
@@ -86,7 +86,7 @@ class CourtCardPlayer extends StatelessWidget {
       Navigator.of(context).pop();
       
       // Navigate to single court detail
-      Navigator.of(context).pushNamed(SingleCourtDetailScreen.routeName);
+      Navigator.of(context).pushNamed(CourtDetailScreen.routeName);
       
       print('✅ [CourtCard] Successfully connected to court: ${court.id}');
     } catch (e) {
@@ -106,7 +106,7 @@ class CourtCardPlayer extends StatelessWidget {
       // Fallback: use original court data
       final selectedCourtProvider = Provider.of<SelectedCourtProvider>(context, listen: false);
       selectedCourtProvider.setSelectedCourt(court, facility, selectedDate);
-      Navigator.of(context).pushNamed(SingleCourtDetailScreen.routeName);
+      Navigator.of(context).pushNamed(CourtDetailScreen.routeName);
     }
   }
 

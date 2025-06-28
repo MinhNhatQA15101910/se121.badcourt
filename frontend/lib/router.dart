@@ -21,10 +21,10 @@ import 'package:frontend/features/order/screens/order_detail_screen.dart';
 import 'package:frontend/features/order/screens/order_screen.dart';
 import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
-import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/court/screens/court_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/facility_detail/screens/player_map_screen.dart';
-import 'package:frontend/features/facility_detail/screens/single_court_detail_screen.dart';
+import 'package:frontend/features/court/screens/court_detail_screen.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 
 import 'package:frontend/features/player/player_bottom_bar.dart';
@@ -74,10 +74,10 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const FacilityDetailScreen(),
       );
-    case CourtDetailScreen.routeName:
+    case CourtScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const CourtDetailScreen(),
+        builder: (_) => const CourtScreen(),
       );
     case OrderScreen.routeName:
       return MaterialPageRoute(
@@ -178,10 +178,10 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => NotificationScreen(),
       );
-    case SingleCourtDetailScreen.routeName:
+    case CourtDetailScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const SingleCourtDetailScreen(),
+        builder: (_) => const CourtDetailScreen(),
       );
     case BookingSuccessScreen.routeName:
       return MaterialPageRoute(
