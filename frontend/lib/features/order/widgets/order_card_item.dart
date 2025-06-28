@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/booking_details/screens/order_detail_screen.dart';
+import 'package:frontend/features/order/screens/order_detail_screen.dart';
 import 'package:frontend/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/notification/Services/notification_service.dart';
 import 'package:frontend/features/notification/widgets/notification_item.dart';
-import 'package:frontend/features/booking_details/screens/order_detail_screen.dart';
+import 'package:frontend/features/order/screens/order_detail_screen.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/models/notification_dto.dart';
 import 'package:frontend/providers/notification_provider.dart';

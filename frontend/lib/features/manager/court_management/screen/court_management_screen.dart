@@ -22,10 +22,10 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
 
   List<Court> _courts = [];
   List<int> _selectedDays = [];
-  int _startHour = 7;
-  int _startMinute = 30;
-  int _endHour = 19;
-  int _endMinute = 30;
+  int _startHour = 1;
+  int _startMinute = 1;
+  int _endHour = 11;
+  int _endMinute = 11;
 
   void _addCourt() async {
     Court? newCourt = await showModalBottomSheet<Court>(

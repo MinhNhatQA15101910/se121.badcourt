@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/facility_detail/widgets/time_picker_bottom_sheet.dart';
+import 'package:frontend/features/court/widgets/time_picker_bottom_sheet.dart';
 import 'package:frontend/models/court.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class TimeSelectionWidget extends StatelessWidget {
   final int selectedStartHour;
@@ -18,6 +20,7 @@ class TimeSelectionWidget extends StatelessWidget {
   final Function({int? startHour, int? startMinute, int? endHour, int? endMinute}) onTimeChanged;
   final Court court;
   final VoidCallback onBookPressed;
+  final VoidCallback? onUpdateInactivePressed; // NEW: Add callback for manager action
   final String? errorMessage;
   final bool isValidating;
   final bool isTimeSlotValid;
@@ -37,6 +40,7 @@ class TimeSelectionWidget extends StatelessWidget {
     required this.onTimeChanged,
     required this.court,
     required this.onBookPressed,
+    this.onUpdateInactivePressed, // NEW: Optional callback for manager
     this.errorMessage,
     this.isValidating = false,
     this.isTimeSlotValid = true,
@@ -157,6 +161,10 @@ class TimeSelectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // NEW: Check if user is a manager
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isManager = userProvider.user.roles.contains('Manager');
+    
     final bool canBook = isTimeSlotValid && !isValidating && errorMessage == null;
     
     return Container(
@@ -539,11 +547,13 @@ class TimeSelectionWidget extends StatelessWidget {
           
           SizedBox(height: 16),
           
-          // Book button
+          // MODIFIED: Book button - changes based on user role
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: canBook ? onBookPressed : null,
+              onPressed: canBook 
+                  ? (isManager ? onUpdateInactivePressed : onBookPressed) 
+                  : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: canBook ? GlobalVariables.green : GlobalVariables.grey,
                 foregroundColor: Colors.white,
@@ -575,7 +585,9 @@ class TimeSelectionWidget extends StatelessWidget {
                     ],
                   )
                 : Text(
-                    canBook ? 'Book Now' : 'Time Slot Unavailable',
+                    canBook 
+                        ? (isManager ? 'Update Inactive' : 'Book Now')
+                        : 'Time Slot Unavailable',
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,

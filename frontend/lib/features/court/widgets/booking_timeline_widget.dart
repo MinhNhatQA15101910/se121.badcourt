@@ -56,21 +56,20 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     return time.hour * 60 + time.minute;
   }
 
-  // Chuyển đổi PeriodTime thành BookingTime
+  // Convert PeriodTime to BookingTime
   BookingTime? _convertPeriodTimeToBookingTime(
-      TimePeriod period, int virtualId) {
+      TimePeriod period, int virtualId, {bool isInactive = false}) {
     try {
-      // Xử lý nhiều định dạng có thể có
       DateTime? startDate;
       DateTime? endDate;
 
-      // Thử parse trực tiếp nếu là ISO format
+      // Try parse directly if it's ISO format
       try {
         if (period.hourFrom.toIso8601String().contains('T')) {
           startDate = period.hourFrom;
         }
       } catch (e) {
-        // Bỏ qua lỗi
+        // Ignore error
       }
 
       try {
@@ -78,10 +77,10 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           endDate = period.hourTo;
         }
       } catch (e) {
-        // Bỏ qua lỗi
+        // Ignore error
       }
 
-      // Nếu không phải ISO format, thử parse như HH:MM
+      // If not ISO format, try parse as HH:MM
       if (startDate == null) {
         try {
           final startParts =
@@ -99,7 +98,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
             );
           }
         } catch (e) {
-          // Bỏ qua lỗi
+          // Ignore error
         }
       }
 
@@ -120,13 +119,13 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
             );
           }
         } catch (e) {
-          // Bỏ qua lỗi
+          // Ignore error
         }
       }
 
-      // Nếu parse thành công cả hai
+      // If parse successful for both
       if (startDate != null && endDate != null) {
-        // CHỈ LẤY GIỜ VÀ PHÚT, BỎ QUA NGÀY
+        // ONLY TAKE HOUR AND MINUTE, IGNORE DATE
         final normalizedStartDate = DateTime(
           widget.startTime.year,
           widget.startTime.month,
@@ -143,18 +142,18 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           endDate.minute,
         );
 
-        // Tạo BookingTime giống existing booking
+        // Create BookingTime with different status for inactive periods
         final bookingTime = BookingTime(
           id: virtualId,
           startDate: normalizedStartDate,
           endDate: normalizedEndDate,
-          status: 1, // Giống existing booking
+          status: isInactive ? 2 : 1, // Status 2 for inactive, 1 for new orders
         );
 
         return bookingTime;
       }
     } catch (e) {
-      // Bỏ qua lỗi
+      // Ignore error
     }
 
     return null;
@@ -164,10 +163,10 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   Widget build(BuildContext context) {
     return Consumer<CourtHubProvider>(
       builder: (context, courtProvider, child) {
-        // BẮT ĐẦU VỚI EXISTING BOOKINGS
+        // START WITH EXISTING BOOKINGS
         List<BookingTime> allBookings = List.from(widget.bookingTimeList);
 
-        // Lấy realtime periods
+        // Get realtime periods
         final newOrderPeriods =
             courtProvider.getNewOrderPeriods(widget.court.id);
         final inactivePeriods =
@@ -175,38 +174,38 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
 
         int virtualId = 10000;
 
-        // CHUYỂN ĐỔI NEW ORDER PERIODS
+        // CONVERT NEW ORDER PERIODS
         for (var period in newOrderPeriods) {
           final bookingTime =
-              _convertPeriodTimeToBookingTime(period, virtualId++);
+              _convertPeriodTimeToBookingTime(period, virtualId++, isInactive: false);
           if (bookingTime != null) {
             allBookings.add(bookingTime);
           }
         }
 
-        // CHUYỂN ĐỔI INACTIVE PERIODS
+        // CONVERT INACTIVE PERIODS
         for (var period in inactivePeriods) {
           final bookingTime =
-              _convertPeriodTimeToBookingTime(period, virtualId++);
+              _convertPeriodTimeToBookingTime(period, virtualId++, isInactive: true);
           if (bookingTime != null) {
             allBookings.add(bookingTime);
           }
         }
 
-        // XỬ LÝ TẤT CẢ BOOKING GIỐNG NHAU
+        // PROCESS ALL BOOKINGS
         List<Widget> bookingOverlays = [];
 
         for (int i = 0; i < allBookings.length; i++) {
           try {
             var booking = allBookings[i];
 
-            // Kiểm tra intersection
+            // Check intersection
             if (_isBookingIntersectingTimeline(booking)) {
               Widget overlay = _createBookingOverlay(booking, i);
               bookingOverlays.add(overlay);
             }
           } catch (e) {
-            // Bỏ qua lỗi
+            // Ignore error
           }
         }
 
@@ -215,7 +214,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         List<Widget> timeText =
             generateTimeText(widget.startTime, widget.endTime);
 
-        // Tính tổng số booking để hiển thị
+        // Calculate total bookings to display
         int totalBookingsCount = widget.bookingTimeList.length +
             newOrderPeriods.length +
             inactivePeriods.length;
@@ -265,32 +264,48 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                 ],
               ),
               SizedBox(height: 12),
-              // Legend - chỉ hiển thị một dòng với tổng số booking
+              // ENHANCED Legend - show different types of bookings
               Container(
                 padding: EdgeInsets.symmetric(vertical: 8),
-                child: Row(
+                child: Column(
                   children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
+                    // Existing bookings legend
+                    if (widget.bookingTimeList.isNotEmpty)
+                      _buildLegendItem(
                         color: GlobalVariables.lightGreen,
-                        border: Border.all(
-                          color: GlobalVariables.green,
-                          width: 1,
+                        borderColor: GlobalVariables.green,
+                        label: 'Existing bookings (${widget.bookingTimeList.length})',
+                      ),
+                    
+                    // New order periods legend
+                    if (newOrderPeriods.isNotEmpty)
+                      _buildLegendItem(
+                        color: Colors.blue.withOpacity(0.2),
+                        borderColor: Colors.blue,
+                        label: 'New orders (${newOrderPeriods.length})',
+                      ),
+                    
+                    // Inactive periods legend
+                    if (inactivePeriods.isNotEmpty)
+                      _buildLegendItem(
+                        color: Colors.grey.withOpacity(0.2),
+                        borderColor: Colors.grey,
+                        label: 'Inactive periods (${inactivePeriods.length})',
+                      ),
+                    
+                    // Total count if multiple types exist
+                    if (totalBookingsCount > 0 && (newOrderPeriods.isNotEmpty || inactivePeriods.isNotEmpty))
+                      Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Total periods: $totalBookingsCount',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: GlobalVariables.darkGrey,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Existing bookings ($totalBookingsCount)',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: GlobalVariables.darkGrey,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -301,7 +316,43 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     );
   }
 
-  // Kiểm tra booking có giao với timeline không
+  // Helper method to build legend items
+  Widget _buildLegendItem({
+    required Color color,
+    required Color borderColor,
+    required String label,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              border: Border.all(
+                color: borderColor,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: GlobalVariables.darkGrey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Check if booking intersects with timeline
   bool _isBookingIntersectingTimeline(BookingTime booking) {
     int timelineStartMinutes = _timeToMinutes(widget.startTime);
     int timelineEndMinutes = _timeToMinutes(widget.endTime);
@@ -314,9 +365,9 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     return intersects;
   }
 
-  // Tạo overlay
+  // Create overlay with different colors for different types
   Widget _createBookingOverlay(BookingTime booking, int index) {
-    // Tính toán vị trí effective
+    // Calculate effective position
     int timelineStartMinutes = _timeToMinutes(widget.startTime);
     int timelineEndMinutes = _timeToMinutes(widget.endTime);
     int bookingStartMinutes = _timeToMinutes(booking.startDate);
@@ -330,7 +381,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         ? timelineEndMinutes
         : bookingEndMinutes;
 
-    // Tạo DateTime cho effective range
+    // Create DateTime for effective range
     DateTime effectiveStart = DateTime(
       widget.startTime.year,
       widget.startTime.month,
@@ -350,7 +401,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     double top = calculateMarginTop(widget.startTime, effectiveStart);
     double height = calculateHeight(effectiveStart, effectiveEnd);
 
-    // Tính thời gian booking theo phút
+    // Calculate booking time in minutes
     int durationInMinutes = effectiveEnd.difference(effectiveStart).inMinutes;
     bool isShortBooking = durationInMinutes <= 30;
 
@@ -358,6 +409,31 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         '${effectiveStart.hour.toString().padLeft(2, '0')}:${effectiveStart.minute.toString().padLeft(2, '0')} - ${effectiveEnd.hour.toString().padLeft(2, '0')}:${effectiveEnd.minute.toString().padLeft(2, '0')}';
 
     bool isFromSignalR = booking.id >= 10000;
+    bool isInactive = booking.status == 2; // Status 2 for inactive periods
+    bool isNewOrder = booking.status == 1 && isFromSignalR;
+
+    // Choose colors based on booking type
+    Color backgroundColor;
+    Color borderColor;
+    Color textColor;
+    IconData iconData;
+
+    if (isInactive) {
+      backgroundColor = Colors.grey.withOpacity(0.2);
+      borderColor = Colors.grey;
+      textColor = Colors.grey;
+      iconData = Icons.block;
+    } else if (isNewOrder) {
+      backgroundColor = Colors.blue.withOpacity(0.2);
+      borderColor = Colors.blue;
+      textColor = Colors.blue;
+      iconData = Icons.new_releases;
+    } else {
+      backgroundColor = GlobalVariables.lightGreen;
+      borderColor = GlobalVariables.green;
+      textColor = GlobalVariables.green;
+      iconData = Icons.lock;
+    }
 
     return Positioned(
       top: top,
@@ -366,22 +442,22 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: GlobalVariables.lightGreen,
+          color: backgroundColor,
           border: Border.all(
-            color: GlobalVariables.green,
+            color: borderColor,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: GlobalVariables.green.withOpacity(0.1),
+              color: borderColor.withOpacity(0.1),
               blurRadius: 2,
               offset: Offset(0, 1),
             ),
           ],
         ),
         child: isShortBooking
-            ? Container() // Nếu booking ngắn, không hiển thị nội dung
+            ? Container() // If booking is short, don't show content
             : Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
@@ -392,14 +468,14 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: GlobalVariables.green,
+                          color: textColor,
                         ),
                       ),
                     ),
                     Icon(
-                      isFromSignalR ? Icons.new_releases : Icons.lock,
+                      iconData,
                       size: 14,
-                      color: GlobalVariables.green,
+                      color: textColor,
                     ),
                   ],
                 ),

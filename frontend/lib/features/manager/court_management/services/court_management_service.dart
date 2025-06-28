@@ -105,7 +105,8 @@ class CourtManagementService {
             pricePerHour: pricePerHour,
             state: 'Active',
             createdAt: DateTime.now().toUtc().toIso8601String(),
-            orderPeriods: [], inactivePeriods: [],
+            orderPeriods: [],
+            inactivePeriods: [],
           );
 
           IconSnackBar.show(
@@ -290,10 +291,9 @@ class CourtManagementService {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
-      // Khởi tạo requestBody rỗng
-      Map<String, dynamic> requestBody = {};
+      // Tạo phần "active"
+      Map<String, dynamic> active = {};
 
-      // Lặp qua từng ngày trong activeSchedule
       activeSchedule.forEach((day, schedule) {
         if (schedule != null) {
           final from = schedule['hourFrom'];
@@ -301,12 +301,18 @@ class CourtManagementService {
 
           print('[$day] hourFrom: $from, hourTo: $to');
 
-          requestBody[day] = {
+          active[day] = {
             "hourFrom": from,
             "hourTo": to,
           };
         }
       });
+
+      // ✅ Gộp active và timeZoneId vào requestBody
+      final Map<String, dynamic> requestBody = {
+        "active": active,
+        "timeZoneId": "SE Asia Standard Time",
+      };
 
       print("Request Body JSON: ${jsonEncode(requestBody)}");
 

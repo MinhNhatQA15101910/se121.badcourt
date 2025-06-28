@@ -9,8 +9,6 @@ import 'package:frontend/features/manager/add_facility/screens/contracts_screen.
 import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
-import 'package:frontend/features/manager/court_management/screen/court_management_detail_screen.dart';
-import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
 import 'package:frontend/features/manager/statistic/screens/statistic_screen.dart';
@@ -123,16 +121,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const MapScreen(),
-      );
-    case DatetimeManagementScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const DatetimeManagementScreen(),
-      );
-    case CourtManagementDetailScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const CourtManagementDetailScreen(),
       );
     case CheckoutScreen.routeName:
       return MaterialPageRoute(

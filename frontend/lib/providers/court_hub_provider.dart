@@ -11,10 +11,15 @@ class CourtHubProvider extends ChangeNotifier {
   
   // Map of court IDs to connection status
   final Map<String, bool> _connectionStatus = {};
-
-  // Add these properties after the existing ones
+  
+  // Map of court IDs to new order periods
   final Map<String, List<TimePeriod>> _newOrderPeriods = {};
+  
+  // Map of court IDs to court inactive periods
   final Map<String, List<TimePeriod>> _courtInactivePeriods = {};
+  
+  // NEW: Additional list for inactive courts (if needed for different logic)
+  final Map<String, List<TimePeriod>> _inactiveCourt = {};
   
   // Get a court by ID
   Court? getCourt(String courtId) => _courts[courtId];
@@ -24,12 +29,15 @@ class CourtHubProvider extends ChangeNotifier {
   
   // Get all courts
   Map<String, Court> get courts => _courts;
-
+  
   // Get new order periods for a court
   List<TimePeriod> getNewOrderPeriods(String courtId) => _newOrderPeriods[courtId] ?? [];
-
+  
   // Get court inactive periods for a court
   List<TimePeriod> getCourtInactivePeriods(String courtId) => _courtInactivePeriods[courtId] ?? [];
+  
+  // NEW: Get inactive court periods
+  List<TimePeriod> getInactiveCourtPeriods(String courtId) => _inactiveCourt[courtId] ?? [];
   
   // Connect to a court
   Future<void> connectToCourt(String accessToken, String courtId, {Court? initialCourt}) async {
@@ -51,33 +59,37 @@ class CourtHubProvider extends ChangeNotifier {
       // Set up new order callback
       _courtHubService.setNewOrderCallback(courtId, (periodTime) {
         print('[CourtHubProvider] New order period for court $courtId: ${periodTime.toString()}');
-
         // Add to the list of new order periods
         if (!_newOrderPeriods.containsKey(courtId)) {
           _newOrderPeriods[courtId] = [];
         }
         _newOrderPeriods[courtId]!.add(periodTime);
-
         notifyListeners();
       });
 
-      // Set up court inactive callback
+      // ENHANCED: Set up court inactive callback
       _courtHubService.setCourtInactiveCallback(courtId, (periodTime) {
         print('[CourtHubProvider] Court inactive period for court $courtId: ${periodTime.toString()}');
-
+        
         // Add to the list of inactive periods
         if (!_courtInactivePeriods.containsKey(courtId)) {
           _courtInactivePeriods[courtId] = [];
         }
         _courtInactivePeriods[courtId]!.add(periodTime);
-
+        
+        // NEW: Also add to _inactiveCourt if you need separate logic
+        if (!_inactiveCourt.containsKey(courtId)) {
+          _inactiveCourt[courtId] = [];
+        }
+        _inactiveCourt[courtId]!.add(periodTime);
+        
+        print('[CourtHubProvider] Added inactive period. Total inactive periods: ${_courtInactivePeriods[courtId]!.length}');
         notifyListeners();
       });
 
-      // Add this new callback for cancel order
+      // Set up cancel order callback
       _courtHubService.setCancelOrderCallback(courtId, (periodTime) {
         print('[CourtHubProvider] Cancel order period for court $courtId: ${periodTime.toString()}');
-
         // Remove the period from new order periods list
         if (_newOrderPeriods.containsKey(courtId)) {
           _newOrderPeriods[courtId]!.removeWhere((p) => 
@@ -85,7 +97,6 @@ class CourtHubProvider extends ChangeNotifier {
           
           print('[CourtHubProvider] Removed cancelled period from new orders. Remaining periods: ${_newOrderPeriods[courtId]!.length}');
         }
-
         notifyListeners();
       });
       
@@ -109,11 +120,10 @@ class CourtHubProvider extends ChangeNotifier {
       await _courtHubService.disconnectFromCourt(courtId);
       _connectionStatus[courtId] = false;
       // Keep court data but mark as disconnected
-
       // Clear the period lists when disconnecting
       _newOrderPeriods.remove(courtId);
       _courtInactivePeriods.remove(courtId);
-
+      _inactiveCourt.remove(courtId); // NEW: Clear inactive court periods
       notifyListeners();
     } catch (e) {
       print('❌ [CourtHubProvider] Error disconnecting from court $courtId: $e');
@@ -125,11 +135,10 @@ class CourtHubProvider extends ChangeNotifier {
     try {
       await _courtHubService.disconnectFromAllCourts();
       _connectionStatus.clear();
-
       // Clear all period lists when disconnecting from all courts
       _newOrderPeriods.clear();
       _courtInactivePeriods.clear();
-
+      _inactiveCourt.clear(); // NEW: Clear all inactive court periods
       notifyListeners();
     } catch (e) {
       print('❌ [CourtHubProvider] Error disconnecting from all courts: $e');
@@ -145,6 +154,13 @@ class CourtHubProvider extends ChangeNotifier {
   // Clear court inactive periods for a specific court
   void clearCourtInactivePeriods(String courtId) {
     _courtInactivePeriods[courtId]?.clear();
+    _inactiveCourt[courtId]?.clear(); // NEW: Also clear inactive court periods
+    notifyListeners();
+  }
+
+  // NEW: Clear inactive court periods for a specific court
+  void clearInactiveCourtPeriods(String courtId) {
+    _inactiveCourt[courtId]?.clear();
     notifyListeners();
   }
 
@@ -159,7 +175,32 @@ class CourtHubProvider extends ChangeNotifier {
   void removeCourtInactivePeriod(String courtId, TimePeriod period) {
     _courtInactivePeriods[courtId]?.removeWhere((p) => 
       p.hourFrom == period.hourFrom && p.hourTo == period.hourTo);
+    _inactiveCourt[courtId]?.removeWhere((p) => 
+      p.hourFrom == period.hourFrom && p.hourTo == period.hourTo);
     notifyListeners();
+  }
+
+  // NEW: Remove a specific period from inactive court periods
+  void removeInactiveCourtPeriod(String courtId, TimePeriod period) {
+    _inactiveCourt[courtId]?.removeWhere((p) => 
+      p.hourFrom == period.hourFrom && p.hourTo == period.hourTo);
+    notifyListeners();
+  }
+
+  // NEW: Get total count of all periods for a court
+  int getTotalPeriodsCount(String courtId) {
+    final newOrders = _newOrderPeriods[courtId]?.length ?? 0;
+    final inactive = _courtInactivePeriods[courtId]?.length ?? 0;
+    return newOrders + inactive;
+  }
+
+  // NEW: Get debug info for periods
+  Map<String, dynamic> getPeriodsDebugInfo(String courtId) {
+    return {
+      'newOrderPeriods': _newOrderPeriods[courtId]?.length ?? 0,
+      'courtInactivePeriods': _courtInactivePeriods[courtId]?.length ?? 0,
+      'inactiveCourtPeriods': _inactiveCourt[courtId]?.length ?? 0,
+    };
   }
   
   @override

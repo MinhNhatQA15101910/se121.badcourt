@@ -7,7 +7,6 @@ class OnlineUsersProvider extends ChangeNotifier {
   bool _isInitialized = false;
 
   OnlineUsersProvider() {
-    // Không setup listeners ở đây nữa
     print('[OnlineUsersProvider] Constructor called');
   }
 
@@ -24,26 +23,27 @@ class OnlineUsersProvider extends ChangeNotifier {
   void _setupListeners() {
     print('[OnlineUsersProvider] Setting up listeners');
     
-    _presenceService.onUserOnline = (userId) {
-      print('[OnlineUsersProvider] User came online: $userId');
-      _onlineUsers.add(userId);
-      notifyListeners();
-    };
-
-    _presenceService.onUserOffline = (userId) {
-      print('[OnlineUsersProvider] User went offline: $userId');
-      _onlineUsers.remove(userId);
-      notifyListeners();
-    };
-
-    _presenceService.onOnlineUsersReceived = (users) {
-      print('[OnlineUsersProvider] Received online users list: $users');
-      _onlineUsers.clear();
-      _onlineUsers.addAll(users);
-      _isInitialized = true;
-      notifyListeners();
-      print('[OnlineUsersProvider] Updated online users set: $_onlineUsers');
-    };
+    // Đảm bảo callbacks được setup trước khi kết nối
+    _presenceService.setCallbacks(
+      onUserOnline: (userId) {
+        print('[OnlineUsersProvider] User came online: $userId');
+        _onlineUsers.add(userId);
+        notifyListeners();
+      },
+      onUserOffline: (userId) {
+        print('[OnlineUsersProvider] User went offline: $userId');
+        _onlineUsers.remove(userId);
+        notifyListeners();
+      },
+      onOnlineUsersReceived: (users) {
+        print('[OnlineUsersProvider] Received online users list: $users');
+        _onlineUsers.clear();
+        _onlineUsers.addAll(users);
+        _isInitialized = true;
+        notifyListeners();
+        print('[OnlineUsersProvider] Updated online users set: $_onlineUsers');
+      },
+    );
   }
 
   Future<void> initialize(String accessToken) async {
@@ -52,6 +52,9 @@ class OnlineUsersProvider extends ChangeNotifier {
       
       // Setup listeners TRƯỚC KHI kết nối
       _setupListeners();
+      
+      // Verify callbacks đã được setup
+      _presenceService.testCallbacks();
       
       if (!_presenceService.isConnected) {
         await _presenceService.startConnection(accessToken);

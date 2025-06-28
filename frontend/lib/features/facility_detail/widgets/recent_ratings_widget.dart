@@ -113,8 +113,7 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return Center(
       child: Column(
         children: [
           Icon(
@@ -128,14 +127,6 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: GlobalVariables.darkGrey,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Be the first to leave a review!',
-            style: GoogleFonts.inter(
-              fontSize: 12,
               color: GlobalVariables.darkGrey,
             ),
           ),

@@ -1,4 +1,4 @@
-import 'package:frontend/models/period_time.dart';
+import 'package:frontend/models/hour_minute.dart';
 
 class Active {
   final Map<String, HourMinute> schedule;

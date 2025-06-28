@@ -54,6 +54,72 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     });
   }
 
+  void _updateCourtInactive() async {
+  final selectedCourtProvider =
+      Provider.of<SelectedCourtProvider>(context, listen: false);
+  final courtHubProvider =
+      Provider.of<CourtHubProvider>(context, listen: false);
+  final originalCourt = selectedCourtProvider.selectedCourt;
+  final selectedDate = selectedCourtProvider.selectedDate;
+
+  if (originalCourt == null || selectedDate == null) return;
+
+  // Use real-time court data
+  final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
+
+  // Show loading indicator
+  setState(() {
+    _isValidatingTime = true;
+  });
+
+  // Combine selected date with selected time
+  final startDate = DateTime(
+    selectedDate.year,
+    selectedDate.month,
+    selectedDate.day,
+    _selectedStartHour,
+    _selectedStartMinute,
+  );
+
+  final endDate = DateTime(
+    selectedDate.year,
+    selectedDate.month,
+    selectedDate.day,
+    _selectedEndHour,
+    _selectedEndMinute,
+  );
+
+  try {
+    // Call the new updateCourtInactive API
+    await _courtService.updateCourtInactive(
+      context,
+      court.id,
+      startDate,
+      endDate,
+    );
+
+    setState(() {
+      _isValidatingTime = false;
+    });
+
+    // Success message is already shown in the service method
+    // No navigation needed as per requirements
+  } catch (error) {
+    setState(() {
+      _isValidatingTime = false;
+    });
+
+    // Show error message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error updating court inactive period: ${error.toString()}'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+}
+
   void _initializeTimeConstraints() {
     final selectedCourtProvider =
         Provider.of<SelectedCourtProvider>(context, listen: false);
@@ -583,7 +649,8 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
               getAllowedEndHours: _getAllowedEndHours,
               getAllowedEndMinutes: _getAllowedEndMinutes,
               onTimeChanged: _onTimeChanged,
-              court: court, // Use real-time court data
+              court: court,
+              onUpdateInactivePressed: _updateCourtInactive,
               onBookPressed: _bookTimeSlot,
               errorMessage: _timeErrorMessage,
               isValidating: _isValidatingTime,
