@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/court/services/court_service.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
-import 'package:frontend/features/facility_detail/widgets/booking_timeline_widget.dart';
-import 'package:frontend/features/facility_detail/widgets/time_selection_widget.dart';
-import 'package:frontend/features/facility_detail/services/facility_detail_service.dart';
+import 'package:frontend/features/court/widgets/booking_timeline_widget.dart';
+import 'package:frontend/features/court/widgets/time_selection_widget.dart';
 import 'package:frontend/models/booking_time.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/facility.dart';
@@ -25,7 +25,7 @@ class BookingWidgetPlayer extends StatefulWidget {
 
 class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   // Services
-  final _facilityDetailService = FacilityDetailService();
+  final _courtService = CourtService();
 
   // Facility time range
   DateTime _facilityStartTime = DateTime(2000, 1, 1, 6, 0);
@@ -184,7 +184,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
       print('🔍 [BookingWidget] Calling checkIntersect API...');
 
       // Check with server
-      final isValid = await _facilityDetailService.checkIntersect(
+      final isValid = await _courtService.checkIntersect(
         context,
         court.id,
         startDateTime,
@@ -349,7 +349,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
     try {
       // Call checkIntersect API directly when booking
-      final isAvailable = await _facilityDetailService.checkIntersect(
+      final isAvailable = await _courtService.checkIntersect(
         context,
         court.id,
         startDate,
