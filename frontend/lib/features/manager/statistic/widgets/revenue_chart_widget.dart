@@ -503,7 +503,6 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
 
   List<BarChartGroupData> _buildBarGroups() {
     return _revenueData!.asMap().entries.map((entry) {
-      final index = entry.key;
       final data = entry.value;
       final month = data['month'] as int;
       final revenue = (data['revenue'] as num).toDouble();
@@ -563,6 +562,6 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
       '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    return months[month] ?? '';
+    return months[month];
   }
 }
