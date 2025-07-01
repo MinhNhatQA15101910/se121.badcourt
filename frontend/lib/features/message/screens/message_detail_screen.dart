@@ -36,6 +36,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
 
   // Add SignalR services
   final MessageHubService _messageHubService = MessageHubService();
+  final MessageService _messageService = MessageService();
+  
   late String? userId;
   User? _otherUser;
 
@@ -47,6 +49,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
   bool _isSendingMessage = false;
   bool _isConnecting = false;
   bool _isConnected = false;
+  bool _isLoadingUserInfo = false;
 
   // Pagination info
   int _currentPage = 1;
@@ -82,16 +85,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
     userId = ModalRoute.of(context)!.settings.arguments as String?;
 
     if (userId != null) {
-      _initializeServices();
-      _loadOtherUserInfo();
-
-      // Initialize OnlineUsersProvider if not already initialized
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final onlineUsersProvider =
-          Provider.of<OnlineUsersProvider>(context, listen: false);
-      if (!PresenceService().isConnected) {
-        onlineUsersProvider.initialize(userProvider.user.token);
-      }
+      _initializeScreen();
     } else {
       print('userId is null');
     }
@@ -145,52 +139,152 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
     }
   }
 
-  void _loadOtherUserInfo() {
-    if (userId == null) return;
+  // NEW: Initialize screen with user info loading
+  Future<void> _initializeScreen() async {
+    setState(() {
+      _isLoading = true;
+      _isConnecting = true;
+    });
 
-    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-
-    // Find the group that contains this user
-    for (var group in groupProvider.groups) {
-      for (var user in group.users) {
-        if (user.id == userId) {
-          setState(() {
-            _otherUser = user;
-          });
-          return;
-        }
+    try {
+      // Step 1: Load user info first
+      await _loadUserInfo();
+      
+      // Step 2: Initialize presence service
+      await _initializePresenceService();
+      
+      // Step 3: Initialize message services
+      await _initializeServices();
+      
+    } catch (e) {
+      print('[MessageDetailScreen] Error initializing screen: $e');
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _isLoading = false;
+          _isConnected = false;
+          _fadeController.forward();
+        });
       }
     }
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _messageController.dispose();
-    _messageFocusNode.removeListener(_onFocusChanged);
-    _messageFocusNode.dispose();
-    _scrollController.dispose();
-    _connectionHealthTimer?.cancel();
-    _fadeController.dispose();
-
-    // Disconnect from MessageHub for this user
-    if (userId != null) {
-      _messageHubService.stopConnection(userId!);
-    }
-    super.dispose();
-  }
-
-  // Enhanced _initializeServices method with paginated message loading
-  Future<void> _initializeServices() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+  // NEW: Load user information
+  Future<void> _loadUserInfo() async {
+    if (userId == null) return;
 
     setState(() {
-      _isConnecting = true;
-      _isLoading = true;
+      _isLoadingUserInfo = true;
     });
 
     try {
-      print('[MessageDetailScreen] Initializing services for user: $userId');
+      print('[MessageDetailScreen] Loading user info for: $userId');
+      
+      // First try to find user in existing groups
+      final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+      User? foundUser = _findUserInGroups(groupProvider.groups);
+      
+      if (foundUser != null) {
+        print('[MessageDetailScreen] Found user in existing groups: ${foundUser.username}');
+        setState(() {
+          _otherUser = foundUser;
+        });
+      } else {
+        // Fetch user info from API
+        print('[MessageDetailScreen] User not found in groups, fetching from API');
+        final fetchedUser = await _messageService.fetchUserById(
+          context: context,
+          userId: userId!,
+        );
+
+        if (fetchedUser != null) {
+          print('[MessageDetailScreen] Successfully fetched user: ${fetchedUser.username}');
+          setState(() {
+            _otherUser = fetchedUser;
+          });
+          
+          // Update GroupProvider with user info if needed
+          _updateGroupProviderWithUserInfo(fetchedUser);
+        } else {
+          print('[MessageDetailScreen] Failed to fetch user info');
+          // Create placeholder user
+          setState(() {
+            _otherUser = User(
+              id: userId!,
+              username: 'Unknown User',
+              email: 'unknown@example.com',
+              photoUrl: '',
+              roles: const ['Unknown'],
+            );
+          });
+        }
+      }
+    } catch (e) {
+      print('[MessageDetailScreen] Error loading user info: $e');
+      // Create placeholder user on error
+      setState(() {
+        _otherUser = User(
+          id: userId!,
+          username: 'Unknown User',
+          email: 'unknown@example.com',
+          photoUrl: '',
+          roles: const ['Unknown'],
+        );
+      });
+    } finally {
+      setState(() {
+        _isLoadingUserInfo = false;
+      });
+    }
+  }
+
+  // NEW: Find user in existing groups
+  User? _findUserInGroups(List<dynamic> groups) {
+    for (var group in groups) {
+      for (var user in group.users) {
+        if (user.id == userId) {
+          return user;
+        }
+      }
+    }
+    return null;
+  }
+
+  // NEW: Update GroupProvider with user info
+  void _updateGroupProviderWithUserInfo(User user) {
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    
+    // Find groups that might need this user info
+    for (var group in groupProvider.groups) {
+      if (group.users.isEmpty && group.lastMessage?.senderId == user.id) {
+        groupProvider.updateGroupWithUserInfo(group.id, [user]);
+        print('[MessageDetailScreen] Updated group ${group.id} with user info');
+        break;
+      }
+    }
+  }
+
+  // NEW: Initialize presence service
+  Future<void> _initializePresenceService() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final onlineUsersProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
+    
+    if (!PresenceService().isConnected) {
+      try {
+        await onlineUsersProvider.initialize(userProvider.user.token);
+        print('[MessageDetailScreen] Presence service initialized');
+      } catch (e) {
+        print('[MessageDetailScreen] Error initializing presence service: $e');
+      }
+    }
+  }
+
+  // UPDATED: Enhanced _initializeServices method
+  Future<void> _initializeServices() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      print('[MessageDetailScreen] Initializing message services for user: $userId');
 
       // Set up message callbacks first
       _messageHubService.onNewMessage = (message) {
@@ -221,10 +315,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
             _hasMorePages = _currentPage < _totalPages;
 
             // Sort messages by time (oldest first for proper display order)
-            final sortedMessages =
-                List<MessageDto>.from(paginatedMessages.items);
-            sortedMessages
-                .sort((a, b) => a.messageSent.compareTo(b.messageSent));
+            final sortedMessages = List<MessageDto>.from(paginatedMessages.items);
+            sortedMessages.sort((a, b) => a.messageSent.compareTo(b.messageSent));
 
             if (_isLoadingMore) {
               // When loading more (older messages), add them to the beginning
@@ -282,8 +374,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
             _isLoading = false;
             _fadeController.forward();
           });
-          print(
-              '[MessageDetailScreen] No messages received, stopping loading indicator');
+          print('[MessageDetailScreen] No messages received, stopping loading indicator');
         }
       }
 
@@ -293,7 +384,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
             'Failed to connect to user. Please try again.',
             action: SnackBarAction(
               label: 'Retry',
-              onPressed: _initializeServices,
+              onPressed: () => _initializeServices(),
             ),
           );
         }
@@ -311,6 +402,23 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
     }
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _messageController.dispose();
+    _messageFocusNode.removeListener(_onFocusChanged);
+    _messageFocusNode.dispose();
+    _scrollController.dispose();
+    _connectionHealthTimer?.cancel();
+    _fadeController.dispose();
+
+    // Disconnect from MessageHub for this user
+    if (userId != null) {
+      _messageHubService.stopConnection(userId!);
+    }
+    super.dispose();
+  }
+
   // Updated to load more messages with pagination using MessageService
   Future<void> _loadMoreMessages() async {
     // Ensure we don't load more if already loading, no more pages, or initial loading
@@ -322,11 +430,9 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
 
     try {
       final nextPage = _currentPage + 1;
-      print(
-          '[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
+      print('[MessageDetailScreen] Loading more messages via REST API, page $nextPage');
 
-      final messageService = MessageService();
-      final paginatedResponse = await messageService.fetchMessagesByOrderUserId(
+      final paginatedResponse = await _messageService.fetchMessagesByOrderUserId(
         context: context,
         userId: userId ?? "",
         pageNumber: nextPage,
@@ -351,12 +457,10 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
           _isLoadingMore = false;
         });
 
-        print(
-            '[MessageDetailScreen] Loaded ${_messages.length} messages, now on page $_currentPage/$_totalPages');
+        print('[MessageDetailScreen] Loaded ${_messages.length} messages, now on page $_currentPage/$_totalPages');
       }
     } catch (e) {
-      print(
-          '[MessageDetailScreen] Error loading more messages via REST API: $e');
+      print('[MessageDetailScreen] Error loading more messages via REST API: $e');
 
       if (mounted) {
         setState(() {
@@ -444,7 +548,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
       print('[MessageDetailScreen] Sending message via HTTP with ${attachmentsToSend.length} file(s)');
 
       // Send via REST API
-      await MessageService().sendMessage(
+      await _messageService.sendMessage(
         context: context,
         recipientId: userId ?? '',
         content: content,
@@ -516,7 +620,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
           isConnected: _isConnected,
         ),
       ),
-      body: _isConnecting
+      body: _isConnecting || _isLoadingUserInfo
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -531,13 +635,25 @@ class _MessageDetailScreenState extends State<MessageDetailScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Connecting to user...',
+                    _isLoadingUserInfo 
+                        ? 'Loading user information...'
+                        : 'Connecting to user...',
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: GlobalVariables.darkGreen,
                     ),
                   ),
+                  if (_otherUser != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Connecting to ${_otherUser!.username}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: GlobalVariables.darkGrey,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             )

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/screens/message_detail_screen.dart';
+import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/post/screens/user_profile_screen.dart';
+import 'package:frontend/models/user.dart';
+import 'package:frontend/providers/group_provider.dart';
 import 'package:frontend/providers/message_hub_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,6 +30,7 @@ class CustomAvatar extends StatelessWidget {
       BuildContext context, String userId) async {
     final messageHubProvider =
         Provider.of<MessageHubProvider>(context, listen: false);
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
 
     // Show loading dialog
     showDialog(
@@ -62,11 +66,22 @@ class CustomAvatar extends StatelessWidget {
     );
 
     try {
-      // Connect to MessageHub for this specific user to start conversation
-      await messageHubProvider.connectToUser(
-        context,
-        userId,
-      );
+      // First, try to fetch user information to ensure we have it
+      final messageService = MessageService();
+      User? targetUser;
+
+      try {
+        targetUser = await messageService.fetchUserById(
+          context: context,
+          userId: userId,
+        );
+        print('[CustomAvatar] Fetched user info: ${targetUser?.username}');
+      } catch (e) {
+        print('[CustomAvatar] Could not fetch user info: $e');
+      }
+
+      // Connect to MessageHub for this specific user
+      await messageHubProvider.connectToUser(context, userId);
 
       if (messageHubProvider.isConnectedToUser(userId)) {
         // Hide loading dialog
@@ -102,7 +117,10 @@ class CustomAvatar extends StatelessWidget {
   }
 
   void _navigateToDetailMessageScreen(BuildContext context, String userId) {
-    _createGroupAndNavigate(context, userId);
+    Navigator.of(context).pushNamed(
+      MessageDetailScreen.routeName,
+      arguments: userId,
+    );
   }
 
   void _navigateToUserProfile(BuildContext context) {
@@ -283,19 +301,6 @@ class CustomAvatar extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).pop();
                           _navigateToUserProfile(context);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _buildActionTile(
-                        context: context,
-                        icon: Icons.block_outlined,
-                        iconColor: Colors.orange,
-                        iconBgColor: Colors.orange.withOpacity(0.1),
-                        title: 'Block User',
-                        subtitle: 'Block this user from contacting you',
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          _showBlockConfirmation(context);
                         },
                       ),
                     ],

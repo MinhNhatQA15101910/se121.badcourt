@@ -382,7 +382,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     String timeRange =
         '${effectiveStart.hour.toString().padLeft(2, '0')}:${effectiveStart.minute.toString().padLeft(2, '0')} - ${effectiveEnd.hour.toString().padLeft(2, '0')}:${effectiveEnd.minute.toString().padLeft(2, '0')}';
 
-    bool isFromSignalR = booking.id >= 10000;
     bool isInactive = booking.status == 2; // Status 2 for inactive periods
 
     // Choose colors based on booking type

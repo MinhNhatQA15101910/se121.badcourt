@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/common/widgets/profile_header_widget.dart';
-import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
@@ -241,45 +238,6 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _interRegular14(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
 
-  Widget _interMedium14(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
 
-  Widget _interBold14(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
 }
