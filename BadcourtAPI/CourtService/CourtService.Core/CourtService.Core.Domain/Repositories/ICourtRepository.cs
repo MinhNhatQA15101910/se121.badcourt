@@ -14,5 +14,6 @@ public interface ICourtRepository
     Task<PagedList<CourtDto>> GetCourtsAsync(CourtParams courtParams, CancellationToken cancellationToken = default);
     Task<decimal> GetFacilityMaxPriceAsync(string facilityId, CancellationToken cancellationToken = default);
     Task<decimal> GetFacilityMinPriceAsync(string facilityId, CancellationToken cancellationToken = default);
+    Task<int> GetTotalCourtsAsync(string? userId, ManagerDashboardSummaryParams @params, CancellationToken cancellationToken);
     Task UpdateCourtAsync(Court court, CancellationToken cancellationToken = default);
 }

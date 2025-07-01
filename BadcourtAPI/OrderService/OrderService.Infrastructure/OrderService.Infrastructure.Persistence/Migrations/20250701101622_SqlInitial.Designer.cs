@@ -11,7 +11,7 @@ using OrderService.Infrastructure.Persistence;
 namespace OrderService.Infrastructure.Persistence.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250626091018_SqlInitial")]
+[Migration("20250701101622_SqlInitial")]
 partial class SqlInitial
 {
     /// <inheritdoc />
@@ -73,6 +73,13 @@ partial class SqlInitial
                 b.Property<Guid>("UserId")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("UserImageUrl")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Username")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.HasKey("Id");
 
                 b.HasIndex("RatingId");
@@ -104,6 +111,13 @@ partial class SqlInitial
                     .HasColumnType("TEXT");
 
                 b.Property<Guid>("UserId")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("UserImageUrl")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Username")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");

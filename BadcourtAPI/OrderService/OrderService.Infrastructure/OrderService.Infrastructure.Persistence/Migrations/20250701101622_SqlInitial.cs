@@ -16,6 +16,8 @@ public partial class SqlInitial : Migration
             {
                 Id = table.Column<Guid>(type: "TEXT", nullable: false),
                 UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                Username = table.Column<string>(type: "TEXT", nullable: false),
+                UserImageUrl = table.Column<string>(type: "TEXT", nullable: true),
                 FacilityId = table.Column<string>(type: "TEXT", nullable: false),
                 Stars = table.Column<int>(type: "INTEGER", nullable: false),
                 Feedback = table.Column<string>(type: "TEXT", nullable: false),
@@ -33,6 +35,8 @@ public partial class SqlInitial : Migration
             {
                 Id = table.Column<Guid>(type: "TEXT", nullable: false),
                 UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                Username = table.Column<string>(type: "TEXT", nullable: false),
+                UserImageUrl = table.Column<string>(type: "TEXT", nullable: true),
                 FacilityOwnerId = table.Column<string>(type: "TEXT", nullable: false),
                 FacilityId = table.Column<string>(type: "TEXT", nullable: false),
                 CourtId = table.Column<string>(type: "TEXT", nullable: false),

@@ -44,6 +44,8 @@ public class CreateRatingHandler(
         order.Rating = new Rating
         {
             UserId = currentUserId,
+            Username = order.Username,
+            UserImageUrl = order.UserImageUrl,
             FacilityId = order.FacilityId,
             Stars = request.CreateRatingDto.Stars,
             Feedback = request.CreateRatingDto.Feedback

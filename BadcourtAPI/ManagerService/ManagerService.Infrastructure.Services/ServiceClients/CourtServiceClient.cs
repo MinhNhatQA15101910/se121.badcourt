@@ -7,16 +7,15 @@ using SharedKernel.Params;
 
 namespace ManagerService.Infrastructure.Services.ServiceClients;
 
-public class FacilityServiceClient(
+public class CourtServiceClient(
     IOptions<ApiEndpoints> config,
     HttpClient client
-) : IFacilityServiceClient
+) : ICourtServiceClient
 {
-    public Task<int> GetTotalFacilitiesAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
+    public Task<int> GetTotalCourtsAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
-        var apiUrl = config.Value.FacilitiesApi;
-        apiUrl += "/total-facilities";
+        var apiUrl = config.Value.CourtsApi + "/api/manager-dashboard/total-courts";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
@@ -30,7 +29,7 @@ public class FacilityServiceClient(
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Failed to get total facilities: {response.ReasonPhrase}");
+            throw new Exception($"Failed to get total courts: {response.ReasonPhrase}");
         }
 
         return response.Content.ReadFromJsonAsync<int>(cancellationToken: cancellationToken);

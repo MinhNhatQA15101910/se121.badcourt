@@ -2,8 +2,8 @@ using SharedKernel.Params;
 
 namespace ManagerService.Application.Interfaces.ServiceClients;
 
-public interface IFacilityServiceClient
+public interface ICourtServiceClient
 {
-    Task<int> GetTotalFacilitiesAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
+    Task<int> GetTotalCourtsAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
 }

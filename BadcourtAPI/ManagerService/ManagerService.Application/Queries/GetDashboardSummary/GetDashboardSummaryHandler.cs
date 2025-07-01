@@ -2,16 +2,17 @@
 using ManagerService.Application.Extensions;
 using ManagerService.Application.Interfaces.ServiceClients;
 using Microsoft.AspNetCore.Http;
+using SharedKernel.DTOs;
 
 namespace ManagerService.Application.Queries.GetDashboardSummary;
 
 public class GetDashboardSummaryHandler(
     IHttpContextAccessor httpContextAccessor,
     IOrderServiceClient orderServiceClient,
-    IFacilityServiceClient facilityServiceClient
-) : IQueryHandler<GetDashboardSummaryQuery, DashboardSummaryResponse>
+    ICourtServiceClient courtServiceClient
+) : IQueryHandler<GetDashboardSummaryQuery, ManagerDashboardSummaryDto>
 {
-    public async Task<DashboardSummaryResponse> Handle(GetDashboardSummaryQuery request, CancellationToken cancellationToken)
+    public async Task<ManagerDashboardSummaryDto> Handle(GetDashboardSummaryQuery request, CancellationToken cancellationToken)
     {
         var bearerToken = httpContextAccessor.HttpContext.GetBearerToken();
 
@@ -21,15 +22,15 @@ public class GetDashboardSummaryHandler(
             bearerToken, request.SummaryParams, cancellationToken);
         var totalCustomers = await orderServiceClient.GetTotalCustomersAsync(
             bearerToken, request.SummaryParams, cancellationToken);
-        var totalFacilities = await facilityServiceClient.GetTotalFacilitiesAsync(
+        var totalCourts = await courtServiceClient.GetTotalCourtsAsync(
             bearerToken, request.SummaryParams, cancellationToken);
 
-        return new DashboardSummaryResponse
+        return new ManagerDashboardSummaryDto
         {
             TotalRevenue = totalRevenue,
             TotalOrders = totalOrders,
             TotalCustomers = totalCustomers,
-            TotalFacilities = totalFacilities
+            TotalCourts = totalCourts
         };
     }
 }
