@@ -22,7 +22,7 @@ public class GetOrderByIdHandler(
         if (!roles.Contains("Admin"))
         {
             var userId = httpContextAccessor.HttpContext.User.GetUserId();
-            if (order.UserId != userId)
+            if (order.UserId != userId && order.FacilityOwnerId != userId.ToString())
             {
                 throw new ForbiddenAccessException("You do not have permission to access this order.");
             }
