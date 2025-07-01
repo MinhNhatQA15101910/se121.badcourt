@@ -15,6 +15,7 @@ public class CreateOrderHandler(
     IOrderRepository orderRepository,
     ICourtApiRepository courtApiRepository,
     IFacilityApiRepository facilityApiRepository,
+    IUserApiRepository userApiRepository,
     IStripeService stripeService
 ) : ICommandHandler<CreateOrderCommand, OrderIntentDto>
 {
@@ -115,10 +116,15 @@ public class CreateOrderHandler(
 
         // Create order
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
+        var user = await userApiRepository.GetUserByIdAsync(userId.ToString(), cancellationToken)
+            ?? throw new UserNotFoundException(userId);
+
         var facilityMainPhoto = facility.Photos.FirstOrDefault(p => p.IsMain);
         var draftOrder = new Order
         {
             UserId = userId,
+            Username = user.Username,
+            UserImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url,
             FacilityOwnerId = facility.UserId.ToString(),
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
