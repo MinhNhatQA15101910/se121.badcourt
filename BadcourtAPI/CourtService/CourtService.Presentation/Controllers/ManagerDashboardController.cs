@@ -11,10 +11,10 @@ namespace CourtService.Presentation.Controllers;
 public class ManagerDashboardController(IMediator mediator) : ControllerBase
 {
     [HttpGet("total-courts")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<int>> GetTotalCourts([FromQuery] ManagerDashboardSummaryParams queryParams)
     {
-        var query = new GetTotalCourtsQuery(queryParams);
+        var query = new GetTotalCourtsForManagerQuery(queryParams);
         var totalCourts = await mediator.Send(query);
         return Ok(totalCourts);
     }
