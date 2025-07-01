@@ -276,7 +276,7 @@ class _MessageScreenState extends State<MessageScreen> {
       final testResponse = await _messageService.fetchGroup(
         context: context,
         pageNumber: 2, // Check if page 2 exists
-        searchQuery: _isSearching ? _currentSearchQuery : null,
+        username: _isSearching ? _currentSearchQuery : null,
       );
     
       if (mounted) {
@@ -389,7 +389,7 @@ class _MessageScreenState extends State<MessageScreen> {
       final paginatedResponse = await _messageService.fetchGroup(
         context: context,
         pageNumber: nextPage,
-        searchQuery: _currentSearchQuery,
+        username: _currentSearchQuery,
       );
       
       if (mounted) {
@@ -470,7 +470,7 @@ class _MessageScreenState extends State<MessageScreen> {
       final paginatedResponse = await _messageService.fetchGroup(
         context: context,
         pageNumber: 1,
-        searchQuery: query.trim(),
+        username: query.trim(),
       );
       
       if (mounted) {

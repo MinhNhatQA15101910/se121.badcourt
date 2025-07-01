@@ -55,10 +55,10 @@ class MessageService {
             totalCount: 0);
   }
 
-  Future<PaginatedGroupsDto> fetchGroup({
+  Future<PaginatedGroupsDto> fetchGroup({ 
     required BuildContext context,
     int pageNumber = 1,
-    String? searchQuery, // Added search parameter
+    String? username, // Added search parameter
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     PaginatedGroupsDto? paginatedResponse;
@@ -66,8 +66,8 @@ class MessageService {
     try {
       // Build URL with search query if provided
       String url = '$uri/gateway/groups?pageNumber=$pageNumber';
-      if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-        url += '&search=${Uri.encodeComponent(searchQuery.trim())}';
+      if (username != null && username.trim().isNotEmpty) {
+        url += '&username=${Uri.encodeComponent(username.trim())}';
       }
       
       final response = await http.get(
