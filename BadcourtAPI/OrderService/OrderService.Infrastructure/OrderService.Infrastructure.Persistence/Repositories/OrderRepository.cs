@@ -248,6 +248,29 @@ public class OrderRepository(
             .CountAsync(cancellationToken);
     }
 
+    public Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by facilityId
+        query = query.Where(o => o.FacilityId == summaryParams.FacilityId);
+
+        // Filter by year
+        if (summaryParams.Year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == summaryParams.Year.Value);
+        }
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        // Select distinct user IDs and count them
+        return query
+            .Select(o => o.UserId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+    }
+
     public Task<int> GetTotalOrdersAsync(string? userId, int? year, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();

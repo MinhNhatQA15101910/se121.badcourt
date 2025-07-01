@@ -26,6 +26,8 @@ public interface IOrderRepository
         CancellationToken cancellationToken = default, Guid? userId = null);
     Task<int> GetTotalCustomersAsync(string? userId, int? year,
         CancellationToken cancellationToken);
+    Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
+        CancellationToken cancellationToken = default);
     Task<int> GetTotalOrdersAsync(string? userId, int? year,
         CancellationToken cancellationToken = default);
     Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,

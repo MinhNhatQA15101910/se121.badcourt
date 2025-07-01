@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.Core.Application.Queries.GetTotalCustomersForManager;
 using OrderService.Core.Application.Queries.GetTotalOrdersForManager;
 using OrderService.Core.Application.Queries.GetTotalRevenueForManager;
 using SharedKernel.Params;
@@ -28,6 +29,17 @@ public class ManagerDashboardController(IMediator mediator) : ControllerBase
         [FromQuery] ManagerDashboardSummaryParams summaryParams)
     {
         var query = new GetTotalOrdersForManagerQuery(summaryParams);
+        var result = await mediator.Send(query);
+
+        return Ok(result);
+    }
+
+    [HttpGet("total-customers")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> GetTotalCustomers(
+        [FromQuery] ManagerDashboardSummaryParams summaryParams)
+    {
+        var query = new GetTotalCustomersForManagerQuery(summaryParams);
         var result = await mediator.Send(query);
 
         return Ok(result);
