@@ -10,9 +10,9 @@ public class FacilityApiRepository(
     HttpClient client
 ) : IFacilityApiRepository
 {
-    public async Task<FacilityDto?> GetFacilityByIdAsync(string facilityId)
+    public async Task<FacilityDto?> GetFacilityByIdAsync(string facilityId, CancellationToken cancellationToken = default)
     {
         var facilityApiEndpoint = config.Value.FacilitiesApi;
-        return await client.GetFromJsonAsync<FacilityDto>($"{facilityApiEndpoint}/{facilityId}");
+        return await client.GetFromJsonAsync<FacilityDto>($"{facilityApiEndpoint}/{facilityId}", cancellationToken: cancellationToken);
     }
 }

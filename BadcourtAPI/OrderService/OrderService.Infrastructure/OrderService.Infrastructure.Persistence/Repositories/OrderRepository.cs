@@ -288,4 +288,24 @@ public class OrderRepository(
         // Sum the total revenue
         return await query.SumAsync(o => o.Price, cancellationToken);
     }
+
+    public Task<decimal> GetTotalRevenueForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by facilityId
+        query = query.Where(o => o.FacilityId == summaryParams.FacilityId);
+
+        // Filter by year
+        if (summaryParams.Year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == summaryParams.Year.Value);
+        }
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        // Sum the total revenue
+        return query.SumAsync(o => o.Price, cancellationToken);
+    }
 }
