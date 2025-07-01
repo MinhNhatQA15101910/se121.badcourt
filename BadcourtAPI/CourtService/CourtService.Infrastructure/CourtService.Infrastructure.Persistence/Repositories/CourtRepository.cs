@@ -134,6 +134,29 @@ public class CourtRepository : ICourtRepository
         return minPrice;
     }
 
+    public async Task<int> GetTotalCourtsAsync(string? userId, ManagerDashboardSummaryParams @params, CancellationToken cancellationToken)
+    {
+        var filter = Builders<Court>.Filter.Empty;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            filter = Builders<Court>.Filter.Eq(c => c.UserId, userId);
+        }
+
+        // Filter by year
+        if (@params.Year.HasValue)
+        {
+            var startDate = new DateTime(@params.Year.Value, 1, 1);
+            var endDate = new DateTime(@params.Year.Value, 12, 31, 23, 59, 59);
+            filter &= Builders<Court>.Filter.And(
+                Builders<Court>.Filter.Gte(c => c.CreatedAt, startDate),
+                Builders<Court>.Filter.Lte(c => c.CreatedAt, endDate)
+            );
+        }
+
+        return (int)await _courts.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+    }
+
     public async Task UpdateCourtAsync(Court court, CancellationToken cancellationToken = default)
     {
         await _courts.ReplaceOneAsync(c => c.Id == court.Id, court, cancellationToken: cancellationToken);
