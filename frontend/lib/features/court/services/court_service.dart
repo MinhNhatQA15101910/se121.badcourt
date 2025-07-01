@@ -21,7 +21,7 @@ class CourtService{
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/gateway/courts?facilityId=$facilityId'),
+        Uri.parse('$uri/gateway/courts?facilityId=$facilityId&pageSize=50'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -107,6 +107,7 @@ class CourtService{
           "hourFrom": startTime.toIso8601String(),
           "hourTo": endTime.toIso8601String(),
         },
+        "timeZoneId": "SE Asia Standard Time"
       };
 
       final response = await http.post(

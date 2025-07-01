@@ -17,6 +17,30 @@ class CourtManagementService {
     required String description,
     required int pricePerHour,
   }) async {
+    if(name.length < 3) {
+      IconSnackBar.show(
+        context,
+        label: 'Court name must be at least 3 characters long.',
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
+    }
+    if(description.length < 10) {
+      IconSnackBar.show(
+        context,
+        label: 'Description must be at least 10 characters long.',
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
+    }
+    if(pricePerHour < 10000) {
+      IconSnackBar.show(
+        context,
+        label: 'Price must be over 10000 đ.',
+        snackBarType: SnackBarType.fail,
+      );
+      return null;
+    }
     final userProvider = Provider.of<UserProvider>(
       context,
       listen: false,
@@ -132,7 +156,7 @@ class CourtManagementService {
     List<Court> courtList = [];
     try {
       http.Response res = await http.get(
-        Uri.parse('$uri/gateway/courts?facilityId=$facilityId'),
+        Uri.parse('$uri/gateway/courts?facilityId=$facilityId&pageSize=50'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

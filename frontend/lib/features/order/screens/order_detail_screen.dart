@@ -6,8 +6,10 @@ import 'package:frontend/features/order/services/order_service.dart';
 import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
 import 'package:frontend/features/player/rating/screens/rating_screen.dart';
 import 'package:frontend/models/order.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   static const String routeName = '/booking-detail-screen';
@@ -163,6 +165,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     if (isLoading) {
       return Scaffold(
         backgroundColor: GlobalVariables.defaultColor,
@@ -631,6 +634,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   const SizedBox(height: 24),
 
                   // Action Buttons
+                  if(userProvider.user.role == 'Player')
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(

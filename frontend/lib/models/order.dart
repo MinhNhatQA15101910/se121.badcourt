@@ -5,6 +5,8 @@ import 'package:frontend/models/rating.dart';
 class Order {
   final String id;
   final String userId;
+  final String username;     
+  final String userImageUrl;  
   final String facilityName;
   final String address;
   final double price;
@@ -17,6 +19,8 @@ class Order {
   const Order({
     required this.id,
     required this.userId,
+    required this.username,    
+    required this.userImageUrl, 
     required this.facilityName,
     required this.address,
     required this.price,
@@ -30,6 +34,8 @@ class Order {
   Map<String, dynamic> toMap() => {
         'id': id,
         'userId': userId,
+        'username': username,         
+        'userImageUrl': userImageUrl,  
         'facilityName': facilityName,
         'address': address,
         'price': price,
@@ -52,7 +58,9 @@ class Order {
 
     return Order(
       id: map['id'] ?? '',
-      userId: map['userId'] ?? '', // ✅
+      userId: map['userId'] ?? '',
+      username: map['username'] ?? '',          
+      userImageUrl: map['userImageUrl'] ?? '',  
       facilityName: map['facilityName'] ?? '',
       address: map['address'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
@@ -69,6 +77,6 @@ class Order {
   String toJson() => json.encode(toMap());
 
   @override
-  String toString() => 'Order(id: $id, userId: $userId, facilityName: $facilityName, '
+  String toString() => 'Order(id: $id, userId: $userId, username: $username, '
       'state: $state, rating: $rating)';
 }

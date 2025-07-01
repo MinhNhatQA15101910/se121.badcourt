@@ -90,7 +90,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final court = checkoutProvider.court;
             final startDate = checkoutProvider.startDate;
             final endDate = checkoutProvider.endDate;
-            final durationHours = endDate.difference(startDate).inHours;
+            final durationHours = endDate.difference(startDate).inMinutes / 60;
             final pricePerHour = court.pricePerHour;
             final totalPrice = durationHours * pricePerHour;
 
@@ -124,13 +124,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               bottomRight: Radius.circular(20),
                             ),
                             child: Image.network(
-                              currentFacilityProvider.currentFacility.facilityImages.first.url,
+                              currentFacilityProvider
+                                  .currentFacility.facilityImages.first.url,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
                                   color: GlobalVariables.lightGrey,
                                   child: const Center(
-                                    child: Icon(Icons.image_not_supported, size: 50),
+                                    child: Icon(Icons.image_not_supported,
+                                        size: 50),
                                   ),
                                 );
                               },
@@ -175,7 +177,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      currentFacilityProvider.currentFacility.facilityName,
+                                      currentFacilityProvider
+                                          .currentFacility.facilityName,
                                       style: GoogleFonts.inter(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
@@ -193,7 +196,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
-                                            currentFacilityProvider.currentFacility.province,
+                                            currentFacilityProvider
+                                                .currentFacility.province,
                                             style: GoogleFonts.inter(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w400,
@@ -327,12 +331,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: SafeArea(
                     child: CustomButton(
-                      buttonText: _isProcessingPayment 
-                          ? 'Processing Payment...' 
+                      buttonText: _isProcessingPayment
+                          ? 'Processing Payment...'
                           : 'Pay & Confirm Booking',
                       borderColor: GlobalVariables.green,
-                      fillColor: _isProcessingPayment 
-                          ? GlobalVariables.darkGrey 
+                      fillColor: _isProcessingPayment
+                          ? GlobalVariables.darkGrey
                           : GlobalVariables.green,
                       textColor: Colors.white,
                       onTap: () {

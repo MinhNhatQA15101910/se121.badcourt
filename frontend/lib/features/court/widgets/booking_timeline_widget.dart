@@ -45,7 +45,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   @override
   void dispose() {
     if (_courtHubProvider != null) {
-      _courtHubProvider!.clearNewOrderPeriods(widget.court.id);
       _courtHubProvider!.clearCourtInactivePeriods(widget.court.id);
     }
     super.dispose();
@@ -88,7 +87,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           if (startParts.length >= 2) {
             final startHour = int.parse(startParts[0]);
             final startMinute = int.parse(startParts[1]);
-
             startDate = DateTime(
               widget.startTime.year,
               widget.startTime.month,
@@ -105,11 +103,9 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       if (endDate == null) {
         try {
           final endParts = period.hourTo.toIso8601String().split('T')[1].split(':');
-
           if (endParts.length >= 2) {
             final endHour = int.parse(endParts[0]);
             final endMinute = int.parse(endParts[1]);
-
             endDate = DateTime(
               widget.startTime.year,
               widget.startTime.month,
@@ -142,12 +138,12 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           endDate.minute,
         );
 
-        // Create BookingTime with different status for inactive periods
+        // Create BookingTime with status for inactive periods
         final bookingTime = BookingTime(
           id: virtualId,
           startDate: normalizedStartDate,
           endDate: normalizedEndDate,
-          status: isInactive ? 2 : 1, // Status 2 for inactive, 1 for new orders
+          status: isInactive ? 2 : 0, // Status 2 for inactive, 0 for regular
         );
 
         return bookingTime;
@@ -166,22 +162,11 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         // START WITH EXISTING BOOKINGS
         List<BookingTime> allBookings = List.from(widget.bookingTimeList);
 
-        // Get realtime periods
-        final newOrderPeriods =
-            courtProvider.getNewOrderPeriods(widget.court.id);
+        // Get realtime periods (only inactive periods now)
         final inactivePeriods =
             courtProvider.getCourtInactivePeriods(widget.court.id);
 
         int virtualId = 10000;
-
-        // CONVERT NEW ORDER PERIODS
-        for (var period in newOrderPeriods) {
-          final bookingTime =
-              _convertPeriodTimeToBookingTime(period, virtualId++, isInactive: false);
-          if (bookingTime != null) {
-            allBookings.add(bookingTime);
-          }
-        }
 
         // CONVERT INACTIVE PERIODS
         for (var period in inactivePeriods) {
@@ -194,11 +179,9 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
 
         // PROCESS ALL BOOKINGS
         List<Widget> bookingOverlays = [];
-
         for (int i = 0; i < allBookings.length; i++) {
           try {
             var booking = allBookings[i];
-
             // Check intersection
             if (_isBookingIntersectingTimeline(booking)) {
               Widget overlay = _createBookingOverlay(booking, i);
@@ -211,13 +194,12 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
 
         List<Widget> timeContainer =
             generateTimeContainer(widget.startTime, widget.endTime);
+
         List<Widget> timeText =
             generateTimeText(widget.startTime, widget.endTime);
 
         // Calculate total bookings to display
-        int totalBookingsCount = widget.bookingTimeList.length +
-            newOrderPeriods.length +
-            inactivePeriods.length;
+        int totalBookingsCount = widget.bookingTimeList.length + inactivePeriods.length;
 
         return Container(
           padding: EdgeInsets.only(
@@ -264,7 +246,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                 ],
               ),
               SizedBox(height: 12),
-              // ENHANCED Legend - show different types of bookings
+              // Legend - show different types of bookings
               Container(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Column(
@@ -277,14 +259,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                         label: 'Existing bookings (${widget.bookingTimeList.length})',
                       ),
                     
-                    // New order periods legend
-                    if (newOrderPeriods.isNotEmpty)
-                      _buildLegendItem(
-                        color: Colors.blue.withOpacity(0.2),
-                        borderColor: Colors.blue,
-                        label: 'New orders (${newOrderPeriods.length})',
-                      ),
-                    
                     // Inactive periods legend
                     if (inactivePeriods.isNotEmpty)
                       _buildLegendItem(
@@ -294,7 +268,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                       ),
                     
                     // Total count if multiple types exist
-                    if (totalBookingsCount > 0 && (newOrderPeriods.isNotEmpty || inactivePeriods.isNotEmpty))
+                    if (totalBookingsCount > 0 && inactivePeriods.isNotEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: 4),
                         child: Text(
@@ -410,7 +384,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
 
     bool isFromSignalR = booking.id >= 10000;
     bool isInactive = booking.status == 2; // Status 2 for inactive periods
-    bool isNewOrder = booking.status == 1 && isFromSignalR;
 
     // Choose colors based on booking type
     Color backgroundColor;
@@ -423,11 +396,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       borderColor = Colors.grey;
       textColor = Colors.grey;
       iconData = Icons.block;
-    } else if (isNewOrder) {
-      backgroundColor = Colors.blue.withOpacity(0.2);
-      borderColor = Colors.blue;
-      textColor = Colors.blue;
-      iconData = Icons.new_releases;
     } else {
       backgroundColor = GlobalVariables.lightGreen;
       borderColor = GlobalVariables.green;
@@ -607,7 +575,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   double calculateMarginTop(DateTime startTime, DateTime bookingStartTime) {
     int minutesFromStart = bookingStartTime.difference(startTime).inMinutes;
     if (minutesFromStart < 0) minutesFromStart = 0;
-
     double result = 10.0 + (minutesFromStart / 60.0) * 40.0;
     return result;
   }
@@ -615,7 +582,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   double calculateHeight(DateTime startTime, DateTime endTime) {
     int durationInMinutes = endTime.difference(startTime).inMinutes;
     if (durationInMinutes <= 0) return 0;
-
     double result = (durationInMinutes / 60.0) * 40.0;
     return result;
   }
