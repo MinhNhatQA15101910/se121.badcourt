@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/message/widgets/user_message_box.dart';
 import 'package:frontend/models/group_dto.dart';
@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 
 class MessageScreen extends StatefulWidget {
   static const String routeName = '/messageScreen';
-
   const MessageScreen({Key? key}) : super(key: key);
 
   @override
@@ -27,11 +26,14 @@ class _MessageScreenState extends State<MessageScreen> {
   // Local state for hybrid approach
   List<GroupDto> _allGroups = [];
   List<GroupDto> filteredGroups = [];
+  List<GroupDto> _searchResults = []; // New: Store search results from API
   bool _isLoading = true;
   bool _isLoadingMore = false;
+  bool _isSearching = false; // New: Track search state
   bool _hasMorePages = false;
   int _currentPage = 1;
   int _totalPages = 1;
+  String _currentSearchQuery = ''; // New: Track current search query
 
   // Track previous groups count để detect changes
   int _previousGroupsCount = 0;
@@ -59,7 +61,11 @@ class _MessageScreenState extends State<MessageScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >= 
         _scrollController.position.maxScrollExtent - 200) {
-      _loadMoreGroups();
+      if (_isSearching) {
+        _loadMoreSearchResults();
+      } else {
+        _loadMoreGroups();
+      }
     }
   }
 
@@ -67,7 +73,6 @@ class _MessageScreenState extends State<MessageScreen> {
     setState(() {
       _isLoading = true;
     });
-
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
 
@@ -108,7 +113,6 @@ class _MessageScreenState extends State<MessageScreen> {
         });
       }
     }
-
     // Check pagination info after initial load
     await _checkPaginationInfo();
   }
@@ -124,7 +128,6 @@ class _MessageScreenState extends State<MessageScreen> {
       _updateFilteredGroups();
       _isLoading = false;
     });
-
     // Update tracking variables
     _previousGroupsCount = _allGroups.length;
     _previousGroupIds = _allGroups.map((g) => g.id).toList();
@@ -132,6 +135,9 @@ class _MessageScreenState extends State<MessageScreen> {
 
   // Handle new message received - Đẩy group lên đầu nếu đã tồn tại
   void _handleNewMessageReceived(GroupProvider groupProvider) {
+    // Skip if currently searching - don't interfere with search results
+    if (_isSearching) return;
+    
     final newGroups = groupProvider.groups;
     
     // Check if there are any changes
@@ -141,7 +147,6 @@ class _MessageScreenState extends State<MessageScreen> {
       _handleMessageUpdates(newGroups);
       return;
     }
-
     print('[MessageScreen] Detected group changes, syncing...');
     
     // Find new or updated groups
@@ -184,7 +189,6 @@ class _MessageScreenState extends State<MessageScreen> {
         _allGroups.add(newGroup);
         print('[MessageScreen] Added new group: ${newGroup.id}');
       }
-
       // Handle updated groups - Move to top
       for (final updatedGroup in updatedGroups) {
         // Remove from current position
@@ -193,7 +197,6 @@ class _MessageScreenState extends State<MessageScreen> {
         _allGroups.insert(0, updatedGroup);
         print('[MessageScreen] Moved group ${updatedGroup.id} to top');
       }
-
       // Update other groups that weren't moved
       for (int i = 0; i < _allGroups.length; i++) {
         final currentGroup = _allGroups[i];
@@ -207,10 +210,8 @@ class _MessageScreenState extends State<MessageScreen> {
           _allGroups[i] = updatedGroup;
         }
       }
-
       _updateFilteredGroups();
     });
-
     // Update tracking variables
     _previousGroupsCount = _allGroups.length;
     _previousGroupIds = _allGroups.map((g) => g.id).toList();
@@ -218,6 +219,9 @@ class _MessageScreenState extends State<MessageScreen> {
 
   // Handle message updates without structural changes
   void _handleMessageUpdates(List<GroupDto> newGroups) {
+    // Skip if currently searching
+    if (_isSearching) return;
+    
     bool hasUpdates = false;
     
     for (int i = 0; i < _allGroups.length; i++) {
@@ -272,6 +276,7 @@ class _MessageScreenState extends State<MessageScreen> {
       final testResponse = await _messageService.fetchGroup(
         context: context,
         pageNumber: 2, // Check if page 2 exists
+        searchQuery: _isSearching ? _currentSearchQuery : null,
       );
     
       if (mounted) {
@@ -293,10 +298,9 @@ class _MessageScreenState extends State<MessageScreen> {
 
   // Load more groups using REST API
   Future<void> _loadMoreGroups() async {
-    if (_isLoadingMore) {
+    if (_isLoadingMore || _isSearching) {
       return;
     }
-
     // For the first REST API call, we don't know total pages yet
     if (_totalPages > 1 && _currentPage >= _totalPages) {
       return;
@@ -305,7 +309,6 @@ class _MessageScreenState extends State<MessageScreen> {
     setState(() {
       _isLoadingMore = true;
     });
-
     try {
       final nextPage = _currentPage + 1;
       print('Loading groups page $nextPage'); // Debug log
@@ -314,7 +317,6 @@ class _MessageScreenState extends State<MessageScreen> {
         context: context,
         pageNumber: nextPage,
       );
-
       if (mounted) {
         setState(() {
           // Update pagination info from REST API response
@@ -366,38 +368,181 @@ class _MessageScreenState extends State<MessageScreen> {
     }
   }
 
-  void _updateFilteredGroups() {
-    final searchQuery = _searchController.text.toLowerCase();
-    if (searchQuery.isEmpty) {
-      filteredGroups = List.from(_allGroups);
-    } else {
-      final currentUserId = Provider.of<UserProvider>(context, listen: false).user.id;
-      filteredGroups = _allGroups.where((group) {
-        // Find other user in the group
-        final otherUser = group.users.firstWhere(
-          (u) => u.id != currentUserId,
-          orElse: () => User(
-            id: 'unknown',
-            username: 'Unknown User',
-            email: 'unknown@example.com',
-            roles: const ['Unknown'],
-          ),
-        );
-        
-        // Search by username or last message content
-        return otherUser.username.toLowerCase().contains(searchQuery) ||
-               (group.lastMessage?.content.toLowerCase().contains(searchQuery) ?? false);
-      }).toList();
+  // New: Load more search results
+  Future<void> _loadMoreSearchResults() async {
+    if (_isLoadingMore || !_isSearching || _currentSearchQuery.isEmpty) {
+      return;
     }
     
-    // Sort groups by last message time (most recent first) - nhưng giữ thứ tự đã được sắp xếp từ real-time updates
-    if (searchQuery.isEmpty) {
-      // Chỉ sort khi không search để giữ thứ tự real-time
-      filteredGroups.sort((a, b) {
-        final aTime = a.lastMessage?.messageSent ?? a.updatedAt;
-        final bTime = b.lastMessage?.messageSent ?? b.updatedAt;
-        return bTime.compareTo(aTime); // Descending order
+    if (_totalPages > 1 && _currentPage >= _totalPages) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    try {
+      final nextPage = _currentPage + 1;
+      print('Loading search results page $nextPage for query: $_currentSearchQuery');
+      
+      final paginatedResponse = await _messageService.fetchGroup(
+        context: context,
+        pageNumber: nextPage,
+        searchQuery: _currentSearchQuery,
+      );
+      
+      if (mounted) {
+        setState(() {
+          _totalPages = paginatedResponse.totalPages;
+          
+          if (paginatedResponse.items.isNotEmpty) {
+            // Add new search results
+            final existingIds = _searchResults.map((g) => g.id).toSet();
+            final newGroups = paginatedResponse.items
+                .where((g) => !existingIds.contains(g.id))
+                .toList();
+            
+            _searchResults.addAll(newGroups);
+            _currentPage = paginatedResponse.currentPage;
+            _hasMorePages = _currentPage < _totalPages;
+            
+            print('Added ${newGroups.length} new search results from API');
+          } else {
+            _hasMorePages = false;
+          }
+          
+          _updateFilteredGroups();
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        print('Error loading more search results: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load more search results: $error'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+      }
+    }
+  }
+
+  // New: Perform search via API
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) {
+      // Clear search mode
+      setState(() {
+        _isSearching = false;
+        _currentSearchQuery = '';
+        _searchResults.clear();
+        _currentPage = 1;
+        _totalPages = 1;
+        _hasMorePages = true;
+        _updateFilteredGroups();
       });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _currentSearchQuery = query.trim();
+      _searchResults.clear();
+      _currentPage = 1;
+      _totalPages = 1;
+      _hasMorePages = true;
+      _isLoadingMore = true;
+    });
+
+    try {
+      print('Searching for: $query');
+      
+      final paginatedResponse = await _messageService.fetchGroup(
+        context: context,
+        pageNumber: 1,
+        searchQuery: query.trim(),
+      );
+      
+      if (mounted) {
+        setState(() {
+          _searchResults = paginatedResponse.items;
+          _currentPage = paginatedResponse.currentPage;
+          _totalPages = paginatedResponse.totalPages;
+          _hasMorePages = _currentPage < _totalPages;
+          _updateFilteredGroups();
+          _isLoadingMore = false;
+        });
+        
+        print('Search completed: ${_searchResults.length} results found');
+      }
+    } catch (error) {
+      if (mounted) {
+        print('Error performing search: $error');
+        setState(() {
+          _isLoadingMore = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Search failed: $error'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _updateFilteredGroups() {
+    if (_isSearching) {
+      // Use search results when searching
+      filteredGroups = List.from(_searchResults);
+    } else {
+      // Use local filtering on all groups when not searching
+      final searchQuery = _searchController.text.toLowerCase();
+      if (searchQuery.isEmpty) {
+        filteredGroups = List.from(_allGroups);
+      } else {
+        final currentUserId = Provider.of<UserProvider>(context, listen: false).user.id;
+        filteredGroups = _allGroups.where((group) {
+          // Find other user in the group
+          final otherUser = group.users.firstWhere(
+            (u) => u.id != currentUserId,
+            orElse: () => User(
+              id: 'unknown',
+              username: 'Unknown User',
+              email: 'unknown@example.com',
+              roles: const ['Unknown'],
+            ),
+          );
+          
+          // Search by username or last message content
+          return otherUser.username.toLowerCase().contains(searchQuery) ||
+                 (group.lastMessage?.content.toLowerCase().contains(searchQuery) ?? false);
+        }).toList();
+      }
+      
+      // Sort groups by last message time (most recent first) - nhưng giữ thứ tự đã được sắp xếp từ real-time updates
+      if (_searchController.text.isEmpty) {
+        // Chỉ sort khi không search để giữ thứ tự real-time
+        filteredGroups.sort((a, b) {
+          final aTime = a.lastMessage?.messageSent ?? a.updatedAt;
+          final bTime = b.lastMessage?.messageSent ?? b.updatedAt;
+          return bTime.compareTo(aTime); // Descending order
+        });
+      }
     }
   }
 
@@ -408,10 +553,12 @@ class _MessageScreenState extends State<MessageScreen> {
       _totalPages = 1;
       _hasMorePages = true;
       _allGroups.clear();
+      _searchResults.clear();
+      _isSearching = false;
+      _currentSearchQuery = '';
       _previousGroupsCount = 0;
       _previousGroupIds.clear();
     });
-
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     
     try {
@@ -545,11 +692,20 @@ class _MessageScreenState extends State<MessageScreen> {
               ),
             ),
             const Spacer(),
-            // Hiển thị trạng thái kết nối
+            // Hiển thị trạng thái kết nối và search
             Consumer<GroupProvider>(
               builder: (context, groupProvider, _) {
                 return Row(
                   children: [
+                    // Show search indicator when searching
+                    if (_isSearching) ...[
+                      Icon(
+                        Icons.search,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     // Hiển thị trạng thái kết nối GroupHub
                     Icon(
                       groupProvider.isConnected 
@@ -604,13 +760,15 @@ class _MessageScreenState extends State<MessageScreen> {
         color: GlobalVariables.defaultColor,
         child: Column(
           children: [
-            // Search bar
+            // Search bar - Enhanced with API search
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextFormField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Find recent user',
+                  hintText: _isSearching 
+                      ? 'Searching conversations...' 
+                      : 'Search conversations or users',
                   hintStyle: GoogleFonts.inter(
                     color: GlobalVariables.darkGrey,
                     fontSize: 16,
@@ -619,41 +777,72 @@ class _MessageScreenState extends State<MessageScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: GlobalVariables.lightGreen,
+                      color: _isSearching 
+                          ? GlobalVariables.green 
+                          : GlobalVariables.lightGreen,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: GlobalVariables.lightGreen,
+                      color: _isSearching 
+                          ? GlobalVariables.green 
+                          : GlobalVariables.lightGreen,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: GlobalVariables.green,
+                      width: 2,
                     ),
                   ),
                   prefixIcon: Icon(
                     Icons.search,
-                    color: GlobalVariables.darkGrey,
+                    color: _isSearching 
+                        ? GlobalVariables.green 
+                        : GlobalVariables.darkGrey,
                   ),
+                  suffixIcon: _isSearching
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: GlobalVariables.darkGrey,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            _performSearch('');
+                          },
+                        )
+                      : null,
                 ),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                 ),
                 onChanged: (value) {
-                  setState(() {
-                    _updateFilteredGroups();
+                  // Debounce search to avoid too many API calls
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (_searchController.text == value) {
+                      _performSearch(value);
+                    }
                   });
+                },
+                onFieldSubmitted: (value) {
+                  _performSearch(value);
                 },
               ),
             ),
             // Group list - Sử dụng Consumer để lắng nghe thay đổi real-time với logic reorder
             Consumer<GroupProvider>(
               builder: (context, groupProvider, _) {
-                // Handle real-time updates với reorder logic
+                // Handle real-time updates với reorder logic (only when not searching)
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (groupProvider.groups.isNotEmpty) {
+                  if (groupProvider.groups.isNotEmpty && !_isSearching) {
                     _handleNewMessageReceived(groupProvider);
                   }
                 });
 
-                return _isLoading && _allGroups.isEmpty
+                return _isLoading && _allGroups.isEmpty && !_isSearching
                     ? const Expanded(
                         child: Center(
                           child: Column(
@@ -675,15 +864,17 @@ class _MessageScreenState extends State<MessageScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.chat_bubble_outline,
+                                    _isSearching ? Icons.search_off : Icons.chat_bubble_outline,
                                     size: 64,
                                     color: Colors.grey[400],
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    groupProvider.isConnected 
-                                        ? 'No conversations yet'
-                                        : 'Connecting to messages...',
+                                    _isSearching 
+                                        ? 'No results found'
+                                        : groupProvider.isConnected 
+                                            ? 'No conversations yet'
+                                            : 'Connecting to messages...',
                                     style: GoogleFonts.inter(
                                       fontSize: 18,
                                       color: Colors.grey[600],
@@ -691,15 +882,17 @@ class _MessageScreenState extends State<MessageScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    groupProvider.isConnected 
-                                        ? 'Start a conversation with someone!'
-                                        : 'Please wait while we connect',
+                                    _isSearching 
+                                        ? 'Try a different search term'
+                                        : groupProvider.isConnected 
+                                            ? 'Start a conversation with someone!'
+                                            : 'Please wait while we connect',
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       color: Colors.grey[500],
                                     ),
                                   ),
-                                  if (!groupProvider.isConnected)
+                                  if (!groupProvider.isConnected && !_isSearching)
                                     Padding(
                                       padding: const EdgeInsets.only(top: 24.0),
                                       child: ElevatedButton(
@@ -732,15 +925,53 @@ class _MessageScreenState extends State<MessageScreen> {
                                   // Additional scroll detection for better infinite scroll
                                   if (scrollInfo is ScrollEndNotification &&
                                       scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
-                                    _loadMoreGroups();
+                                    if (_isSearching) {
+                                      _loadMoreSearchResults();
+                                    } else {
+                                      _loadMoreGroups();
+                                    }
                                   }
                                   return false;
                                 },
                                 child: CustomScrollView(
                                   controller: _scrollController,
                                   slivers: [
-                                    // Pagination info
-                                    if (_totalPages > 1 && _allGroups.isNotEmpty)
+                                    // Search results info
+                                    if (_isSearching && filteredGroups.isNotEmpty)
+                                      SliverToBoxAdapter(
+                                        child: Container(
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: GlobalVariables.green.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: GlobalVariables.green.withOpacity(0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.search,
+                                                size: 16,
+                                                color: GlobalVariables.green,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Found ${filteredGroups.length} results for "$_currentSearchQuery"',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: GlobalVariables.green,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    // Pagination info (for non-search mode)
+                                    if (!_isSearching && _totalPages > 1 && _allGroups.isNotEmpty)
                                       SliverToBoxAdapter(
                                         child: Container(
                                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -794,19 +1025,16 @@ class _MessageScreenState extends State<MessageScreen> {
                                           ),
                                         ),
                                       ),
-
                                     // Groups list với AnimatedList để smooth reordering
                                     SliverList(
                                       delegate: SliverChildBuilderDelegate(
                                         (context, index) {
                                           final group = filteredGroups[index];
-
                                           // Lấy thông tin user hiện tại
                                           final currentUserId =
                                               Provider.of<UserProvider>(context, listen: false)
                                                   .user
                                                   .id;
-
                                           // Tìm user khác với user hiện tại
                                           final otherUser = group.users.firstWhere(
                                             (u) => u.id != currentUserId,
@@ -826,7 +1054,6 @@ class _MessageScreenState extends State<MessageScreen> {
                                           final statusText = isOnline 
                                               ? 'Online' 
                                               : _getOfflineTimeText(otherUser.lastOnlineAt);
-
                                           return AnimatedContainer(
                                             duration: const Duration(milliseconds: 300),
                                             key: ValueKey(group.id), // Key để maintain state khi reorder
@@ -853,7 +1080,6 @@ class _MessageScreenState extends State<MessageScreen> {
                                         childCount: filteredGroups.length,
                                       ),
                                     ),
-
                                     // Loading more indicator
                                     if (_isLoadingMore)
                                       SliverToBoxAdapter(
@@ -886,7 +1112,9 @@ class _MessageScreenState extends State<MessageScreen> {
                                                   ),
                                                   const SizedBox(width: 12),
                                                   Text(
-                                                    'Loading more conversations...',
+                                                    _isSearching 
+                                                        ? 'Loading more results...'
+                                                        : 'Loading more conversations...',
                                                     style: GoogleFonts.inter(
                                                       fontSize: 14,
                                                       fontWeight: FontWeight.w500,
@@ -899,9 +1127,8 @@ class _MessageScreenState extends State<MessageScreen> {
                                           ),
                                         ),
                                       ),
-
                                     // End of list indicator
-                                    if (_allGroups.isNotEmpty && !_hasMorePages && !_isLoadingMore)
+                                    if (filteredGroups.isNotEmpty && !_hasMorePages && !_isLoadingMore)
                                       SliverToBoxAdapter(
                                         child: Container(
                                           margin: const EdgeInsets.all(16),
@@ -927,7 +1154,9 @@ class _MessageScreenState extends State<MessageScreen> {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                'All conversations loaded',
+                                                _isSearching 
+                                                    ? 'All search results loaded'
+                                                    : 'All conversations loaded',
                                                 style: GoogleFonts.inter(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w500,
@@ -938,7 +1167,6 @@ class _MessageScreenState extends State<MessageScreen> {
                                           ),
                                         ),
                                       ),
-
                                     // Bottom spacing
                                     const SliverToBoxAdapter(
                                       child: SizedBox(height: 20),

@@ -4,7 +4,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/facility_detail/widgets/recent_ratings_widget.dart';
-import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/court/screens/court_screen.dart';
 import 'package:frontend/features/facility_detail/screens/player_map_screen.dart';
 import 'package:frontend/models/facility.dart';

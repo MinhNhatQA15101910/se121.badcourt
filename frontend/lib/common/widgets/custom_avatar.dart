@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/message/pages/message_detail_screen.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/post/screens/user_profile_screen.dart';
 import 'package:frontend/providers/message_hub_provider.dart';
 import 'package:frontend/providers/user_provider.dart';

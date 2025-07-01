@@ -306,7 +306,7 @@ class TimeSelectionWidget extends StatelessWidget {
                             onTap: () => _showHourPicker(context, isStartTime: true),
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 16),
+                                  horizontal: 8, vertical: 12),
                               decoration: BoxDecoration(
                                 border: Border.all(color: GlobalVariables.grey),
                                 borderRadius: BorderRadius.circular(8),
@@ -339,7 +339,7 @@ class TimeSelectionWidget extends StatelessWidget {
                             onTap: () => _showMinutePicker(context, isStartTime: true),
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 16),
+                                  horizontal: 8, vertical: 12),
                               decoration: BoxDecoration(
                                 border: Border.all(color: GlobalVariables.grey),
                                 borderRadius: BorderRadius.circular(8),
@@ -387,7 +387,7 @@ class TimeSelectionWidget extends StatelessWidget {
                             onTap: () => _showHourPicker(context, isStartTime: false),
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 16),
+                                  horizontal: 8, vertical: 12),
                               decoration: BoxDecoration(
                                 border: Border.all(color: GlobalVariables.grey),
                                 borderRadius: BorderRadius.circular(8),
@@ -420,7 +420,7 @@ class TimeSelectionWidget extends StatelessWidget {
                             onTap: () => _showMinutePicker(context, isStartTime: false),
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 16),
+                                  horizontal: 8, vertical: 12),
                               decoration: BoxDecoration(
                                 border: Border.all(color: GlobalVariables.grey),
                                 borderRadius: BorderRadius.circular(8),

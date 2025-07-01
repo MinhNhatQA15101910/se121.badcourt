@@ -109,9 +109,6 @@ class CourtService{
         },
       };
 
-      print(
-          '🔍 [FacilityDetailService] Request body: ${jsonEncode(requestBody)}');
-
       final response = await http.post(
         Uri.parse('$uri/gateway/orders/check-conflict'),
         body: jsonEncode(requestBody),

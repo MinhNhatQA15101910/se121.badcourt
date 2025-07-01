@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class DayPicker extends StatefulWidget {
-  final void Function(List<int>)
-      onDaysSelected; // Callback để truyền danh sách ngày đã chọn
+  final List<int> selectedDays; // Pass selected days from parent
+  final void Function(List<int>) onDaysSelected; // Callback để truyền danh sách ngày đã chọn
 
   const DayPicker({
+    required this.selectedDays,
     required this.onDaysSelected,
     Key? key,
   }) : super(key: key);
@@ -23,37 +22,26 @@ class _DayPickerState extends State<DayPicker> {
   @override
   void initState() {
     super.initState();
-    // Lấy danh sách ngày từ provider
-    final currentFacilityProvider =
-        Provider.of<CurrentFacilityProvider>(context, listen: false);
-    final scheduleKeys =
-        currentFacilityProvider.currentFacility.activeAt?.schedule.keys;
-
-    selectedDays = scheduleKeys != null
-        ? scheduleKeys.map(_getDayNumber).whereType<int>().toList()
-        : [];
+    selectedDays = List.from(widget.selectedDays);
   }
 
-  int? _getDayNumber(String dayName) {
-    // Chuyển đổi tên ngày thành số ngày
-    switch (dayName.toLowerCase()) {
-      case 'sunday':
-        return 1;
-      case 'monday':
-        return 2;
-      case 'tuesday':
-        return 3;
-      case 'wednesday':
-        return 4;
-      case 'thursday':
-        return 5;
-      case 'friday':
-        return 6;
-      case 'saturday':
-        return 7;
-      default:
-        return null;
+  @override
+  void didUpdateWidget(DayPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update local state when parent changes
+    if (!_listsEqual(oldWidget.selectedDays, widget.selectedDays)) {
+      setState(() {
+        selectedDays = List.from(widget.selectedDays);
+      });
     }
+  }
+
+  bool _listsEqual(List<int> list1, List<int> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (!list2.contains(list1[i])) return false;
+    }
+    return true;
   }
 
   String _getDayName(int dayNumber) {
