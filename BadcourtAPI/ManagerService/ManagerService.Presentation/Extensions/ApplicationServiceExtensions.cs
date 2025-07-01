@@ -32,7 +32,7 @@ public static class ApplicationServiceExtensions
     {
         services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
-        services.AddHttpClient<IFacilityServiceClient, FacilityServiceClient>();
+        services.AddHttpClient<ICourtServiceClient, CourtServiceClient>();
         services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
 
         return services;

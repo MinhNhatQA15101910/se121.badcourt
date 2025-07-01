@@ -2,6 +2,7 @@ using ManagerService.Application.Queries.GetDashboardSummary;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SharedKernel.DTOs;
 using SharedKernel.Params;
 
 namespace ManagerService.Presentation.Controllers;
@@ -11,7 +12,7 @@ public class ManagerDashboardController(IMediator mediator) : ControllerBase
 {
     [Authorize(Roles = "Admin, Manager")]
     [HttpGet("summary")]
-    public async Task<ActionResult<DashboardSummaryResponse>> GetDashboardSummary(
+    public async Task<ActionResult<ManagerDashboardSummaryDto>> GetDashboardSummary(
         [FromQuery] ManagerDashboardSummaryParams summaryParams)
     {
         return await mediator.Send(new GetDashboardSummaryQuery(summaryParams));
