@@ -2,8 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Core.Application.Queries.GetFacilityRevenueForAdmin;
+using OrderService.Core.Application.Queries.GetRevenueStatsForAdmin;
 using OrderService.Core.Application.Queries.GetTotalOrdersForAdmin;
 using OrderService.Core.Application.Queries.GetTotalRevenueForAdmin;
+using SharedKernel.DTOs;
 using SharedKernel.Params;
 
 namespace OrderService.Presentation.Controllers;
@@ -36,6 +38,15 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
         [FromQuery] AdminDashboardFacilityRevenueParams facilityRevenueParams)
     {
         var query = new GetFacilityRevenueForAdminQuery(facilityRevenueParams);
+        var result = await mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("revenue-stats")]
+    public async Task<ActionResult<List<RevenueStatDto>>> GetRevenueStats(
+        [FromQuery] AdminDashboardRevenueStatParams revenueStatParams)
+    {
+        var query = new GetRevenueStatsForAdminQuery(revenueStatParams);
         var result = await mediator.Send(query);
         return Ok(result);
     }

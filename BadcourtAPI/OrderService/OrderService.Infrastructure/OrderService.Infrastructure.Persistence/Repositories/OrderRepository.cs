@@ -103,7 +103,7 @@ public class OrderRepository(
                     FacilityName = g.Key.FacilityName,
                     Revenue = g.Sum(o => o.Price)
                 })
-                .AsEnumerable() 
+                .AsEnumerable()
                 .OrderByDescending(r => r.Revenue)
                 .Skip(facilityRevenueParams.PageSize * (facilityRevenueParams.PageNumber - 1))
                 .Take(facilityRevenueParams.PageSize)
@@ -312,6 +312,30 @@ public class OrderRepository(
             orderParams.PageNumber,
             orderParams.PageSize,
             cancellationToken
+        );
+    }
+
+    public Task<List<RevenueStatDto>> GetRevenueStatsForAdminAsync(AdminDashboardRevenueStatParams revenueStatParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by year
+        query = query.Where(o => o.CreatedAt.Year == revenueStatParams.Year);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return Task.FromResult(
+            query
+                .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+                .Select(g => new RevenueStatDto
+                {
+                    Month = g.Key.Month,
+                    Revenue = g.Sum(o => o.Price)
+                })
+                .AsEnumerable()
+                .OrderByDescending(r => r.Revenue)
+                .ToList()
         );
     }
 
