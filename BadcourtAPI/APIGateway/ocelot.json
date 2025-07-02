@@ -255,6 +255,13 @@
       "UpstreamPathTemplate": "/gateway/manager-dashboard/orders",
       "UpstreamHttpMethod": ["Get"]
     },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/facility-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/facility-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",

@@ -45,7 +45,7 @@ public class OrderRepository(
             .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
     }
 
-    public Task<List<CourtRevenueDto>> GetCourtRevenueForManagerAsync(ManagerDashboardCourtRevenueParams courtRevenueParams, CancellationToken cancellationToken)
+    public Task<List<CourtRevenueDto>> GetCourtRevenueForManagerAsync(ManagerDashboardCourtRevenueParams courtRevenueParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
 
@@ -78,8 +78,37 @@ public class OrderRepository(
                 CourtName = g.Key.CourtName,
                 Revenue = g.Sum(o => o.Price)
             })
-            .OrderBy(r => r.CourtName)
+            .OrderBy(r => r.Revenue)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<List<FacilityRevenueDto>> GetFacilityRevenueForAdminAsync(AdminDashboardFacilityRevenueParams facilityRevenueParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = facilityRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = facilityRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return Task.FromResult(
+            query
+                .GroupBy(o => new { o.FacilityId, o.FacilityName })
+                .Select(g => new FacilityRevenueDto
+                {
+                    FacilityId = g.Key.FacilityId,
+                    FacilityName = g.Key.FacilityName,
+                    Revenue = g.Sum(o => o.Price)
+                })
+                .AsEnumerable() // 👈 Switch to client-side for ordering and pagination
+                .OrderByDescending(r => r.Revenue)
+                .Skip(facilityRevenueParams.PageSize * (facilityRevenueParams.PageNumber - 1))
+                .Take(facilityRevenueParams.PageSize)
+                .ToList()
+        );
     }
 
     public Task<List<RevenueByMonthDto>> GetMonthlyRevenueForManagerAsync(ManagerDashboardMonthlyRevenueParams @params, CancellationToken cancellationToken)
