@@ -19,4 +19,13 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(query);
         return Ok(result);
     }
+
+    [HttpGet("total-managers")]
+    public async Task<ActionResult<int>> GetTotalManagers(
+        [FromQuery] AdminDashboardSummaryParams summaryParams)
+    {
+        var query = new GetTotalManagersForAdminQuery(summaryParams);
+        var result = await mediator.Send(query);
+        return Ok(result);
+    }
 }
