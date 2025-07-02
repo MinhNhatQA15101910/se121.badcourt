@@ -82,7 +82,7 @@ public class OrderRepository(
             .ToListAsync(cancellationToken);
     }
 
-    public Task<List<FacilityRevenueDto>> GetFacilityRevenueForAdminAsync(AdminDashboardFacilityRevenueParams facilityRevenueParams, CancellationToken cancellationToken = default)
+    public Task<PagedList<FacilityRevenueDto>> GetFacilityRevenueForAdminAsync(AdminDashboardFacilityRevenueParams facilityRevenueParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
 
@@ -93,21 +93,28 @@ public class OrderRepository(
 
         // Exclude pending orders
         query = query.Where(o => o.State != OrderState.Pending);
+        
+        var facilityRevenues = query
+            .GroupBy(o => new { o.FacilityId, o.FacilityName })
+            .Select(g => new FacilityRevenueDto
+            {
+                FacilityId = g.Key.FacilityId,
+                FacilityName = g.Key.FacilityName,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .AsEnumerable()
+            .OrderByDescending(r => r.Revenue)
+            .Skip(facilityRevenueParams.PageSize * (facilityRevenueParams.PageNumber - 1))
+            .Take(facilityRevenueParams.PageSize)
+            .ToList();
 
         return Task.FromResult(
-            query
-                .GroupBy(o => new { o.FacilityId, o.FacilityName })
-                .Select(g => new FacilityRevenueDto
-                {
-                    FacilityId = g.Key.FacilityId,
-                    FacilityName = g.Key.FacilityName,
-                    Revenue = g.Sum(o => o.Price)
-                })
-                .AsEnumerable()
-                .OrderByDescending(r => r.Revenue)
-                .Skip(facilityRevenueParams.PageSize * (facilityRevenueParams.PageNumber - 1))
-                .Take(facilityRevenueParams.PageSize)
-                .ToList()
+            new PagedList<FacilityRevenueDto>(
+                facilityRevenues,
+                query.Count(),
+                facilityRevenueParams.PageNumber,
+                facilityRevenueParams.PageSize
+            )
         );
     }
 
@@ -315,7 +322,7 @@ public class OrderRepository(
         );
     }
 
-    public Task<List<ProvinceRevenueDto>> GetProvinceRevenueForAdminAsync(AdminDashboardProvinceRevenueParams provinceRevenueParams, CancellationToken cancellationToken = default)
+    public Task<PagedList<ProvinceRevenueDto>> GetProvinceRevenueForAdminAsync(AdminDashboardProvinceRevenueParams provinceRevenueParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
 
@@ -327,17 +334,26 @@ public class OrderRepository(
         // Exclude pending orders
         query = query.Where(o => o.State != OrderState.Pending);
 
+        var provinceRevenues = query
+            .GroupBy(o => new { o.Province })
+            .Select(g => new ProvinceRevenueDto
+            {
+                Province = g.Key.Province,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .AsEnumerable()
+            .OrderByDescending(r => r.Revenue)
+            .Skip(provinceRevenueParams.PageSize * (provinceRevenueParams.PageNumber - 1))
+            .Take(provinceRevenueParams.PageSize)
+            .ToList();
+
         return Task.FromResult(
-            query
-                .GroupBy(o => new { o.Province })
-                .Select(g => new ProvinceRevenueDto
-                {
-                    Province = g.Key.Province,
-                    Revenue = g.Sum(o => o.Price)
-                })
-                .AsEnumerable()
-                .OrderByDescending(r => r.Revenue)
-                .ToList()
+            new PagedList<ProvinceRevenueDto>(
+                provinceRevenues,
+                query.Count(),
+                provinceRevenueParams.PageNumber,
+                provinceRevenueParams.PageSize
+            )
         );
     }
 

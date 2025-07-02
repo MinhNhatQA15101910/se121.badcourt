@@ -6,6 +6,7 @@ using OrderService.Core.Application.Queries.GetProvinceRevenueForAdmin;
 using OrderService.Core.Application.Queries.GetRevenueStatsForAdmin;
 using OrderService.Core.Application.Queries.GetTotalOrdersForAdmin;
 using OrderService.Core.Application.Queries.GetTotalRevenueForAdmin;
+using OrderService.Presentation.Extensions;
 using SharedKernel.DTOs;
 using SharedKernel.Params;
 
@@ -40,6 +41,9 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
     {
         var query = new GetFacilityRevenueForAdminQuery(facilityRevenueParams);
         var result = await mediator.Send(query);
+
+        Response.AddPaginationHeader(result);
+
         return Ok(result);
     }
 
@@ -58,6 +62,9 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
     {
         var query = new GetProvinceRevenueForAdminQuery(provinceRevenueParams);
         var result = await mediator.Send(query);
+
+        Response.AddPaginationHeader(result);
+
         return Ok(result);
     }
 }
