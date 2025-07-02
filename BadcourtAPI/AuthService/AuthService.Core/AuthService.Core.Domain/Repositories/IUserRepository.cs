@@ -7,6 +7,7 @@ namespace AuthService.Core.Domain.Repositories;
 
 public interface IUserRepository
 {
+    Task<int> GetTotalNewPlayersForAdminAsync(CancellationToken cancellationToken);
     Task<int> GetTotalManagersForAdminAsync(
         AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken);
     Task<int> GetTotalPlayersForAdminAsync(

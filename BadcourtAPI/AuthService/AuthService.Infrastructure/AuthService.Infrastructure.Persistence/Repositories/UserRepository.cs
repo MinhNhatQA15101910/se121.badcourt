@@ -11,6 +11,20 @@ namespace AuthService.Infrastructure.Persistence.Repositories;
 
 public class UserRepository(DataContext context, IMapper mapper) : IUserRepository
 {
+    public Task<int> GetTotalNewPlayersForAdminAsync(CancellationToken cancellationToken)
+    {
+        var query = context.Users.AsQueryable();
+
+        // Filter by role
+        query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Player"));
+
+        // Count the new players created in the last 30 days
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        query = query.Where(u => u.CreatedAt >= startDate);
+
+        return query.CountAsync(cancellationToken: cancellationToken);
+    }
+
     public Task<int> GetTotalManagersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken)
     {
         var query = context.Users.AsQueryable();
