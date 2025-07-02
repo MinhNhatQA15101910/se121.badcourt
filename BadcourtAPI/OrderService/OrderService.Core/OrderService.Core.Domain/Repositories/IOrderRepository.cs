@@ -28,6 +28,8 @@ public interface IOrderRepository
         CancellationToken cancellationToken = default);
     Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalRevenueForAdminAsync(
+        AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken);
     Task<decimal> GetTotalRevenueForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
 }

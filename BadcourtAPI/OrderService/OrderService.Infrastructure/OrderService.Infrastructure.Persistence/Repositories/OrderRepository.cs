@@ -328,6 +328,22 @@ public class OrderRepository(
         return query.CountAsync(cancellationToken);
     }
 
+    public Task<decimal> GetTotalRevenueForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        // Sum the total revenue
+        return query.SumAsync(o => o.Price, cancellationToken);
+    }
+
     public Task<decimal> GetTotalRevenueForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
