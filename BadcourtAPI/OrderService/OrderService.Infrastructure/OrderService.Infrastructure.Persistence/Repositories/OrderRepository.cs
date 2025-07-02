@@ -45,43 +45,41 @@ public class OrderRepository(
             .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
     }
 
-    public async Task<List<FacilityRevenueDto>> GetFacilityRevenueAsync(
-        string? userId,
-        ManagerDashboardFacilityRevenueParams managerDashboardFacilityRevenueParams,
-        CancellationToken cancellationToken = default)
+    public Task<List<CourtRevenueDto>> GetCourtRevenueForManagerAsync(ManagerDashboardCourtRevenueParams courtRevenueParams, CancellationToken cancellationToken)
     {
         var query = context.Orders.AsQueryable();
 
-        if (userId != null)
-        {
-            query = query.Where(o => o.FacilityOwnerId == userId);
-        }
+        // Filter by facilityId
+        query = query.Where(o => o.FacilityId == courtRevenueParams.FacilityId);
 
         // Filter by year
-        query = query.Where(o => o.CreatedAt.Year == managerDashboardFacilityRevenueParams.Year);
+        query = query.Where(o => o.CreatedAt.Year == courtRevenueParams.Year);
 
         // Filter by month
-        if (managerDashboardFacilityRevenueParams.Month.HasValue)
+        if (courtRevenueParams.Month.HasValue)
         {
-            query = query.Where(o => o.CreatedAt.Month == managerDashboardFacilityRevenueParams.Month.Value);
+            query = query.Where(o => o.CreatedAt.Month == courtRevenueParams.Month.Value);
         }
 
         // Exclude pending orders
-        //query = query.Where(o => o.State != OrderState.Pending);
+        query = query.Where(o => o.State != OrderState.Pending);
 
-        // Execute grouping and projection
-        var groupedData = await query
-            .GroupBy(o => o.FacilityId)
-            .Select(g => new FacilityRevenueDto
+        // If month is specified, filter by month
+        if (courtRevenueParams.Month.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Month == courtRevenueParams.Month.Value);
+        }
+
+        return query
+            .GroupBy(o => new { o.CourtId, o.CourtName })
+            .Select(g => new CourtRevenueDto
             {
-                FacilityId = g.Key,
-                FacilityName = g.Select(x => x.FacilityName).FirstOrDefault()!,
-                Revenue = g.Sum(x => x.Price)
+                CourtId = g.Key.CourtId,
+                CourtName = g.Key.CourtName,
+                Revenue = g.Sum(o => o.Price)
             })
+            .OrderBy(r => r.CourtName)
             .ToListAsync(cancellationToken);
-
-        // Order in-memory to avoid SQLite decimal ordering limitation
-        return [.. groupedData.OrderByDescending(r => r.Revenue)];
     }
 
     public Task<List<RevenueByMonthDto>> GetMonthlyRevenueForManagerAsync(ManagerDashboardMonthlyRevenueParams @params, CancellationToken cancellationToken)

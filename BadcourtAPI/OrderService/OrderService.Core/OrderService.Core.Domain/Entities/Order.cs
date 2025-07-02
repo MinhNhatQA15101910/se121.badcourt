@@ -10,8 +10,9 @@ public class Order
     public string? UserImageUrl { get; set; }
     public string FacilityOwnerId { get; set; } = null!;
     public string FacilityId { get; set; } = null!;
-    public string CourtId { get; set; } = null!;
     public string FacilityName { get; set; } = string.Empty;
+    public string CourtId { get; set; } = null!;
+    public string CourtName { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public DateTimePeriod DateTimePeriod { get; set; } = null!;
     public decimal Price { get; set; }

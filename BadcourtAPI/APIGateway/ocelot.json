@@ -242,10 +242,10 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
-      "DownstreamPathTemplate": "/api/manager-dashboard/facility-revenue",
+      "DownstreamPathTemplate": "/api/manager-dashboard/court-revenue",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
-      "UpstreamPathTemplate": "/gateway/manager-dashboard/facility-revenue",
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/court-revenue",
       "UpstreamHttpMethod": ["Get"]
     },
     {
