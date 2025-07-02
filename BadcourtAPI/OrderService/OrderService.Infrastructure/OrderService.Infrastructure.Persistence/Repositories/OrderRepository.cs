@@ -220,6 +220,72 @@ public class OrderRepository(
         );
     }
 
+    public Task<PagedList<OrderDto>> GetOrdersForManagerAsync(ManagerDashboardOrderParams orderParams, Guid userId, CancellationToken cancellationToken)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by userId
+        query = query.Where(o => o.FacilityOwnerId == userId.ToString());
+
+        // Filter by facilityId
+        if (orderParams.FacilityId != null)
+        {
+            query = query.Where(o => o.FacilityId == orderParams.FacilityId);
+        }
+
+        // Filter by courtId
+        if (orderParams.CourtId != null)
+        {
+            query = query.Where(o => o.CourtId == orderParams.CourtId);
+        }
+
+        // Filter by year
+        if (orderParams.Year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == orderParams.Year.Value);
+        }
+
+        // Filter by month
+        if (orderParams.Month.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Month == orderParams.Month.Value);
+        }
+
+        // Filter by status
+        if (orderParams.State != null)
+        {
+            query = query.Where(o => o.State.ToString().ToLower() == orderParams.State.ToLower());
+        }
+
+        // Filter by date range
+        query = query.Where(o =>
+            o.DateTimePeriod.HourFrom >= orderParams.HourFrom &&
+            o.DateTimePeriod.HourTo <= orderParams.HourTo
+        );
+
+        // Order
+        query = orderParams.OrderBy switch
+        {
+            "createdAt" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.CreatedAt)
+                : query.OrderByDescending(o => o.CreatedAt),
+            "price" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.Price)
+                : query.OrderByDescending(o => o.Price),
+            "state" => orderParams.SortBy == "asc"
+                ? query.OrderBy(o => o.State)
+                : query.OrderByDescending(o => o.State),
+            _ => query.OrderBy(o => o.CreatedAt)
+        };
+
+        return PagedList<OrderDto>.CreateAsync(
+            query.ProjectTo<OrderDto>(mapper.ConfigurationProvider),
+            orderParams.PageNumber,
+            orderParams.PageSize,
+            cancellationToken
+        );
+    }
+
     public Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();

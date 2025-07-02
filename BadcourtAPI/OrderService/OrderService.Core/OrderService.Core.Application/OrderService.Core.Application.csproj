@@ -20,8 +20,4 @@
     <ProjectReference Include="..\OrderService.Core.Domain\OrderService.Core.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Configurations\" />
-  </ItemGroup>
-
 </Project>

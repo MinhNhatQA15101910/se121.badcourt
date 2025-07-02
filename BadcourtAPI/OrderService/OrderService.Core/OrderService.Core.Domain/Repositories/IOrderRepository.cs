@@ -22,6 +22,8 @@ public interface IOrderRepository
         CancellationToken cancellationToken);
     Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams,
         CancellationToken cancellationToken = default, Guid? userId = null);
+    Task<PagedList<OrderDto>> GetOrdersForManagerAsync(
+        ManagerDashboardOrderParams orderParams, Guid userId, CancellationToken cancellationToken);
     Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
     Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
