@@ -4,6 +4,6 @@ namespace AdminService.Application.Interfaces.ServiceClients;
 
 public interface IOrderServiceClient
 {
-    Task<decimal> GetTotalRevenueForAdminAsync(string bearerToken, AdminDashboardSummaryParams adminDashboardSummaryParams,
+    Task<decimal> GetTotalRevenueForAdminAsync(string bearerToken, AdminDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
 }

@@ -7,15 +7,15 @@ using SharedKernel.Params;
 
 namespace AdminService.Infrastructure.Services.ServiceClients;
 
-public class OrderServiceClient(
+public class UserServiceClient(
     HttpClient client,
     IOptions<ApiEndpoints> apiEndpoints
-) : IOrderServiceClient
+) : IUserServiceClient
 {
-    public async Task<decimal> GetTotalRevenueForAdminAsync(
-        string bearerToken, AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    public async Task<int> GetTotalPlayersForAdminAsync(
+        string bearerToken, AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken)
     {
-        var apiUrl = $"{apiEndpoints.Value.OrdersApi}/api/admin-dashboard/total-revenue";
+        var apiUrl = $"{apiEndpoints.Value.UsersApi}/api/admin-dashboard/total-players";
 
         apiUrl += $"?startDate={summaryParams.StartDate:yyyy-MM-dd}&endDate={summaryParams.EndDate:yyyy-MM-dd}";
 
@@ -26,9 +26,9 @@ public class OrderServiceClient(
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Failed to get total revenue: {response.ReasonPhrase}");
+            throw new Exception($"Failed to get total players: {response.ReasonPhrase}");
         }
 
-        return await response.Content.ReadFromJsonAsync<decimal>(cancellationToken: cancellationToken);
+        return await response.Content.ReadFromJsonAsync<int>(cancellationToken: cancellationToken);
     }
 }

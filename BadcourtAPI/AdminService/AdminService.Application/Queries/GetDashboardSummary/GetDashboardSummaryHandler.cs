@@ -7,6 +7,7 @@ namespace AdminService.Application.Queries.GetDashboardSummary;
 
 public class GetDashboardSummaryHandler(
     IHttpContextAccessor httpContextAccessor,
+    IUserServiceClient userServiceClient,
     IOrderServiceClient orderServiceClient
 ) : IQueryHandler<GetDashboardSummaryQuery, AdminDashboardSummaryDto>
 {
@@ -15,11 +16,14 @@ public class GetDashboardSummaryHandler(
         var bearerToken = httpContextAccessor.HttpContext.GetBearerToken();
 
         var totalRevenue = await orderServiceClient.GetTotalRevenueForAdminAsync(
-            bearerToken, request.Params, cancellationToken);
+            bearerToken, request.SummaryParams, cancellationToken);
+        var totalPlayers = await userServiceClient.GetTotalPlayersForAdminAsync(
+            bearerToken, request.SummaryParams, cancellationToken);
 
         return new AdminDashboardSummaryDto
         {
-            TotalRevenue = totalRevenue
+            TotalRevenue = totalRevenue,
+            TotalPlayers = totalPlayers,
         };
     }
 }
