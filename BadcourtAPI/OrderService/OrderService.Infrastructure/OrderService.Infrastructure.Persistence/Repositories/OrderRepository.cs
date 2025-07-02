@@ -84,20 +84,18 @@ public class OrderRepository(
         return [.. groupedData.OrderByDescending(r => r.Revenue)];
     }
 
-    public Task<List<RevenueByMonthDto>> GetMonthlyRevenueAsync(string? userId, ManagerDashboardMonthlyRevenueParams managerDashboardMonthlyRevenueParams, CancellationToken cancellationToken = default)
+    public Task<List<RevenueByMonthDto>> GetMonthlyRevenueForManagerAsync(ManagerDashboardMonthlyRevenueParams @params, CancellationToken cancellationToken)
     {
         var query = context.Orders.AsQueryable();
 
-        if (userId != null)
-        {
-            query = query.Where(o => o.FacilityOwnerId == userId);
-        }
+        // Filter by facilityId
+        query = query.Where(o => o.FacilityId == @params.FacilityId);
 
         // Filter by year
-        query = query.Where(o => o.CreatedAt.Year == managerDashboardMonthlyRevenueParams.Year);
+        query = query.Where(o => o.CreatedAt.Year == @params.Year);
 
         // Exclude pending orders
-        // query = query.Where(o => o.State != OrderState.Pending);
+        query = query.Where(o => o.State != OrderState.Pending);
 
         return query
             .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
@@ -224,30 +222,6 @@ public class OrderRepository(
         );
     }
 
-    public Task<int> GetTotalCustomersAsync(string? userId, int? year, CancellationToken cancellationToken)
-    {
-        var query = context.Orders.AsQueryable();
-
-        if (userId != null)
-        {
-            query = query.Where(o => o.FacilityOwnerId == userId);
-        }
-
-        if (year.HasValue)
-        {
-            query = query.Where(o => o.CreatedAt.Year == year.Value);
-        }
-
-        // Exclude pending orders
-        query = query.Where(o => o.State != OrderState.Pending);
-
-        // Select distinct user IDs and count them
-        return query
-            .Select(o => o.UserId)
-            .Distinct()
-            .CountAsync(cancellationToken);
-    }
-
     public Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
@@ -271,26 +245,6 @@ public class OrderRepository(
             .CountAsync(cancellationToken);
     }
 
-    public Task<int> GetTotalOrdersAsync(string? userId, int? year, CancellationToken cancellationToken = default)
-    {
-        var query = context.Orders.AsQueryable();
-
-        if (userId != null)
-        {
-            query = query.Where(o => o.FacilityOwnerId == userId);
-        }
-
-        if (year.HasValue)
-        {
-            query = query.Where(o => o.CreatedAt.Year == year.Value);
-        }
-
-        // Exclude pending orders
-        query = query.Where(o => o.State != OrderState.Pending);
-
-        return query.CountAsync(cancellationToken);
-    }
-
     public Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
@@ -308,27 +262,6 @@ public class OrderRepository(
         query = query.Where(o => o.State != OrderState.Pending);
 
         return query.CountAsync(cancellationToken);
-    }
-
-    public async Task<decimal> GetTotalRevenueAsync(string? userId, int? year, CancellationToken cancellationToken = default)
-    {
-        var query = context.Orders.AsQueryable();
-
-        if (userId != null)
-        {
-            query = query.Where(o => o.FacilityOwnerId == userId);
-        }
-
-        if (year.HasValue)
-        {
-            query = query.Where(o => o.CreatedAt.Year == year.Value);
-        }
-
-        // Exclude pending orders
-        query = query.Where(o => o.State != OrderState.Pending);
-
-        // Sum the total revenue
-        return await query.SumAsync(o => o.Price, cancellationToken);
     }
 
     public Task<decimal> GetTotalRevenueForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
