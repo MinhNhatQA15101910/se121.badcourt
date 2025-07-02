@@ -15,12 +15,11 @@ public class OrderServiceClient(
     public Task<int> GetTotalCustomersAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
-        var apiUrl = config.Value.OrdersApi;
-        apiUrl += "/total-customers";
+        var apiUrl = $"{config.Value.OrdersApi}/api/manager-dashboard/total-customers?facilityId={summaryParams.FacilityId}";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            apiUrl += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"&year={summaryParams.Year.Value}";
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
@@ -39,12 +38,11 @@ public class OrderServiceClient(
     public Task<int> GetTotalOrdersAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
-        var apiUrl = config.Value.OrdersApi;
-        apiUrl += "/total-orders";
+        var apiUrl = $"{config.Value.OrdersApi}/api/manager-dashboard/total-orders?facilityId={summaryParams.FacilityId}";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            apiUrl += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"&year={summaryParams.Year.Value}";
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
@@ -63,12 +61,11 @@ public class OrderServiceClient(
     public async Task<decimal> GetTotalRevenueAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
-        var apiUrl = config.Value.OrdersApi;
-        apiUrl += "/total-revenue";
+        var apiUrl = $"{config.Value.OrdersApi}/api/manager-dashboard/total-revenue?facilityId={summaryParams.FacilityId}";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            apiUrl += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"&year={summaryParams.Year.Value}";
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);

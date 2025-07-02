@@ -15,11 +15,11 @@ public class CourtServiceClient(
     public Task<int> GetTotalCourtsAsync(string bearerToken, ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default)
     {
-        var apiUrl = config.Value.CourtsApi + "/api/manager-dashboard/total-courts";
+        var apiUrl = $"{config.Value.CourtsApi}/api/manager-dashboard/total-courts?facilityId={summaryParams.FacilityId}";
         if (summaryParams.Year.HasValue)
         {
             // Append the year as a query parameter if provided
-            apiUrl += $"?year={summaryParams.Year.Value}";
+            apiUrl += $"&year={summaryParams.Year.Value}";
         }
 
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
