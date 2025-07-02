@@ -266,7 +266,7 @@ class _OrdersTableWidgetState extends State<OrdersTableWidget> {
                             child: Text(
                               'Orders Revenue',
                               style: GoogleFonts.inter(
-                                fontSize: 18,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: GlobalVariables.blackGrey,
                               ),
@@ -278,7 +278,7 @@ class _OrdersTableWidgetState extends State<OrdersTableWidget> {
                       Text(
                         'Manage and track all booking orders',
                         style: GoogleFonts.inter(
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.w400,
                           color: GlobalVariables.darkGrey,
                         ),

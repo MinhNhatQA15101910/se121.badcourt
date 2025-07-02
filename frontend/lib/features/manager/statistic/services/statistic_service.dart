@@ -9,12 +9,12 @@ import 'package:frontend/models/court.dart';
 
 class StatisticService {
   // API 1: Get manager dashboard summary
-  Future<Map<String, dynamic>?> getDashboardSummary(BuildContext context) async {
+  Future<Map<String, dynamic>?> getDashboardSummary(BuildContext context, String facilityId) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/gateway/manager-dashboard/summary'),
+        Uri.parse('$uri/gateway/manager-dashboard/summary?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -35,13 +35,14 @@ class StatisticService {
   // API 2: Get monthly revenue by year
   Future<List<Map<String, dynamic>>?> getMonthlyRevenue(
     BuildContext context, 
+    String facilityId,
     int year
   ) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/gateway/manager-dashboard/monthly-revenue?year=$year'),
+        Uri.parse('$uri/gateway/manager-dashboard/monthly-revenue?facilityId=$facilityId&year=$year'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

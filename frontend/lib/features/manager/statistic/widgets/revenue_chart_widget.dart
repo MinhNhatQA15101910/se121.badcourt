@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/statistic/services/statistic_service.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -34,9 +36,12 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
 
   Future<void> _loadRevenueData() async {
     setState(() => _isLoading = true);
-    
-    final data = await _statisticService.getMonthlyRevenue(context, _selectedYear);
-    
+    final facilityProvider =
+        Provider.of<CurrentFacilityProvider>(context, listen: false);
+    final facilityId = facilityProvider.currentFacility.id;
+    final data = await _statisticService.getMonthlyRevenue(
+        context, facilityId, _selectedYear);
+
     setState(() {
       _revenueData = data;
       _isLoading = false;
@@ -45,7 +50,7 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
 
   Future<void> _exportChartAsImage() async {
     setState(() => _isExporting = true);
-    
+
     try {
       // Request storage permission
       var status = await Permission.storage.request();
@@ -64,17 +69,17 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
         // Get directory to save file
         final directory = await getApplicationDocumentsDirectory();
         final imagePath = '${directory.path}/revenue_chart_$_selectedYear.png';
-        
+
         // Save image to file
         final imageFile = File(imagePath);
         await imageFile.writeAsBytes(image);
-        
+
         // Share the image
         await Share.shareXFiles(
           [XFile(imagePath)],
           text: 'Revenue Chart for $_selectedYear',
         );
-        
+
         IconSnackBar.show(
           context,
           label: 'Chart exported successfully!',
@@ -153,7 +158,7 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                             child: Text(
                               'Monthly Revenue',
                               style: GoogleFonts.inter(
-                                fontSize: 16,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: GlobalVariables.blackGrey,
                               ),
@@ -163,9 +168,9 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Track your facility\'s monthly performance',
+                        'Track your facility\'s monthly',
                         style: GoogleFonts.inter(
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.w400,
                           color: GlobalVariables.darkGrey,
                         ),
@@ -199,7 +204,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                   color: GlobalVariables.green,
                                 ),
                               )
-                            : Icon(Icons.download, color: GlobalVariables.green),
+                            : Icon(Icons.download,
+                                color: GlobalVariables.green),
                         onPressed: _isExporting ? null : _exportChartAsImage,
                         tooltip: 'Export Chart as Image',
                       ),
@@ -211,7 +217,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: GlobalVariables.green.withOpacity(0.3)),
+                        border: Border.all(
+                            color: GlobalVariables.green.withOpacity(0.3)),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.05),
@@ -223,7 +230,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<int>(
                           value: _selectedYear,
-                          icon: Icon(Icons.keyboard_arrow_down, color: GlobalVariables.green),
+                          icon: Icon(Icons.keyboard_arrow_down,
+                              color: GlobalVariables.green),
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -250,7 +258,7 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
               ],
             ),
           ),
-          
+
           // Chart Content with Screenshot wrapper
           Screenshot(
             controller: _screenshotController,
@@ -340,7 +348,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                     Container(
                                       height: 40,
                                       width: 1,
-                                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 20),
                                       color: GlobalVariables.lightGrey,
                                     ),
                                     _buildSummaryItem(
@@ -351,7 +360,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                     Container(
                                       height: 40,
                                       width: 1,
-                                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 20),
                                       color: GlobalVariables.lightGrey,
                                     ),
                                     _buildSummaryItem(
@@ -363,14 +373,14 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                 ),
                               ),
                             ),
-                            
+
                             const SizedBox(height: 24),
-                            
+
                             // Chart - Horizontal Scrollable
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Container(
-                                width: MediaQuery.of(context).size.width > 600 
+                                width: MediaQuery.of(context).size.width > 600
                                     ? MediaQuery.of(context).size.width - 80
                                     : 600, // Minimum width for chart
                                 height: 320,
@@ -382,9 +392,12 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                       enabled: true,
                                       touchTooltipData: BarTouchTooltipData(
                                         tooltipPadding: const EdgeInsets.all(8),
-                                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                          final month = _getMonthName(group.x.toInt());
-                                          final revenue = NumberFormat('#,###').format(rod.toY);
+                                        getTooltipItem:
+                                            (group, groupIndex, rod, rodIndex) {
+                                          final month =
+                                              _getMonthName(group.x.toInt());
+                                          final revenue = NumberFormat('#,###')
+                                              .format(rod.toY);
                                           return BarTooltipItem(
                                             '$month $_selectedYear\n$revenue đ',
                                             GoogleFonts.inter(
@@ -404,13 +417,15 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                           reservedSize: 30,
                                           getTitlesWidget: (value, meta) {
                                             return Padding(
-                                              padding: const EdgeInsets.only(top: 8),
+                                              padding:
+                                                  const EdgeInsets.only(top: 8),
                                               child: Text(
                                                 _getMonthName(value.toInt()),
                                                 style: GoogleFonts.inter(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w500,
-                                                  color: GlobalVariables.darkGrey,
+                                                  color:
+                                                      GlobalVariables.darkGrey,
                                                 ),
                                               ),
                                             );
@@ -423,7 +438,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                           reservedSize: 60,
                                           getTitlesWidget: (value, meta) {
                                             return Text(
-                                              NumberFormat.compact().format(value),
+                                              NumberFormat.compact()
+                                                  .format(value),
                                               style: GoogleFonts.inter(
                                                 fontSize: 10,
                                                 color: GlobalVariables.darkGrey,
@@ -432,14 +448,22 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                           },
                                         ),
                                       ),
-                                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                      topTitles: const AxisTitles(
+                                          sideTitles:
+                                              SideTitles(showTitles: false)),
+                                      rightTitles: const AxisTitles(
+                                          sideTitles:
+                                              SideTitles(showTitles: false)),
                                     ),
                                     borderData: FlBorderData(
                                       show: true,
                                       border: Border(
-                                        bottom: BorderSide(color: GlobalVariables.lightGrey, width: 1),
-                                        left: BorderSide(color: GlobalVariables.lightGrey, width: 1),
+                                        bottom: BorderSide(
+                                            color: GlobalVariables.lightGrey,
+                                            width: 1),
+                                        left: BorderSide(
+                                            color: GlobalVariables.lightGrey,
+                                            width: 1),
                                       ),
                                     ),
                                     gridData: FlGridData(
@@ -448,7 +472,8 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
                                       horizontalInterval: _getMaxRevenue() / 5,
                                       getDrawingHorizontalLine: (value) {
                                         return FlLine(
-                                          color: GlobalVariables.lightGrey.withOpacity(0.5),
+                                          color: GlobalVariables.lightGrey
+                                              .withOpacity(0.5),
                                           strokeWidth: 1,
                                           dashArray: [5, 5],
                                         );
@@ -506,7 +531,7 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
       final data = entry.value;
       final month = data['month'] as int;
       final revenue = (data['revenue'] as num).toDouble();
-      
+
       return BarChartGroupData(
         x: month,
         barRods: [
@@ -552,15 +577,26 @@ class _RevenueChartWidgetState extends State<RevenueChartWidget> {
 
   String _getPeakMonth() {
     if (_revenueData == null || _revenueData!.isEmpty) return 'N/A';
-    final maxData = _revenueData!.reduce((a, b) => 
-        (a['revenue'] as num) > (b['revenue'] as num) ? a : b);
+    final maxData = _revenueData!.reduce(
+        (a, b) => (a['revenue'] as num) > (b['revenue'] as num) ? a : b);
     return _getMonthName(maxData['month'] as int);
   }
 
   String _getMonthName(int month) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month];
   }

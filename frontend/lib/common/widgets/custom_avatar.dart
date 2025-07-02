@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/message/screens/message_detail_screen.dart';
-import 'package:frontend/features/message/services/message_service.dart';
 import 'package:frontend/features/post/screens/user_profile_screen.dart';
-import 'package:frontend/models/user.dart';
-import 'package:frontend/providers/group_provider.dart';
-import 'package:frontend/providers/message_hub_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -25,96 +21,6 @@ class CustomAvatar extends StatelessWidget {
     this.userName,
     this.userEmail,
   }) : super(key: key);
-
-  Future<void> _createGroupAndNavigate(
-      BuildContext context, String userId) async {
-    final messageHubProvider =
-        Provider.of<MessageHubProvider>(context, listen: false);
-    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(GlobalVariables.green),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Starting conversation...',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    try {
-      // First, try to fetch user information to ensure we have it
-      final messageService = MessageService();
-      User? targetUser;
-
-      try {
-        targetUser = await messageService.fetchUserById(
-          context: context,
-          userId: userId,
-        );
-        print('[CustomAvatar] Fetched user info: ${targetUser?.username}');
-      } catch (e) {
-        print('[CustomAvatar] Could not fetch user info: $e');
-      }
-
-      // Connect to MessageHub for this specific user
-      await messageHubProvider.connectToUser(context, userId);
-
-      if (messageHubProvider.isConnectedToUser(userId)) {
-        // Hide loading dialog
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-
-        // Navigate to message detail screen
-        Navigator.of(context).pushNamed(
-          MessageDetailScreen.routeName,
-          arguments: userId,
-        );
-      } else {
-        throw Exception('Failed to connect to user');
-      }
-    } catch (e) {
-      // Hide loading dialog if still showing
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to start chat: $e'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-    }
-  }
 
   void _navigateToDetailMessageScreen(BuildContext context, String userId) {
     Navigator.of(context).pushNamed(
@@ -391,84 +297,6 @@ class CustomAvatar extends StatelessWidget {
     );
   }
 
-  void _showBlockConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.block,
-                color: Colors.red,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Block User',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to block this user? They won\'t be able to send you messages or see your posts.',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('User blocked successfully'),
-                    backgroundColor: Colors.red,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Block',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

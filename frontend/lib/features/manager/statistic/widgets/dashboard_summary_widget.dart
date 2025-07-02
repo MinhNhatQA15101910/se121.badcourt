@@ -1,15 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/manager/statistic/services/statistic_service.dart';
+import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
+import 'package:provider/provider.dart';
 
 class DashboardSummaryWidget extends StatefulWidget {
   const DashboardSummaryWidget({Key? key}) : super(key: key);
 
   @override
   State<DashboardSummaryWidget> createState() => _DashboardSummaryWidgetState();
+}
+
+String _formatPrice(double price) {
+  if (price >= 1000000) {
+    double millions = price / 1000000;
+    if (millions == millions.toInt()) {
+      return '${millions.toInt()}tr đ';
+    } else {
+      return '${millions.toStringAsFixed(1)}tr đ';
+    }
+  } else if (price >= 1000) {
+    double thousands = price / 1000;
+    if (thousands == thousands.toInt()) {
+      return '${thousands.toInt()}k đ';
+    } else {
+      return '${thousands.toStringAsFixed(1)}k đ';
+    }
+  } else {
+    return '${price}đ';
+  }
 }
 
 class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
@@ -66,7 +87,11 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
     });
 
     try {
-      final data = await _statisticService.getDashboardSummary(context);
+      final facilityProvider =
+          Provider.of<CurrentFacilityProvider>(context, listen: false);
+      final facilityId = facilityProvider.currentFacility.id;
+      final data =
+          await _statisticService.getDashboardSummary(context, facilityId);
 
       if (mounted) {
         setState(() {
@@ -184,7 +209,7 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
                           Text(
                             'Dashboard Overview',
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: GlobalVariables.blackGrey,
                             ),
@@ -193,7 +218,7 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
                           Text(
                             'Real-time business metrics',
                             style: GoogleFonts.inter(
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.w400,
                               color: GlobalVariables.darkGrey,
                             ),
@@ -356,7 +381,7 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
                     child: _buildEnhancedSummaryCard(
                       title: 'Total Revenue',
                       value:
-                          '${NumberFormat('#,###').format(_summaryData!['totalRevenue'] ?? 0)} đ',
+                          '${_formatPrice(_summaryData!['totalRevenue'] ?? 0)}',
                       icon: Icons.account_balance_wallet_rounded,
                       color: GlobalVariables.green,
                       trend: '+12.5%',
@@ -386,7 +411,7 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
                 children: [
                   Expanded(
                     child: _buildEnhancedSummaryCard(
-                      title: 'Total Customers',
+                      title: 'Total players',
                       value: '${_summaryData!['totalCustomers'] ?? 0}',
                       icon: Icons.people_rounded,
                       color: Colors.orange,
@@ -398,8 +423,8 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildEnhancedSummaryCard(
-                      title: 'Total Facilities',
-                      value: '${_summaryData!['totalFacilities'] ?? 0}',
+                      title: 'Total Courts',
+                      value: '${_summaryData!['totalCourts'] ?? 0}',
                       icon: Icons.business_rounded,
                       color: Colors.purple,
                       trend: '+2.1%',
@@ -497,8 +522,9 @@ class _DashboardSummaryWidgetState extends State<DashboardSummaryWidget>
                   ),
                   Text(
                     title,
+                    maxLines: 1,
                     style: GoogleFonts.inter(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w500,
                       color: GlobalVariables.darkGrey,
                     ),
