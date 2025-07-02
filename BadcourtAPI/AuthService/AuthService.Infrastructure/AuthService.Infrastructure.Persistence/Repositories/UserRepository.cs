@@ -11,6 +11,52 @@ namespace AuthService.Infrastructure.Persistence.Repositories;
 
 public class UserRepository(DataContext context, IMapper mapper) : IUserRepository
 {
+    public Task<int> GetTotalNewPlayersForAdminAsync(CancellationToken cancellationToken = default)
+    {
+        var query = context.Users.AsQueryable();
+
+        // Filter by role
+        query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Player"));
+
+        // Count the new players created in the last 30 days
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        query = query.Where(u => u.CreatedAt >= startDate);
+
+        return query.CountAsync(cancellationToken: cancellationToken);
+    }
+
+    public Task<int> GetTotalManagersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Users.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Filter by role
+        query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Manager"));
+
+        // Count the total managers
+        return query.CountAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<int> GetTotalPlayersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Users.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Filter by role
+        query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Player"));
+
+        // Count the total players
+        return await query.CountAsync(cancellationToken: cancellationToken);
+    }
+
     public async Task<User?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Users
@@ -52,8 +98,54 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         );
     }
 
-    public async Task<bool> SaveChangesAsync()
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await context.SaveChangesAsync() > 0;
+        return await context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
+    public Task<int> GetTotalNewManagersForAdminAsync(CancellationToken cancellationToken = default)
+    {
+        var query = context.Users.AsQueryable();
+
+        // Filter by role
+        query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Manager"));
+
+        // Count the new managers created in the last 30 days
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        query = query.Where(u => u.CreatedAt >= startDate);
+
+        return query.CountAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<List<UserStatDto>> GetUserStatsForAdminAsync(AdminDashboardUserStatParams userStatParams, CancellationToken cancellationToken = default)
+    {
+        var year = userStatParams.Year;
+
+        var usersInYear = await context.Users
+            .Where(u => u.CreatedAt.Year == year)
+            .Select(u => new
+            {
+                u.CreatedAt.Month,
+                Roles = u.UserRoles.Select(ur => ur.Role.Name)
+            })
+            .ToListAsync(cancellationToken);
+
+        var stats = Enumerable.Range(1, 12).Select(month => new UserStatDto
+        {
+            Month = month,
+            Players = 0,
+            Managers = 0
+        }).ToList();
+
+        foreach (var user in usersInYear)
+        {
+            var stat = stats.First(s => s.Month == user.Month);
+            if (user.Roles.Contains("Player"))
+                stat.Players++;
+            if (user.Roles.Contains("Manager"))
+                stat.Managers++;
+        }
+
+        return stats;
     }
 }

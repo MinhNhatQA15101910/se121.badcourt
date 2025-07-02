@@ -128,7 +128,9 @@ public class CreateOrderHandler(
             FacilityOwnerId = facility.UserId.ToString(),
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
+            CourtName = court.CourtName,
             FacilityName = facility.FacilityName,
+            Province = facility.Province,
             Address = facility.DetailAddress,
             DateTimePeriod = new DateTimePeriod
             {

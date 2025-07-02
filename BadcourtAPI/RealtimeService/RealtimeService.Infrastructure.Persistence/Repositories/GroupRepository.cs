@@ -65,9 +65,20 @@ public class GroupRepository : IGroupRepository
             new("$match", new BsonDocument("UserIds", userId))
         };
 
+        // Filter by username
         if (!string.IsNullOrEmpty(groupParams.Username))
         {
-            pipeline.Add(new BsonDocument("$match", new BsonDocument("Usernames", groupParams.Username)));
+            pipeline.Add(
+                new BsonDocument(
+                    "$match",
+                    new BsonDocument(
+                        "Usernames",
+                        new BsonDocument(
+                            "$regex",
+                            groupParams.Username).Add("$options", "i")
+                        )
+                    )
+                );
         }
 
         switch (groupParams.OrderBy)

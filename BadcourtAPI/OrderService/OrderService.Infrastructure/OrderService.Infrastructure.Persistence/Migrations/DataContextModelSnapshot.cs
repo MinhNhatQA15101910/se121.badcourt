@@ -31,6 +31,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                     .IsRequired()
                     .HasColumnType("TEXT");
 
+                b.Property<string>("CourtName")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<DateTime>("CreatedAt")
                     .HasColumnType("TEXT");
 
@@ -55,6 +59,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                     .HasColumnType("TEXT");
 
                 b.Property<decimal>("Price")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Province")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.Property<Guid?>("RatingId")

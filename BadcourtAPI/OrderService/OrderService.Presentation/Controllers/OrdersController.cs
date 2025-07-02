@@ -8,9 +8,6 @@ using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Commands.CreateRating;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
-using OrderService.Core.Application.Queries.GetTotalCustomers;
-using OrderService.Core.Application.Queries.GetTotalOrders;
-using OrderService.Core.Application.Queries.GetTotalRevenue;
 using OrderService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -100,29 +97,5 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
         {
             return BadRequest();
         }
-    }
-
-    [Authorize(Roles = "Manager, Admin")]
-    [HttpGet("total-revenue")]
-    public async Task<ActionResult<decimal>> GetTotalRevenue([FromQuery] int? year)
-    {
-        var totalRevenue = await mediator.Send(new GetTotalRevenueQuery(year));
-        return Ok(totalRevenue);
-    }
-
-    [Authorize(Roles = "Manager, Admin")]
-    [HttpGet("total-orders")]
-    public async Task<ActionResult<decimal>> GetTotalOrders([FromQuery] int? year)
-    {
-        var totalOrders = await mediator.Send(new GetTotalOrdersQuery(year));
-        return Ok(totalOrders);
-    }
-
-    [Authorize(Roles = "Manager, Admin")]
-    [HttpGet("total-customers")]
-    public async Task<ActionResult<decimal>> GetTotalCustomers([FromQuery] int? year)
-    {
-        var totalCustomers = await mediator.Send(new GetTotalCustomersQuery(year));
-        return Ok(totalCustomers);
     }
 }

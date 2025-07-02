@@ -89,12 +89,4 @@ public class FacilitiesController(IMediator mediator) : ControllerBase
         await mediator.Send(new DeleteFacilityCommand(id));
         return Ok();
     }
-
-    [Authorize(Roles = "Admin, Manager")]
-    [HttpGet("total-facilities")]
-    public async Task<ActionResult<int>> GetTotalFacilities([FromQuery] int? year)
-    {
-        var totalFacilities = await mediator.Send(new GetTotalFacilitiesQuery(year));
-        return Ok(totalFacilities);
-    }
 }

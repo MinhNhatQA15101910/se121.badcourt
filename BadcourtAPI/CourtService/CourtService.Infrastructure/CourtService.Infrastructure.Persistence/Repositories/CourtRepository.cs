@@ -134,14 +134,9 @@ public class CourtRepository : ICourtRepository
         return minPrice;
     }
 
-    public async Task<int> GetTotalCourtsAsync(string? userId, ManagerDashboardSummaryParams @params, CancellationToken cancellationToken)
+    public async Task<int> GetTotalCourtsForFacilityAsync(ManagerDashboardSummaryParams @params, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<Court>.Filter.Empty;
-
-        if (!string.IsNullOrEmpty(userId))
-        {
-            filter = Builders<Court>.Filter.Eq(c => c.UserId, userId);
-        }
+        var filter = Builders<Court>.Filter.Eq(c => c.FacilityId, @params.FacilityId);
 
         // Filter by year
         if (@params.Year.HasValue)

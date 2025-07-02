@@ -7,5 +7,5 @@ public class AdminDashboardSummaryDto
     public int TotalManagers { get; set; }
     public int NewPlayers { get; set; }
     public int NewManagers { get; set; }
-    public int TotalBookings { get; set; }
+    public int TotalOrders { get; set; }
 }

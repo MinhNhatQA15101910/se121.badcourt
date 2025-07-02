@@ -1,13 +1,12 @@
 using FluentValidation;
 using MediatR;
-using OrderService.Core.Application.Commands;
 
 namespace OrderService.Core.Application;
 
 public class ValidationBehavior<TRequest, TResponse>(
     IEnumerable<IValidator<TRequest>> validators
 ) : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : class, ICommand<TResponse>
+    where TRequest : class
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
