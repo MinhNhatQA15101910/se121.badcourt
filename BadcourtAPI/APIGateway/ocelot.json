@@ -350,6 +350,14 @@
     },
 
     {
+      "DownstreamPathTemplate": "/api/admin-dashboard/summary",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 8000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/summary",
+      "UpstreamHttpMethod": ["Get"]
+    },
+
+    {
       "DownstreamPathTemplate": "/api/manager-dashboard/summary",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 9000 }],

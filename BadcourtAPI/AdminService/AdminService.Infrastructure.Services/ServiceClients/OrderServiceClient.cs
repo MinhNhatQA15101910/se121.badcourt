@@ -12,9 +12,9 @@ public class OrderServiceClient(
     IOptions<ApiEndpoints> apiEndpoints
 ) : IOrderServiceClient
 {
-    public async Task<decimal> GetTotalRevenueAsync(string bearerToken, AdminDashboardSummaryParams adminDashboardSummaryParams, CancellationToken cancellationToken = default)
+    public async Task<decimal> GetTotalRevenueForAdminAsync(string bearerToken, AdminDashboardSummaryParams adminDashboardSummaryParams, CancellationToken cancellationToken = default)
     {
-        var apiUrl = $"{apiEndpoints.Value.OrdersAdminDashboardApi}/total-revenue";
+        var apiUrl = $"{apiEndpoints.Value.OrdersApi}/api/admin-dashboard/total-revenue";
 
         apiUrl += $"?startDate={adminDashboardSummaryParams.StartDate:yyyy-MM-dd}&endDate={adminDashboardSummaryParams.EndDate:yyyy-MM-dd}";
 

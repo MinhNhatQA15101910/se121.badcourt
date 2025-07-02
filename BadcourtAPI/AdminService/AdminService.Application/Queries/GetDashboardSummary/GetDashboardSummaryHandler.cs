@@ -14,7 +14,7 @@ public class GetDashboardSummaryHandler(
     {
         var bearerToken = httpContextAccessor.HttpContext.GetBearerToken();
 
-        var totalRevenue = await orderServiceClient.GetTotalRevenueAsync(
+        var totalRevenue = await orderServiceClient.GetTotalRevenueForAdminAsync(
             bearerToken, request.Params, cancellationToken);
 
         return new AdminDashboardSummaryDto
