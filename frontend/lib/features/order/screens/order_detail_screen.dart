@@ -445,75 +445,75 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   const SizedBox(height: 16),
 
                   // Facility Owner Section
-                  _buildSectionHeader(context, 'Facility Owner'),
-                  CustomContainer(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: GlobalVariables.lightGrey,
-                              width: 1,
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/images/demo_facility.png',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Mai Hoàng Nhật Duy',
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: GlobalVariables.blackGrey,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on_outlined,
-                                    size: 16,
-                                    color: GlobalVariables.darkGrey,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'TP Hồ Chí Minh',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: GlobalVariables.darkGrey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.message_outlined,
-                            color: GlobalVariables.green,
-                          ),
-                          onPressed: () {
-                            // Contact owner functionality
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                  // _buildSectionHeader(context, 'Facility Owner'),
+                  // CustomContainer(
+                  //   child: Row(
+                  //     children: [
+                  //       Container(
+                  //         width: 56,
+                  //         height: 56,
+                  //         decoration: BoxDecoration(
+                  //           shape: BoxShape.circle,
+                  //           border: Border.all(
+                  //             color: GlobalVariables.lightGrey,
+                  //             width: 1,
+                  //           ),
+                  //         ),
+                  //         child: ClipOval(
+                  //           child: Image.asset(
+                  //             'assets/images/demo_facility.png',
+                  //             fit: BoxFit.cover,
+                  //           ),
+                  //         ),
+                  //       ),
+                  //       const SizedBox(width: 16),
+                  //       Expanded(
+                  //         child: Column(
+                  //           crossAxisAlignment: CrossAxisAlignment.start,
+                  //           children: [
+                  //             Text(
+                  //               'Mai Hoàng Nhật Duy',
+                  //               style: GoogleFonts.inter(
+                  //                 fontSize: 16,
+                  //                 fontWeight: FontWeight.w600,
+                  //                 color: GlobalVariables.blackGrey,
+                  //               ),
+                  //             ),
+                  //             const SizedBox(height: 4),
+                  //             Row(
+                  //               children: [
+                  //                 Icon(
+                  //                   Icons.location_on_outlined,
+                  //                   size: 16,
+                  //                   color: GlobalVariables.darkGrey,
+                  //                 ),
+                  //                 const SizedBox(width: 4),
+                  //                 Text(
+                  //                   'TP Hồ Chí Minh',
+                  //                   style: GoogleFonts.inter(
+                  //                     fontSize: 14,
+                  //                     color: GlobalVariables.darkGrey,
+                  //                   ),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //       IconButton(
+                  //         icon: Icon(
+                  //           Icons.message_outlined,
+                  //           color: GlobalVariables.green,
+                  //         ),
+                  //         onPressed: () {
+                  //           // Contact owner functionality
+                  //         },
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
 
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // Booking Info Section
                   _buildSectionHeader(context, 'Booking Information'),

@@ -1,22 +1,47 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { statisticService, type MonthlyUserStats } from "@/services/statisticService"
 
-export function MonthlyRevenue() {
-  const [selectedYear, setSelectedYear] = useState("2023")
-  const years = ["2021", "2022", "2023", "2024"]
+export function MonthlyUsers() {
+  const [selectedYear, setSelectedYear] = useState("2025")
+  const [userStats, setUserStats] = useState<MonthlyUserStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const years = ["2021", "2022", "2023", "2024", "2025"]
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(false)
 
+  // Load data when year changes
+  useEffect(() => {
+    loadUserStats()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear])
+
+  const loadUserStats = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const year = Number.parseInt(selectedYear)
+      const data = await statisticService.getUserStats({ year })
+      setUserStats(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load user statistics")
+      console.error("Error loading user stats:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     const checkScroll = () => {
       if (!scrollContainerRef.current) return
-
       const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
       setShowLeftArrow(scrollLeft > 0)
       setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5)
@@ -25,10 +50,7 @@ export function MonthlyRevenue() {
     const container = scrollContainerRef.current
     if (container) {
       container.addEventListener("scroll", checkScroll)
-      // Initial check
       checkScroll()
-
-      // Check after content might have changed
       setTimeout(checkScroll, 500)
     }
 
@@ -37,51 +59,92 @@ export function MonthlyRevenue() {
         container.removeEventListener("scroll", checkScroll)
       }
     }
-  }, [])
+  }, [userStats])
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return
-
     const scrollAmount = 200
     const currentScroll = scrollContainerRef.current.scrollLeft
     scrollContainerRef.current.scrollTo({
-      left: direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount,
-      behavior: 'smooth'
+      left: direction === "left" ? currentScroll - scrollAmount : currentScroll + scrollAmount,
+      behavior: "smooth",
     })
   }
 
-  // Generate data based on year
-  const getDataForYear = (year: string) => {
-    const baseData = [
-      { name: 'Jan', Revenue: 12, Profit: 10 },
-      { name: 'Feb', Revenue: 15, Profit: 12 },
-      { name: 'Mar', Revenue: 8, Profit: 25 },
-      { name: 'Apr', Revenue: 14, Profit: 6 },
-      { name: 'May', Revenue: 12, Profit: 10 },
-      { name: 'Jun', Revenue: 18, Profit: 14 },
-      { name: 'Jul', Revenue: 20, Profit: 10 },
-      { name: 'Aug', Revenue: 16, Profit: 8 },
-      { name: 'Sep', Revenue: 14, Profit: 7 },
-      { name: 'Oct', Revenue: 12, Profit: 6 },
-      { name: 'Nov', Revenue: 10, Profit: 5 },
-      { name: 'Dec', Revenue: 22, Profit: 12 },
-    ]
+  // Transform API data to chart format
+  const transformDataForChart = (stats: MonthlyUserStats[]) => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-    // Modify data based on year to show different patterns
-    const yearFactor = parseInt(year) - 2021
-    return baseData.map(item => ({
-      ...item,
-      Revenue: Math.max(5, item.Revenue + yearFactor * 4 * (Math.random() > 0.5 ? 1 : -1)),
-      Profit: Math.max(3, item.Profit + yearFactor * 3 * (Math.random() > 0.5 ? 1 : -1))
+    return stats.map((stat) => ({
+      name: monthNames[stat.month - 1],
+      Players: stat.players,
+      "Facility Owners": stat.managers, // Using managers as facility owners
     }))
   }
 
-  const data = getDataForYear(selectedYear)
+  const chartData = transformDataForChart(userStats)
+
+  if (loading) {
+    return (
+      <Card className="shadow-sm h-full flex flex-col">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardTitle className="text-[#425166]">Monthly Users</CardTitle>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[100px] h-8">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-[#737791]">Loading user statistics...</div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="shadow-sm h-full flex flex-col">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardTitle className="text-[#425166]">Monthly Users</CardTitle>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[100px] h-8">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 mb-2">Error loading data</div>
+            <button onClick={loadUserStats} className="text-sm text-blue-500 hover:underline">
+              Try again
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="shadow-sm h-full flex flex-col">
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-[#425166]">Monthly Revenue/Profit</CardTitle>
+        <CardTitle className="text-[#425166]">Monthly Users</CardTitle>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="w-[100px] h-8">
             <SelectValue placeholder="Year" />
@@ -105,7 +168,6 @@ export function MonthlyRevenue() {
               <ChevronLeft size={20} />
             </button>
           )}
-
           <div
             ref={scrollContainerRef}
             className="overflow-x-auto scrollbar-hide h-[300px] w-full"
@@ -113,13 +175,13 @@ export function MonthlyRevenue() {
           >
             <div className="min-w-[500px] h-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="playersGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#4079ed" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#4079ed" stopOpacity={0.2} />
                     </linearGradient>
-                    <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="ownersGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#23c16b" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#23c16b" stopOpacity={0.2} />
                     </linearGradient>
@@ -136,19 +198,18 @@ export function MonthlyRevenue() {
                     }}
                     itemStyle={{ padding: "2px 0" }}
                     labelStyle={{ fontWeight: "bold", marginBottom: "5px" }}
-                    formatter={(value) => [`${value}k`, null]}
                   />
                   <Bar
-                    dataKey="Revenue"
-                    fill="url(#revenueGradient)"
+                    dataKey="Players"
+                    fill="url(#playersGradient)"
                     radius={[4, 4, 0, 0]}
                     barSize={20}
                     animationDuration={1500}
                     animationEasing="ease-out"
                   />
                   <Bar
-                    dataKey="Profit"
-                    fill="url(#profitGradient)"
+                    dataKey="Facility Owners"
+                    fill="url(#ownersGradient)"
                     radius={[4, 4, 0, 0]}
                     barSize={20}
                     animationDuration={1500}
@@ -159,7 +220,6 @@ export function MonthlyRevenue() {
               </ResponsiveContainer>
             </div>
           </div>
-
           {showRightArrow && (
             <button
               className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md"
@@ -172,11 +232,11 @@ export function MonthlyRevenue() {
         <div className="mt-4 flex justify-center gap-8">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[#4079ed]"></div>
-            <span className="text-sm text-[#737791]">Revenue</span>
+            <span className="text-sm text-[#737791]">Players</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[#23c16b]"></div>
-            <span className="text-sm text-[#737791]">Profit</span>
+            <span className="text-sm text-[#737791]">Facility Owners</span>
           </div>
         </div>
       </CardContent>
