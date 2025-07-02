@@ -61,6 +61,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Property<decimal>("Price")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("Province")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<Guid?>("RatingId")
                     .HasColumnType("TEXT");
 

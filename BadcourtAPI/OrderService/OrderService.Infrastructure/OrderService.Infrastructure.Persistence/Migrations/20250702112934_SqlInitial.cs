@@ -42,6 +42,7 @@ public partial class SqlInitial : Migration
                 FacilityName = table.Column<string>(type: "TEXT", nullable: false),
                 CourtId = table.Column<string>(type: "TEXT", nullable: false),
                 CourtName = table.Column<string>(type: "TEXT", nullable: false),
+                Province = table.Column<string>(type: "TEXT", nullable: false),
                 Address = table.Column<string>(type: "TEXT", nullable: false),
                 DateTimePeriod_HourFrom = table.Column<DateTime>(type: "TEXT", nullable: false),
                 DateTimePeriod_HourTo = table.Column<DateTime>(type: "TEXT", nullable: false),
