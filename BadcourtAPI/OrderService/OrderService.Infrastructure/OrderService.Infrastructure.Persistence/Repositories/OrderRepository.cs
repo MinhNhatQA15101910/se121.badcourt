@@ -309,6 +309,21 @@ public class OrderRepository(
             .CountAsync(cancellationToken);
     }
 
+    public Task<int> GetTotalOrdersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return query.CountAsync(cancellationToken);
+    }
+
     public Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();

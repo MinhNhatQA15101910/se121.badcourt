@@ -14,18 +14,20 @@ public interface IOrderRepository
     Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId,
         CancellationToken cancellationToken = default);
     Task<List<CourtRevenueDto>> GetCourtRevenueForManagerAsync(ManagerDashboardCourtRevenueParams courtRevenueParams,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
     Task<List<RevenueByMonthDto>> GetMonthlyRevenueForManagerAsync(ManagerDashboardMonthlyRevenueParams @params, 
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
     Task<Order?> GetOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<PagedList<OrderDto>> GetOrderDetailsAsync(string? userId, OrderParams orderParams,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
     Task<PagedList<OrderDto>> GetOrdersAsync(OrderParams orderParams,
         CancellationToken cancellationToken = default, Guid? userId = null);
     Task<PagedList<OrderDto>> GetOrdersForManagerAsync(
-        ManagerDashboardOrderParams orderParams, Guid userId, CancellationToken cancellationToken);
+        ManagerDashboardOrderParams orderParams, Guid userId, CancellationToken cancellationToken = default);
     Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
+    Task<int> GetTotalOrdersForAdminAsync(
+        AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default);
     Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
     Task<decimal> GetTotalRevenueForAdminAsync(
