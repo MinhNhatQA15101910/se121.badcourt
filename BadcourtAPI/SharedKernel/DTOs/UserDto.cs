@@ -10,4 +10,5 @@ public class UserDto
     public DateTime? LastOnlineAt { get; set; }
     public List<PhotoDto> Photos { get; set; } = [];
     public List<string> Roles { get; set; } = [];
+    public DateTime CreatedAt { get; set; }
 }

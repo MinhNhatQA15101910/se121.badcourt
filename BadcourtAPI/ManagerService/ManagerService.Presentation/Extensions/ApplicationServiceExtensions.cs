@@ -1,8 +1,10 @@
+using FluentValidation;
 using ManagerService.Application;
 using ManagerService.Application.Interfaces.ServiceClients;
 using ManagerService.Infrastructure.Services.Configurations;
 using ManagerService.Infrastructure.Services.ServiceClients;
 using ManagerService.Presentation.Middlewares;
+using MediatR;
 
 namespace ManagerService.Presentation.Extensions;
 
@@ -17,13 +19,15 @@ public static class ApplicationServiceExtensions
 
         return services
             .AddExternalServices(configuration)
-            .AddApplication(configuration);
+            .AddApplication();
     }
 
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var applicationAssembly = typeof(AssemblyReference).Assembly;
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddValidatorsFromAssembly(applicationAssembly);
 
         return services;
     }
@@ -32,7 +36,7 @@ public static class ApplicationServiceExtensions
     {
         services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
 
-        services.AddHttpClient<IFacilityServiceClient, FacilityServiceClient>();
+        services.AddHttpClient<ICourtServiceClient, CourtServiceClient>();
         services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
 
         return services;

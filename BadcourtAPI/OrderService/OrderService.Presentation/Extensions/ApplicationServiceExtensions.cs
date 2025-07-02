@@ -78,6 +78,7 @@ public static class ApplicationServiceExtensions
         // Api Repositories
         services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();
         services.AddHttpClient<ICourtApiRepository, CourtApiRepository>();
+        services.AddHttpClient<IUserApiRepository, UserApiRepository>();
 
         // Configuration
         services.Configure<ApiEndpoints>(config.GetSection(nameof(ApiEndpoints)));

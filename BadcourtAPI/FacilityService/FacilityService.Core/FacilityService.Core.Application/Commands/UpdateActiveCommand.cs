@@ -1,5 +1,8 @@
-using SharedKernel.DTOs;
+using FacilityService.Core.Application.DTOs;
 
 namespace FacilityService.Core.Application.Commands;
 
-public record UpdateActiveCommand(string FacilityId, Guid CurrentUserId, ActiveDto ActiveDto) : ICommand<bool>;
+public record UpdateActiveCommand(
+    string FacilityId,
+    UpdateActiveDto UpdateActiveDto
+) : ICommand<bool>;

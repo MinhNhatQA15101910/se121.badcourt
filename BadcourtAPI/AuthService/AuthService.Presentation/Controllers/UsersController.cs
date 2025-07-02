@@ -42,7 +42,6 @@ public class UsersController(IMediator mediator) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] UserParams userParams)
     {
-        userParams.CurrentUserId = User.GetUserId();
         var users = await mediator.Send(new GetUsersQuery(userParams));
 
         Response.AddPaginationHeader(users);

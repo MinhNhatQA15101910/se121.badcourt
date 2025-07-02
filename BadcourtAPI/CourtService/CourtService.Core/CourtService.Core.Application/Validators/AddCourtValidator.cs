@@ -20,7 +20,7 @@ public class AddCourtValidator : AbstractValidator<AddCourtDto>
             .WithMessage("Description is required.");
 
         RuleFor(c => c.PricePerHour)
-            .GreaterThan(0)
-            .WithMessage("Price per hour must be greater than zero.");
+            .GreaterThan(1000)
+            .WithMessage("Price per hour must be greater than 1000 VNĐ.");
     }
 }

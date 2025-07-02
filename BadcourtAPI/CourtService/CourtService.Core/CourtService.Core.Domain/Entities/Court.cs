@@ -9,6 +9,7 @@ public class Court
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; } = null!;
 
+    public string UserId { get; set; } = null!;
     public string FacilityId { get; set; } = null!;
     public string CourtName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

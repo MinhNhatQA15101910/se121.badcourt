@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using OrderService.Core.Application.ApiRepository;
 using OrderService.Core.Application.Extensions;
@@ -16,12 +15,22 @@ public class CreateOrderHandler(
     IOrderRepository orderRepository,
     ICourtApiRepository courtApiRepository,
     IFacilityApiRepository facilityApiRepository,
-    IStripeService stripeService,
-    IMapper mapper
+    IUserApiRepository userApiRepository,
+    IStripeService stripeService
 ) : ICommandHandler<CreateOrderCommand, OrderIntentDto>
 {
     public async Task<OrderIntentDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
+        // Convert HourFrom and HourTo from user-local time to UTC
+        var timeZoneId = request.CreateOrderDto.TimeZoneId;
+        DateTime hourFromUtc = ConvertToUtc(request.CreateOrderDto.DateTimePeriod.HourFrom, timeZoneId);
+        DateTime hourToUtc = ConvertToUtc(request.CreateOrderDto.DateTimePeriod.HourTo, timeZoneId);
+        var newOrderDateTimePeriodDto = new DateTimePeriodDto
+        {
+            HourFrom = hourFromUtc,
+            HourTo = hourToUtc
+        };
+
         var court = await courtApiRepository.GetCourtByIdAsync(request.CreateOrderDto.CourtId)
             ?? throw new CourtNotFoundException(request.CreateOrderDto.CourtId);
 
@@ -29,13 +38,13 @@ public class CreateOrderHandler(
             ?? throw new FacilityNotFoundException(court.FacilityId);
 
         // Check if the DateTimePeriod is in the future
-        if (request.CreateOrderDto.DateTimePeriod.HourFrom < DateTime.UtcNow)
+        if (hourFromUtc < DateTime.UtcNow)
         {
             throw new BadRequestException("The start date must be in the future.");
         }
 
         // Check if the DateTimePeriod HourFrom and HourTo are in the same day
-        if (request.CreateOrderDto.DateTimePeriod.HourFrom.Date != request.CreateOrderDto.DateTimePeriod.HourTo.Date)
+        if (hourFromUtc.Date != hourToUtc.Date)
         {
             throw new BadRequestException("The start and end date must be in the same day.");
         }
@@ -48,7 +57,7 @@ public class CreateOrderHandler(
 
         // Check if the DateTimePeriod date is the facility's active date
         /// Get the order date's day in week
-        var orderDate = request.CreateOrderDto.DateTimePeriod.HourFrom.Date.DayOfWeek.ToString();
+        var orderDate = hourFromUtc.Date.DayOfWeek.ToString();
 
         /// Check if facility.ActiveAt.orderDate is not null
         var activeDays = new Dictionary<string, object?>
@@ -70,8 +79,8 @@ public class CreateOrderHandler(
         // Convert DateTimePeriod to TimePeriodDto
         var newOrderTimePeriod = new TimePeriodDto
         {
-            HourFrom = TimeOnly.FromTimeSpan(request.CreateOrderDto.DateTimePeriod.HourFrom.TimeOfDay),
-            HourTo = TimeOnly.FromTimeSpan(request.CreateOrderDto.DateTimePeriod.HourTo.TimeOfDay)
+            HourFrom = TimeOnly.FromTimeSpan(hourFromUtc.TimeOfDay),
+            HourTo = TimeOnly.FromTimeSpan(hourToUtc.TimeOfDay)
         };
         if (!IsTimePeriodInside(newOrderTimePeriod, (TimePeriodDto)isActive))
         {
@@ -81,7 +90,7 @@ public class CreateOrderHandler(
         // Check if the order time period is overlapping with existing orders
         foreach (var orderTimePeriod in court.OrderPeriods)
         {
-            if (IsTimePeriodOverlapping(request.CreateOrderDto.DateTimePeriod, orderTimePeriod))
+            if (IsTimePeriodOverlapping(newOrderDateTimePeriodDto, orderTimePeriod))
             {
                 throw new BadRequestException("The order time period overlaps with an existing order.");
             }
@@ -90,14 +99,14 @@ public class CreateOrderHandler(
         // Check if the order time period is overlapping with the court's inactive hours
         foreach (var inactiveTimePeriod in court.InactivePeriods)
         {
-            if (IsTimePeriodOverlapping(request.CreateOrderDto.DateTimePeriod, inactiveTimePeriod))
+            if (IsTimePeriodOverlapping(newOrderDateTimePeriodDto, inactiveTimePeriod))
             {
                 throw new BadRequestException("The order time period overlaps with the court's inactive hours.");
             }
         }
 
         // Calculate price
-        var price = court.PricePerHour * (decimal)(request.CreateOrderDto.DateTimePeriod.HourTo - request.CreateOrderDto.DateTimePeriod.HourFrom).TotalHours;
+        var price = court.PricePerHour * (decimal)(hourToUtc - hourFromUtc).TotalHours;
 
         // Create PaymentIntent via StripeService
         var paymentIntent = await stripeService.CreatePaymentIntentAsync(
@@ -107,16 +116,26 @@ public class CreateOrderHandler(
 
         // Create order
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
+        var user = await userApiRepository.GetUserByIdAsync(userId.ToString(), cancellationToken)
+            ?? throw new UserNotFoundException(userId);
+
         var facilityMainPhoto = facility.Photos.FirstOrDefault(p => p.IsMain);
         var draftOrder = new Order
         {
             UserId = userId,
+            Username = user.Username,
+            UserImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url,
             FacilityOwnerId = facility.UserId.ToString(),
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
+            CourtName = court.CourtName,
             FacilityName = facility.FacilityName,
             Address = facility.DetailAddress,
-            DateTimePeriod = mapper.Map<DateTimePeriod>(request.CreateOrderDto.DateTimePeriod),
+            DateTimePeriod = new DateTimePeriod
+            {
+                HourFrom = hourFromUtc,
+                HourTo = hourToUtc
+            },
             Price = price,
             ImageUrl = facilityMainPhoto?.Url ?? string.Empty,
             PaymentIntentId = paymentIntent.Id,
@@ -145,5 +164,16 @@ public class CreateOrderHandler(
     private static bool IsTimePeriodOverlapping(DateTimePeriodDto period1, DateTimePeriodDto period2)
     {
         return period1.HourFrom < period2.HourTo && period2.HourFrom < period1.HourTo;
+    }
+
+    private static DateTime ConvertToUtc(DateTime localDateTime, string timeZoneId)
+    {
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
+        if (localDateTime.Kind == DateTimeKind.Utc)
+            return localDateTime;
+
+        var unspecified = DateTime.SpecifyKind(localDateTime, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, timeZone);
     }
 }

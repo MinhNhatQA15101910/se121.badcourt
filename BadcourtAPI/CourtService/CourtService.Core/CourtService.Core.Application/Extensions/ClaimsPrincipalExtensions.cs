@@ -11,4 +11,11 @@ public static class ClaimsPrincipalExtensions
 
         return Guid.Parse(userId);
     }
+
+    public static List<string> GetRoles(this ClaimsPrincipal user)
+    {
+        var roles = user.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
+
+        return roles;
+    }
 }
