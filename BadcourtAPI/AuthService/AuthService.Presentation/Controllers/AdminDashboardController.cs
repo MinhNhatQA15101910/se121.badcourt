@@ -2,6 +2,7 @@ using AuthService.Core.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SharedKernel.DTOs;
 using SharedKernel.Params;
 
 namespace AuthService.Presentation.Controllers;
@@ -41,6 +42,14 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<int>> GetTotalNewManagers()
     {
         var query = new GetTotalNewManagersForAdminQuery();
+        var result = await mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("user-stats")]
+    public async Task<ActionResult<List<UserStatDto>>> GetUserStats([FromQuery] AdminDashboardUserStatParams userStatParams)
+    {
+        var query = new GetUserStatsForAdminQuery(userStatParams);
         var result = await mediator.Send(query);
         return Ok(result);
     }

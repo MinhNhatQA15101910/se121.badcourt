@@ -91,6 +91,13 @@
       "UpstreamPathTemplate": "/gateway/users/delete-photo/{photoId}",
       "UpstreamHttpMethod": ["Delete"]
     },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/user-stats",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/user-stats",
+      "UpstreamHttpMethod": ["Get"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/facilities/{id}",

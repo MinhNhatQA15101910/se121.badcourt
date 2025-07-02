@@ -17,4 +17,6 @@ public interface IUserRepository
         CancellationToken cancellationToken = default);
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<int> GetTotalNewManagersForAdminAsync(CancellationToken cancellationToken = default);
+    Task<List<UserStatDto>> GetUserStatsForAdminAsync(
+        AdminDashboardUserStatParams userStatParams, CancellationToken cancellationToken = default);
 }

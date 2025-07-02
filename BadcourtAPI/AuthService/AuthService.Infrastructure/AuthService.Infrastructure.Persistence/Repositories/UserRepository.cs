@@ -116,4 +116,36 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
 
         return query.CountAsync(cancellationToken: cancellationToken);
     }
+
+    public async Task<List<UserStatDto>> GetUserStatsForAdminAsync(AdminDashboardUserStatParams userStatParams, CancellationToken cancellationToken = default)
+    {
+        var year = userStatParams.Year;
+
+        var usersInYear = await context.Users
+            .Where(u => u.CreatedAt.Year == year)
+            .Select(u => new
+            {
+                u.CreatedAt.Month,
+                Roles = u.UserRoles.Select(ur => ur.Role.Name)
+            })
+            .ToListAsync(cancellationToken);
+
+        var stats = Enumerable.Range(1, 12).Select(month => new UserStatDto
+        {
+            Month = month,
+            Players = 0,
+            Managers = 0
+        }).ToList();
+
+        foreach (var user in usersInYear)
+        {
+            var stat = stats.First(s => s.Month == user.Month);
+            if (user.Roles.Contains("Player"))
+                stat.Players++;
+            if (user.Roles.Contains("Manager"))
+                stat.Managers++;
+        }
+
+        return stats;
+    }
 }

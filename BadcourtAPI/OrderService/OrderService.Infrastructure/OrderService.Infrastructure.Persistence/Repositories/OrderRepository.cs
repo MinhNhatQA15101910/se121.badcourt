@@ -103,7 +103,7 @@ public class OrderRepository(
                     FacilityName = g.Key.FacilityName,
                     Revenue = g.Sum(o => o.Price)
                 })
-                .AsEnumerable() // 👈 Switch to client-side for ordering and pagination
+                .AsEnumerable() 
                 .OrderByDescending(r => r.Revenue)
                 .Skip(facilityRevenueParams.PageSize * (facilityRevenueParams.PageNumber - 1))
                 .Take(facilityRevenueParams.PageSize)
