@@ -23,7 +23,6 @@ export function RevenueByHour() {
     loadHourlyData()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear])
-ư
   const loadHourlyData = async () => {
     try {
       setLoading(true)
