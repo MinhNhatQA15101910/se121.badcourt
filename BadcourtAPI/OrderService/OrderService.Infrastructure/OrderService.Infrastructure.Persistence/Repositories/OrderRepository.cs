@@ -315,6 +315,32 @@ public class OrderRepository(
         );
     }
 
+    public Task<List<ProvinceRevenueDto>> GetProvinceRevenueForAdminAsync(AdminDashboardProvinceRevenueParams provinceRevenueParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = provinceRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = provinceRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return Task.FromResult(
+            query
+                .GroupBy(o => new { o.Province })
+                .Select(g => new ProvinceRevenueDto
+                {
+                    Province = g.Key.Province,
+                    Revenue = g.Sum(o => o.Price)
+                })
+                .AsEnumerable()
+                .OrderByDescending(r => r.Revenue)
+                .ToList()
+        );
+    }
+
     public Task<List<RevenueStatDto>> GetRevenueStatsForAdminAsync(AdminDashboardRevenueStatParams revenueStatParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
