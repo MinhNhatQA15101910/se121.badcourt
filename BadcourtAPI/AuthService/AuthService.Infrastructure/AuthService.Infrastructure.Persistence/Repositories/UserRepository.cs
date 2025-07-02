@@ -11,7 +11,7 @@ namespace AuthService.Infrastructure.Persistence.Repositories;
 
 public class UserRepository(DataContext context, IMapper mapper) : IUserRepository
 {
-    public Task<int> GetTotalNewPlayersForAdminAsync(CancellationToken cancellationToken)
+    public Task<int> GetTotalNewPlayersForAdminAsync(CancellationToken cancellationToken = default)
     {
         var query = context.Users.AsQueryable();
 
@@ -25,7 +25,7 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         return query.CountAsync(cancellationToken: cancellationToken);
     }
 
-    public Task<int> GetTotalManagersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken)
+    public Task<int> GetTotalManagersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Users.AsQueryable();
 
@@ -41,7 +41,7 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         return query.CountAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<int> GetTotalPlayersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken)
+    public async Task<int> GetTotalPlayersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Users.AsQueryable();
 
@@ -98,8 +98,22 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         );
     }
 
-    public async Task<bool> SaveChangesAsync()
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await context.SaveChangesAsync() > 0;
+        return await context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
+    public Task<int> GetTotalNewManagersForAdminAsync(CancellationToken cancellationToken = default)
+    {
+        var query = context.Users.AsQueryable();
+
+        // Filter by role
+        query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Manager"));
+
+        // Count the new managers created in the last 30 days
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        query = query.Where(u => u.CreatedAt >= startDate);
+
+        return query.CountAsync(cancellationToken: cancellationToken);
     }
 }

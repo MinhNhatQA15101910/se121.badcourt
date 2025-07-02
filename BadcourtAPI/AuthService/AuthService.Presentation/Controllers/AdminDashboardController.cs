@@ -28,11 +28,19 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(query);
         return Ok(result);
     }
-    
+
     [HttpGet("total-new-players")]
     public async Task<ActionResult<int>> GetTotalNewPlayers()
     {
         var query = new GetTotalNewPlayersForAdminQuery();
+        var result = await mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("total-new-managers")]
+    public async Task<ActionResult<int>> GetTotalNewManagers()
+    {
+        var query = new GetTotalNewManagersForAdminQuery();
         var result = await mediator.Send(query);
         return Ok(result);
     }
