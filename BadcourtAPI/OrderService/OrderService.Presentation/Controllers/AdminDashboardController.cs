@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Core.Application.Queries.GetFacilityRevenueForAdmin;
 using OrderService.Core.Application.Queries.GetProvinceRevenueForAdmin;
+using OrderService.Core.Application.Queries.GetRevenueByHourForAdmin;
 using OrderService.Core.Application.Queries.GetRevenueStatsForAdmin;
 using OrderService.Core.Application.Queries.GetTotalOrdersForAdmin;
 using OrderService.Core.Application.Queries.GetTotalRevenueForAdmin;
@@ -65,6 +66,15 @@ public class AdminDashboardController(IMediator mediator) : ControllerBase
 
         Response.AddPaginationHeader(result);
 
+        return Ok(result);
+    }
+
+    [HttpGet("revenue-by-hour")]
+    public async Task<ActionResult<List<RevenueByHourDto>>> GetRevenueByHour(
+        [FromQuery] AdminDashboardRevenueByHourParams revenueByHourParams)
+    {
+        var query = new GetRevenueByHourForAdminQuery(revenueByHourParams);
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 }

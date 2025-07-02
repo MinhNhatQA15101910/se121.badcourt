@@ -28,6 +28,8 @@ public interface IOrderRepository
         ManagerDashboardOrderParams orderParams, Guid userId, CancellationToken cancellationToken = default);
     Task<PagedList<ProvinceRevenueDto>> GetProvinceRevenueForAdminAsync(
         AdminDashboardProvinceRevenueParams provinceRevenueParams, CancellationToken cancellationToken = default);
+    Task<List<RevenueByHourDto>> GetRevenueByHourForAdminAsync(
+        AdminDashboardRevenueByHourParams revenueByHourParams, CancellationToken cancellationToken = default);
     Task<List<RevenueStatDto>> GetRevenueStatsForAdminAsync(
         AdminDashboardRevenueStatParams revenueStatParams, CancellationToken cancellationToken = default);
     Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams,

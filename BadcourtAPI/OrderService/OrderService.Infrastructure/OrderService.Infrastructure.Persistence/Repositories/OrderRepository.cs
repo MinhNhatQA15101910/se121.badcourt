@@ -78,7 +78,7 @@ public class OrderRepository(
                 CourtName = g.Key.CourtName,
                 Revenue = g.Sum(o => o.Price)
             })
-            .OrderBy(r => r.Revenue)
+            .OrderByDescending(r => r.Revenue)
             .ToListAsync(cancellationToken);
     }
 
@@ -93,7 +93,7 @@ public class OrderRepository(
 
         // Exclude pending orders
         query = query.Where(o => o.State != OrderState.Pending);
-        
+
         var facilityRevenues = query
             .GroupBy(o => new { o.FacilityId, o.FacilityName })
             .Select(g => new FacilityRevenueDto
@@ -355,6 +355,41 @@ public class OrderRepository(
                 provinceRevenueParams.PageSize
             )
         );
+    }
+
+    public async Task<List<RevenueByHourDto>> GetRevenueByHourForAdminAsync(AdminDashboardRevenueByHourParams revenueByHourParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        if (revenueByHourParams.Year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == revenueByHourParams.Year.Value);
+        }
+
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        var rawResults = await query
+            .GroupBy(o => o.DateTimePeriod.HourFrom.Hour)
+            .Select(g => new
+            {
+                Hour = g.Key,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .ToListAsync(cancellationToken);
+
+        var fullResult = Enumerable.Range(0, 24)
+            .Select(hour =>
+            {
+                var revenue = rawResults.FirstOrDefault(r => r.Hour == hour)?.Revenue ?? 0;
+                return new RevenueByHourDto
+                {
+                    HourRange = $"{hour:D2}:00 - {(hour + 1) % 24:D2}:00",
+                    Revenue = revenue
+                };
+            })
+            .ToList();
+
+        return fullResult;
     }
 
     public Task<List<RevenueStatDto>> GetRevenueStatsForAdminAsync(AdminDashboardRevenueStatParams revenueStatParams, CancellationToken cancellationToken = default)

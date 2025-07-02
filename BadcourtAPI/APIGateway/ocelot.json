@@ -283,6 +283,13 @@
       "UpstreamPathTemplate": "/gateway/admin-dashboard/province-revenue",
       "UpstreamHttpMethod": ["Get"]
     },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/revenue-by-hour",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/revenue-by-hour",
+      "UpstreamHttpMethod": ["Get"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/posts",
