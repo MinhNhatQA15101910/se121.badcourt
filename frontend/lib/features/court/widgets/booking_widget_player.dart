@@ -46,7 +46,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   bool _isValidatingTime = false;
   bool _isTimeSlotValid = true;
   bool _isTimeSlotChecked = false;
-  bool _hasCheckedTimeSlotOnce = false;
 
   @override
   void initState() {

@@ -35,8 +35,12 @@ class CourtHubProvider extends ChangeNotifier {
       _newOrderPeriods[courtId] ?? [];
 
   // Get court inactive periods for a court
-  List<TimePeriod> getCourtInactivePeriods(String courtId) =>
-      _courtInactivePeriods[courtId] ?? [];
+  List<TimePeriod> getCourtInactivePeriods(String courtId, DateTime day) =>
+      _courtInactivePeriods[courtId]?.where((period) {
+        return period.hourFrom.month == day.month &&
+            period.hourFrom.day == day.day;
+      }).toList() ??
+      [];
 
   // NEW: Get inactive court periods
   List<TimePeriod> getInactiveCourtPeriods(String courtId) =>

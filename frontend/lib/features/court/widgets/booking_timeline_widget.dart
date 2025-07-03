@@ -3,6 +3,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/booking_time.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/time_period.dart';
+import 'package:frontend/providers/player/selected_court_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/court_hub_provider.dart';
@@ -171,8 +172,10 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
             courtProvider.getNewOrderPeriods(widget.court.id);
 
         // Get inactive periods
-        final inactivePeriods =
-            courtProvider.getCourtInactivePeriods(widget.court.id);
+        final selectedCourtProvider =
+            Provider.of<SelectedCourtProvider>(context, listen: false);
+        final inactivePeriods = courtProvider.getCourtInactivePeriods(
+            widget.court.id, selectedCourtProvider.selectedDate ?? DateTime.now());
 
         int virtualId = 10000;
 
@@ -223,8 +226,6 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         // MODIFIED: Calculate bookings - combine existing + new orders
         int totalExistingBookings =
             widget.bookingTimeList.length + newOrderPeriods.length;
-        int totalInactiveBookings = inactivePeriods.length;
-        int totalBookingsCount = totalExistingBookings + totalInactiveBookings;
 
         return Container(
           padding: EdgeInsets.only(
