@@ -79,6 +79,12 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
             query = query.Where(u => u.NormalizedEmail!.Contains(userParams.Email.ToUpper()));
         }
 
+        // Filter by role
+        if (userParams.Role != null)
+        {
+            query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name!.ToLower() == userParams.Role.ToLower()));
+        }
+
         // Order
         query = userParams.OrderBy switch
         {
