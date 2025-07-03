@@ -36,17 +36,37 @@ class _UserMessageBoxState extends State<UserMessageBox> {
   User? _user;
   bool _previousOnlineStatus = false;
   bool _isLoadingUser = false;
+  bool _hasInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadUser();
-    });
+    _initializeUser();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Only check for online status changes after initial load
+    if (_hasInitialized) {
+      _checkOnlineStatusChange();
+    }
+  }
+
+  Future<void> _initializeUser() async {
+    await _loadUser();
+    if (mounted) {
+      setState(() {
+        _hasInitialized = true;
+      });
+      // Set initial online status
+      final onlineProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
+      _previousOnlineStatus = onlineProvider.isUserOnline(widget.userId);
+    }
   }
 
   Future<void> _loadUser() async {
-    if (_isLoadingUser) return; // Prevent multiple simultaneous calls
+    if (_isLoadingUser) return;
     
     setState(() {
       _isLoadingUser = true;
@@ -57,7 +77,7 @@ class _UserMessageBoxState extends State<UserMessageBox> {
         context: context,
         userId: widget.userId,
       );
-
+      
       if (!mounted) return;
       
       setState(() {
@@ -76,15 +96,32 @@ class _UserMessageBoxState extends State<UserMessageBox> {
     }
   }
 
-  // CẢI TIẾN: Kiểm tra user có online không dựa trên lastOnlineAt
-  bool _isUserOnline(DateTime? lastOnlineAt) {
-    return lastOnlineAt == null; // null = online, có giá trị = offline
+  void _checkOnlineStatusChange() {
+    final onlineProvider = Provider.of<OnlineUsersProvider>(context, listen: false);
+    final currentOnlineStatus = onlineProvider.isUserOnline(widget.userId);
+    
+    if (_previousOnlineStatus != currentOnlineStatus) {
+      print('[UserMessageBox] Online status changed for ${widget.userId}: $_previousOnlineStatus -> $currentOnlineStatus');
+      
+      // Update previous status immediately to prevent multiple calls
+      _previousOnlineStatus = currentOnlineStatus;
+      
+      // Delay to allow server to update lastOnlineAt
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted && !_isLoadingUser) {
+          _loadUser();
+        }
+      });
+    }
   }
 
-  // CẢI TIẾN: Tính thời gian offline dựa trên lastOnlineAt
+  bool _isUserOnline(DateTime? lastOnlineAt) {
+    return lastOnlineAt == null;
+  }
+
   String _getOfflineTimeText(DateTime? lastOnlineAt) {
     if (lastOnlineAt == null) {
-      return 'Online'; // User đang online
+      return 'Online';
     }
     
     final now = DateTime.now();
@@ -115,11 +152,8 @@ class _UserMessageBoxState extends State<UserMessageBox> {
       final groupProvider = Provider.of<GroupProvider>(context, listen: false);
       groupProvider.markGroupAsRead(widget.roomId!);
       groupProvider.markGroupAsReadViaSignalR(widget.roomId!);
-
-      // Mark messages as read for this specific user
       groupProvider.markMessagesAsReadForUser(userId);
     }
-
     Navigator.of(context).pushNamed(
       MessageDetailScreen.routeName,
       arguments: userId,
@@ -130,43 +164,19 @@ class _UserMessageBoxState extends State<UserMessageBox> {
     return isOnline ? 'Online' : timestamp;
   }
 
-  // CẢI TIẾN: Detect online status changes và refresh user data
-  void _handleOnlineStatusChange(bool currentOnlineStatus) {
-    if (_previousOnlineStatus != currentOnlineStatus) {
-      print('[UserMessageBox] Online status changed for ${widget.userId}: $_previousOnlineStatus -> $currentOnlineStatus');
-      
-      // Delay nhỏ để server có thời gian cập nhật lastOnlineAt
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (mounted) {
-          _loadUser(); // Refresh user data để lấy lastOnlineAt mới
-        }
-      });
-      
-      _previousOnlineStatus = currentOnlineStatus;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer2<OnlineUsersProvider, GroupProvider>(
       builder: (context, onlineUsersProvider, groupProvider, child) {
-        // CẢI TIẾN: Sử dụng OnlineUsersProvider để detect changes
         final bool isOnlineFromProvider = onlineUsersProvider.isUserOnline(widget.userId);
         
-        // CẢI TIẾN: Sử dụng user data từ API nếu có, fallback to provider
         final bool isOnline = _user != null 
             ? _isUserOnline(_user!.lastOnlineAt)
             : isOnlineFromProvider;
-            
-        // CẢI TIẾN: Detect và handle online status changes
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _handleOnlineStatusChange(isOnlineFromProvider);
-        });
 
         final unreadCount = groupProvider.getUnreadCountForUser(widget.userId);
         final hasUnread = unreadCount > 0 || widget.hasUnreadMessage;
 
-        // CẢI TIẾN: Sử dụng lastOnlineAt để tính status text
         String statusText;
         if (_user != null) {
           statusText = _getOfflineTimeText(_user!.lastOnlineAt);
@@ -175,12 +185,10 @@ class _UserMessageBoxState extends State<UserMessageBox> {
         }
 
         String lastMessage = 'Start a conversation';
-
         if (widget.roomId != null) {
           final group = groupProvider.getGroupById(widget.roomId!);
           if (group != null && group.lastMessage != null) {
             lastMessage = group.lastMessage!.content;
-
             if (group.lastMessage!.resources.isNotEmpty) {
               final resourceCount = group.lastMessage!.resources.length;
               if (lastMessage.isEmpty) {
@@ -191,7 +199,6 @@ class _UserMessageBoxState extends State<UserMessageBox> {
                 lastMessage = '$lastMessage 📎';
               }
             }
-
             if (lastMessage.length > 50) {
               lastMessage = '${lastMessage.substring(0, 47)}...';
             }
@@ -261,7 +268,6 @@ class _UserMessageBoxState extends State<UserMessageBox> {
                                 : null,
                           ),
                         ),
-                        // CẢI TIẾN: Online status indicator với animation
                         Positioned(
                           right: 0,
                           bottom: 0,
@@ -317,7 +323,6 @@ class _UserMessageBoxState extends State<UserMessageBox> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              // Role badge
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
@@ -348,10 +353,9 @@ class _UserMessageBoxState extends State<UserMessageBox> {
                             ],
                           ),
                           const SizedBox(height: 3),
-                          // CẢI TIẾN: Online/Offline status với chấm và màu
+                          // Online/Offline status
                           Row(
                             children: [
-                              // Chấm trạng thái
                               Container(
                                 width: 8,
                                 height: 8,
@@ -372,33 +376,23 @@ class _UserMessageBoxState extends State<UserMessageBox> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              // Status text với loading indicator
                               Expanded(
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: AnimatedSwitcher(
-  duration: const Duration(milliseconds: 300),
-  child: Align(
-    alignment: Alignment.centerLeft, // 👈 align to the left
-    child: Text(
-      statusText,
-      key: ValueKey(statusText),
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: isOnline ? FontWeight.w600 : FontWeight.w500,
-        color: isOnline
-            ? GlobalVariables.green
-            : const Color(0xFF9E9E9E),
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    ),
-  ),
-)
-
+                                      child: Text(
+                                        statusText,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: isOnline ? FontWeight.w600 : FontWeight.w500,
+                                          color: isOnline
+                                              ? GlobalVariables.green
+                                              : const Color(0xFF9E9E9E),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    // Loading indicator khi đang fetch user
                                     if (_isLoadingUser)
                                       Container(
                                         margin: const EdgeInsets.only(left: 4),
@@ -422,82 +416,52 @@ class _UserMessageBoxState extends State<UserMessageBox> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  transitionBuilder: (Widget child,
-                                      Animation<double> animation) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
-                                  layoutBuilder:
-                                      (currentChild, previousChildren) {
-                                    return Stack(
-                                      alignment: Alignment.topLeft,
-                                      children: [
-                                        ...previousChildren,
-                                        if (currentChild != null) currentChild,
-                                      ],
-                                    );
-                                  },
-                                  child: Text(
-                                    lastMessage,
-                                    key: ValueKey(lastMessage),
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: hasUnread
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                      color: hasUnread
-                                          ? GlobalVariables.green
-                                          : const Color(0xFF616161),
-                                      height: 1.2,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                child: Text(
+                                  lastMessage,
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: hasUnread
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                    color: hasUnread
+                                        ? GlobalVariables.green
+                                        : const Color(0xFF616161),
+                                    height: 1.2,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               if (unreadCount > 0)
-                                AnimatedScale(
-                                  scale: 1.0,
-                                  duration: const Duration(milliseconds: 200),
-                                  child: Container(
-                                    margin: const EdgeInsets.only(left: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 7, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.red,
-                                          Colors.red.withOpacity(0.8)
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.red.withOpacity(0.3),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
+                                Container(
+                                  margin: const EdgeInsets.only(left: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.red,
+                                        Colors.red.withOpacity(0.8)
                                       ],
                                     ),
-                                    child: AnimatedSwitcher(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      child: Text(
-                                        unreadCount > 99
-                                            ? '99+'
-                                            : unreadCount.toString(),
-                                        key: ValueKey(unreadCount),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.red.withOpacity(0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
                                       ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    unreadCount > 99
+                                        ? '99+'
+                                        : unreadCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),

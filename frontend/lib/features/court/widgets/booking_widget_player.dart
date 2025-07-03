@@ -45,6 +45,8 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   String? _timeErrorMessage;
   bool _isValidatingTime = false;
   bool _isTimeSlotValid = true;
+  bool _isTimeSlotChecked = false;
+  bool _hasCheckedTimeSlotOnce = false;
 
   @override
   void initState() {
@@ -54,71 +56,147 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     });
   }
 
-  void _updateCourtInactive() async {
-  final selectedCourtProvider =
-      Provider.of<SelectedCourtProvider>(context, listen: false);
-  final courtHubProvider =
-      Provider.of<CourtHubProvider>(context, listen: false);
-  final originalCourt = selectedCourtProvider.selectedCourt;
-  final selectedDate = selectedCourtProvider.selectedDate;
+  // MODIFIED: Check time slot availability
+  Future<bool> _checkTimeSlotAvailability() async {
+    print('🔍 [BookingWidget] Manual time slot check triggered');
 
-  if (originalCourt == null || selectedDate == null) return;
+    final selectedCourtProvider =
+        Provider.of<SelectedCourtProvider>(context, listen: false);
+    final courtHubProvider =
+        Provider.of<CourtHubProvider>(context, listen: false);
+    final originalCourt = selectedCourtProvider.selectedCourt;
+    final selectedDate = selectedCourtProvider.selectedDate;
 
-  // Use real-time court data
-  final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
+    if (originalCourt == null || selectedDate == null) {
+      print('❌ [BookingWidget] Missing court or date data');
+      return false;
+    }
 
-  // Show loading indicator
-  setState(() {
-    _isValidatingTime = true;
-  });
+    final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
 
-  // Combine selected date with selected time
-  final startDate = DateTime(
-    selectedDate.year,
-    selectedDate.month,
-    selectedDate.day,
-    _selectedStartHour,
-    _selectedStartMinute,
-  );
-
-  final endDate = DateTime(
-    selectedDate.year,
-    selectedDate.month,
-    selectedDate.day,
-    _selectedEndHour,
-    _selectedEndMinute,
-  );
-
-  try {
-    // Call the new updateCourtInactive API
-    await _courtService.updateCourtInactive(
-      context,
-      court.id,
-      startDate,
-      endDate,
-    );
+    print('🔍 [BookingWidget] Checking court: ${court.id}');
+    print('🔍 [BookingWidget] Selected date: $selectedDate');
+    print(
+        '🔍 [BookingWidget] Time: $_selectedStartHour:$_selectedStartMinute - $_selectedEndHour:$_selectedEndMinute');
 
     setState(() {
-      _isValidatingTime = false;
+      _isValidatingTime = true;
+      _timeErrorMessage = null;
     });
 
-    // Success message is already shown in the service method
-    // No navigation needed as per requirements
-  } catch (error) {
-    setState(() {
-      _isValidatingTime = false;
-    });
+    try {
+      final startDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        _selectedStartHour,
+        _selectedStartMinute,
+      );
 
-    // Show error message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error updating court inactive period: ${error.toString()}'),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 3),
-      ),
-    );
+      final endDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        _selectedEndHour,
+        _selectedEndMinute,
+      );
+
+      final response = await _courtService.checkIntersect(
+        context,
+        court.id,
+        startDateTime,
+        endDateTime,
+      );
+
+      final isValid = response["success"] ?? false;
+
+      setState(() {
+        _isValidatingTime = false;
+        _isTimeSlotValid = isValid;
+        _isTimeSlotChecked = true;
+        _timeErrorMessage = isValid ? null : response["errorMessage"];
+      });
+
+      return isValid;
+    } catch (e) {
+      print('❌ [BookingWidget] Error during server validation: $e');
+
+      setState(() {
+        _isValidatingTime = false;
+        _isTimeSlotValid = false;
+        _isTimeSlotChecked = true;
+        _timeErrorMessage = "Unable to validate time slot. Please try again.";
+      });
+
+      return false;
+    }
   }
-}
+
+  // MODIFIED: Update court inactive - now includes validation check
+  void _updateCourtInactive() async {
+    final selectedCourtProvider =
+        Provider.of<SelectedCourtProvider>(context, listen: false);
+    final courtHubProvider =
+        Provider.of<CourtHubProvider>(context, listen: false);
+    final originalCourt = selectedCourtProvider.selectedCourt;
+    final selectedDate = selectedCourtProvider.selectedDate;
+
+    if (originalCourt == null || selectedDate == null) return;
+
+    final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
+
+    setState(() {
+      _isValidatingTime = true;
+    });
+
+    // Combine selected date with selected time
+    final startDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      _selectedStartHour,
+      _selectedStartMinute,
+    );
+
+    final endDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      _selectedEndHour,
+      _selectedEndMinute,
+    );
+
+    try {
+      // Call the updateCourtInactive API
+      await _courtService.updateCourtInactive(
+        context,
+        court.id,
+        startDate,
+        endDate,
+      );
+
+      setState(() {
+        _isValidatingTime = false;
+        // Reset validation state after successful update
+        _isTimeSlotChecked = false;
+        _isTimeSlotValid = true;
+        _timeErrorMessage = null;
+      });
+    } catch (error) {
+      setState(() {
+        _isValidatingTime = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Error updating court inactive period: ${error.toString()}'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
 
   void _initializeTimeConstraints() {
     final selectedCourtProvider =
@@ -128,19 +206,11 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
     if (facility != null && currentDateTime != null) {
       _getFacilityTimeRange(facility, currentDateTime);
-
-      // Set constraints based on facility hours
       setState(() {
-
-        // Set default start time to facility start time
         _selectedStartHour = _facilityStartTime.hour;
         _selectedStartMinute = _facilityStartTime.minute;
-
-        // Set default end time to 1 hour after start time
         _selectedEndHour = _selectedStartHour + 1;
         _selectedEndMinute = _selectedStartMinute;
-
-        // Validate and adjust if needed
         _validateAndAdjustTimes();
       });
     }
@@ -152,7 +222,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
     if (schedule != null && schedule.containsKey(day)) {
       final periodTime = schedule[day];
-
       if (periodTime != null) {
         setState(() {
           final dateFormat = DateFormat.Hm();
@@ -192,6 +261,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         ),
       );
     }
+
     _bookingTimeListDisable = bookingTimeListDisable;
   }
 
@@ -201,89 +271,14 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     });
   }
 
-  // Server-side validation using checkIntersect API
-  Future<void> _validateTimeSlotWithServer() async {
-    print('🔍 [BookingWidget] Starting server validation...');
-
-    final selectedCourtProvider =
-        Provider.of<SelectedCourtProvider>(context, listen: false);
-    final courtHubProvider =
-        Provider.of<CourtHubProvider>(context, listen: false);
-    final originalCourt = selectedCourtProvider.selectedCourt;
-    final selectedDate = selectedCourtProvider.selectedDate;
-
-    if (originalCourt == null || selectedDate == null) {
-      print('❌ [BookingWidget] Missing court or date data');
-      return;
-    }
-
-    final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
-
-    print('🔍 [BookingWidget] Validating court: ${court.id}');
-    print('🔍 [BookingWidget] Selected date: $selectedDate');
-    print(
-        '🔍 [BookingWidget] Time: $_selectedStartHour:$_selectedStartMinute - $_selectedEndHour:$_selectedEndMinute');
-
-    setState(() {
-      _isValidatingTime = true;
-      _timeErrorMessage = null;
-    });
-
-    try {
-      // Create DateTime objects for the selected time slot
-      final startDateTime = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        _selectedStartHour,
-        _selectedStartMinute,
-      );
-
-      final endDateTime = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        _selectedEndHour,
-        _selectedEndMinute,
-      );
-
-      print('🔍 [BookingWidget] Calling checkIntersect API...');
-
-      // Check with server
-      final isValid = await _courtService.checkIntersect(
-        context,
-        court.id,
-        startDateTime,
-        endDateTime,
-      );
-
-      print('🔍 [BookingWidget] Server validation result: $isValid');
-
-      setState(() {
-        _isValidatingTime = false;
-        _isTimeSlotValid = isValid;
-        if (!isValid) {
-          _timeErrorMessage =
-              "This time slot conflicts with an existing booking";
-        }
-      });
-    } catch (e) {
-      print('❌ [BookingWidget] Error during server validation: $e');
-      setState(() {
-        _isValidatingTime = false;
-        _isTimeSlotValid = false;
-        _timeErrorMessage = "Unable to validate time slot. Please try again.";
-      });
-    }
-  }
-
   void _validateAndAdjustTimes() {
-    print('🔍 [BookingWidget] Starting validation and adjustment...');
+    print('🔍 [BookingWidget] Starting local validation and adjustment...');
 
     setState(() {
       _timeErrorMessage = null;
+      _isTimeSlotChecked = false; // Reset validation state when time changes
 
-      // STEP 1: Ensure start time is within facility hours
+      // Local validation logic (same as before)
       if (_selectedStartHour < _facilityStartTime.hour ||
           (_selectedStartHour == _facilityStartTime.hour &&
               _selectedStartMinute < _facilityStartTime.minute)) {
@@ -291,18 +286,15 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         _selectedStartMinute = _facilityStartTime.minute;
       }
 
-      // STEP 2: Ensure start time is not beyond facility end time
       if (_selectedStartHour > _facilityEndTime.hour ||
           (_selectedStartHour == _facilityEndTime.hour &&
               _selectedStartMinute >= _facilityEndTime.minute)) {
-        // This is an invalid state - start time can't be at or after facility end time
         _selectedStartHour = _facilityEndTime.hour - 1;
         _selectedStartMinute = 0;
         _timeErrorMessage =
             "Start time cannot be at or after facility closing time";
       }
 
-      // STEP 3: Ensure end time is after start time
       if (_selectedEndHour < _selectedStartHour ||
           (_selectedEndHour == _selectedStartHour &&
               _selectedEndMinute <= _selectedStartMinute)) {
@@ -310,7 +302,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         _selectedEndMinute = _selectedStartMinute;
       }
 
-      // STEP 4: Ensure end time is within facility hours
       if (_selectedEndHour > _facilityEndTime.hour ||
           (_selectedEndHour == _facilityEndTime.hour &&
               _selectedEndMinute > _facilityEndTime.minute)) {
@@ -318,12 +309,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         _selectedEndMinute = _facilityEndTime.minute;
       }
 
-      // STEP 5: Check for booking conflicts (local validation)
-      if (_isTimeSlotOverlapping()) {
-        _timeErrorMessage = "Selected time overlaps with an existing booking";
-      }
-
-      // STEP 6: Ensure minimum booking duration (e.g., 30 minutes)
       DateTime startTime =
           DateTime(2000, 1, 1, _selectedStartHour, _selectedStartMinute);
       DateTime endTime =
@@ -333,51 +318,27 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         _selectedEndHour = _selectedStartHour;
         _selectedEndMinute = _selectedStartMinute + 30;
 
-        // Handle minute overflow
         if (_selectedEndMinute >= 60) {
           _selectedEndHour += 1;
           _selectedEndMinute -= 60;
         }
 
-        // If this pushes end time beyond facility hours, adjust start time instead
         if (_selectedEndHour > _facilityEndTime.hour ||
             (_selectedEndHour == _facilityEndTime.hour &&
                 _selectedEndMinute > _facilityEndTime.minute)) {
           _selectedEndHour = _facilityEndTime.hour;
           _selectedEndMinute = _facilityEndTime.minute;
 
-          // Adjust start time to be 30 minutes before end time
           startTime = DateTime(2000, 1, 1, _selectedEndHour, _selectedEndMinute)
               .subtract(Duration(minutes: 30));
           _selectedStartHour = startTime.hour;
           _selectedStartMinute = startTime.minute;
         }
-
       }
     });
-
-    // Always call server validation, regardless of local validation result
-    print('🔍 [BookingWidget] Calling server validation...');
-    _validateTimeSlotWithServer();
   }
 
-  bool _isTimeSlotOverlapping() {
-    DateTime selectedStart =
-        DateTime(2000, 1, 1, _selectedStartHour, _selectedStartMinute);
-    DateTime selectedEnd =
-        DateTime(2000, 1, 1, _selectedEndHour, _selectedEndMinute);
-
-    for (var booking in _bookingTimeListDisable) {
-      if ((selectedStart.isBefore(booking.endDate)) &&
-          (selectedEnd.isAfter(booking.startDate))) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
+  // MODIFIED: Book time slot - now includes final validation
   void _bookTimeSlot() async {
     final selectedCourtProvider =
         Provider.of<SelectedCourtProvider>(context, listen: false);
@@ -388,10 +349,8 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
 
     if (originalCourt == null || selectedDate == null) return;
 
-    // Use real-time court data for booking validation
     final court = courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
 
-    // Show loading indicator
     setState(() {
       _isValidatingTime = true;
     });
@@ -414,7 +373,7 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     );
 
     try {
-      // Call checkIntersect API directly when booking
+      // Final check before booking (double-check)
       final isAvailable = await _courtService.checkIntersect(
         context,
         court.id,
@@ -426,32 +385,39 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
         _isValidatingTime = false;
       });
 
-      if (isAvailable) {
+      if (isAvailable["success"]) {
         // Time slot is available, proceed with booking
         final checkoutProvider =
             Provider.of<CheckoutProvider>(context, listen: false);
-
         checkoutProvider.startDate = startDate;
         checkoutProvider.endDate = endDate;
-        checkoutProvider.court = court; // Use real-time court data
+        checkoutProvider.court = court;
 
         Navigator.of(context).pushNamed(CheckoutScreen.routeName);
       } else {
+        // Reset validation state if booking failed
+        setState(() {
+          _isTimeSlotChecked = false;
+          _isTimeSlotValid = false;
+          _timeErrorMessage = "Time slot is no longer available";
+        });
+
         IconSnackBar.show(
           context,
-          label: 'The time has overlapped.',
+          label:
+              'The time slot is no longer available. Please select a different time.',
           snackBarType: SnackBarType.alert,
         );
       }
     } catch (error) {
       setState(() {
         _isValidatingTime = false;
+        _isTimeSlotChecked = false;
       });
 
-      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lỗi khi kiểm tra thời gian: ${error.toString()}'),
+          content: Text('Error during booking: ${error.toString()}'),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),
@@ -462,7 +428,6 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   // Get allowed hours for start time
   List<int> _getAllowedStartHours() {
     List<int> allowedHours = [];
-    // Start hours should be from facility start to one hour before facility end
     for (int hour = _facilityStartTime.hour;
         hour < _facilityEndTime.hour;
         hour++) {
@@ -471,18 +436,15 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     return allowedHours;
   }
 
-  // Get allowed minutes for start time based on selected hour
   List<int> _getAllowedStartMinutes(int hour) {
     List<int> baseMinutes = [0, 15, 30, 45];
 
-    // If at facility start hour, filter minutes
     if (hour == _facilityStartTime.hour) {
       return baseMinutes
           .where((minute) => minute >= _facilityStartTime.minute)
           .toList();
     }
 
-    // If at facility end hour, no valid start minutes (should not happen with proper hour filtering)
     if (hour == _facilityEndTime.hour) {
       return [];
     }
@@ -490,35 +452,27 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
     return baseMinutes;
   }
 
-  // Get allowed hours for end time based on selected start time
   List<int> _getAllowedEndHours() {
     List<int> allowedHours = [];
 
-    // End hours should be from start hour to facility end hour
     int minEndHour = _selectedStartHour;
-    if (_selectedStartMinute > 0)
-      minEndHour +=
-          1; // If start has minutes, end hour must be at least start+1
+    if (_selectedStartMinute > 0) minEndHour += 1;
 
     for (int hour = minEndHour; hour <= _facilityEndTime.hour; hour++) {
       allowedHours.add(hour);
     }
-
     return allowedHours;
   }
 
-  // Get allowed minutes for end time based on selected hour
   List<int> _getAllowedEndMinutes(int hour) {
     List<int> baseMinutes = [0, 15, 30, 45];
 
-    // If at start hour, filter minutes to be after start minute
     if (hour == _selectedStartHour) {
       return baseMinutes
           .where((minute) => minute > _selectedStartMinute)
           .toList();
     }
 
-    // If at facility end hour, filter minutes to be at or before facility end minute
     if (hour == _facilityEndTime.hour) {
       return baseMinutes
           .where((minute) => minute <= _facilityEndTime.minute)
@@ -529,61 +483,43 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
   }
 
   void _onTimeChanged({
-    int? startHour,
-    int? startMinute,
-    int? endHour,
-    int? endMinute,
-  }) {
-    print(
-        '🔍 [BookingWidget] Time changed - Start: ${startHour ?? _selectedStartHour}:${startMinute ?? _selectedStartMinute}, End: ${endHour ?? _selectedEndHour}:${endMinute ?? _selectedEndMinute}');
+  int? startHour,
+  int? startMinute,
+  int? endHour,
+  int? endMinute,
+}) {
+  print('🔍 [BookingWidget] Time changed - Start: ${startHour ?? _selectedStartHour}:${startMinute ?? _selectedStartMinute}, '
+        'End: ${endHour ?? _selectedEndHour}:${endMinute ?? _selectedEndMinute}');
 
-    setState(() {
-      bool needsValidation = false;
+  setState(() {
+    bool hasChanged = false;
 
-      // Update start hour if provided
-      if (startHour != null && startHour != _selectedStartHour) {
-        _selectedStartHour = startHour;
-        needsValidation = true;
-      }
-
-      // Update start minute if provided
-      if (startMinute != null && startMinute != _selectedStartMinute) {
-        _selectedStartMinute = startMinute;
-        needsValidation = true;
-      }
-
-      // Update end hour if provided
-      if (endHour != null && endHour != _selectedEndHour) {
-        _selectedEndHour = endHour;
-        needsValidation = true;
-      }
-
-      // Update end minute if provided
-      if (endMinute != null && endMinute != _selectedEndMinute) {
-        _selectedEndMinute = endMinute;
-        needsValidation = true;
-      }
-
-      // Always validate when time changes
-      if (needsValidation) {
-        print('🔍 [BookingWidget] Time changed, triggering validation...');
-        // Reset validation state immediately
-        _isTimeSlotValid = true;
-        _timeErrorMessage = null;
-      }
-    });
-
-    // Call validation after setState
-    if (startHour != null ||
-        startMinute != null ||
-        endHour != null ||
-        endMinute != null) {
-      // Add a small delay to avoid too many rapid API calls
-      Future.delayed(Duration(milliseconds: 500), () {
-        _validateAndAdjustTimes();
-      });
+    if (startHour != null && startHour != _selectedStartHour) {
+      _selectedStartHour = startHour;
+      hasChanged = true;
     }
-  }
+
+    if (startMinute != null && startMinute != _selectedStartMinute) {
+      _selectedStartMinute = startMinute;
+      hasChanged = true;
+    }
+
+    if (endHour != null && endHour != _selectedEndHour) {
+      _selectedEndHour = endHour;
+      hasChanged = true;
+    }
+
+    if (endMinute != null && endMinute != _selectedEndMinute) {
+      _selectedEndMinute = endMinute;
+      hasChanged = true;
+    }
+
+    if (hasChanged) {
+      _validateAndAdjustTimes();
+    }
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -611,32 +547,25 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
           );
         }
 
-        // Use real-time court data if available, otherwise use original court
         final court =
             courtHubProvider.getCourt(originalCourt.id) ?? originalCourt;
         courtHubProvider.isConnected(originalCourt.id);
 
-        // Update data when court changes (real-time updates)
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _getFacilityTimeRange(facility, currentDateTime);
-          _getOrderPeriodsByDate(
-              court, currentDateTime); // Use real-time court data
+          _getOrderPeriodsByDate(court, currentDateTime);
         });
 
         return Column(
           children: [
-            // Booking timeline visualization
             BookingTimelineWidget(
               startTime: _facilityStartTime,
               endTime: _facilityEndTime,
               bookingTimeList: _bookingTimeListDisable,
-              court: court, // Use real-time court data
+              court: court,
               onRemoveBooking: _handleRemoveBooking,
             ),
-
             SizedBox(height: 16),
-
-            // Time selection section
             TimeSelectionWidget(
               selectedStartHour: _selectedStartHour,
               selectedStartMinute: _selectedStartMinute,
@@ -652,9 +581,11 @@ class _BookingWidgetPlayerState extends State<BookingWidgetPlayer> {
               court: court,
               onUpdateInactivePressed: _updateCourtInactive,
               onBookPressed: _bookTimeSlot,
+              onCheckTimeSlot: _checkTimeSlotAvailability,
               errorMessage: _timeErrorMessage,
               isValidating: _isValidatingTime,
               isTimeSlotValid: _isTimeSlotValid,
+              isTimeSlotChecked: _isTimeSlotChecked,
             ),
           ],
         );

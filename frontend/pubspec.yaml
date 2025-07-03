@@ -50,7 +50,7 @@ dependencies:
   google_nav_bar: ^5.0.6
   vietmap_flutter_gl: ^3.2.3
   flutter_rating_bar: ^4.0.1
-  intl: ^0.20.0
+  intl: ^0.19.0
   numberpicker: ^2.1.1
   file_picker: ^8.0.5
   cloudinary_public: ^0.23.1

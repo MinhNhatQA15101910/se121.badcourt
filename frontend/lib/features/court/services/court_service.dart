@@ -90,7 +90,8 @@ class CourtService{
     }
   }
 
-  Future<bool> checkIntersect(
+  // MODIFIED: Return Map with success status and error message
+  Future<Map<String, dynamic>> checkIntersect(
     BuildContext context,
     String courtId,
     DateTime startTime,
@@ -100,6 +101,7 @@ class CourtService{
       context,
       listen: false,
     );
+    
     try {
       final requestBody = {
         "courtId": courtId,
@@ -120,17 +122,34 @@ class CourtService{
       );
 
       if (response.statusCode == 200) {
-        return true;
+        return {
+          'success': true,
+          'errorMessage': null,
+        };
       } else {
-        return false;
+        // Parse error response to get the actual error message
+        String errorMessage = 'This time slot conflicts with an existing booking';
+        
+        try {
+          final errorResponse = jsonDecode(response.body);
+          if (errorResponse is Map<String, dynamic> && errorResponse.containsKey('detail')) {
+            errorMessage = errorResponse['detail'] ?? errorMessage;
+          }
+        } catch (parseError) {
+          print('Error parsing error response: $parseError');
+          // Keep default error message if parsing fails
+        }
+
+        return {
+          'success': false,
+          'errorMessage': errorMessage,
+        };
       }
     } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-      return false;
+      return {
+        'success': false,
+        'errorMessage': error.toString(),
+      };
     }
   }
 

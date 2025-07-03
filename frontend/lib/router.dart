@@ -17,7 +17,6 @@ import 'package:frontend/features/message/screens/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
 import 'package:frontend/features/order/screens/order_detail_screen.dart';
 import 'package:frontend/features/order/screens/order_screen.dart';
-import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/court/screens/court_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
@@ -170,11 +169,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const CourtDetailScreen(),
-      );
-    case BookingSuccessScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BookingSuccessScreen(),
       );
     case PostDetailScreen.routeName:
       final postId = routeSettings.arguments as String;

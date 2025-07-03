@@ -17,13 +17,19 @@ class TimeSelectionWidget extends StatelessWidget {
   final List<int> Function(int hour) getAllowedStartMinutes;
   final List<int> Function() getAllowedEndHours;
   final List<int> Function(int hour) getAllowedEndMinutes;
-  final Function({int? startHour, int? startMinute, int? endHour, int? endMinute}) onTimeChanged;
+  final Function(
+      {int? startHour,
+      int? startMinute,
+      int? endHour,
+      int? endMinute}) onTimeChanged;
   final Court court;
   final VoidCallback onBookPressed;
-  final VoidCallback? onUpdateInactivePressed; // NEW: Add callback for manager action
+  final VoidCallback? onUpdateInactivePressed;
+  final Future<bool> Function() onCheckTimeSlot;
   final String? errorMessage;
   final bool isValidating;
   final bool isTimeSlotValid;
+  final bool isTimeSlotChecked;
 
   const TimeSelectionWidget({
     super.key,
@@ -40,15 +46,17 @@ class TimeSelectionWidget extends StatelessWidget {
     required this.onTimeChanged,
     required this.court,
     required this.onBookPressed,
-    this.onUpdateInactivePressed, // NEW: Optional callback for manager
+    required this.onCheckTimeSlot,
+    this.onUpdateInactivePressed,
     this.errorMessage,
     this.isValidating = false,
     this.isTimeSlotValid = true,
+    this.isTimeSlotChecked = false,
   });
 
   void _showHourPicker(BuildContext context, {required bool isStartTime}) {
     final hours = isStartTime ? getAllowedStartHours() : getAllowedEndHours();
-    
+
     if (hours.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -58,7 +66,7 @@ class TimeSelectionWidget extends StatelessWidget {
       );
       return;
     }
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -83,10 +91,10 @@ class TimeSelectionWidget extends StatelessWidget {
 
   void _showMinutePicker(BuildContext context, {required bool isStartTime}) {
     final selectedHour = isStartTime ? selectedStartHour : selectedEndHour;
-    final minutes = isStartTime 
+    final minutes = isStartTime
         ? getAllowedStartMinutes(selectedHour)
         : getAllowedEndMinutes(selectedHour);
-    
+
     if (minutes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -96,7 +104,7 @@ class TimeSelectionWidget extends StatelessWidget {
       );
       return;
     }
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -120,53 +128,120 @@ class TimeSelectionWidget extends StatelessWidget {
   }
 
   String _calculateDuration() {
-    final startTime = DateTime(
-      2000, 1, 1, selectedStartHour, selectedStartMinute);
-    final endTime = DateTime(
-      2000, 1, 1, selectedEndHour, selectedEndMinute);
-      
+    final startTime =
+        DateTime(2000, 1, 1, selectedStartHour, selectedStartMinute);
+    final endTime = DateTime(2000, 1, 1, selectedEndHour, selectedEndMinute);
+
     if (endTime.isBefore(startTime)) {
       return 'Invalid time';
     }
-    
+
     final duration = endTime.difference(startTime);
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
-      return minutes > 0 
-          ? '$hours hour${hours > 1 ? 's' : ''} $minutes min' 
+      return minutes > 0
+          ? '$hours hour${hours > 1 ? 's' : ''} $minutes min'
           : '$hours hour${hours > 1 ? 's' : ''}';
     } else {
       return '$minutes min';
     }
   }
-  
+
   String _calculatePrice(int pricePerHour) {
-    final startTime = DateTime(
-      2000, 1, 1, selectedStartHour, selectedStartMinute);
-    final endTime = DateTime(
-      2000, 1, 1, selectedEndHour, selectedEndMinute);
-      
+    final startTime =
+        DateTime(2000, 1, 1, selectedStartHour, selectedStartMinute);
+    final endTime = DateTime(2000, 1, 1, selectedEndHour, selectedEndMinute);
+
     if (endTime.isBefore(startTime)) {
       return '0 đ';
     }
-    
+
     final duration = endTime.difference(startTime);
     final hours = duration.inMinutes / 60.0;
     final price = hours * pricePerHour;
-    
+
     return '${price.toStringAsFixed(0)} đ';
+  }
+
+  // FIXED: Handle the integrated button press with context parameter
+  void _handleMainButtonPress(BuildContext context) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isManager = userProvider.user.roles.contains('Manager');
+
+    if (!isTimeSlotChecked) {
+      final isValid =
+          await onCheckTimeSlot(); // Gọi API duy nhất khi chưa kiểm tra
+
+      if (isValid) {
+        if (isManager && onUpdateInactivePressed != null) {
+          onUpdateInactivePressed!();
+        } else {
+          onBookPressed();
+        }
+      }
+    } else if (isTimeSlotValid) {
+      if (isManager && onUpdateInactivePressed != null) {
+        onUpdateInactivePressed!();
+      } else {
+        onBookPressed();
+      }
+    }
+  }
+
+  // FIXED: Get button text based on current state with context parameter
+  String _getButtonText(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isManager = userProvider.user.roles.contains('Manager');
+
+    if (isValidating) {
+      return !isTimeSlotChecked ? 'Checking Availability...' : 'Processing...';
+    }
+
+    if (!isTimeSlotChecked) {
+      return isManager ? 'Check & Update Inactive' : 'Check & Book Now';
+    }
+
+    if (errorMessage != null || !isTimeSlotValid) {
+      return 'Select Different Time';
+    }
+
+    return isManager ? 'Update Inactive' : 'Book Now';
+  }
+
+  // Get button color based on current state
+  Color _getButtonColor() {
+    if (isValidating) {
+      return GlobalVariables.green.withOpacity(0.7);
+    }
+
+    if (!isTimeSlotChecked) {
+      return GlobalVariables.green;
+    }
+
+    if (errorMessage != null || !isTimeSlotValid) {
+      return GlobalVariables.darkGrey;
+    }
+
+    return GlobalVariables.green;
+  }
+
+  // Check if button should be enabled
+  bool _isButtonEnabled() {
+    if (isValidating) return false;
+
+    // Always allow clicking if not checked yet or if there's an error (to re-check)
+    if (!isTimeSlotChecked || errorMessage != null || !isTimeSlotValid) {
+      return true;
+    }
+
+    // Allow proceeding if time slot is valid and checked
+    return isTimeSlotValid && isTimeSlotChecked;
   }
 
   @override
   Widget build(BuildContext context) {
-    // NEW: Check if user is a manager
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final isManager = userProvider.user.roles.contains('Manager');
-    
-    final bool canBook = isTimeSlotValid && !isValidating && errorMessage == null;
-    
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -197,7 +272,7 @@ class TimeSelectionWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           // Validation status indicator
           if (isValidating)
             Container(
@@ -219,7 +294,9 @@ class TimeSelectionWidget extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'Validating time slot...',
+                    !isTimeSlotChecked
+                        ? 'Checking time slot availability...'
+                        : 'Processing...',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.blue,
@@ -228,11 +305,11 @@ class TimeSelectionWidget extends StatelessWidget {
                 ],
               ),
             ),
-          
+
           // Error message
           if (errorMessage != null)
             Container(
-              margin: EdgeInsets.only(top: 8),
+              margin: EdgeInsets.only(top: 8, bottom: 8),
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.1),
@@ -243,45 +320,22 @@ class TimeSelectionWidget extends StatelessWidget {
                   Icon(Icons.error_outline, color: Colors.red, size: 16),
                   SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      errorMessage!,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.red,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          errorMessage!,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          
-          // Success indicator
-          if (!isValidating && isTimeSlotValid && errorMessage == null)
-            Container(
-              margin: EdgeInsets.only(top: 8),
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: GlobalVariables.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle_outline, color: GlobalVariables.green, size: 16),
-                  SizedBox(width: 8),
-                  Text(
-                    'Time slot is available',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: GlobalVariables.green,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          
-          SizedBox(height: 16),
-          
           // Start time selection
           Row(
             children: [
@@ -303,7 +357,8 @@ class TimeSelectionWidget extends StatelessWidget {
                         // Hour selector
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => _showHourPicker(context, isStartTime: true),
+                            onTap: () =>
+                                _showHourPicker(context, isStartTime: true),
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 12),
@@ -336,7 +391,8 @@ class TimeSelectionWidget extends StatelessWidget {
                         // Minute selector
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => _showMinutePicker(context, isStartTime: true),
+                            onTap: () =>
+                                _showMinutePicker(context, isStartTime: true),
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 12),
@@ -347,7 +403,9 @@ class TimeSelectionWidget extends StatelessWidget {
                               ),
                               child: Center(
                                 child: Text(
-                                  selectedStartMinute.toString().padLeft(2, '0'),
+                                  selectedStartMinute
+                                      .toString()
+                                      .padLeft(2, '0'),
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -362,9 +420,9 @@ class TimeSelectionWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               SizedBox(width: 16),
-              
+
               // End time selection
               Expanded(
                 child: Column(
@@ -384,7 +442,8 @@ class TimeSelectionWidget extends StatelessWidget {
                         // Hour selector
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => _showHourPicker(context, isStartTime: false),
+                            onTap: () =>
+                                _showHourPicker(context, isStartTime: false),
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 12),
@@ -417,7 +476,8 @@ class TimeSelectionWidget extends StatelessWidget {
                         // Minute selector
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => _showMinutePicker(context, isStartTime: false),
+                            onTap: () =>
+                                _showMinutePicker(context, isStartTime: false),
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 12),
@@ -445,9 +505,9 @@ class TimeSelectionWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           SizedBox(height: 16),
-          
+
           // Quick time selection buttons
           Row(
             children: [
@@ -456,9 +516,11 @@ class TimeSelectionWidget extends StatelessWidget {
                   label: '-30m',
                   onPressed: () {
                     final newEndMinute = selectedEndMinute - 30;
-                    final newEndHour = selectedEndHour + (newEndMinute < 0 ? -1 : 0);
-                    final adjustedMinute = newEndMinute < 0 ? newEndMinute + 60 : newEndMinute;
-                    
+                    final newEndHour =
+                        selectedEndHour + (newEndMinute < 0 ? -1 : 0);
+                    final adjustedMinute =
+                        newEndMinute < 0 ? newEndMinute + 60 : newEndMinute;
+
                     onTimeChanged(
                       endHour: newEndHour,
                       endMinute: adjustedMinute,
@@ -472,9 +534,11 @@ class TimeSelectionWidget extends StatelessWidget {
                   label: '+30m',
                   onPressed: () {
                     final newEndMinute = selectedEndMinute + 30;
-                    final newEndHour = selectedEndHour + (newEndMinute >= 60 ? 1 : 0);
-                    final adjustedMinute = newEndMinute >= 60 ? newEndMinute - 60 : newEndMinute;
-                    
+                    final newEndHour =
+                        selectedEndHour + (newEndMinute >= 60 ? 1 : 0);
+                    final adjustedMinute =
+                        newEndMinute >= 60 ? newEndMinute - 60 : newEndMinute;
+
                     onTimeChanged(
                       endHour: newEndHour,
                       endMinute: adjustedMinute,
@@ -484,9 +548,9 @@ class TimeSelectionWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           SizedBox(height: 16),
-          
+
           // Duration and price calculation
           Container(
             padding: EdgeInsets.all(12),
@@ -544,55 +608,59 @@ class TimeSelectionWidget extends StatelessWidget {
               ],
             ),
           ),
-          
+
           SizedBox(height: 16),
-          
-          // MODIFIED: Book button - changes based on user role
+
+          // FIXED: Integrated Check & Book button with context passed to methods
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: canBook 
-                  ? (isManager ? onUpdateInactivePressed : onBookPressed) 
+              onPressed: _isButtonEnabled()
+                  ? () => _handleMainButtonPress(context)
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: canBook ? GlobalVariables.green : GlobalVariables.grey,
+                backgroundColor: _getButtonColor(),
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: isValidating 
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              child: isValidating
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Validating...',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                        SizedBox(width: 8),
+                        Text(
+                          _getButtonText(context),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                : Text(
-                    canBook 
-                        ? (isManager ? 'Update Inactive' : 'Book Now')
-                        : 'Time Slot Unavailable',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _getButtonText(context),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
             ),
           ),
         ],
