@@ -4,5 +4,5 @@ using SharedKernel.Params;
 namespace AdminService.Application.Queries.GetDashboardSummary;
 
 public record GetDashboardSummaryQuery(
-    AdminDashboardSummaryParams Params
+    AdminDashboardSummaryParams SummaryParams
 ) : IQuery<AdminDashboardSummaryDto>;

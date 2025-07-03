@@ -1,4 +1,3 @@
-using AuthService.Core.Application.Commands;
 using FluentValidation;
 using MediatR;
 
@@ -7,7 +6,7 @@ namespace AuthService.Core.Application.Behaviors;
 public class ValidationBehavior<TRequest, TResponse>(
     IEnumerable<IValidator<TRequest>> validators
 ) : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : class, ICommand<TResponse>
+    where TRequest : class
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {

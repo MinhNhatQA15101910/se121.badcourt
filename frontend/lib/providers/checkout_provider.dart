@@ -15,7 +15,6 @@ class CheckoutProvider extends ChangeNotifier {
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
 
-  // Getter và Setter cho Court
   Court get court => _court;
 
   set court(Court value) {
@@ -23,7 +22,6 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Getter và Setter cho startDate
   DateTime get startDate => _startDate;
 
   set startDate(DateTime value) {
@@ -31,7 +29,6 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Getter và Setter cho endDate
   DateTime get endDate => _endDate;
 
   set endDate(DateTime value) {
@@ -39,20 +36,17 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Phương thức cập nhật thông tin của một Court
   void updateCourt(Court newCourt) {
     _court = newCourt;
     notifyListeners();
   }
 
-  // Phương thức cập nhật thời gian đặt lịch
   void updateDates(DateTime newStartDate, DateTime newEndDate) {
     _startDate = newStartDate;
     _endDate = newEndDate;
     notifyListeners();
   }
 
-  // Phương thức để clear tất cả các thông tin
   void clear() {
     _court = Court(
       id: '',

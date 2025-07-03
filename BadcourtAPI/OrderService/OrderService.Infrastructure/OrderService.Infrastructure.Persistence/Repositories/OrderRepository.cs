@@ -45,7 +45,7 @@ public class OrderRepository(
             .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
     }
 
-    public Task<List<CourtRevenueDto>> GetCourtRevenueForManagerAsync(ManagerDashboardCourtRevenueParams courtRevenueParams, CancellationToken cancellationToken)
+    public Task<List<CourtRevenueDto>> GetCourtRevenueForManagerAsync(ManagerDashboardCourtRevenueParams courtRevenueParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
 
@@ -78,8 +78,44 @@ public class OrderRepository(
                 CourtName = g.Key.CourtName,
                 Revenue = g.Sum(o => o.Price)
             })
-            .OrderBy(r => r.CourtName)
+            .OrderByDescending(r => r.Revenue)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<PagedList<FacilityRevenueDto>> GetFacilityRevenueForAdminAsync(AdminDashboardFacilityRevenueParams facilityRevenueParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = facilityRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = facilityRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        var facilityRevenues = query
+            .GroupBy(o => new { o.FacilityId, o.FacilityName })
+            .Select(g => new FacilityRevenueDto
+            {
+                FacilityId = g.Key.FacilityId,
+                FacilityName = g.Key.FacilityName,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .AsEnumerable()
+            .OrderByDescending(r => r.Revenue)
+            .Skip(facilityRevenueParams.PageSize * (facilityRevenueParams.PageNumber - 1))
+            .Take(facilityRevenueParams.PageSize)
+            .ToList();
+
+        return Task.FromResult(
+            new PagedList<FacilityRevenueDto>(
+                facilityRevenues,
+                query.Count(),
+                facilityRevenueParams.PageNumber,
+                facilityRevenueParams.PageSize
+            )
+        );
     }
 
     public Task<List<RevenueByMonthDto>> GetMonthlyRevenueForManagerAsync(ManagerDashboardMonthlyRevenueParams @params, CancellationToken cancellationToken)
@@ -286,6 +322,100 @@ public class OrderRepository(
         );
     }
 
+    public Task<PagedList<ProvinceRevenueDto>> GetProvinceRevenueForAdminAsync(AdminDashboardProvinceRevenueParams provinceRevenueParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = provinceRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = provinceRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        var provinceRevenues = query
+            .GroupBy(o => new { o.Province })
+            .Select(g => new ProvinceRevenueDto
+            {
+                Province = g.Key.Province,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .AsEnumerable()
+            .OrderByDescending(r => r.Revenue)
+            .Skip(provinceRevenueParams.PageSize * (provinceRevenueParams.PageNumber - 1))
+            .Take(provinceRevenueParams.PageSize)
+            .ToList();
+
+        return Task.FromResult(
+            new PagedList<ProvinceRevenueDto>(
+                provinceRevenues,
+                query.Count(),
+                provinceRevenueParams.PageNumber,
+                provinceRevenueParams.PageSize
+            )
+        );
+    }
+
+    public async Task<List<RevenueByHourDto>> GetRevenueByHourForAdminAsync(AdminDashboardRevenueByHourParams revenueByHourParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        if (revenueByHourParams.Year.HasValue)
+        {
+            query = query.Where(o => o.CreatedAt.Year == revenueByHourParams.Year.Value);
+        }
+
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        var rawResults = await query
+            .GroupBy(o => o.DateTimePeriod.HourFrom.Hour)
+            .Select(g => new
+            {
+                Hour = g.Key,
+                Revenue = g.Sum(o => o.Price)
+            })
+            .ToListAsync(cancellationToken);
+
+        var fullResult = Enumerable.Range(0, 24)
+            .Select(hour =>
+            {
+                var revenue = rawResults.FirstOrDefault(r => r.Hour == hour)?.Revenue ?? 0;
+                return new RevenueByHourDto
+                {
+                    HourRange = $"{hour:D2}:00 - {(hour + 1) % 24:D2}:00",
+                    Revenue = revenue
+                };
+            })
+            .ToList();
+
+        return fullResult;
+    }
+
+    public Task<List<RevenueStatDto>> GetRevenueStatsForAdminAsync(AdminDashboardRevenueStatParams revenueStatParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by year
+        query = query.Where(o => o.CreatedAt.Year == revenueStatParams.Year);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return Task.FromResult(
+            query
+                .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+                .Select(g => new RevenueStatDto
+                {
+                    Month = g.Key.Month,
+                    Revenue = g.Sum(o => o.Price)
+                })
+                .AsEnumerable()
+                .OrderByDescending(r => r.Revenue)
+                .ToList()
+        );
+    }
+
     public Task<int> GetTotalCustomersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
@@ -309,6 +439,21 @@ public class OrderRepository(
             .CountAsync(cancellationToken);
     }
 
+    public Task<int> GetTotalOrdersForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        return query.CountAsync(cancellationToken);
+    }
+
     public Task<int> GetTotalOrdersForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)
     {
         var query = context.Orders.AsQueryable();
@@ -326,6 +471,22 @@ public class OrderRepository(
         query = query.Where(o => o.State != OrderState.Pending);
 
         return query.CountAsync(cancellationToken);
+    }
+
+    public Task<decimal> GetTotalRevenueForAdminAsync(AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken)
+    {
+        var query = context.Orders.AsQueryable();
+
+        // Filter by date range
+        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
+        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
+
+        // Exclude pending orders
+        query = query.Where(o => o.State != OrderState.Pending);
+
+        // Sum the total revenue
+        return query.SumAsync(o => o.Price, cancellationToken);
     }
 
     public Task<decimal> GetTotalRevenueForFacilityAsync(ManagerDashboardSummaryParams summaryParams, CancellationToken cancellationToken = default)

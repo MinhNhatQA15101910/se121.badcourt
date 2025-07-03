@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/facility_item.dart';
 import 'package:frontend/common/widgets/profile_header_widget.dart';
-import 'package:frontend/common/widgets/separator.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
@@ -46,7 +43,7 @@ class ManagerAccountScreen extends StatelessWidget {
               ),
             ),
             ElevatedButton(
-              onPressed: () async {              
+              onPressed: () async {
                 final authService = AuthService();
                 authService.logOutUser(context);
                 Navigator.of(context).pop();
@@ -91,8 +88,6 @@ class ManagerAccountScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
-            _buildFacilityRatingSection(currentFacilityProvider),
-            const SizedBox(height: 16),
             _buildFacilitySection(currentFacilityProvider),
             const SizedBox(height: 16),
             _buildAccountOptions(context),
@@ -103,80 +98,8 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  // ... rest of the methods remain the same
-  Widget _buildFacilityRatingSection(CurrentFacilityProvider currentFacilityProvider) {
-    return CustomContainer(
-      child: Column(
-        children: [
-          Row(
-            children: [
-              _interMedium14('5.0', GlobalVariables.blackGrey, 1),
-              const SizedBox(width: 8),
-              Expanded(
-                child: RatingBar.builder(
-                  direction: Axis.horizontal,
-                  allowHalfRating: true,
-                  ignoreGestures: true,
-                  itemCount: 5,
-                  itemSize: 16,
-                  unratedColor: GlobalVariables.lightYellow,
-                  itemBuilder: (context, _) => const Icon(
-                    Icons.star,
-                    color: GlobalVariables.yellow,
-                  ),
-                  onRatingUpdate: (rating) {
-                    print(rating);
-                  },
-                ),
-              ),
-              _interRegular14(
-                '(50 Ratings)',
-                GlobalVariables.green,
-                1,
-              ),
-            ],
-          ),
-          Separator(color: GlobalVariables.darkGrey),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _interMedium14(
-                'Response rate (24h recent)',
-                GlobalVariables.blackGrey,
-                1,
-              ),
-              _interBold14(
-                '97%',
-                GlobalVariables.blackGrey,
-                1,
-              ),
-            ],
-          ),
-          Separator(color: GlobalVariables.darkGrey),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.location_on_outlined,
-                color: GlobalVariables.green,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _interBold14(
-                  currentFacilityProvider.currentFacility.detailAddress,
-                  GlobalVariables.blackGrey,
-                  4,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFacilitySection(CurrentFacilityProvider currentFacilityProvider) {
+  Widget _buildFacilitySection(
+      CurrentFacilityProvider currentFacilityProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -315,45 +238,6 @@ class ManagerAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _interRegular14(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
 
-  Widget _interMedium14(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
 
-  Widget _interBold14(String text, Color color, int maxLines) {
-    return Text(
-      text,
-      textAlign: TextAlign.start,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        color: color,
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
 }

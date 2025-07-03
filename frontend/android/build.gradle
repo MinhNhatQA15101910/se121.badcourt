@@ -1,8 +1,21 @@
+buildscript {
+    ext.kotlin_version = '2.0.0'  // Khớp với settings.gradle
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.0'  // Khớp với settings.gradle
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
-         maven { url "https://jitpack.io" }
     }
 }
 

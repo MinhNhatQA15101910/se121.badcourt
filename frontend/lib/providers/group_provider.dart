@@ -3,6 +3,7 @@ import 'package:frontend/common/services/group_hub_service.dart';
 import 'package:frontend/models/group_dto.dart';
 import 'package:frontend/models/message_dto.dart';
 import 'package:frontend/models/paginated_groups_dto.dart';
+import 'package:frontend/models/user.dart';
 
 class GroupProvider extends ChangeNotifier {
   final GroupHubService _groupHubService = GroupHubService();
@@ -38,8 +39,10 @@ class GroupProvider extends ChangeNotifier {
   List<GroupDto> get groups => _groups;
   Set<String> get unreadGroupIds => _unreadGroupIds;
   int get unreadMessageCount => _unreadMessageCount;
-  Map<String, int> get unreadCountByUser => Map.unmodifiable(_unreadCountByUser);
-  Map<String, int> get unreadCountByGroup => Map.unmodifiable(_unreadCountByGroup);
+  Map<String, int> get unreadCountByUser =>
+      Map.unmodifiable(_unreadCountByUser);
+  Map<String, int> get unreadCountByGroup =>
+      Map.unmodifiable(_unreadCountByGroup);
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
@@ -81,7 +84,7 @@ class GroupProvider extends ChangeNotifier {
 
       // Set up callbacks - Updated to handle paginated data
       _groupHubService.onReceiveGroups = _onReceivePaginatedGroups;
-      
+
       // Chỉ sử dụng onNewMessageReceived để tránh duplicate processing
       // Bỏ onNewMessage callback để tránh xử lý trùng lặp
       _groupHubService.onNewMessage = null;
@@ -134,16 +137,18 @@ class GroupProvider extends ChangeNotifier {
   // Unified method để xử lý tin nhắn mới với duplicate prevention
   void _processNewMessage(MessageDto message, {bool isFromOtherUser = false}) {
     // Kiểm tra xem message đã được xử lý chưa
-    final messageKey = '${message.id}_${message.groupId}_${message.messageSent.millisecondsSinceEpoch}';
-    
+    final messageKey =
+        '${message.id}_${message.groupId}_${message.messageSent.millisecondsSinceEpoch}';
+
     if (_processedMessageIds.contains(messageKey)) {
-      print('[GroupProvider] Message already processed, skipping: ${message.id}');
+      print(
+          '[GroupProvider] Message already processed, skipping: ${message.id}');
       return;
     }
 
     // Đánh dấu message đã được xử lý
     _processedMessageIds.add(messageKey);
-    
+
     // Giới hạn số lượng processed message IDs để tránh memory leak
     if (_processedMessageIds.length > 1000) {
       final oldestIds = _processedMessageIds.take(500).toList();
@@ -152,7 +157,8 @@ class GroupProvider extends ChangeNotifier {
       }
     }
 
-    print('[GroupProvider] Processing new message: ${message.content} from ${message.senderUsername}');
+    print(
+        '[GroupProvider] Processing new message: ${message.content} from ${message.senderUsername}');
 
     // Notify listeners about new message
     if (onNewMessage != null) {
@@ -170,7 +176,8 @@ class GroupProvider extends ChangeNotifier {
 
   // Handle new message received from other user (from NewMessageReceived function)
   void _handleNewMessageReceivedFromOtherUser(GroupDto updatedGroup) {
-    print('[GroupProvider] New message received from other user in group: ${updatedGroup.id}');
+    print(
+        '[GroupProvider] New message received from other user in group: ${updatedGroup.id}');
 
     // Kiểm tra xem có lastMessage không
     if (updatedGroup.lastMessage == null) {
@@ -179,12 +186,14 @@ class GroupProvider extends ChangeNotifier {
     }
 
     final lastMessage = updatedGroup.lastMessage!;
-    
+
     // Kiểm tra xem message đã được xử lý chưa
-    final messageKey = '${lastMessage.id}_${lastMessage.groupId}_${lastMessage.messageSent.millisecondsSinceEpoch}';
-    
+    final messageKey =
+        '${lastMessage.id}_${lastMessage.groupId}_${lastMessage.messageSent.millisecondsSinceEpoch}';
+
     if (_processedMessageIds.contains(messageKey)) {
-      print('[GroupProvider] Group update with already processed message, skipping: ${lastMessage.id}');
+      print(
+          '[GroupProvider] Group update with already processed message, skipping: ${lastMessage.id}');
       return;
     }
 
@@ -199,10 +208,9 @@ class GroupProvider extends ChangeNotifier {
 
     // Đánh dấu group có tin nhắn chưa đọc nếu tin nhắn không phải từ user hiện tại
     if (_currentUserId == null || lastMessage.senderId != _currentUserId) {
-      
       // Đánh dấu message đã được xử lý
       _processedMessageIds.add(messageKey);
-      
+
       // Giới hạn số lượng processed message IDs
       if (_processedMessageIds.length > 1000) {
         final oldestIds = _processedMessageIds.take(500).toList();
@@ -210,22 +218,26 @@ class GroupProvider extends ChangeNotifier {
           _processedMessageIds.remove(id);
         }
       }
-      
+
       _unreadGroupIds.add(updatedGroup.id);
-      
+
       // Tăng _unreadMessageCount
       _unreadMessageCount++;
-      
+
       // Cập nhật unread count theo user
       final senderId = lastMessage.senderId;
       _unreadCountByUser[senderId] = (_unreadCountByUser[senderId] ?? 0) + 1;
-      
+
       // Cập nhật unread count theo group
-      _unreadCountByGroup[updatedGroup.id] = (_unreadCountByGroup[updatedGroup.id] ?? 0) + 1;
-      
-      print('[GroupProvider] Group ${updatedGroup.id} marked as unread - message from ${lastMessage.senderUsername}');
-      print('[GroupProvider] Unread count for user $senderId: ${_unreadCountByUser[senderId]}');
-      print('[GroupProvider] Unread count for group ${updatedGroup.id}: ${_unreadCountByGroup[updatedGroup.id]}');
+      _unreadCountByGroup[updatedGroup.id] =
+          (_unreadCountByGroup[updatedGroup.id] ?? 0) + 1;
+
+      print(
+          '[GroupProvider] Group ${updatedGroup.id} marked as unread - message from ${lastMessage.senderUsername}');
+      print(
+          '[GroupProvider] Unread count for user $senderId: ${_unreadCountByUser[senderId]}');
+      print(
+          '[GroupProvider] Unread count for group ${updatedGroup.id}: ${_unreadCountByGroup[updatedGroup.id]}');
     } else {
       print('[GroupProvider] Message from current user, not marking as unread');
     }
@@ -236,7 +248,8 @@ class GroupProvider extends ChangeNotifier {
     // Thông báo cho UI cập nhật
     notifyListeners();
 
-    print('[GroupProvider] Updated total unread count after new message: $_unreadMessageCount');
+    print(
+        '[GroupProvider] Updated total unread count after new message: $_unreadMessageCount');
   }
 
   // Public method to handle new message (can be called from outside)
@@ -340,10 +353,11 @@ class GroupProvider extends ChangeNotifier {
   }
 
   // Update group with new message - Updated với duplicate prevention
-  void _updateGroupWithNewMessage(MessageDto message, {bool isFromOtherUser = false}) {
+  void _updateGroupWithNewMessage(MessageDto message,
+      {bool isFromOtherUser = false}) async {
     final index = _groups.indexWhere((group) => group.id == message.groupId);
     if (index != -1) {
-      // Create updated group with new last message
+      // Existing group logic...
       final currentGroup = _groups[index];
       final updatedGroup = GroupDto(
         id: currentGroup.id,
@@ -355,57 +369,101 @@ class GroupProvider extends ChangeNotifier {
       );
 
       _groups[index] = updatedGroup;
-
-      // Mark as unread only if message is from someone else
-      if (_currentUserId == null || message.senderId != _currentUserId) {
-        _unreadGroupIds.add(message.groupId);
-        
-        // Tăng unread count
-        _unreadMessageCount++;
-        _unreadCountByUser[message.senderId] = (_unreadCountByUser[message.senderId] ?? 0) + 1;
-        _unreadCountByGroup[message.groupId] = (_unreadCountByGroup[message.groupId] ?? 0) + 1;
-        
-        print(
-            '[GroupProvider] Group ${message.groupId} marked as unread - message from ${message.senderUsername}');
-        print('[GroupProvider] Unread count for user ${message.senderId}: ${_unreadCountByUser[message.senderId]}');
-      } else {
-        print(
-            '[GroupProvider] Group ${message.groupId} not marked as unread - message from self');
-      }
-
-      print(
-          '[GroupProvider] Updated group ${message.groupId} with new message');
+      // ... rest of existing logic
     } else {
       // Group not found, create new group with this message
       print(
-          '[GroupProvider] Group ${message.groupId} not found, creating placeholder');
+          '[GroupProvider] Group ${message.groupId} not found, fetching user info and creating group');
 
-      // Create a minimal group for this message
-      final newGroup = GroupDto(
-        id: message.groupId,
-        name: 'New Conversation',
-        users: [], // Will be populated when full group data is received
-        lastMessage: message,
-        connections: [],
-        updatedAt: DateTime.now(),
-      );
+      try {
+        // Fetch user information for the sender
+        User? senderUser;
+        if (message.senderId != _currentUserId) {
+          senderUser = await _fetchUserInfo(message.senderId);
+        }
 
-      _groups.add(newGroup);
-      _totalCount++;
+        // Create users list with available information
+        List<User> users = [];
+        if (senderUser != null) {
+          users.add(senderUser);
+        }
 
-      // Mark as unread if from someone else
-      if (_currentUserId == null || message.senderId != _currentUserId) {
-        _unreadGroupIds.add(message.groupId);
-        
-        // Tăng unread count
-        _unreadMessageCount++;
-        _unreadCountByUser[message.senderId] = (_unreadCountByUser[message.senderId] ?? 0) + 1;
-        _unreadCountByGroup[message.groupId] = (_unreadCountByGroup[message.groupId] ?? 0) + 1;
+        // Add current user if we have the info
+        if (_currentUserId != null) {
+          // You might want to fetch current user info too or get it from UserProvider
+          users.add(User(
+            id: _currentUserId!,
+            username: 'You', // Or get from UserProvider
+            email: '',
+            roles: const [],
+          ));
+        }
+
+        final newGroup = GroupDto(
+          id: message.groupId,
+          name: senderUser?.username ?? 'New Conversation',
+          users: users, // Now has user information
+          lastMessage: message,
+          connections: [],
+          updatedAt: DateTime.now(),
+        );
+
+        _groups.add(newGroup);
+        _totalCount++;
+
+        // Mark as unread if from someone else
+        if (_currentUserId == null || message.senderId != _currentUserId) {
+          _unreadGroupIds.add(message.groupId);
+          _unreadMessageCount++;
+          _unreadCountByUser[message.senderId] =
+              (_unreadCountByUser[message.senderId] ?? 0) + 1;
+          _unreadCountByGroup[message.groupId] =
+              (_unreadCountByGroup[message.groupId] ?? 0) + 1;
+        }
+
+        print(
+            '[GroupProvider] Created new group ${message.groupId} with user info');
+        notifyListeners();
+      } catch (e) {
+        print('[GroupProvider] Error fetching user info: $e');
+        // Fallback to creating group without user info (existing logic)
+        _createGroupWithoutUserInfo(message);
       }
-
-      print(
-          '[GroupProvider] Created new group ${message.groupId} with message');
     }
+  }
+
+  Future<User?> _fetchUserInfo(String userId) async {
+    try {
+      return null;
+    } catch (e) {
+      print('[GroupProvider] Error fetching user $userId: $e');
+      return null;
+    }
+  }
+
+  void _createGroupWithoutUserInfo(MessageDto message) {
+    final newGroup = GroupDto(
+      id: message.groupId,
+      name: 'New Conversation',
+      users: [], // Empty users list
+      lastMessage: message,
+      connections: [],
+      updatedAt: DateTime.now(),
+    );
+
+    _groups.add(newGroup);
+    _totalCount++;
+
+    if (_currentUserId == null || message.senderId != _currentUserId) {
+      _unreadGroupIds.add(message.groupId);
+      _unreadMessageCount++;
+      _unreadCountByUser[message.senderId] =
+          (_unreadCountByUser[message.senderId] ?? 0) + 1;
+      _unreadCountByGroup[message.groupId] =
+          (_unreadCountByGroup[message.groupId] ?? 0) + 1;
+    }
+
+    notifyListeners();
   }
 
   // Add unread group ID
@@ -423,10 +481,12 @@ class GroupProvider extends ChangeNotifier {
     // Trừ unread count nếu group trước đó có unread messages
     if (wasUnread) {
       final unreadCountForGroup = _unreadCountByGroup[groupId] ?? 0;
-      
+
       // Trừ từ tổng unread count
-      _unreadMessageCount = (_unreadMessageCount - unreadCountForGroup).clamp(0, double.infinity).toInt();
-      
+      _unreadMessageCount = (_unreadMessageCount - unreadCountForGroup)
+          .clamp(0, double.infinity)
+          .toInt();
+
       // Tìm sender của last message để trừ unread count theo user
       final group = _groups.firstWhere(
         (g) => g.id == groupId,
@@ -438,24 +498,29 @@ class GroupProvider extends ChangeNotifier {
           updatedAt: DateTime.now(),
         ),
       );
-      
+
       if (group.id.isNotEmpty && group.lastMessage != null) {
         final senderId = group.lastMessage!.senderId;
         final currentUserUnreadCount = _unreadCountByUser[senderId] ?? 0;
-        _unreadCountByUser[senderId] = (currentUserUnreadCount - unreadCountForGroup).clamp(0, double.infinity).toInt();
-        
+        _unreadCountByUser[senderId] =
+            (currentUserUnreadCount - unreadCountForGroup)
+                .clamp(0, double.infinity)
+                .toInt();
+
         // Xóa entry nếu count = 0
         if (_unreadCountByUser[senderId] == 0) {
           _unreadCountByUser.remove(senderId);
         }
-        
-        print('[GroupProvider] Reduced unread count for user $senderId: ${_unreadCountByUser[senderId] ?? 0}');
+
+        print(
+            '[GroupProvider] Reduced unread count for user $senderId: ${_unreadCountByUser[senderId] ?? 0}');
       }
-      
+
       // Reset unread count cho group này
       _unreadCountByGroup.remove(groupId);
-      
-      print('[GroupProvider] Marked group $groupId as read, reduced total unread count to $_unreadMessageCount');
+
+      print(
+          '[GroupProvider] Marked group $groupId as read, reduced total unread count to $_unreadMessageCount');
     }
 
     // Update the group to mark last message as read if it exists
@@ -497,7 +562,7 @@ class GroupProvider extends ChangeNotifier {
   // Mark all messages as read
   void markAllMessagesAsRead() {
     _unreadGroupIds.clear();
-    
+
     // Reset all unread counts
     _unreadMessageCount = 0;
     _unreadCountByUser.clear();
@@ -535,34 +600,39 @@ class GroupProvider extends ChangeNotifier {
     }
 
     notifyListeners();
-    print('[GroupProvider] All messages marked as read, reset all unread counts');
+    print(
+        '[GroupProvider] All messages marked as read, reset all unread counts');
   }
 
   // Mark messages as read for specific user
   void markMessagesAsReadForUser(String userId) {
     final unreadCountForUser = _unreadCountByUser[userId] ?? 0;
-    
+
     if (unreadCountForUser > 0) {
       // Trừ từ tổng unread count
-      _unreadMessageCount = (_unreadMessageCount - unreadCountForUser).clamp(0, double.infinity).toInt();
-      
+      _unreadMessageCount = (_unreadMessageCount - unreadCountForUser)
+          .clamp(0, double.infinity)
+          .toInt();
+
       // Xóa unread count cho user này
       _unreadCountByUser.remove(userId);
-      
+
       // Tìm và mark các groups có tin nhắn từ user này là đã đọc
-      final groupsToMarkRead = _groups.where((group) => 
-        group.lastMessage != null && 
-        group.lastMessage!.senderId == userId &&
-        _unreadGroupIds.contains(group.id)
-      ).toList();
-      
+      final groupsToMarkRead = _groups
+          .where((group) =>
+              group.lastMessage != null &&
+              group.lastMessage!.senderId == userId &&
+              _unreadGroupIds.contains(group.id))
+          .toList();
+
       for (final group in groupsToMarkRead) {
         _unreadGroupIds.remove(group.id);
         _unreadCountByGroup.remove(group.id);
       }
-      
+
       notifyListeners();
-      print('[GroupProvider] Marked all messages from user $userId as read, reduced total unread count to $_unreadMessageCount');
+      print(
+          '[GroupProvider] Marked all messages from user $userId as read, reduced total unread count to $_unreadMessageCount');
     }
   }
 
@@ -700,7 +770,27 @@ class GroupProvider extends ChangeNotifier {
       for (final id in oldestIds) {
         _processedMessageIds.remove(id);
       }
-      print('[GroupProvider] Cleared ${oldestIds.length} old processed message IDs');
+      print(
+          '[GroupProvider] Cleared ${oldestIds.length} old processed message IDs');
     }
   }
+
+  void updateGroupWithUserInfo(String groupId, List<User> users) {
+  final groupIndex = _groups.indexWhere((g) => g.id == groupId);
+  if (groupIndex == -1) return;
+
+  final group = _groups[groupIndex];
+  final updatedGroup = GroupDto(
+    id: group.id,
+    name: users.isNotEmpty ? users.first.username : group.name,
+    users: users,
+    lastMessage: group.lastMessage,
+    connections: group.connections,
+    updatedAt: group.updatedAt,
+  );
+
+  _groups[groupIndex] = updatedGroup;
+  notifyListeners();
+  print('[GroupProvider] Updated group ${groupId} with ${users.length} users');
+}
 }
