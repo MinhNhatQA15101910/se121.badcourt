@@ -43,6 +43,7 @@ public static class ApplicationServiceExtensions
             x.AddConsumer<CourtCreatedConsumer>();
             x.AddConsumer<CourtUpdatedConsumer>();
             x.AddConsumer<FacilityRatedConsumer>();
+            x.AddConsumer<CourtDeletedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
@@ -57,6 +58,10 @@ public static class ApplicationServiceExtensions
                 cfg.ReceiveEndpoint("FacilityService-facility-rated-queue", e =>
                 {
                     e.ConfigureConsumer<FacilityRatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("FacilityService-court-deleted-queue", e =>
+                {
+                    e.ConfigureConsumer<CourtDeletedConsumer>(ctx);
                 });
             });
         });

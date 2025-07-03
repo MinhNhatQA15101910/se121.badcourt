@@ -2,7 +2,9 @@ using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
 using CourtService.Core.Application.Interfaces.ServiceClients;
 using CourtService.Core.Domain.Repositories;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
+using SharedKernel.Events;
 using SharedKernel.Exceptions;
 using SharedKernel.Params;
 
@@ -11,7 +13,8 @@ namespace CourtService.Core.Application.Handlers.CommandHandlers;
 public class DeleteCourtHandler(
     IHttpContextAccessor httpContextAccessor,
     IOrderServiceClient orderServiceClient,
-    ICourtRepository courtRepository
+    ICourtRepository courtRepository,
+    IPublishEndpoint publishEndpoint
 ) : ICommandHandler<DeleteCourtCommand, bool>
 {
     public async Task<bool> Handle(DeleteCourtCommand request, CancellationToken cancellationToken)
@@ -41,6 +44,11 @@ public class DeleteCourtHandler(
         }
 
         await courtRepository.DeleteCourtAsync(court, cancellationToken);
+
+        var minPrice = await courtRepository.GetFacilityMinPriceAsync(court.FacilityId, cancellationToken);
+        var maxPrice = await courtRepository.GetFacilityMaxPriceAsync(court.FacilityId, cancellationToken);
+        var courtDeletedEvent = new CourtDeletedEvent(court.FacilityId, minPrice, maxPrice);
+        await publishEndpoint.Publish(courtDeletedEvent, cancellationToken);
 
         return true;
     }

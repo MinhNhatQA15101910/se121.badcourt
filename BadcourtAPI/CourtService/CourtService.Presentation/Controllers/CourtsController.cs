@@ -54,4 +54,13 @@ public class CourtsController(IMediator mediator) : ControllerBase
         await mediator.Send(new UpdateInactiveCommand(id, updateInactiveDto));
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin, Manager")]
+    [HttpDelete("{id:length(24)}")]
+    public async Task<IActionResult> DeleteCourt(string id)
+    {
+        var command = new DeleteCourtCommand(id);
+        await mediator.Send(command);
+        return Ok();
+    }
 }

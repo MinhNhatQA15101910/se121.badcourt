@@ -184,6 +184,13 @@
       "UpstreamPathTemplate": "/gateway/courts/update-inactive/{id}",
       "UpstreamHttpMethod": ["Put"]
     },
+    {
+      "DownstreamPathTemplate": "/api/courts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts/{id}",
+      "UpstreamHttpMethod": ["Delete"]
+    },
 
     {
       "DownstreamPathTemplate": "/api/orders",
