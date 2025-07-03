@@ -1,7 +1,7 @@
 using AutoMapper;
-using CourtService.Core.Application.ApiRepositories;
 using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
+using CourtService.Core.Application.Interfaces.ServiceClients;
 using CourtService.Core.Domain.Entities;
 using CourtService.Core.Domain.Repositories;
 using MassTransit;
@@ -15,7 +15,7 @@ namespace CourtService.Core.Application.Handlers.CommandHandlers;
 public class UpdateInactiveHandler(
     ICourtRepository courtRepository,
     IHttpContextAccessor httpContextAccessor,
-    IFacilityApiRepository facilityApiRepository,
+    IFacilityServiceClient facilityServiceClient,
     IMapper mapper,
     IPublishEndpoint publishEndpoint
 ) : ICommandHandler<UpdateInactiveCommand, bool>
@@ -37,7 +37,7 @@ public class UpdateInactiveHandler(
         var court = await courtRepository.GetCourtByIdAsync(request.CourtId, cancellationToken)
             ?? throw new CourtNotFoundException(request.CourtId);
 
-        var facility = await facilityApiRepository.GetFacilityByIdAsync(court.FacilityId)
+        var facility = await facilityServiceClient.GetFacilityByIdAsync(court.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(court.FacilityId);
 
         if (facility.UserId != userId)

@@ -9,6 +9,7 @@ public interface ICourtRepository
 {
     Task AddCourtAsync(Court court, CancellationToken cancellationToken = default);
     Task<bool> AnyAsync(CancellationToken cancellationToken = default);
+    Task DeleteCourtAsync(Court court, CancellationToken cancellationToken = default);
     Task<Court?> GetCourtByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<Court?> GetCourtByNameAsync(string courtName, string facilityId, CancellationToken cancellationToken = default);
     Task<PagedList<CourtDto>> GetCourtsAsync(CourtParams courtParams, CancellationToken cancellationToken = default);

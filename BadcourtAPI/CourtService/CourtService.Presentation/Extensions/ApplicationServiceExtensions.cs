@@ -1,10 +1,11 @@
 using CourtService.Core.Application;
-using CourtService.Core.Application.ApiRepositories;
 using CourtService.Core.Application.Consumers;
+using CourtService.Core.Application.Interfaces.ServiceClients;
 using CourtService.Core.Application.Validators;
 using CourtService.Core.Domain.Repositories;
 using CourtService.Infrastructure.Configuration;
 using CourtService.Infrastructure.Persistence.Repositories;
+using CourtService.Infrastructure.Services.ServiceClients;
 using CourtService.Presentation.Middlewares;
 using FluentValidation;
 using MassTransit;
@@ -50,7 +51,7 @@ public static class ApplicationServiceExtensions
             });
         });
 
-        return services.AddPersistence(config).AddApplication(config);
+        return services.AddPersistence(config).AddApplication(config).AddServices(config);
     }
 
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration config)
@@ -62,9 +63,15 @@ public static class ApplicationServiceExtensions
 
         services.AddAutoMapper(applicationAssembly);
 
-        services.AddSingleton<ApiEndpoints>();
+        return services;
+    }
 
-        services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();
+    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<ApiEndpoints>(configuration.GetSection(nameof(ApiEndpoints)));
+
+        services.AddHttpClient<IFacilityServiceClient, FacilityServiceClient>();
+        services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
 
         return services;
     }

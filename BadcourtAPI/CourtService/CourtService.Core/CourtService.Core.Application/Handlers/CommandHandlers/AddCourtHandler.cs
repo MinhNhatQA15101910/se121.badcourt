@@ -1,7 +1,7 @@
 using AutoMapper;
-using CourtService.Core.Application.ApiRepositories;
 using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
+using CourtService.Core.Application.Interfaces.ServiceClients;
 using CourtService.Core.Domain.Entities;
 using CourtService.Core.Domain.Repositories;
 using MassTransit;
@@ -15,7 +15,7 @@ namespace CourtService.Core.Application.Handlers.CommandHandlers;
 public class AddCourtHandler(
     IHttpContextAccessor httpContextAccessor,
     ICourtRepository courtRepository,
-    IFacilityApiRepository facilityApiRepository,
+    IFacilityServiceClient facilityServiceClient,
     IMapper mapper,
     IPublishEndpoint publishEndpoint
 ) : ICommandHandler<AddCourtCommand, CourtDto>
@@ -24,7 +24,7 @@ public class AddCourtHandler(
     {
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
 
-        var facility = await facilityApiRepository.GetFacilityByIdAsync(request.AddCourtDto.FacilityId)
+        var facility = await facilityServiceClient.GetFacilityByIdAsync(request.AddCourtDto.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(request.AddCourtDto.FacilityId);
 
         if (facility.UserId != userId)

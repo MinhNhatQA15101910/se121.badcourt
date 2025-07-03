@@ -119,6 +119,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminService.Application", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminService.Infrastructure.Services", "AdminService\AdminService.Infrastructure.Services\AdminService.Infrastructure.Services.csproj", "{308AFC39-2324-45C5-A9E0-725DFD31C8F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CourtService.Infrastructure.Services", "CourtService\CourtService.Infrastructure\CourtService.Infrastructure.Services\CourtService.Infrastructure.Services.csproj", "{A41AD582-28D0-4D06-9EBB-21F3973EBF59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -633,6 +635,18 @@ Global
 		{308AFC39-2324-45C5-A9E0-725DFD31C8F5}.Release|x64.Build.0 = Release|Any CPU
 		{308AFC39-2324-45C5-A9E0-725DFD31C8F5}.Release|x86.ActiveCfg = Release|Any CPU
 		{308AFC39-2324-45C5-A9E0-725DFD31C8F5}.Release|x86.Build.0 = Release|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Debug|x64.Build.0 = Debug|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Debug|x86.Build.0 = Debug|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Release|x64.ActiveCfg = Release|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Release|x64.Build.0 = Release|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Release|x86.ActiveCfg = Release|Any CPU
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -685,5 +699,6 @@ Global
 		{23FF44EA-0B89-4FAF-9EB4-08965E41E4AA} = {B18487DC-1FBF-604C-975D-98000AC67BD8}
 		{73DBF783-130E-421B-8A06-289F5242F690} = {B18487DC-1FBF-604C-975D-98000AC67BD8}
 		{308AFC39-2324-45C5-A9E0-725DFD31C8F5} = {B18487DC-1FBF-604C-975D-98000AC67BD8}
+		{A41AD582-28D0-4D06-9EBB-21F3973EBF59} = {4DF0DACA-0AAF-7F73-908B-7241FAD972C3}
 	EndGlobalSection
 EndGlobal
