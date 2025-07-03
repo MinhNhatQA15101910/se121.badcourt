@@ -3,6 +3,8 @@ import 'dart:convert';
 class Rating {
   final String id;
   final String userId;
+  final String username;      
+  final String userImageUrl;   
   final String facilityId;
   final int stars;
   final String feedback;
@@ -11,6 +13,8 @@ class Rating {
   const Rating({
     required this.id,
     required this.userId,
+    required this.username,     
+    required this.userImageUrl, 
     required this.facilityId,
     required this.stars,
     required this.feedback,
@@ -30,6 +34,8 @@ class Rating {
     return Rating(
       id: map['id'] ?? '',
       userId: map['userId'] ?? '',
+      username: map['username'] ?? '',          
+      userImageUrl: map['userImageUrl'] ?? '',  
       facilityId: map['facilityId'] ?? '',
       stars: (map['stars'] ?? 0).toInt(),
       feedback: map['feedback'] ?? '',
@@ -40,6 +46,8 @@ class Rating {
   Map<String, dynamic> toMap() => {
         'id': id,
         'userId': userId,
+        'username': username,              
+        'userImageUrl': userImageUrl,    
         'facilityId': facilityId,
         'stars': stars,
         'feedback': feedback,
@@ -53,6 +61,6 @@ class Rating {
 
   @override
   String toString() =>
-      'Rating(id: $id, userId: $userId, facilityId: $facilityId, '
+      'Rating(id: $id, userId: $userId, username: $username, '
       'stars: $stars, feedback: $feedback, createdAt: $createdAt)';
 }

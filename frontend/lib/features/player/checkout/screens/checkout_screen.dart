@@ -3,9 +3,9 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
+import 'package:frontend/features/player/checkout/services/stripe_service.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_item.dart';
 import 'package:frontend/features/player/checkout/widgets/checkout_total_price.dart';
-import 'package:frontend/features/facility_detail/services/facility_detail_service.dart';
 import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -20,40 +20,43 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  final _facilityDetailService = FacilityDetailService();
-  bool _isBooking = false;
+  final _stripeService = StripeService();
+  bool _isProcessingPayment = false;
 
   void _navigateToSuccessScreen() {
     Navigator.of(context).pushReplacementNamed(BookingSuccessScreen.routeName);
   }
 
-  Future<void> bookCourt(
-    String id,
+  Future<void> _processStripePayment(
+    String courtId,
     DateTime startTime,
     DateTime endTime,
   ) async {
     setState(() {
-      _isBooking = true;
+      _isProcessingPayment = true;
     });
 
     try {
-      await _facilityDetailService.bookCourt(
+      final success = await _stripeService.processPayment(
         context,
-        id,
+        courtId,
         startTime,
         endTime,
       );
-      
-      // Navigate to success screen
-      _navigateToSuccessScreen();
+
+      if (success) {
+        // Navigate to success screen
+        _navigateToSuccessScreen();
+      }
     } catch (e) {
       IconSnackBar.show(
         context,
-        label: 'Booking failed. Please try again.',
+        label: 'Payment failed. Please try again.',
         snackBarType: SnackBarType.fail,
       );
+    } finally {
       setState(() {
-        _isBooking = false;
+        _isProcessingPayment = false;
       });
     }
   }
@@ -87,7 +90,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final court = checkoutProvider.court;
             final startDate = checkoutProvider.startDate;
             final endDate = checkoutProvider.endDate;
-            final durationHours = endDate.difference(startDate).inHours;
+            final durationHours = endDate.difference(startDate).inMinutes / 60;
             final pricePerHour = court.pricePerHour;
             final totalPrice = durationHours * pricePerHour;
 
@@ -121,13 +124,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               bottomRight: Radius.circular(20),
                             ),
                             child: Image.network(
-                              currentFacilityProvider.currentFacility.facilityImages.first.url,
+                              currentFacilityProvider
+                                  .currentFacility.facilityImages.first.url,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
                                   color: GlobalVariables.lightGrey,
                                   child: const Center(
-                                    child: Icon(Icons.image_not_supported, size: 50),
+                                    child: Icon(Icons.image_not_supported,
+                                        size: 50),
                                   ),
                                 );
                               },
@@ -172,7 +177,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      currentFacilityProvider.currentFacility.facilityName,
+                                      currentFacilityProvider
+                                          .currentFacility.facilityName,
                                       style: GoogleFonts.inter(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
@@ -190,7 +196,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
-                                            currentFacilityProvider.currentFacility.province,
+                                            currentFacilityProvider
+                                                .currentFacility.province,
                                             style: GoogleFonts.inter(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w400,
@@ -239,6 +246,71 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
 
                         const SizedBox(height: 20),
+
+                        // Payment Method Info
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: GlobalVariables.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.payment,
+                                  color: GlobalVariables.green,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Secure Payment',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: GlobalVariables.blackGrey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Powered by Stripe - Your payment is secure',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: GlobalVariables.darkGrey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.security,
+                                color: GlobalVariables.green,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -259,13 +331,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: SafeArea(
                     child: CustomButton(
-                      buttonText: _isBooking ? 'Processing...' : 'Confirm Booking',
+                      buttonText: _isProcessingPayment
+                          ? 'Processing Payment...'
+                          : 'Pay & Confirm Booking',
                       borderColor: GlobalVariables.green,
-                      fillColor: _isBooking ? GlobalVariables.darkGrey : GlobalVariables.green,
+                      fillColor: _isProcessingPayment
+                          ? GlobalVariables.darkGrey
+                          : GlobalVariables.green,
                       textColor: Colors.white,
                       onTap: () {
-                        if (!_isBooking) {
-                          bookCourt(
+                        if (!_isProcessingPayment) {
+                          _processStripePayment(
                             court.id,
                             startDate,
                             endDate,

@@ -21,7 +21,7 @@ class CheckoutItem extends StatelessWidget {
         final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
 
         // Calculate duration and total price
-        final durationHours = endDate.difference(startDate).inHours;
+        final durationHours = endDate.difference(startDate).inMinutes / 60;
         final totalPrice = durationHours * pricePerHour;
 
         return Container(

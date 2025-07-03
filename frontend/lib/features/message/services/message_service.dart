@@ -4,7 +4,7 @@ import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/error_handling.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/paginated_groups_dto.dart';
-import 'package:frontend/models/paginated_messages_dto.dart'; // Changed import
+import 'package:frontend/models/paginated_messages_dto.dart';
 import 'package:frontend/models/user.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
@@ -14,14 +14,12 @@ import 'package:path/path.dart';
 
 class MessageService {
   Future<PaginatedMessagesDto> fetchMessagesByOrderUserId({
-    // Changed return type
     required BuildContext context,
     required String userId,
     int pageNumber = 1,
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    PaginatedMessagesDto? paginatedResponse; // Changed type
-
+    PaginatedMessagesDto? paginatedResponse;
     try {
       final response = await http.get(
         Uri.parse(
@@ -36,7 +34,6 @@ class MessageService {
         response: response,
         context: context,
         onSuccess: () {
-          // Assuming the API returns a JSON object with 'items', 'currentPage', 'totalPages', 'pageSize'
           final Map<String, dynamic> responseBody = jsonDecode(response.body);
           paginatedResponse = PaginatedMessagesDto.fromJson(responseBody);
         },
@@ -49,7 +46,6 @@ class MessageService {
       );
     }
 
-    // Return an empty response if something went wrong, or the actual response
     return paginatedResponse ??
         PaginatedMessagesDto(
             items: [],
@@ -59,17 +55,23 @@ class MessageService {
             totalCount: 0);
   }
 
-  Future<PaginatedGroupsDto> fetchGroup({
-    // Changed return type
+  Future<PaginatedGroupsDto> fetchGroup({ 
     required BuildContext context,
     int pageNumber = 1,
+    String? username, // Added search parameter
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    PaginatedGroupsDto? paginatedResponse; // Changed type
-
+    PaginatedGroupsDto? paginatedResponse;
+    
     try {
+      // Build URL with search query if provided
+      String url = '$uri/gateway/groups?pageNumber=$pageNumber';
+      if (username != null && username.trim().isNotEmpty) {
+        url += '&username=${Uri.encodeComponent(username.trim())}';
+      }
+      
       final response = await http.get(
-        Uri.parse('$uri/gateway/groups?pageNumber=$pageNumber'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -105,10 +107,9 @@ class MessageService {
     required BuildContext context,
     required String recipientId,
     required String content,
-    required List<File> resources, // image or video files
+    required List<File> resources,
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
       final uriRequest = Uri.parse('$uri/gateway/messages');
       final request = http.MultipartRequest('POST', uriRequest)
@@ -131,8 +132,7 @@ class MessageService {
       httpErrorHandler(
         response: response,
         context: context,
-        onSuccess: () {
-        },
+        onSuccess: () {},
       );
     } catch (e) {
       IconSnackBar.show(
@@ -142,16 +142,14 @@ class MessageService {
       );
     }
   }
-  
+
   Future<User?> fetchUserById({
     required BuildContext context,
     required String userId,
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-
     try {
       final Uri currentUri = Uri.parse('$uri/gateway/users/$userId');
-
       http.Response res = await http.get(
         currentUri,
         headers: {
@@ -161,7 +159,6 @@ class MessageService {
       );
 
       User? user;
-
       httpErrorHandler(
         response: res,
         context: context,
@@ -180,7 +177,6 @@ class MessageService {
           }
         },
       );
-
       return user;
     } catch (error) {
       IconSnackBar.show(

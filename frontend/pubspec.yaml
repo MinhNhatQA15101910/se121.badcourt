@@ -64,11 +64,18 @@ dependencies:
   socket_io_client: ^3.0.2
   vietmap_gl_platform_interface: ^0.3.0
   signalr_netcore: ^1.4.3
-  lottie: ^3.3.1
+  lottie: ^2.2.0
   video_player: ^2.10.0
   permission_handler: ^12.0.0+1  
   video_thumbnail: ^0.5.6
   mime: ^2.0.0
+  flutter_stripe: ^11.5.0
+  fl_chart: ^1.0.0
+  screenshot: ^3.0.0
+  share_plus: ^11.0.0
+  excel: ^4.0.6
+
+
 
 dev_dependencies:
   flutter_test:
@@ -101,7 +108,6 @@ flutter:
     - .env
     - assets/images/
     - assets/vectors/
-    - assets/default_google_pay_config.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

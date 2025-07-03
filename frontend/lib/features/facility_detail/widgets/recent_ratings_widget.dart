@@ -93,7 +93,6 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
             ],
           ),
           const SizedBox(height: 16),
-          
           if (_isLoading)
             const Center(
               child: Padding(
@@ -105,7 +104,9 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
             _buildEmptyState()
           else
             Column(
-              children: _recentRatings.map((rating) => _buildRatingItem(rating)).toList(),
+              children: _recentRatings
+                  .map((rating) => _buildRatingItem(rating))
+                  .toList(),
             ),
         ],
       ),
@@ -113,8 +114,7 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return Center(
       child: Column(
         children: [
           Icon(
@@ -131,14 +131,6 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
               color: GlobalVariables.darkGrey,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Be the first to leave a review!',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: GlobalVariables.darkGrey,
-            ),
-          ),
         ],
       ),
     );
@@ -148,7 +140,8 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
     final stars = rating['stars'] as int;
     final feedback = rating['feedback'] as String? ?? '';
     final createdAt = DateTime.parse(rating['createdAt']);
-    final userId = rating['userId'] as String? ?? '';
+    final username = rating['username'] as String? ?? '';
+    final userImageUrl = rating['userImageUrl'] as String? ?? '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -165,28 +158,27 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
         children: [
           Row(
             children: [
-              // User avatar placeholder
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: GlobalVariables.green.withOpacity(0.1),
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: GlobalVariables.green,
-                  size: 16,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  userImageUrl,
+                  fit: BoxFit.cover,
+                  width: 32,
+                  height: 32,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.person,
+                    size: 32,
+                    color: GlobalVariables.green,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'User ${userId.substring(0, 8)}...',
+                      username,
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -202,7 +194,9 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
                             return Icon(
                               index < stars ? Icons.star : Icons.star_border,
                               size: 12,
-                              color: index < stars ? Colors.amber : GlobalVariables.lightGrey,
+                              color: index < stars
+                                  ? Colors.amber
+                                  : GlobalVariables.lightGrey,
                             );
                           }),
                         ),
@@ -221,7 +215,6 @@ class _RecentRatingsWidgetState extends State<RecentRatingsWidget> {
               ),
             ],
           ),
-          
           if (feedback.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(

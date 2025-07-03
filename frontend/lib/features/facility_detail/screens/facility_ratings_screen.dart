@@ -237,7 +237,8 @@ class _FacilityRatingsScreenState extends State<FacilityRatingsScreen> {
     final stars = rating['stars'] as int;
     final feedback = rating['feedback'] as String? ?? '';
     final createdAt = DateTime.parse(rating['createdAt']);
-    final userId = rating['userId'] as String? ?? '';
+    final username = rating['username'] as String? ?? '';
+    final userImageUrl = rating['userImageUrl'] as String? ?? '';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -258,18 +259,18 @@ class _FacilityRatingsScreenState extends State<FacilityRatingsScreen> {
         children: [
           Row(
             children: [
-              // User avatar placeholder
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: GlobalVariables.green.withOpacity(0.1),
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: GlobalVariables.green,
-                  size: 20,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  userImageUrl,
+                  fit: BoxFit.cover,
+                  width: 32,
+                  height: 32,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.person,
+                    size: 32,
+                    color: GlobalVariables.green,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -279,7 +280,7 @@ class _FacilityRatingsScreenState extends State<FacilityRatingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'User ${userId.substring(0, 8)}...',
+                      username,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

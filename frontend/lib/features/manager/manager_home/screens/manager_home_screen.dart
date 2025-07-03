@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/booking_management/screens/booking_management_screen.dart';
+import 'package:frontend/features/court/screens/court_screen.dart';
+import 'package:frontend/features/order/screens/order_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
-import 'package:frontend/features/manager/datetime_management/screens/datetime_management_screen.dart';
 import 'package:frontend/features/manager/manager_home/widgets/facility_home.dart';
 import 'package:frontend/features/manager/manager_home/widgets/item_tag.dart';
+import 'package:frontend/features/manager/statistic/screens/statistic_screen.dart';
 
 class ManagerHomeScreen extends StatefulWidget {
   const ManagerHomeScreen({super.key});
@@ -14,18 +15,22 @@ class ManagerHomeScreen extends StatefulWidget {
 }
 
 class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
-  void _navigateToDatetimeManagementScreen() {
-    Navigator.of(context).pushNamed(DatetimeManagementScreen.routeName);
+  void _navigateToCourtScreen() {
+    Navigator.of(context).pushNamed(CourtScreen.routeName);
   }
 
   void _navigateToBookingManagementScreen() {
-    Navigator.of(context).pushNamed(BookingManagementScreen.routeName);
+    Navigator.of(context).pushNamed(OrderScreen.routeName);
   }
 
   void _navigateToFacilityDetailScreen() {
     Navigator.of(context).pushNamed(
       FacilityDetailScreen.routeName,
     );
+  }
+
+  void _navigateToStatisticScreen() {
+    Navigator.of(context).pushNamed(StatisticScreen.routeName);
   }
 
   @override
@@ -61,7 +66,7 @@ class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
                 description:
                     'Update the information of your badminton facility',
                 imgPath: 'assets/images/img_recent.png',
-                onTap: _navigateToDatetimeManagementScreen,
+                onTap: _navigateToCourtScreen,
                 isVisibleArrow: true,
               ),
               ItemTag(
@@ -69,7 +74,7 @@ class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
                 description:
                     'Statistics on your badminton facility business activities',
                 imgPath: 'assets/images/img_statistic.png',
-                onTap: () {},
+                onTap: _navigateToStatisticScreen, // Updated
                 isVisibleArrow: true,
               ),
               ItemTag(

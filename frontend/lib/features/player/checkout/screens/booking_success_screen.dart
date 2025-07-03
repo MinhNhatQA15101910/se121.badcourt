@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_button.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/facility_detail/screens/court_detail_screen.dart';
+import 'package:frontend/features/court/screens/court_screen.dart';
 import 'package:frontend/features/player/player_bottom_bar.dart';
 import 'package:frontend/providers/checkout_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -323,7 +323,7 @@ class BookingSuccessScreen extends StatelessWidget {
     
     Navigator.popUntil(context, (route) {
       // Kiểm tra xem route hiện tại có phải là CourtDetailScreen không
-      if (route.settings.name == CourtDetailScreen.routeName) {
+      if (route.settings.name == CourtScreen.routeName) {
         foundCourtDetailScreen = true;
         return true;
       }
@@ -339,7 +339,7 @@ class BookingSuccessScreen extends StatelessWidget {
     
     // Nếu không tìm thấy CourtDetailScreen trong stack, điều hướng đến đó
     if (!foundCourtDetailScreen) {
-      Navigator.pushNamed(context, CourtDetailScreen.routeName);
+      Navigator.pushNamed(context, CourtScreen.routeName);
     }
   }
 
