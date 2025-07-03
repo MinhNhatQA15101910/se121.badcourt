@@ -18,11 +18,15 @@ export function RevenueByHour() {
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(false)
 
+  // Timezone offset in hours (UTC+7)
+  const TIMEZONE_OFFSET = 7
+
   // Load data when year changes
   useEffect(() => {
     loadHourlyData()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear])
+
   const loadHourlyData = async () => {
     try {
       setLoading(true)
@@ -38,9 +42,34 @@ export function RevenueByHour() {
     }
   }
 
+  // Function to adjust hour range for timezone
+  const adjustHourRangeForTimezone = (hourRange: string, offsetHours: number): string => {
+    try {
+      // Parse hour range like "00:00-01:00" or "23:00-00:00"
+      const [startTime, endTime] = hourRange.split("-")
+
+      const adjustTime = (timeStr: string): string => {
+        const [hours, minutes] = timeStr.split(":").map(Number)
+        let adjustedHours = (hours + offsetHours) % 24
+        if (adjustedHours < 0) adjustedHours += 24
+
+        return `${adjustedHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+      }
+
+      const adjustedStart = adjustTime(startTime)
+      const adjustedEnd = adjustTime(endTime)
+
+      return `${adjustedStart}-${adjustedEnd}`
+    } catch (error) {
+      console.warn("Failed to parse hour range:", hourRange, error)
+      return hourRange // Return original if parsing fails
+    }
+  }
+
   // Check scroll position to show/hide arrows
   const checkScroll = () => {
     if (!scrollContainerRef.current) return
+
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
     setShowLeftArrow(scrollLeft > 0)
     setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5)
@@ -63,6 +92,7 @@ export function RevenueByHour() {
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return
+
     const scrollAmount = 200
     scrollContainerRef.current.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
@@ -70,13 +100,28 @@ export function RevenueByHour() {
     })
   }
 
-  // Transform API data to chart format
+  // Transform API data to chart format with timezone adjustment
   const transformDataForChart = (data: HourlyRevenueStats[]) => {
-    return data.map((item) => ({
-      hour: item.hourRange,
-      revenue: Math.round(item.revenue / 1000), // Convert to thousands
-      originalRevenue: item.revenue,
-    }))
+    return data
+      .map((item) => {
+        const adjustedHourRange = adjustHourRangeForTimezone(item.hourRange, TIMEZONE_OFFSET)
+
+        return {
+          hour: adjustedHourRange,
+          revenue: Math.round(item.revenue / 1000), // Convert to thousands
+          originalRevenue: item.revenue,
+          originalHour: item.hourRange, // Keep original for reference
+        }
+      })
+      .sort((a, b) => {
+        // Sort by the start hour to maintain proper order after timezone adjustment
+        const getStartHour = (hourRange: string) => {
+          const startTime = hourRange.split("-")[0]
+          return Number.parseInt(startTime.split(":")[0])
+        }
+
+        return getStartHour(a.hour) - getStartHour(b.hour)
+      })
   }
 
   const chartData = transformDataForChart(hourlyData)
@@ -86,6 +131,7 @@ export function RevenueByHour() {
     chartData.length > 0
       ? chartData.reduce((max, current) => (current.revenue > max.revenue ? current : max), chartData[0])
       : null
+
   const totalRevenue = hourlyData.reduce((sum, item) => sum + item.revenue, 0)
   const activeHours = hourlyData.filter((item) => item.revenue > 0).length
 
@@ -177,7 +223,7 @@ export function RevenueByHour() {
     <Card className="shadow-sm h-full flex flex-col">
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <div>
-          <CardTitle className="text-[#425166]">Revenue by Hour ({selectedYear})</CardTitle>
+          <CardTitle className="text-[#425166]">Revenue by Hour ({selectedYear}) - UTC+7</CardTitle>
           <div className="text-sm text-[#737791] mt-1">
             {peakHour && peakHour.revenue > 0 ? (
               <>
@@ -201,6 +247,7 @@ export function RevenueByHour() {
           </SelectContent>
         </Select>
       </CardHeader>
+
       <CardContent className="flex-1 flex flex-col">
         <div className="relative flex-1">
           {showLeftArrow && (
@@ -211,6 +258,7 @@ export function RevenueByHour() {
               <ChevronLeft size={20} />
             </button>
           )}
+
           <div ref={scrollContainerRef} className="overflow-x-auto w-full h-[300px] custom-scrollbar">
             <div className="min-w-[1200px] h-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -248,7 +296,7 @@ export function RevenueByHour() {
                       }
                       return [`${value}k đ`, "Revenue"]
                     }}
-                    labelFormatter={(label) => `Time: ${label} (${selectedYear})`}
+                    labelFormatter={(label) => `Time: ${label} (UTC+7, ${selectedYear})`}
                   />
                   <Bar
                     dataKey="revenue"
@@ -263,6 +311,7 @@ export function RevenueByHour() {
               </ResponsiveContainer>
             </div>
           </div>
+
           {showRightArrow && (
             <button
               className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md hover:bg-white transition-colors"
@@ -272,10 +321,11 @@ export function RevenueByHour() {
             </button>
           )}
         </div>
+
         <div className="mt-4 flex justify-center">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[#bf83ff]"></div>
-            <span className="text-sm text-[#737791]">Revenue (thousand đ)</span>
+            <span className="text-sm text-[#737791]">Revenue (thousand đ) - Local Time (UTC+7)</span>
           </div>
         </div>
       </CardContent>
