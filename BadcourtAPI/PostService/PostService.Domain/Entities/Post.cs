@@ -14,6 +14,8 @@ public class Post
     public Guid PublisherId { get; set; }
     public string PublisherUsername { get; set; } = string.Empty;
     public string PublisherImageUrl { get; set; } = string.Empty;
+    [BsonRepresentation(BsonType.String)]
+    public UserState PublisherState { get; set; } = UserState.Active;
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
 
