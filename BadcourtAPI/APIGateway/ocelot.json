@@ -106,6 +106,13 @@
       "UpstreamHttpMethod": ["Patch"]
     },
     {
+      "DownstreamPathTemplate": "/api/users/unlock/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/unlock/{userId}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
       "DownstreamPathTemplate": "/api/admin-dashboard/user-stats",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
