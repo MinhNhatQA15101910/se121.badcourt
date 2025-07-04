@@ -32,6 +32,7 @@ public partial class SqlInitial : Migration
                 CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 LastOnlineAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                State = table.Column<string>(type: "TEXT", nullable: false),
                 UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                 NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                 Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),

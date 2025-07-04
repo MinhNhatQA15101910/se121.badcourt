@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuthService.Infrastructure.Persistence.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250623150029_SqlInitial")]
+[Migration("20250704072914_SqlInitial")]
 partial class SqlInitial
 {
     /// <inheritdoc />
@@ -97,6 +97,10 @@ partial class SqlInitial
                     .HasColumnType("INTEGER");
 
                 b.Property<string>("SecurityStamp")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("State")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.Property<bool>("TwoFactorEnabled")

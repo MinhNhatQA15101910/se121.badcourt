@@ -12,7 +12,7 @@ import 'package:frontend/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-String ipconfig = '10.0.198.189';
+String ipconfig = '10.188.136.57';
 String uri = 'http://${ipconfig}:5000';
 String signalrUri = 'http://${ipconfig}:7000';
 
