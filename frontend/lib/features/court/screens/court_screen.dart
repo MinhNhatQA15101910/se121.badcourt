@@ -26,41 +26,30 @@ class _CourtScreenState extends State<CourtScreen> {
   List<Court> _courts = [];
   bool _isLoading = true;
 
-  void _removeInactiveDays(Facility facility) {
-    const List<String> daysOfWeek = [
+  bool _isDateDisabled(DateTime date, Facility facility) {
+    const daysOfWeek = [
       'monday',
       'tuesday',
       'wednesday',
       'thursday',
       'friday',
       'saturday',
-      'sunday',
+      'sunday'
     ];
-
-    for (int i = 0; i < daysOfWeek.length; i++) {
-      final dayName = daysOfWeek[i];
-
-      if (!facility.hasDay(dayName)) {
-        _dates.removeWhere((date) => date.weekday == (i + 1));
-      }
-    }
-
-    // Gán ngày đầu tiên còn lại vào _selectedDate, nếu có
-    if (_dates.isNotEmpty) {
-      _selectedDate = _dates[0];
-    }
+    final dayName = daysOfWeek[date.weekday - 1];
+    return !facility.hasDay(dayName);
   }
 
   Future<void> _fetchCourtByFacilityId(Facility facility) async {
     setState(() {
       _isLoading = true;
     });
-    
+
     _courts = await _courtService.fetchCourtByFacilityId(
       context,
       facility.id,
     );
-    
+
     setState(() {
       _isLoading = false;
     });
@@ -75,25 +64,32 @@ class _CourtScreenState extends State<CourtScreen> {
   @override
   void initState() {
     super.initState();
-    // Khởi tạo danh sách ngày
-    for (int i = 0; i < 14; i++) {
-      _dates.add(_selectedDate.add(Duration(days: i)));
-    }
 
     // Lấy facility từ Provider
     final currentFacilityProvider =
         Provider.of<CurrentFacilityProvider>(context, listen: false);
     final facility = currentFacilityProvider.currentFacility;
 
-    // Loại bỏ các ngày không hoạt động và tải danh sách sân
-    _removeInactiveDays(facility);
+    // Khởi tạo danh sách ngày (14 ngày tiếp theo)
+    final now = DateTime.now();
+    for (int i = 0; i < 14; i++) {
+      _dates.add(now.add(Duration(days: i)));
+    }
+
+    // Tìm ngày hợp lệ đầu tiên để gán vào _selectedDate
+    final firstAvailableDate = _dates.firstWhere(
+        (date) => !_isDateDisabled(date, facility),
+        orElse: () => now);
+    _selectedDate = firstAvailableDate;
+
     _fetchCourtByFacilityId(facility);
   }
 
   @override
   void dispose() {
     // Clean up any connections when leaving the screen
-    final courtHubProvider = Provider.of<CourtHubProvider>(context, listen: false);
+    final courtHubProvider =
+        Provider.of<CourtHubProvider>(context, listen: false);
     courtHubProvider.disconnectFromAllCourts();
     super.dispose();
   }
@@ -145,8 +141,11 @@ class _CourtScreenState extends State<CourtScreen> {
                             DateTagPlayer(
                               datetime: date,
                               isActived: date == _selectedDate,
+                              isDisabled: _isDateDisabled(date, facility),
                               onPressed: () {
-                                _handleDateTagPressed(date);
+                                if (!_isDateDisabled(date, facility)) {
+                                  _handleDateTagPressed(date);
+                                }
                               },
                             ),
                           SizedBox(width: 8),
@@ -172,7 +171,7 @@ class _CourtScreenState extends State<CourtScreen> {
                                   itemCount: _courts.length,
                                   itemBuilder: (context, index) {
                                     final court = _courts[index];
-                                    
+
                                     return CourtCardPlayer(
                                       facility: facility,
                                       court: court,

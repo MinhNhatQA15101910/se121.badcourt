@@ -131,13 +131,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           title: Text(
             'Checkout', // MODIFIED: Always show "Checkout"
+                        textAlign: TextAlign.start,
+
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
           ),
-          centerTitle: true,
         ),
         body: WillPopScope(
           onWillPop: () async {
