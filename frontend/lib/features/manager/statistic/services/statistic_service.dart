@@ -9,12 +9,14 @@ import 'package:frontend/models/court.dart';
 
 class StatisticService {
   // API 1: Get manager dashboard summary
-  Future<Map<String, dynamic>?> getDashboardSummary(BuildContext context, String facilityId) async {
+  Future<Map<String, dynamic>?> getDashboardSummary(
+      BuildContext context, String facilityId) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/gateway/manager-dashboard/summary?facilityId=$facilityId'),
+        Uri.parse(
+            '$uri/gateway/manager-dashboard/summary?facilityId=$facilityId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -34,15 +36,13 @@ class StatisticService {
 
   // API 2: Get monthly revenue by year
   Future<List<Map<String, dynamic>>?> getMonthlyRevenue(
-    BuildContext context, 
-    String facilityId,
-    int year
-  ) async {
+      BuildContext context, String facilityId, int year) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     try {
       final response = await http.get(
-        Uri.parse('$uri/gateway/manager-dashboard/monthly-revenue?facilityId=$facilityId&year=$year'),
+        Uri.parse(
+            '$uri/gateway/manager-dashboard/monthly-revenue?facilityId=$facilityId&year=$year'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',
@@ -131,5 +131,29 @@ class StatisticService {
       print('Error fetching courts: $error');
     }
     return courtList;
+  }
+
+  Future<List<Map<String, dynamic>>?> getCourtRevenue(
+      BuildContext context, String facilityId, int year) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '$uri/gateway/manager-dashboard/court-revenue?facilityId=$facilityId&year=$year'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Failed to load court revenue');
+      }
+    } catch (error) {
+      print('Error getting court revenue: $error');
+      return null;
+    }
   }
 }
