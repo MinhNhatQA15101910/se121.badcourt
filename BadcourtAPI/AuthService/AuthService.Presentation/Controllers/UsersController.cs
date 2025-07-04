@@ -95,4 +95,14 @@ public class UsersController(IMediator mediator) : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPatch("unlock/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UnlockUser(Guid userId)
+    {
+        var command = new UnlockUserCommand(userId);
+        await mediator.Send(command);
+
+        return NoContent();
+    }
 }
