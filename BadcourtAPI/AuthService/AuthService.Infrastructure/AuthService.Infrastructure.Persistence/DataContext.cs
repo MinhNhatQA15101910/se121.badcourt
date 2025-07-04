@@ -32,5 +32,12 @@ public class DataContext(DbContextOptions options) :
             .WithOne(x => x.Role)
             .HasForeignKey(x => x.RoleId)
             .IsRequired();
+
+        builder.Entity<User>(entity =>
+        {
+            entity.Property(o => o.State)
+                .HasConversion<string>()
+                .IsRequired();
+        });
     }
 }

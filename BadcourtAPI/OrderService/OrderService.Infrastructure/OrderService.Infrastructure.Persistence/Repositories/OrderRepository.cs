@@ -64,23 +64,21 @@ public class OrderRepository(
         // Exclude pending orders
         query = query.Where(o => o.State != OrderState.Pending);
 
-        // If month is specified, filter by month
-        if (courtRevenueParams.Month.HasValue)
-        {
-            query = query.Where(o => o.CreatedAt.Month == courtRevenueParams.Month.Value);
-        }
-
-        return query
-            .GroupBy(o => new { o.CourtId, o.CourtName })
-            .Select(g => new CourtRevenueDto
-            {
-                CourtId = g.Key.CourtId,
-                CourtName = g.Key.CourtName,
-                Revenue = g.Sum(o => o.Price)
-            })
-            .OrderByDescending(r => r.Revenue)
-            .ToListAsync(cancellationToken);
+        return Task.FromResult(
+            query
+                .GroupBy(o => new { o.CourtId, o.CourtName })
+                .Select(g => new CourtRevenueDto
+                {
+                    CourtId = g.Key.CourtId,
+                    CourtName = g.Key.CourtName,
+                    Revenue = g.Sum(o => o.Price)
+                })
+                .AsEnumerable() // 👈 switch to LINQ-to-Objects for ordering
+                .OrderByDescending(r => r.Revenue)
+                .ToList()
+        );
     }
+
 
     public Task<PagedList<FacilityRevenueDto>> GetFacilityRevenueForAdminAsync(AdminDashboardFacilityRevenueParams facilityRevenueParams, CancellationToken cancellationToken = default)
     {

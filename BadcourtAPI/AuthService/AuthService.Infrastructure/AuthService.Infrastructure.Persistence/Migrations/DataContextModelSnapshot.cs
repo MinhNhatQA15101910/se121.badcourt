@@ -96,6 +96,10 @@ partial class DataContextModelSnapshot : ModelSnapshot
                 b.Property<string>("SecurityStamp")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("State")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<bool>("TwoFactorEnabled")
                     .HasColumnType("INTEGER");
 
