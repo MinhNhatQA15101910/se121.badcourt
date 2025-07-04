@@ -92,6 +92,13 @@
       "UpstreamHttpMethod": ["Delete"]
     },
     {
+      "DownstreamPathTemplate": "/api/users/admin",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/admin",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
       "DownstreamPathTemplate": "/api/admin-dashboard/user-stats",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],

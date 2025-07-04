@@ -76,4 +76,13 @@ public class UsersController(IMediator mediator) : ControllerBase
         await mediator.Send(new DeletePhotoCommand(User.GetUserId(), photoId));
         return Ok();
     }
+
+    [HttpGet("admin")]
+    [Authorize]
+    public async Task<ActionResult<UserBriefDto>> GetAdminBriefInfo()
+    {
+        var query = new GetAdminBriefInfoQuery();
+        var user = await mediator.Send(query);
+        return Ok(user);
+    }
 }
