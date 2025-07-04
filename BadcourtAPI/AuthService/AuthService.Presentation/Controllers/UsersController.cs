@@ -85,4 +85,14 @@ public class UsersController(IMediator mediator) : ControllerBase
         var user = await mediator.Send(query);
         return Ok(user);
     }
+
+    [HttpPatch("lock/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> LockUser(Guid userId)
+    {
+        var command = new LockUserCommand(userId);
+        await mediator.Send(command);
+
+        return NoContent();
+    }
 }

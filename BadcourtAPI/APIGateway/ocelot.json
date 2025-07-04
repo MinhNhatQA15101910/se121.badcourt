@@ -99,6 +99,13 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
+      "DownstreamPathTemplate": "/api/users/lock/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/lock/{userId}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
       "DownstreamPathTemplate": "/api/admin-dashboard/user-stats",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
