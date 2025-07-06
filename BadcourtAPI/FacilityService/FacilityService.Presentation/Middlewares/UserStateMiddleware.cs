@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using SharedKernel.Exceptions;
 
-namespace AuthService.Presentation.Middlewares;
+namespace FacilityService.Presentation.Middlewares;
 
 public class UserStateMiddleware(RequestDelegate next, ILogger<UserStateMiddleware> logger)
 {
