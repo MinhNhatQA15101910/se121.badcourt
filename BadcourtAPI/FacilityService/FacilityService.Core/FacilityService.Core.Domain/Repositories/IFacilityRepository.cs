@@ -16,4 +16,5 @@ public interface IFacilityRepository
     Task DeleteFacilityAsync(Facility facility, CancellationToken cancellationToken = default);
     Task UpdateFacilityAsync(Facility facility, CancellationToken cancellationToken = default);
     Task<int> GetTotalFacilitiesAsync(string? userId, int? year, CancellationToken cancellationToken = default);
+    Task<List<Facility>> GetAllFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default);
 }

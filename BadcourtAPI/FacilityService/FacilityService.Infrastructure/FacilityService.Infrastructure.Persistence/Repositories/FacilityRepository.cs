@@ -209,4 +209,50 @@ public class FacilityRepository : IFacilityRepository
         return (int)count;
     }
 
+    public Task<List<Facility>> GetAllFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Facility>.Filter.Empty;
+
+        // Filter by user id
+        if (!string.IsNullOrEmpty(facilityParams.UserId))
+        {
+            filter &= Builders<Facility>.Filter.Eq(f => f.UserId, Guid.Parse(facilityParams.UserId));
+        }
+
+        // Filter by facility name
+        if (!string.IsNullOrEmpty(facilityParams.FacilityName))
+        {
+            filter &= Builders<Facility>.Filter.Regex(f => f.FacilityName, new BsonRegularExpression(facilityParams.FacilityName, "i"));
+        }
+
+        // Filter by province
+        if (!string.IsNullOrEmpty(facilityParams.Province))
+        {
+            filter &= Builders<Facility>.Filter.Eq(f => f.Province, facilityParams.Province);
+        }
+
+        // Filter by state ignore case
+        if (!string.IsNullOrEmpty(facilityParams.State))
+        {
+            filter &= Builders<Facility>.Filter.Regex(f => f.State, new BsonRegularExpression(facilityParams.State, "i"));
+        }
+
+        // Filter by search term
+        if (!string.IsNullOrEmpty(facilityParams.Search))
+        {
+            filter &= Builders<Facility>.Filter.Or(
+                Builders<Facility>.Filter.Regex(f => f.FacilityName, new BsonRegularExpression(facilityParams.Search, "i")),
+                Builders<Facility>.Filter.Regex(f => f.Description, new BsonRegularExpression(facilityParams.Search, "i"))
+            );
+        }
+
+        // Filter by price range
+        filter &= Builders<Facility>.Filter.And(
+            Builders<Facility>.Filter.Gte(f => f.MinPrice, facilityParams.MinPrice),
+            Builders<Facility>.Filter.Lte(f => f.MaxPrice, facilityParams.MaxPrice)
+        );
+
+        return _facilities.Find(filter)
+            .ToListAsync(cancellationToken);
+    }
 }
