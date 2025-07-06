@@ -1,6 +1,7 @@
 using AuthService.Core.Application.Commands;
 using AuthService.Core.Application.Interfaces;
 using AuthService.Core.Domain.Entities;
+using AuthService.Core.Domain.Enums;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,8 @@ public class LoginHandler(
         {
             throw new UnauthorizedException("Invalid password.");
         }
+
+        if (existingUser.State == UserState.Locked) throw new UserLockedException(existingUser.Id.ToString());
 
         var userDto = mapper.Map<UserDto>(existingUser);
         userDto.Token = await tokenService.CreateTokenAsync(existingUser);
