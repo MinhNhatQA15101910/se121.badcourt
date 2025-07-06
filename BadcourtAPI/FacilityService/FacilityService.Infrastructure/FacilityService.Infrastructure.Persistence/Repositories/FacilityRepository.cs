@@ -1,5 +1,6 @@
 using AutoMapper;
 using FacilityService.Core.Domain.Entities;
+using FacilityService.Core.Domain.Enums;
 using FacilityService.Core.Domain.Repositories;
 using FacilityService.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
@@ -49,7 +50,10 @@ public class FacilityRepository : IFacilityRepository
 
     public async Task<PagedList<FacilityDto>> GetFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default)
     {
-        var pipeline = new List<BsonDocument>();
+        var pipeline = new List<BsonDocument>
+        {
+            new("$match", new BsonDocument("UserState", new BsonDocument("$ne", "Locked")))
+        };
 
         switch (facilityParams.OrderBy)
         {
@@ -152,14 +156,10 @@ public class FacilityRepository : IFacilityRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task InsertManyAsync(IEnumerable<Facility> facilities, CancellationToken cancellationToken = default)
-    {
-        await _facilities.InsertManyAsync(facilities, cancellationToken: cancellationToken);
-    }
-
     public Task<List<string>> GetFacilityProvincesAsync(CancellationToken cancellationToken)
     {
-        var filter = FilterDefinition<Facility>.Empty;
+        var filter = Builders<Facility>.Filter.Ne(f => f.UserState, UserState.Locked);
+
         var distinctProvinces = _facilities.Distinct<string>("Province", filter, cancellationToken: cancellationToken);
         return distinctProvinces.ToListAsync(cancellationToken);
     }
@@ -181,37 +181,11 @@ public class FacilityRepository : IFacilityRepository
         );
     }
 
-    public async Task<int> GetTotalFacilitiesAsync(string? userId, int? year, CancellationToken cancellationToken = default)
-    {
-        var filters = new List<FilterDefinition<Facility>>();
-
-        // Filter by UserId if provided
-        if (!string.IsNullOrWhiteSpace(userId) && Guid.TryParse(userId, out var userGuid))
-        {
-            filters.Add(Builders<Facility>.Filter.Eq(f => f.UserId, userGuid));
-        }
-
-        // Filter by CreatedAt year if provided
-        if (year.HasValue)
-        {
-            var startOfYear = new DateTime(year.Value, 1, 1);
-            var startOfNextYear = startOfYear.AddYears(1);
-
-            filters.Add(Builders<Facility>.Filter.Gte(f => f.CreatedAt, startOfYear));
-            filters.Add(Builders<Facility>.Filter.Lt(f => f.CreatedAt, startOfNextYear));
-        }
-
-        var filter = filters.Count != 0
-            ? Builders<Facility>.Filter.And(filters)
-            : Builders<Facility>.Filter.Empty;
-
-        var count = await _facilities.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
-        return (int)count;
-    }
-
     public Task<List<Facility>> GetAllFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Facility>.Filter.Empty;
+
+        filter &= Builders<Facility>.Filter.Ne(f => f.UserState, UserState.Locked);
 
         // Filter by user id
         if (!string.IsNullOrEmpty(facilityParams.UserId))
