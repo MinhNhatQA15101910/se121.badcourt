@@ -185,8 +185,6 @@ public class FacilityRepository : IFacilityRepository
     {
         var filter = Builders<Facility>.Filter.Empty;
 
-        filter &= Builders<Facility>.Filter.Ne(f => f.UserState, UserState.Locked);
-
         // Filter by user id
         if (!string.IsNullOrEmpty(facilityParams.UserId))
         {

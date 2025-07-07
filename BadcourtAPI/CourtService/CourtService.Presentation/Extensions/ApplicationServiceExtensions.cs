@@ -37,6 +37,8 @@ public static class ApplicationServiceExtensions
         {
             x.AddConsumer<OrderCreatedConsumer>();
             x.AddConsumer<OrderCancelledConsumer>();
+            x.AddConsumer<UserLockedConsumer>();
+            x.AddConsumer<UserUnlockedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
@@ -47,6 +49,14 @@ public static class ApplicationServiceExtensions
                 cfg.ReceiveEndpoint("CourtService-order-cancelled-queue", e =>
                 {
                     e.ConfigureConsumer<OrderCancelledConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("CourtService-user-locked-queue", e =>
+                {
+                    e.ConfigureConsumer<UserLockedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("CourtService-user-unlocked-queue", e =>
+                {
+                    e.ConfigureConsumer<UserUnlockedConsumer>(ctx);
                 });
             });
         });
