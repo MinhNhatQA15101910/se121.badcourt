@@ -8,6 +8,7 @@ using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Commands.CreateRating;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
+using OrderService.Infrastructure.ExternalServices.BackgroundServices;
 using OrderService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -43,6 +44,9 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
     public async Task<ActionResult<OrderIntentDto>> CreateOrder(CreateOrderDto createOrderDto)
     {
         var orderIntent = await mediator.Send(new CreateOrderCommand(createOrderDto));
+
+        DeletePendingOrdersBackgroundService.HasPendingOrders = true;
+
         return Ok(orderIntent);
     }
 

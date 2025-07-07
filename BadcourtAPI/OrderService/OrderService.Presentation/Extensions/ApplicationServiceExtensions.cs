@@ -74,6 +74,7 @@ public static class ApplicationServiceExtensions
 
         // Background Services
         services.AddHostedService<UpdateOrderStateBackgroundService>();
+        services.AddHostedService<DeletePendingOrdersBackgroundService>();
 
         // Api Repositories
         services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();

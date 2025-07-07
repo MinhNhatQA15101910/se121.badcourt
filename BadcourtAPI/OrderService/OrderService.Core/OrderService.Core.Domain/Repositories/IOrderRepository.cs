@@ -42,4 +42,5 @@ public interface IOrderRepository
         AdminDashboardSummaryParams summaryParams, CancellationToken cancellationToken);
     Task<decimal> GetTotalRevenueForFacilityAsync(ManagerDashboardSummaryParams summaryParams,
         CancellationToken cancellationToken = default);
+    void RemoveOrder(Order order);
 }
