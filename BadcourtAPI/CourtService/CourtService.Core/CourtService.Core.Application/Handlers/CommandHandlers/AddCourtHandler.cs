@@ -3,6 +3,7 @@ using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
 using CourtService.Core.Application.Interfaces.ServiceClients;
 using CourtService.Core.Domain.Entities;
+using CourtService.Core.Domain.Enums;
 using CourtService.Core.Domain.Repositories;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,11 @@ public class AddCourtHandler(
 
         var facility = await facilityServiceClient.GetFacilityByIdAsync(request.AddCourtDto.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(request.AddCourtDto.FacilityId);
+
+        if (facility.UserState == "Locked")
+        {
+            throw new FacilityLockedException(facility.Id);
+        }
 
         if (facility.UserId != userId)
         {

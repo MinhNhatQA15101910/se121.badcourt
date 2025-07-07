@@ -2,6 +2,7 @@ using AutoMapper;
 using FacilityService.Core.Application.Commands;
 using FacilityService.Core.Application.Extensions;
 using FacilityService.Core.Domain.Entities;
+using FacilityService.Core.Domain.Enums;
 using FacilityService.Core.Domain.Repositories;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.DTOs;
@@ -49,6 +50,11 @@ public class UpdateActiveHandler(
 
         var facility = await facilityRepository.GetFacilityByIdAsync(request.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(request.FacilityId);
+
+        if (facility.UserState == UserState.Locked)
+        {
+            throw new FacilityLockedException(facility.Id);
+        }
 
         if (!roles.Contains("Admin") && facility.UserId != currentUserId)
             throw new ForbiddenAccessException("You do not have permission to update this facility.");

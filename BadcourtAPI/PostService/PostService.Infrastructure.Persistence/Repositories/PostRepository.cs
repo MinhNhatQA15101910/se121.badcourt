@@ -63,7 +63,10 @@ public class PostRepository : IPostRepository
 
     public async Task<PagedList<PostDto>> GetPostsAsync(PostParams postParams, string? currentUserId, CancellationToken cancellationToken = default)
     {
-        var pipeline = new List<BsonDocument>();
+        var pipeline = new List<BsonDocument>
+        {
+            new("$match", new BsonDocument("PublisherState", new BsonDocument("$ne", "Locked")))
+        };
 
         switch (postParams.OrderBy)
         {

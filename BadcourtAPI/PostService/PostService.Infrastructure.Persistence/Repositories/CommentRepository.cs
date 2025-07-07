@@ -63,7 +63,10 @@ public class CommentRepository : ICommentRepository
 
     public async Task<PagedList<CommentDto>> GetCommentsAsync(CommentParams commentParams, string? currentUserId, CancellationToken cancellationToken = default)
     {
-        var pipeline = new List<BsonDocument>();
+        var pipeline = new List<BsonDocument>
+        {
+            new("$match", new BsonDocument("PublisherState", new BsonDocument("$ne", "Locked")))
+        };
 
         switch (commentParams.OrderBy)
         {

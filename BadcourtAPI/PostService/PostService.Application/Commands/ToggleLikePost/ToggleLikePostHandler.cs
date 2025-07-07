@@ -2,6 +2,7 @@
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using PostService.Application.Extensions;
+using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;
 using SharedKernel.Events;
 using SharedKernel.Exceptions;
@@ -20,6 +21,9 @@ public class ToggleLikePostHandler(
 
         var post = await postRepository.GetPostByIdAsync(request.PostId, cancellationToken)
             ?? throw new PostNotFoundExceptions(request.PostId);
+
+        if (post.PublisherState == UserState.Locked)
+            throw new PostLockedException(post.Id);
 
         if (post.LikedUsers.Contains(userId.ToString()))
         {

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using PostService.Application.Extensions;
+using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;
 using SharedKernel.DTOs;
 using SharedKernel.Exceptions;
@@ -17,6 +18,8 @@ public class GetPostByIdHandler(
     {
         var post = await postRepository.GetPostByIdAsync(request.Id, cancellationToken)
             ?? throw new PostNotFoundExceptions(request.Id);
+
+        if (post.PublisherState == UserState.Locked) throw new PostLockedException(post.Id);
 
         var postDto = mapper.Map<PostDto>(post);
 

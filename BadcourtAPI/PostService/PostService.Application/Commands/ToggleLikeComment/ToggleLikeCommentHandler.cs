@@ -2,6 +2,7 @@
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using PostService.Application.Extensions;
+using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;
 using SharedKernel.Events;
 using SharedKernel.Exceptions;
@@ -20,6 +21,9 @@ public class ToggleLikeCommentHandler(
 
         var comment = await commentRepository.GetCommentByIdAsync(request.CommentId, cancellationToken)
             ?? throw new CommentNotFoundException(request.CommentId);
+
+        if (comment.PublisherState == UserState.Locked)
+            throw new CommentLockedException(comment.Id);
 
         if (comment.LikedUsers.Contains(userId.ToString()))
         {
