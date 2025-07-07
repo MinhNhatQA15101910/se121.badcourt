@@ -30,6 +30,8 @@ services:
     build:
       context: .
       dockerfile: AuthService/Dockerfile
+    env_file:
+      - .env
     ports:
       - "1000:1000"
     volumes:
