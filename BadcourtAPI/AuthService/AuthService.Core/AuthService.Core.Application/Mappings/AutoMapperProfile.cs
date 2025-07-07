@@ -23,6 +23,13 @@ public class AutoMapperProfiles : Profile
                     s => s.UserRoles.Select(x => x.Role.Name)
                 )
             );
+        CreateMap<User, UserBriefDto>()
+            .ForMember(
+                d => d.PhotoUrl,
+                o => o.MapFrom(
+                    s => s.Photos.FirstOrDefault(x => x.IsMain)!.Url
+                )
+            );
         CreateMap<ValidateSignupDto, User>();
         CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
         CreateMap<DateTime?, DateTime?>()

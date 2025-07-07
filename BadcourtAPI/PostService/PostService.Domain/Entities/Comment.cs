@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using PostService.Domain.Enums;
 
 namespace PostService.Domain.Entities;
 
@@ -15,6 +16,8 @@ public class Comment
     public string PostId { get; set; } = null!;
     public string PublisherUsername { get; set; } = string.Empty;
     public string PublisherImageUrl { get; set; } = string.Empty;
+    [BsonRepresentation(BsonType.String)]
+    public UserState PublisherState { get; set; } = UserState.Active;
     public string Content { get; set; } = string.Empty;
 
     public IEnumerable<File> Resources { get; set; } = [];

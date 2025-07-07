@@ -3,6 +3,7 @@ using MassTransit;
 using MediatR;
 using PostService.Application;
 using PostService.Application.ApiRepositories;
+using PostService.Application.Consumers;
 using PostService.Application.Interfaces;
 using PostService.Domain.Interfaces;
 using PostService.Infrastructure.ExternalServices.Configurations;
@@ -24,7 +25,20 @@ public static class ApplicationServiceExtensions
 
         services.AddMassTransit(x =>
         {
-            x.UsingRabbitMq();
+            x.AddConsumer<UserUnlockedConsumer>();
+            x.AddConsumer<UserLockedConsumer>();
+
+            x.UsingRabbitMq((ctx, cfg) =>
+            {
+                cfg.ReceiveEndpoint("PostService-user-unlocked-queue", e =>
+                {
+                    e.ConfigureConsumer<UserUnlockedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("PostService-user-locked-queue", e =>
+                {
+                    e.ConfigureConsumer<UserLockedConsumer>(ctx);
+                });
+            });
         });
 
         return services.AddPersistence(config)

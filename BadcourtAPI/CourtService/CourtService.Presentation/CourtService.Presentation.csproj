@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CourtService.Core\CourtService.Core.Application\CourtService.Core.Application.csproj" />
     <ProjectReference Include="..\CourtService.Infrastructure\CourtService.Infrastructure.Persistence\CourtService.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\CourtService.Infrastructure\CourtService.Infrastructure.Services\CourtService.Infrastructure.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

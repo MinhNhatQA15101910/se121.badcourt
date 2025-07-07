@@ -3,6 +3,7 @@ using AutoMapper;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using OrderService.Core.Application.Extensions;
+using OrderService.Core.Application.Interfaces;
 using OrderService.Core.Domain.Enums;
 using OrderService.Core.Domain.Repositories;
 using SharedKernel.DTOs;
@@ -14,6 +15,7 @@ namespace OrderService.Core.Application.Commands.CancelOrder;
 public class CancelOrderHandler(
     IHttpContextAccessor httpContextAccessor,
     IOrderRepository orderRepository,
+    IStripeService stripeService,
     IPublishEndpoint publishEndpoint,
     IMapper mapper
 ) : ICommandHandler<CancelOrderCommand, bool>
@@ -44,7 +46,14 @@ public class CancelOrderHandler(
             throw new BadRequestException("Order cannot be cancelled within 24 hours of the scheduled time.");
         }
 
+        // Calculate the refund amount
+        var refundAmount = order.Price * 0.8m; // 80% refund
+
+        // Call Stripe refund
+        await stripeService.CreateRefundAsync(order.PaymentIntentId, refundAmount, cancellationToken);
+
         order.State = OrderState.Cancelled;
+        order.Price -= refundAmount; // Adjust the price to reflect the refund
         order.UpdatedAt = DateTime.UtcNow;
 
         if (!await orderRepository.CompleteAsync(cancellationToken))

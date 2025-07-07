@@ -17,6 +17,11 @@ public class ApproveFacilityHandler(
         var facility = await facilityRepository.GetFacilityByIdAsync(request.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(request.FacilityId);
 
+        if (facility.UserState == UserState.Locked)
+        {
+            throw new FacilityLockedException(facility.Id);
+        }
+
         facility.State = FacilityState.Approved;
         facility.UpdatedAt = DateTime.UtcNow;
 

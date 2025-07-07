@@ -76,4 +76,33 @@ public class UsersController(IMediator mediator) : ControllerBase
         await mediator.Send(new DeletePhotoCommand(User.GetUserId(), photoId));
         return Ok();
     }
+
+    [HttpGet("admin")]
+    [Authorize]
+    public async Task<ActionResult<UserBriefDto>> GetAdminBriefInfo()
+    {
+        var query = new GetAdminBriefInfoQuery();
+        var user = await mediator.Send(query);
+        return Ok(user);
+    }
+
+    [HttpPatch("lock/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> LockUser(Guid userId)
+    {
+        var command = new LockUserCommand(userId);
+        await mediator.Send(command);
+
+        return NoContent();
+    }
+
+    [HttpPatch("unlock/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UnlockUser(Guid userId)
+    {
+        var command = new UnlockUserCommand(userId);
+        await mediator.Send(command);
+
+        return NoContent();
+    }
 }

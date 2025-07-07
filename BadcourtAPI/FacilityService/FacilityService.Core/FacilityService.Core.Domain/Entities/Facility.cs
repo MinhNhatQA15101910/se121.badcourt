@@ -14,6 +14,8 @@ public class Facility
     public Guid UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string? UserImageUrl { get; set; }
+    [BsonRepresentation(BsonType.String)]
+    public UserState UserState { get; set; } = UserState.Active;
     public string FacilityName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? FacebookUrl { get; set; }

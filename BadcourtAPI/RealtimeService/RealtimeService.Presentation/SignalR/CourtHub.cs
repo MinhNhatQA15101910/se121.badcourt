@@ -20,6 +20,9 @@ public class CourtHub(ICourtApiRepository courtApiRepository) : Hub
         var court = await courtApiRepository.GetCourtByIdAsync(courtId!)
             ?? throw new HubException($"Court with ID {courtId} not found.");
 
+        if (court.UserState == "Locked")
+            throw new HubException($"Court with ID {courtId} is locked and cannot be accessed.");
+
         await Groups.AddToGroupAsync(Context.ConnectionId, courtId!);
 
         await Clients.Caller.SendAsync("ReceiveCourt", court);

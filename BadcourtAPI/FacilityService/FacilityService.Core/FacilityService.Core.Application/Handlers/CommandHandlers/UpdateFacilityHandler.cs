@@ -24,6 +24,11 @@ public class UpdateFacilityHandler(
         var facility = await facilityRepository.GetFacilityByIdAsync(request.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(request.FacilityId);
 
+        if (facility.UserState == UserState.Locked)
+        {
+            throw new FacilityLockedException(facility.Id);
+        }
+
         var httpUser = (httpContextAccessor.HttpContext?.User)
             ?? throw new UnauthorizedAccessException();
 

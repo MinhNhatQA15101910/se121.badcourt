@@ -39,6 +39,9 @@ public class CreateCommentHandler(
 
         var post = await postRepository.GetPostByIdAsync(request.CreateCommentDto.PostId, cancellationToken)
             ?? throw new PostNotFoundExceptions(request.CreateCommentDto.PostId);
+        
+        if (post.PublisherState == UserState.Locked) 
+            throw new PostLockedException(post.Id);
 
         var comment = mapper.Map<Comment>(request.CreateCommentDto);
 

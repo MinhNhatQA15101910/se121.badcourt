@@ -45,13 +45,18 @@ public class MessageHub(
         var otherUser = await userApiRepository.GetUserByIdAsync(Guid.Parse(otherUserId!))
             ?? throw new HubException("Other user not found");
 
+        if (currentUser.State == "Locked" || otherUser.State == "Locked")
+        {
+            throw new HubException("One of the users is locked and cannot join the group");
+        }
+
         var group = await groupRepository.GetGroupByNameAsync(groupName);
         if (group == null)
         {
             group = new Group
             {
                 Name = groupName,
-                UserIds = [Context.User.GetUserId().ToString(), otherUserId],
+                UserIds = [Context.User.GetUserId().ToString(), otherUserId!],
                 Usernames = [currentUser.Username, otherUser.Username],
             };
             await groupRepository.AddGroupAsync(group);

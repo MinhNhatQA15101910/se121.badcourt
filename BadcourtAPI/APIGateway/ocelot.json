@@ -92,6 +92,27 @@
       "UpstreamHttpMethod": ["Delete"]
     },
     {
+      "DownstreamPathTemplate": "/api/users/admin",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/admin",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/lock/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/lock/{userId}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/unlock/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/users/unlock/{userId}",
+      "UpstreamHttpMethod": ["Patch"]
+    },
+    {
       "DownstreamPathTemplate": "/api/admin-dashboard/user-stats",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 1000 }],
@@ -183,6 +204,13 @@
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 3000 }],
       "UpstreamPathTemplate": "/gateway/courts/update-inactive/{id}",
       "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/courts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts/{id}",
+      "UpstreamHttpMethod": ["Delete"]
     },
 
     {

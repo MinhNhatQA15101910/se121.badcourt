@@ -7,6 +7,7 @@ public class CommentDto
     public string PostId { get; set; } = null!;
     public string PublisherUsername { get; set; } = string.Empty;
     public string PublisherImageUrl { get; set; } = string.Empty;
+    public string PublisherState { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public IEnumerable<FileDto> Resources { get; set; } = [];
     public int LikesCount { get; set; }

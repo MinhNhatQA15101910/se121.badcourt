@@ -1,6 +1,7 @@
 using FacilityService.Core.Application.Commands;
 using FacilityService.Core.Application.Extensions;
 using FacilityService.Core.Application.ExternalServices.Interfaces;
+using FacilityService.Core.Domain.Enums;
 using FacilityService.Core.Domain.Repositories;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.Exceptions;
@@ -18,6 +19,11 @@ public class DeleteFacilityHandler(
     {
         var facility = await facilityRepository.GetFacilityByIdAsync(request.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(request.FacilityId);
+
+        if (facility.UserState == UserState.Locked)
+        {
+            throw new FacilityLockedException(facility.Id);
+        }
 
         var roles = httpContextAccessor.HttpContext.User.GetRoles();
         if (!roles.Contains("Admin"))
@@ -40,7 +46,7 @@ public class DeleteFacilityHandler(
         }
 
         await facilityRepository.DeleteFacilityAsync(facility, cancellationToken);
-        
+
         return true;
     }
 }

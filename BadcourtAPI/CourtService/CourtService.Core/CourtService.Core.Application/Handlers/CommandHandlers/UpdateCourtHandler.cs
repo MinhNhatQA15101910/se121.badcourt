@@ -1,7 +1,8 @@
 using AutoMapper;
-using CourtService.Core.Application.ApiRepositories;
 using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
+using CourtService.Core.Application.Interfaces.ServiceClients;
+using CourtService.Core.Domain.Enums;
 using CourtService.Core.Domain.Repositories;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +14,7 @@ namespace CourtService.Core.Application.Handlers.CommandHandlers;
 public class UpdateCourtHandler(
     ICourtRepository courtRepository,
     IHttpContextAccessor httpContextAccessor,
-    IFacilityApiRepository facilityApiRepository,
+    IFacilityServiceClient facilityServiceClient,
     IPublishEndpoint publishEndpoint,
     IMapper mapper
 ) : ICommandHandler<UpdateCourtCommand, bool>
@@ -23,8 +24,10 @@ public class UpdateCourtHandler(
         var court = await courtRepository.GetCourtByIdAsync(request.CourtId, cancellationToken)
             ?? throw new CourtNotFoundException(request.CourtId);
 
+        if (court.UserState == UserState.Locked) throw new CourtLockedException(court.Id);
+
         var facilityId = court.FacilityId;
-        var facility = await facilityApiRepository.GetFacilityByIdAsync(facilityId)
+        var facility = await facilityServiceClient.GetFacilityByIdAsync(facilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(facilityId);
 
         var userId = httpContextAccessor.HttpContext?.User.GetUserId();
