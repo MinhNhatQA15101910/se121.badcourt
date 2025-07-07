@@ -30,7 +30,8 @@ public class LockUserHandler(
             throw new BadRequestException("Failed to lock user.");
         }
 
-        var userLockedEvent = new UserLockedEvent(user.Id.ToString());
+        var userLockedEvent = new UserLockedEvent(
+            user.Id.ToString(), user.UserName!, user.Email!);
         await publishEndpoint.Publish(userLockedEvent, cancellationToken);
 
         return true;

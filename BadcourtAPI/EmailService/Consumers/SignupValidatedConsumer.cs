@@ -12,7 +12,7 @@ public class SignupValidatedConsumer(IEmailService emailService) : IConsumer<Sig
         var email = context.Message.Email;
         var pincode = context.Message.Pincode;
         var subject = "ACCOUNT VERIFICATION CODE";
-        var message = await File.ReadAllTextAsync("Assets/EmailContent.html");
+        var message = await File.ReadAllTextAsync("Assets/PincodeVerification.html");
         message = message.Replace("{{PINCODE}}", pincode);
 
         await emailService.SendEmailAsync(displayName, email, subject, message);

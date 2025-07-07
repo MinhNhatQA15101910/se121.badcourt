@@ -16,16 +16,21 @@ public static class ApplicationServiceExtensions
         {
             x.AddConsumer<EmailValidatedConsumer>();
             x.AddConsumer<SignupValidatedConsumer>();
+            x.AddConsumer<UserLockedConsumer>();
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
-                cfg.ReceiveEndpoint("email-created-queue", e =>
+                cfg.ReceiveEndpoint("EmailService-email-validated-queue", e =>
                 {
                     e.ConfigureConsumer<EmailValidatedConsumer>(ctx);
                 });
-                cfg.ReceiveEndpoint("signup-validated-queue", e =>
+                cfg.ReceiveEndpoint("EmailService-signup-validated-queue", e =>
                 {
                     e.ConfigureConsumer<SignupValidatedConsumer>(ctx);
+                });
+                cfg.ReceiveEndpoint("EmailService-user-locked-queue", e =>
+                {
+                    e.ConfigureConsumer<UserLockedConsumer>(ctx);
                 });
             });
         });
