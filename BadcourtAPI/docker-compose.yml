@@ -33,7 +33,7 @@ services:
     ports:
       - "1000:1000"
     volumes:
-      - auth_data:/app/Data
+      - auth_data:/app/Database
     depends_on:
       - rabbitmq
     environment:
