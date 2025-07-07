@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using PostService.Domain.Entities;
+using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;
 using PostService.Infrastructure.Persistence.Configurations;
 using SharedKernel;
@@ -31,6 +32,26 @@ public class PostRepository : IPostRepository
     public async Task CreatePostAsync(Post post, CancellationToken cancellationToken = default)
     {
         await _posts.InsertOneAsync(post, cancellationToken: cancellationToken);
+    }
+
+    public Task<List<Post>> GetAllPostsAsync(PostParams postParams, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Post>.Filter.Empty;
+
+        // Filter by publisher id
+        if (!string.IsNullOrEmpty(postParams.PublisherId))
+        {
+            filter &= Builders<Post>.Filter.Eq(p => p.PublisherId, Guid.Parse(postParams.PublisherId));
+        }
+
+        // Filter by category
+        if (!string.IsNullOrEmpty(postParams.Category))
+        {
+            filter &= Builders<Post>.Filter.Eq(p => p.Category, Enum.Parse<PostCategory>(postParams.Category));
+        }
+
+        return _posts.Find(filter)
+            .ToListAsync(cancellationToken: cancellationToken);
     }
 
     public async Task<Post?> GetPostByIdAsync(string postId, CancellationToken cancellationToken = default)

@@ -33,6 +33,27 @@ public class CommentRepository : ICommentRepository
         await _comments.InsertOneAsync(comment, cancellationToken: cancellationToken);
     }
 
+    public Task<List<Comment>> GetAllCommentsAsync(CommentParams commentParams, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Comment>.Filter.Empty;
+
+        // Filter by publisher id
+        if (!string.IsNullOrEmpty(commentParams.PublisherId))
+        {
+            filter &= Builders<Comment>.Filter.Eq(c => c.PublisherId, Guid.Parse(commentParams.PublisherId));
+        }
+
+        // Filter by post id
+        if (!string.IsNullOrEmpty(commentParams.PostId))
+        {
+            filter &= Builders<Comment>.Filter.Eq(c => c.PostId, commentParams.PostId);
+        }
+
+        return _comments.Find(filter)
+            .Sort(Builders<Comment>.Sort.Descending(c => c.CreatedAt))
+            .ToListAsync(cancellationToken: cancellationToken);
+    }
+
     public async Task<Comment?> GetCommentByIdAsync(string commentId, CancellationToken cancellationToken)
     {
         return await _comments
@@ -50,6 +71,12 @@ public class CommentRepository : ICommentRepository
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("CreatedAt", commentParams.SortBy == "asc" ? 1 : -1)));
                 break;
+        }
+
+        // Filter by publisherId
+        if (!string.IsNullOrEmpty(commentParams.PublisherId))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("PublisherId", commentParams.PublisherId)));
         }
 
         // Filter by postId
