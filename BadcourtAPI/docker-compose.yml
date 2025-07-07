@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
   apigateway:
     container_name: apigateway
     image: badcourt/apigateway
@@ -8,20 +16,13 @@ services:
       context: .
       dockerfile: APIGateway/Dockerfile
     ports:
-      - "5000:80"
+      - "5000:5000"
     depends_on:
-      - admin_service
       - auth_service
-      - court_service
-      - email_service
-      - facility_service
-      - manager_service
-      - order_service
-      - post_service
-      - realtime_service
       - rabbitmq
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
 
   auth_service:
     container_name: auth_service
@@ -30,113 +31,14 @@ services:
       context: .
       dockerfile: AuthService/Dockerfile
     ports:
-      - "1000:80"
+      - "1000:1000"
     volumes:
       - auth_data:/app/Data
     depends_on:
       - rabbitmq
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-
-  facility_service:
-    container_name: facility_service
-    image: badcourt/facilityservice
-    build:
-      context: .
-      dockerfile: FacilityService/Dockerfile
-    ports:
-      - "2000:80"
-    depends_on:
-      - rabbitmq
-      - mongodb
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDb__ConnectionString=mongodb://mongodb:27017
-
-  court_service:
-    image: badcourt/courtservice
-    build:
-      context: .
-      dockerfile: CourtService/Dockerfile
-    ports:
-      - "3000:80"
-    depends_on:
-      - rabbitmq
-      - mongodb
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDb__ConnectionString=mongodb://mongodb:27017
-
-  order_service:
-    container_name: order_service
-    image: badcourt/orderservice
-    build:
-      context: .
-      dockerfile: OrderService/Dockerfile
-    ports:
-      - "4000:80"
-    volumes:
-      - order_data:/app/Data
-    depends_on:
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-
-  post_service:
-    container_name: post_service
-    image: badcourt/postservice
-    build:
-      context: .
-      dockerfile: PostService/Dockerfile
-    ports:
-      - "6000:80"
-    depends_on:
-      - rabbitmq
-      - mongodb
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDb__ConnectionString=mongodb://mongodb:27017
-    
-  realtime_service:
-    container_name: realtime_service
-    image: badcourt/realtimeservice
-    build:
-      context: .
-      dockerfile: RealtimeService/Dockerfile
-    ports:
-      - "7000:80"
-    depends_on:
-      - rabbitmq
-      - mongodb
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDb__ConnectionString=mongodb://mongodb:27017
-
-  admin_service:
-    container_name: admin_service
-    image: badcourt/adminservice
-    build:
-      context: .
-      dockerfile: AdminService/Dockerfile
-    ports:
-      - "8000:80"
-    depends_on:
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-
-  manager_service:
-    container_name: manager_service
-    image: badcourt/managerservice
-    build:
-      context: .
-      dockerfile: ManagerService/Dockerfile
-    ports:
-      - "9000:80"
-    depends_on:
-      - rabbitmq
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
 
   email_service:
     container_name: email_service
@@ -148,23 +50,7 @@ services:
       - rabbitmq
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:4-management
-    ports:
-      - "5672:5672" 
-      - "15672:15672"
-
-  mongodb:
-    container_name: mongodb
-    image: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+    restart: unless-stopped
 
 volumes:
-  mongodb_data:
   auth_data:
-  order_data:
