@@ -19,4 +19,16 @@ public class StripeService : IStripeService
         var paymentIntent = await service.CreateAsync(options, cancellationToken: cancellationToken);
         return paymentIntent;
     }
+
+    public Task<Refund> CreateRefundAsync(string paymentIntentId, decimal amountVND, CancellationToken cancellationToken = default)
+    {
+        var options = new RefundCreateOptions
+        {
+            PaymentIntent = paymentIntentId,
+            Amount = (long)amountVND, // VND is already in the smallest unit
+        };
+
+        var service = new RefundService();
+        return service.CreateAsync(options, cancellationToken: cancellationToken);
+    }
 }
