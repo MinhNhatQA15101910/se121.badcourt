@@ -17,7 +17,20 @@ services:
     volumes:
       - mongodb_data:/data/db
     restart: unless-stopped
-    
+
+  postgres-auth:
+    container_name: postgres-auth
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: BadCourt_Auth
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   stripe-cli:
     image: stripe/stripe-cli
     container_name: stripe-cli
@@ -54,10 +67,9 @@ services:
       - .env
     ports:
       - "1000:1000"
-    volumes:
-      - auth_data:/app/Database
     depends_on:
       - rabbitmq
+      - postgres-auth
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
@@ -189,6 +201,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  auth_data:
   mongodb_data:
+  postgres_auth_data:
   orders_data:

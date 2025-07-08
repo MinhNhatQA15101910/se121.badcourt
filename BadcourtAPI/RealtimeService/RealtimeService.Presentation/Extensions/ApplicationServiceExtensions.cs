@@ -52,8 +52,6 @@ public static class ApplicationServiceExtensions
             x.AddConsumer<FacilityRatedConsumer>();
             x.AddConsumer<CourtInactiveUpdatedConsumer>();
 
-
-
             x.UsingRabbitMq((ctx, cfg) =>
             {
                 cfg.ReceiveEndpoint("RealtimeService-order-created-queue", e =>
