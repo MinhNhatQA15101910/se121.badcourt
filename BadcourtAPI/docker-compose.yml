@@ -20,14 +20,14 @@ services:
     
   stripe-cli:
     image: stripe/stripe-cli
-    container_name: stripe_cli
-    command: listen --forward-to http://order_service:4000/api/orders/webhook
+    container_name: stripe-cli
+    command: listen --forward-to http://order-service:4000/api/orders/webhook
     env_file:
       - .env
     environment:
       - STRIPE_API_KEY=${StripeSettings__SecretKey}
     depends_on:
-      - order_service
+      - order-service
 
   apigateway:
     container_name: apigateway
@@ -38,14 +38,14 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - auth_service
+      - auth-service
       - rabbitmq
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  auth_service:
-    container_name: auth_service
+  auth-service:
+    container_name: auth-service
     image: badcourt/authservice
     build:
       context: .
@@ -62,8 +62,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  facility_service:
-    container_name: facility_service
+  facility-service:
+    container_name: facility-service
     image: badcourt/facilityservice
     build:
       context: .
@@ -79,8 +79,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  court_service:
-    container_name: court_service
+  court-service:
+    container_name: court-service
     image: badcourt/courtservice
     build:
       context: .
@@ -96,8 +96,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  order_service:
-    container_name: order_service
+  order-service:
+    container_name: order-service
     image: badcourt/orderservice
     build:
       context: .
@@ -114,8 +114,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  post_service:
-    container_name: post_service
+  post-service:
+    container_name: post-service
     image: badcourt/postservice
     build:
       context: .
@@ -131,8 +131,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  realtime_service:
-    container_name: realtime_service
+  realtime-service:
+    container_name: realtime-service
     image: badcourt/realtimeservice
     build:
       context: .
@@ -148,8 +148,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  admin_service:
-    container_name: admin_service
+  admin-service:
+    container_name: admin-service
     image: badcourt/adminservice
     build:
       context: .
@@ -162,8 +162,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  manager_service:
-    container_name: manager_service
+  manager-service:
+    container_name: manager-service
     image: badcourt/managerservice
     build:
       context: .
@@ -176,8 +176,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  email_service:
-    container_name: email_service
+  email-service:
+    container_name: email-service
     image: badcourt/emailservice
     build:
       context: .
