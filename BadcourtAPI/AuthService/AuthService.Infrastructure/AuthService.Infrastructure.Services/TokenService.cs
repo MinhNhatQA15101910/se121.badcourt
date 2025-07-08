@@ -65,7 +65,8 @@ public class TokenService(
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Name, user.UserName ?? throw new Exception("User username is required to create a token"))
+            new(ClaimTypes.Name, user.UserName ?? throw new Exception("User username is required to create a token")),
+            new("user_state", user.State.ToString())
         };
 
         var roles = await userManager.GetRolesAsync(user);

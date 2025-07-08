@@ -33,7 +33,7 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<DataContext>(options =>
         {
             options.UseSqlite(
-                config.GetConnectionString("DefaultConnection"),
+                config.GetConnectionString("AuthDbConnection"),
                 options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
             );
         });

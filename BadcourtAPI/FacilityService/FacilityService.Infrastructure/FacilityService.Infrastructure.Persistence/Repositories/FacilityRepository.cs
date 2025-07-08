@@ -1,5 +1,6 @@
 using AutoMapper;
 using FacilityService.Core.Domain.Entities;
+using FacilityService.Core.Domain.Enums;
 using FacilityService.Core.Domain.Repositories;
 using FacilityService.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
@@ -49,7 +50,10 @@ public class FacilityRepository : IFacilityRepository
 
     public async Task<PagedList<FacilityDto>> GetFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default)
     {
-        var pipeline = new List<BsonDocument>();
+        var pipeline = new List<BsonDocument>
+        {
+            new("$match", new BsonDocument("UserState", new BsonDocument("$ne", "Locked")))
+        };
 
         switch (facilityParams.OrderBy)
         {
@@ -152,14 +156,10 @@ public class FacilityRepository : IFacilityRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task InsertManyAsync(IEnumerable<Facility> facilities, CancellationToken cancellationToken = default)
-    {
-        await _facilities.InsertManyAsync(facilities, cancellationToken: cancellationToken);
-    }
-
     public Task<List<string>> GetFacilityProvincesAsync(CancellationToken cancellationToken)
     {
-        var filter = FilterDefinition<Facility>.Empty;
+        var filter = Builders<Facility>.Filter.Ne(f => f.UserState, UserState.Locked);
+
         var distinctProvinces = _facilities.Distinct<string>("Province", filter, cancellationToken: cancellationToken);
         return distinctProvinces.ToListAsync(cancellationToken);
     }
@@ -181,32 +181,50 @@ public class FacilityRepository : IFacilityRepository
         );
     }
 
-    public async Task<int> GetTotalFacilitiesAsync(string? userId, int? year, CancellationToken cancellationToken = default)
+    public Task<List<Facility>> GetAllFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default)
     {
-        var filters = new List<FilterDefinition<Facility>>();
+        var filter = Builders<Facility>.Filter.Empty;
 
-        // Filter by UserId if provided
-        if (!string.IsNullOrWhiteSpace(userId) && Guid.TryParse(userId, out var userGuid))
+        // Filter by user id
+        if (!string.IsNullOrEmpty(facilityParams.UserId))
         {
-            filters.Add(Builders<Facility>.Filter.Eq(f => f.UserId, userGuid));
+            filter &= Builders<Facility>.Filter.Eq(f => f.UserId, Guid.Parse(facilityParams.UserId));
         }
 
-        // Filter by CreatedAt year if provided
-        if (year.HasValue)
+        // Filter by facility name
+        if (!string.IsNullOrEmpty(facilityParams.FacilityName))
         {
-            var startOfYear = new DateTime(year.Value, 1, 1);
-            var startOfNextYear = startOfYear.AddYears(1);
-
-            filters.Add(Builders<Facility>.Filter.Gte(f => f.CreatedAt, startOfYear));
-            filters.Add(Builders<Facility>.Filter.Lt(f => f.CreatedAt, startOfNextYear));
+            filter &= Builders<Facility>.Filter.Regex(f => f.FacilityName, new BsonRegularExpression(facilityParams.FacilityName, "i"));
         }
 
-        var filter = filters.Count != 0
-            ? Builders<Facility>.Filter.And(filters)
-            : Builders<Facility>.Filter.Empty;
+        // Filter by province
+        if (!string.IsNullOrEmpty(facilityParams.Province))
+        {
+            filter &= Builders<Facility>.Filter.Eq(f => f.Province, facilityParams.Province);
+        }
 
-        var count = await _facilities.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
-        return (int)count;
+        // Filter by state ignore case
+        if (!string.IsNullOrEmpty(facilityParams.State))
+        {
+            filter &= Builders<Facility>.Filter.Regex(f => f.State, new BsonRegularExpression(facilityParams.State, "i"));
+        }
+
+        // Filter by search term
+        if (!string.IsNullOrEmpty(facilityParams.Search))
+        {
+            filter &= Builders<Facility>.Filter.Or(
+                Builders<Facility>.Filter.Regex(f => f.FacilityName, new BsonRegularExpression(facilityParams.Search, "i")),
+                Builders<Facility>.Filter.Regex(f => f.Description, new BsonRegularExpression(facilityParams.Search, "i"))
+            );
+        }
+
+        // Filter by price range
+        filter &= Builders<Facility>.Filter.And(
+            Builders<Facility>.Filter.Gte(f => f.MinPrice, facilityParams.MinPrice),
+            Builders<Facility>.Filter.Lte(f => f.MaxPrice, facilityParams.MaxPrice)
+        );
+
+        return _facilities.Find(filter)
+            .ToListAsync(cancellationToken);
     }
-
 }

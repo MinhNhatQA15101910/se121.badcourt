@@ -17,4 +17,10 @@
     <ProjectReference Include="..\..\AuthService.Core\AuthService.Core.Domain\AuthService.Core.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Data\UserSeedData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

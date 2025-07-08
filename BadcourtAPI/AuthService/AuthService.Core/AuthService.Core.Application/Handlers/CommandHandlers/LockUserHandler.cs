@@ -1,12 +1,15 @@
 using AuthService.Core.Application.Commands;
 using AuthService.Core.Domain.Enums;
 using AuthService.Core.Domain.Repositories;
+using MassTransit;
+using SharedKernel.Events;
 using SharedKernel.Exceptions;
 
 namespace AuthService.Core.Application.Handlers.CommandHandlers;
 
 public class LockUserHandler(
-    IUserRepository userRepository
+    IUserRepository userRepository,
+    IPublishEndpoint publishEndpoint
 ) : ICommandHandler<LockUserCommand, bool>
 {
     public async Task<bool> Handle(LockUserCommand request, CancellationToken cancellationToken)
@@ -26,6 +29,10 @@ public class LockUserHandler(
         {
             throw new BadRequestException("Failed to lock user.");
         }
+
+        var userLockedEvent = new UserLockedEvent(
+            user.Id.ToString(), user.UserName!, user.Email!);
+        await publishEndpoint.Publish(userLockedEvent, cancellationToken);
 
         return true;
     }

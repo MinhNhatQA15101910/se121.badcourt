@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Locked Notification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 2rem auto;
+        background-color: #ffffff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      }
+
+      h2 {
+        color: #dc2626;
+      }
+
+      p {
+        line-height: 1.6;
+        color: #374151;
+      }
+
+      .footer {
+        margin-top: 2rem;
+        font-size: 0.85rem;
+        color: #9ca3af;
+        text-align: center;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        margin-top: 1rem;
+        background-color: #dc2626;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+
+      .btn:hover {
+        background-color: #b91c1c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>⚠️ Account Locked</h2>
+      <p>Dear <strong>{{UserName}}</strong>,</p>
+
+      <p>
+        We’re writing to inform you that your account has been <strong>locked</strong> due to
+        suspicious activity or a violation of our terms of service.
+      </p>
+
+      <p>
+        If you believe this was a mistake or you would like more information, please contact our
+        support team.
+      </p>
+
+      <a href="https://google.com" class="btn">Contact Support</a>
+
+      <p class="footer">
+        If you did not request this or believe it's an error, please ignore this email or contact us
+        immediately.
+      </p>
+    </div>
+  </body>
+</html>

@@ -16,4 +16,10 @@
     <ProjectReference Include="..\FacilityService.Infrastructure.Configuration\FacilityService.Infrastructure.Configuration.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Data\FacilitySeedData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

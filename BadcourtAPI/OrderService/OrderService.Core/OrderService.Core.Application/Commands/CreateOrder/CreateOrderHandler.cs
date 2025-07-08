@@ -34,7 +34,9 @@ public class CreateOrderHandler(
         var court = await courtApiRepository.GetCourtByIdAsync(request.CreateOrderDto.CourtId)
             ?? throw new CourtNotFoundException(request.CreateOrderDto.CourtId);
 
-        var facility = await facilityApiRepository.GetFacilityByIdAsync(court.FacilityId)
+        if (court.UserState == "Locked") throw new CourtLockedException(court.Id);
+
+        var facility = await facilityApiRepository.GetFacilityByIdAsync(court.FacilityId, cancellationToken)
             ?? throw new FacilityNotFoundException(court.FacilityId);
 
         // Check if the DateTimePeriod is in the future

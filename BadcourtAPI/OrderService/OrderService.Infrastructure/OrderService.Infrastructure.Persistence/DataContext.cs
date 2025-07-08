@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrderService.Core.Domain.Entities;
+using OrderService.Core.Domain.Enums;
 
 namespace OrderService.Infrastructure.Persistence;
 
@@ -18,6 +19,9 @@ public class DataContext(DbContextOptions options) : DbContext(options)
                 .HasConversion<string>()
                 .IsRequired();
         });
+
+        modelBuilder.Entity<Order>()
+            .HasQueryFilter(o => o.State != OrderState.Pending);
 
         modelBuilder.Entity<Order>()
             .OwnsOne(o => o.DateTimePeriod);

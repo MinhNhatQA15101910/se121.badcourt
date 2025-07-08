@@ -44,6 +44,25 @@ public class CourtRepository : ICourtRepository
         return _courts.DeleteOneAsync(c => c.Id == court.Id, cancellationToken: cancellationToken);
     }
 
+    public Task<List<Court>> GetAllCourtAsync(CourtParams courtParams, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Court>.Filter.Empty;
+
+        // Filter by user id
+        if (!string.IsNullOrEmpty(courtParams.UserId))
+        {
+            filter &= Builders<Court>.Filter.Eq(c => c.UserId, courtParams.UserId);
+        }
+
+        // Filter by facility id
+        if (!string.IsNullOrEmpty(courtParams.FacilityId))
+        {
+            filter &= Builders<Court>.Filter.Eq(c => c.FacilityId, courtParams.FacilityId);
+        }
+
+        return _courts.Find(filter).ToListAsync(cancellationToken: cancellationToken);
+    }
+
     public async Task<Court?> GetCourtByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         return await _courts.Find(court => court.Id == id).FirstOrDefaultAsync(cancellationToken: cancellationToken);
@@ -59,7 +78,10 @@ public class CourtRepository : ICourtRepository
 
     public async Task<PagedList<CourtDto>> GetCourtsAsync(CourtParams courtParams, CancellationToken cancellationToken = default)
     {
-        var pipeline = new List<BsonDocument>();
+        var pipeline = new List<BsonDocument>
+        {
+            new("$match", new BsonDocument("UserState", new BsonDocument("$ne", "Locked")))
+        };
 
         switch (courtParams.OrderBy)
         {
@@ -70,6 +92,12 @@ public class CourtRepository : ICourtRepository
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", courtParams.SortBy == "asc" ? 1 : -1)));
                 break;
+        }
+
+        // Filter by user id
+        if (!string.IsNullOrEmpty(courtParams.UserId))
+        {
+            pipeline.Add(new BsonDocument("$match", new BsonDocument("UserId", courtParams.UserId)));
         }
 
         // Filter by facility id

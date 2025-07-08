@@ -1,0 +1,194 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: stripe_cli
+    command: listen --forward-to http://order_service:4000/api/orders/webhook
+    env_file:
+      - .env
+    environment:
+      - STRIPE_API_KEY=${StripeSettings__SecretKey}
+    depends_on:
+      - order_service
+
+  apigateway:
+    container_name: apigateway
+    image: badcourt/apigateway
+    build:
+      context: .
+      dockerfile: APIGateway/Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth_service
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  auth_service:
+    container_name: auth_service
+    image: badcourt/authservice
+    build:
+      context: .
+      dockerfile: AuthService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "1000:1000"
+    volumes:
+      - auth_data:/app/Database
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  facility_service:
+    container_name: facility_service
+    image: badcourt/facilityservice
+    build:
+      context: .
+      dockerfile: FacilityService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "2000:2000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  court_service:
+    container_name: court_service
+    image: badcourt/courtservice
+    build:
+      context: .
+      dockerfile: CourtService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  order_service:
+    container_name: order_service
+    image: badcourt/orderservice
+    build:
+      context: .
+      dockerfile: OrderService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - orders_data:/app/Database
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  post_service:
+    container_name: post_service
+    image: badcourt/postservice
+    build:
+      context: .
+      dockerfile: PostService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "6000:6000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  realtime_service:
+    container_name: realtime_service
+    image: badcourt/realtimeservice
+    build:
+      context: .
+      dockerfile: RealtimeService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "7000:7000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  admin_service:
+    container_name: admin_service
+    image: badcourt/adminservice
+    build:
+      context: .
+      dockerfile: AdminService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  manager_service:
+    container_name: manager_service
+    image: badcourt/managerservice
+    build:
+      context: .
+      dockerfile: ManagerService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  email_service:
+    container_name: email_service
+    image: badcourt/emailservice
+    build:
+      context: .
+      dockerfile: EmailService/Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+volumes:
+  auth_data:
+  mongodb_data:
+  orders_data:

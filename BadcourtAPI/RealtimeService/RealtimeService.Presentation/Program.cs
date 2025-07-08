@@ -26,6 +26,7 @@ app.UseCors("CorsPolicy");
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
+app.UseMiddleware<UserStateMiddleware>();
 app.UseAuthorization();
 
 app.MapHub<PresenceHub>("/hubs/presence");

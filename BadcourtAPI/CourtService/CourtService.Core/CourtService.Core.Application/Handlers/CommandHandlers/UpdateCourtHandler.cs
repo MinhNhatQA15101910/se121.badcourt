@@ -2,6 +2,7 @@ using AutoMapper;
 using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
 using CourtService.Core.Application.Interfaces.ServiceClients;
+using CourtService.Core.Domain.Enums;
 using CourtService.Core.Domain.Repositories;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +23,8 @@ public class UpdateCourtHandler(
     {
         var court = await courtRepository.GetCourtByIdAsync(request.CourtId, cancellationToken)
             ?? throw new CourtNotFoundException(request.CourtId);
+
+        if (court.UserState == UserState.Locked) throw new CourtLockedException(court.Id);
 
         var facilityId = court.FacilityId;
         var facility = await facilityServiceClient.GetFacilityByIdAsync(facilityId, cancellationToken)

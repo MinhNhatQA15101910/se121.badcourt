@@ -58,7 +58,7 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<DataContext>(options =>
         {
             options.UseSqlite(
-                configuration.GetConnectionString("DefaultConnection"),
+                configuration.GetConnectionString("OrdersDbConnection"),
                 options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
             );
         });
@@ -70,10 +70,12 @@ public static class ApplicationServiceExtensions
 
     public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
     {
+        services.AddSingleton<IPendingOrderTracker, PendingOrderTracker>();
         services.AddScoped<IStripeService, StripeService>();
 
         // Background Services
         services.AddHostedService<UpdateOrderStateBackgroundService>();
+        services.AddHostedService<DeletePendingOrdersBackgroundService>();
 
         // Api Repositories
         services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();

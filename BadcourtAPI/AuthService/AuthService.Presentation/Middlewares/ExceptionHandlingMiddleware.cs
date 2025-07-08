@@ -62,6 +62,7 @@ public class ExceptionHandlingMiddleware(
             BadRequestException => StatusCodes.Status400BadRequest,
             UnauthorizedException => StatusCodes.Status401Unauthorized,
             NotFoundException => StatusCodes.Status404NotFound,
+            ForbiddenAccessException => StatusCodes.Status403Forbidden,
             ValidationException => StatusCodes.Status422UnprocessableEntity,
             _ => StatusCodes.Status500InternalServerError
         };
