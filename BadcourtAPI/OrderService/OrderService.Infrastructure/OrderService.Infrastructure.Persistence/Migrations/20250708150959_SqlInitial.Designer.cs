@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OrderService.Infrastructure.Persistence;
 
 #nullable disable
@@ -11,82 +12,86 @@ using OrderService.Infrastructure.Persistence;
 namespace OrderService.Infrastructure.Persistence.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250702112934_SqlInitial")]
+[Migration("20250708150959_SqlInitial")]
 partial class SqlInitial
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
-        modelBuilder.HasAnnotation("ProductVersion", "9.0.4");
+        modelBuilder
+            .HasAnnotation("ProductVersion", "9.0.4")
+            .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
         modelBuilder.Entity("OrderService.Core.Domain.Entities.Order", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("uuid");
 
                 b.Property<string>("Address")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("CourtId")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("CourtName")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("FacilityId")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("FacilityName")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("FacilityOwnerId")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("ImageUrl")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("PaymentIntentId")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<decimal>("Price")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("numeric");
 
                 b.Property<string>("Province")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<Guid?>("RatingId")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("uuid");
 
                 b.Property<string>("State")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<DateTime>("UpdatedAt")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<Guid>("UserId")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("uuid");
 
                 b.Property<string>("UserImageUrl")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("Username")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.HasKey("Id");
 
@@ -99,34 +104,34 @@ partial class SqlInitial
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("uuid");
 
                 b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<string>("FacilityId")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("Feedback")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<int>("Stars")
-                    .HasColumnType("INTEGER");
+                    .HasColumnType("integer");
 
                 b.Property<DateTime>("UpdatedAt")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("timestamp with time zone");
 
                 b.Property<Guid>("UserId")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("uuid");
 
                 b.Property<string>("UserImageUrl")
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.Property<string>("Username")
                     .IsRequired()
-                    .HasColumnType("TEXT");
+                    .HasColumnType("text");
 
                 b.HasKey("Id");
 
@@ -142,13 +147,13 @@ partial class SqlInitial
                 b.OwnsOne("OrderService.Core.Domain.Entities.DateTimePeriod", "DateTimePeriod", b1 =>
                     {
                         b1.Property<Guid>("OrderId")
-                            .HasColumnType("TEXT");
+                            .HasColumnType("uuid");
 
                         b1.Property<DateTime>("HourFrom")
-                            .HasColumnType("TEXT");
+                            .HasColumnType("timestamp with time zone");
 
                         b1.Property<DateTime>("HourTo")
-                            .HasColumnType("TEXT");
+                            .HasColumnType("timestamp with time zone");
 
                         b1.HasKey("OrderId");
 

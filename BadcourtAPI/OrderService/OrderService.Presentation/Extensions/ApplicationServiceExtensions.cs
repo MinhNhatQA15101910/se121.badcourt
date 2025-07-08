@@ -57,7 +57,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddDbContext<DataContext>(options =>
         {
-            options.UseSqlite(
+            options.UseNpgsql(
                 configuration.GetConnectionString("OrdersDbConnection"),
                 options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
             );
