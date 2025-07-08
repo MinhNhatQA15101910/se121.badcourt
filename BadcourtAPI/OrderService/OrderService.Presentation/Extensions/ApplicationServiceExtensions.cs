@@ -58,7 +58,7 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<DataContext>(options =>
         {
             options.UseSqlite(
-                configuration.GetConnectionString("DefaultConnection"),
+                configuration.GetConnectionString("OrdersDbConnection"),
                 options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
             );
         });

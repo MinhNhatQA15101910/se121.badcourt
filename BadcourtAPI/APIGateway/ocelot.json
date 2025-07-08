@@ -211,6 +211,112 @@
       "DownstreamHostAndPorts": [{ "Host": "court_service", "Port": 3000 }],
       "UpstreamPathTemplate": "/gateway/courts/{id}",
       "UpstreamHttpMethod": ["Delete"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/{id}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/check-conflict",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/check-conflict",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/cancel/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/cancel/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/rate/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/orders/rate/{id}",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ratings/{ratingId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/ratings/{ratingId}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ratings",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/ratings",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/monthly-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/monthly-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/court-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/court-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/orders",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/facility-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/facility-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/revenue-stats",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/revenue-stats",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/province-revenue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/province-revenue",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/revenue-by-hour",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/revenue-by-hour",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {

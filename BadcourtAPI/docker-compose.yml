@@ -17,6 +17,17 @@ services:
     volumes:
       - mongodb_data:/data/db
     restart: unless-stopped
+    
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: stripe_cli
+    command: listen --forward-to http://order_service:4000/api/orders/webhook
+    env_file:
+      - .env
+    environment:
+      - STRIPE_API_KEY=${StripeSettings__SecretKey}
+    depends_on:
+      - order_service
 
   apigateway:
     container_name: apigateway
@@ -85,6 +96,24 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
+  order_service:
+    container_name: order_service
+    image: badcourt/orderservice
+    build:
+      context: .
+      dockerfile: OrderService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - orders_data:/app/Database
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
   email_service:
     container_name: email_service
     image: badcourt/emailservice
@@ -100,3 +129,4 @@ services:
 volumes:
   auth_data:
   mongodb_data:
+  orders_data:
