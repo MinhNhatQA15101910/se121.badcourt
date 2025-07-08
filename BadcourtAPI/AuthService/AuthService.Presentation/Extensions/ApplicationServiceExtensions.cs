@@ -13,7 +13,6 @@ using FluentValidation;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 
 namespace AuthService.Presentation.Extensions;
 
@@ -24,34 +23,8 @@ public static class ApplicationServiceExtensions
         services.AddControllers();
         services.AddHttpContextAccessor();
 
-        // Options pattern
-        services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
-        services.Configure<EmailSenderSettings>(config.GetSection("EmailSenderSettings"));
-        services.Configure<MongoDbSettings>(config.GetSection("MongoDbSettings"));
-
-        // Database and repositories
-        services.AddDbContext<DataContext>(options =>
-        {
-            options.UseSqlite(
-                config.GetConnectionString("AuthDbConnection"),
-                options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-            );
-        });
-        services.AddScoped<IUserRepository, UserRepository>();
-
-        // Services
-        services.AddSingleton<PincodeStore>();
-        services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IFileService, FileService>();
-
         // Middleware
         services.AddScoped<ExceptionHandlingMiddleware>();
-
-        // MediatR
-        var applicationAssembly = typeof(AssemblyReference).Assembly;
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        services.AddValidatorsFromAssembly(applicationAssembly);
 
         // MassTransit and RabbitMQ
         services.AddMassTransit(x =>
@@ -72,8 +45,45 @@ public static class ApplicationServiceExtensions
             });
         });
 
-        // Others
+        return services.AddApplication(config)
+            .AddPersistence(config)
+            .AddExternalServices(config);
+    }
+
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    {
+        var applicationAssembly = typeof(AssemblyReference).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddValidatorsFromAssembly(applicationAssembly);
+
         services.AddAutoMapper(applicationAssembly);
+
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<DataContext>(options =>
+        {
+            options.UseNpgsql(
+                configuration.GetConnectionString("AuthDbConnection"),
+                options => options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+            );
+        });
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<CloudinarySettings>(config.GetSection(nameof(CloudinarySettings)));
+        services.Configure<EmailSenderSettings>(config.GetSection(nameof(EmailSenderSettings)));
+
+        services.AddSingleton<PincodeStore>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IFileService, FileService>();
 
         return services;
     }
