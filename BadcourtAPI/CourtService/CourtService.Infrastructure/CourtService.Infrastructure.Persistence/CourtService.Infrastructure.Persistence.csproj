@@ -15,4 +15,10 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Data\CourtSeedData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

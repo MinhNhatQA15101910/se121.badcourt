@@ -68,6 +68,23 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
+  court_service:
+    container_name: court_service
+    image: badcourt/courtservice
+    build:
+      context: .
+      dockerfile: CourtService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
   email_service:
     container_name: email_service
     image: badcourt/emailservice

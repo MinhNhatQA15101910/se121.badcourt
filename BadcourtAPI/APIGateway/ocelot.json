@@ -175,6 +175,42 @@
       "DownstreamHostAndPorts": [{ "Host": "facility_service", "Port": 2000 }],
       "UpstreamPathTemplate": "/gateway/facilities/{id}",
       "UpstreamHttpMethod": ["Delete"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/courts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "court_service", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts/{id}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/courts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "court_service", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/courts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "court_service", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/courts/update-inactive/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "court_service", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts/update-inactive/{id}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/courts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "court_service", "Port": 3000 }],
+      "UpstreamPathTemplate": "/gateway/courts/{id}",
+      "UpstreamHttpMethod": ["Delete"]
     }
   ],
   "GlobalConfiguration": {

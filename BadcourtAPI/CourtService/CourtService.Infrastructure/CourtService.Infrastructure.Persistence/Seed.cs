@@ -13,7 +13,7 @@ public class Seed
         if (await courtRepository.AnyAsync()) return;
 
         var courtData = await File.ReadAllTextAsync(
-            "../CourtService.Infrastructure/CourtService.Infrastructure.Persistence/Data/CourtSeedData.json"
+            "Data/CourtSeedData.json"
         );
 
         var options = new JsonSerializerOptions
