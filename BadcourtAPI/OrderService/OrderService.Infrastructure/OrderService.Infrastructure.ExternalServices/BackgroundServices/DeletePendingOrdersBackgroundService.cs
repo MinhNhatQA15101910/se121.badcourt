@@ -9,7 +9,7 @@ public class DeletePendingOrdersBackgroundService(
     IServiceProvider serviceProvider
 ) : BackgroundService
 {
-    public static bool HasPendingOrders { get; set; } = false;
+    public bool HasPendingOrders { get; set; } = false;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

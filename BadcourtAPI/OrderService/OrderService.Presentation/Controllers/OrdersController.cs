@@ -19,7 +19,11 @@ namespace OrderService.Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class OrdersController(IMediator mediator, IConfiguration config) : ControllerBase
+public class OrdersController(
+    IMediator mediator,
+    IConfiguration config,
+    DeletePendingOrdersBackgroundService deletePendingOrdersBackgroundService
+) : ControllerBase
 {
     [HttpGet("{id}")]
     [Authorize]
@@ -45,7 +49,7 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
     {
         var orderIntent = await mediator.Send(new CreateOrderCommand(createOrderDto));
 
-        DeletePendingOrdersBackgroundService.HasPendingOrders = true;
+        deletePendingOrdersBackgroundService.HasPendingOrders = true;
 
         return Ok(orderIntent);
     }

@@ -148,6 +148,34 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
+  admin_service:
+    container_name: admin_service
+    image: badcourt/adminservice
+    build:
+      context: .
+      dockerfile: AdminService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  manager_service:
+    container_name: manager_service
+    image: badcourt/managerservice
+    build:
+      context: .
+      dockerfile: ManagerService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
   email_service:
     container_name: email_service
     image: badcourt/emailservice

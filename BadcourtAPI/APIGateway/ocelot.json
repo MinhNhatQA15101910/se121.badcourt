@@ -410,6 +410,22 @@
       "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
       "UpstreamPathTemplate": "/gateway/notifications/read-all",
       "UpstreamHttpMethod": ["Put"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/admin-dashboard/summary",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "admin_service", "Port": 8000 }],
+      "UpstreamPathTemplate": "/gateway/admin-dashboard/summary",
+      "UpstreamHttpMethod": ["Get"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/manager-dashboard/summary",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "manager_service", "Port": 9000 }],
+      "UpstreamPathTemplate": "/gateway/manager-dashboard/summary",
+      "UpstreamHttpMethod": ["Get"]
     }
   ],
   "GlobalConfiguration": {
