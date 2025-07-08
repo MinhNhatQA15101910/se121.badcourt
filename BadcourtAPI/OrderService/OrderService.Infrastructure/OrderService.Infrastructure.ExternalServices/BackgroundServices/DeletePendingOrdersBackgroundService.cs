@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OrderService.Core.Application.Interfaces;
 using OrderService.Core.Domain.Repositories;
 using SharedKernel.Params;
 
@@ -9,15 +10,20 @@ public class DeletePendingOrdersBackgroundService(
     IServiceProvider serviceProvider
 ) : BackgroundService
 {
-    public bool HasPendingOrders { get; set; } = false;
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!HasPendingOrders) return;
 
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = serviceProvider.CreateScope();
+
+            var pendingOrderTracker = scope.ServiceProvider.GetRequiredService<IPendingOrderTracker>();
+            if (!pendingOrderTracker.HasPendingOrders)
+            {
+                Console.WriteLine("[DeletePendingOrdersBackgroundService] No pending orders to process.");
+                continue;
+            }
+
             var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
 
             var currentTime = DateTime.UtcNow;
@@ -33,8 +39,12 @@ public class DeletePendingOrdersBackgroundService(
             if (pendingOrders == null || !pendingOrders.Any())
             {
                 Console.WriteLine("[DeletePendingOrdersBackgroundService] No pending orders found.");
-                HasPendingOrders = false;
+                pendingOrderTracker.HasPendingOrders = false;
                 return;
+            }
+            else
+            {
+                pendingOrderTracker.HasPendingOrders = true;
             }
 
             foreach (var order in pendingOrders)
@@ -48,7 +58,7 @@ public class DeletePendingOrdersBackgroundService(
 
             await orderRepository.CompleteAsync(stoppingToken);
 
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
     }
 }

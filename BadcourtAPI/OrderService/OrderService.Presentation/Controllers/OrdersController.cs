@@ -6,9 +6,9 @@ using OrderService.Core.Application.Commands.CheckConflict;
 using OrderService.Core.Application.Commands.ConfirmOrderPayment;
 using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Commands.CreateRating;
+using OrderService.Core.Application.Interfaces;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
-using OrderService.Infrastructure.ExternalServices.BackgroundServices;
 using OrderService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -22,7 +22,7 @@ namespace OrderService.Presentation.Controllers;
 public class OrdersController(
     IMediator mediator,
     IConfiguration config,
-    DeletePendingOrdersBackgroundService deletePendingOrdersBackgroundService
+    IPendingOrderTracker pendingOrderTracker
 ) : ControllerBase
 {
     [HttpGet("{id}")]
@@ -49,7 +49,7 @@ public class OrdersController(
     {
         var orderIntent = await mediator.Send(new CreateOrderCommand(createOrderDto));
 
-        deletePendingOrdersBackgroundService.HasPendingOrders = true;
+        pendingOrderTracker.HasPendingOrders = true;
 
         return Ok(orderIntent);
     }

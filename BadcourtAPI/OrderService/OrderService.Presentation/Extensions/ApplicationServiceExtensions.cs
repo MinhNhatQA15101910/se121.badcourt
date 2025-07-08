@@ -70,6 +70,7 @@ public static class ApplicationServiceExtensions
 
     public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration config)
     {
+        services.AddSingleton<IPendingOrderTracker, PendingOrderTracker>();
         services.AddScoped<IStripeService, StripeService>();
 
         // Background Services
