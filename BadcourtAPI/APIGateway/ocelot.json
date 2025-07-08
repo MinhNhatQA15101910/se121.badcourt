@@ -367,6 +367,49 @@
       "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
       "UpstreamPathTemplate": "/gateway/comments/toggle-like/{id}",
       "UpstreamHttpMethod": ["Post"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/groups",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/groups",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/messages",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/messages",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/messages",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/read/{notificationId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications/read/{notificationId}",
+      "UpstreamHttpMethod": ["Put"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/read-all",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "realtime_service", "Port": 7000 }],
+      "UpstreamPathTemplate": "/gateway/notifications/read-all",
+      "UpstreamHttpMethod": ["Put"]
     }
   ],
   "GlobalConfiguration": {
