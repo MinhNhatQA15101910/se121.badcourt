@@ -20,7 +20,7 @@ services:
     
   stripe-cli:
     image: stripe/stripe-cli
-    container_name: stripe_cli
+    container_name: stripe-cli
     command: listen --forward-to http://order-service:4000/api/orders/webhook
     env_file:
       - .env
@@ -176,8 +176,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
-  email_service:
-    container_name: email_service
+  email-service:
+    container_name: email-service
     image: badcourt/emailservice
     build:
       context: .
