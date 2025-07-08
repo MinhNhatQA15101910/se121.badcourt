@@ -317,6 +317,56 @@
       "DownstreamHostAndPorts": [{ "Host": "order_service", "Port": 4000 }],
       "UpstreamPathTemplate": "/gateway/admin-dashboard/revenue-by-hour",
       "UpstreamHttpMethod": ["Get"]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/posts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/{id}",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts/toggle-like/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/toggle-like/{id}",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/comments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/comments",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/comments",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/comments",
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/comments/toggle-like/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post_service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/comments/toggle-like/{id}",
+      "UpstreamHttpMethod": ["Post"]
     }
   ],
   "GlobalConfiguration": {
