@@ -53,16 +53,6 @@ public static class ApplicationServiceExtensions
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddValidatorsFromAssembly(applicationAssembly);
 
-        // Redis
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = config["RedisCacheSettings:Configuration"];
-            options.InstanceName = config["RedisCacheSettings:InstanceName"];
-        });
-
-        services.AddSingleton<IConnectionMultiplexer>(sp =>
-            ConnectionMultiplexer.Connect(config["RedisCacheSettings:Configuration"]!));
-
         // MassTransit and RabbitMQ
         services.AddMassTransit(x =>
         {

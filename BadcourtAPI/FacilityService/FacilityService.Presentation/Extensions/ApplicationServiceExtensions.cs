@@ -27,16 +27,6 @@ public static class ApplicationServiceExtensions
         // Middleware
         services.AddScoped<ExceptionHandlingMiddleware>();
 
-        // Redis
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = config["RedisCacheSettings:Configuration"];
-            options.InstanceName = config["RedisCacheSettings:InstanceName"];
-        });
-
-        services.AddSingleton<IConnectionMultiplexer>(sp =>
-            ConnectionMultiplexer.Connect(config["RedisCacheSettings:Configuration"]!));
-
         // MassTransit
         services.AddMassTransit(x =>
         {
