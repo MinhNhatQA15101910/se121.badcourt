@@ -21,6 +21,6 @@
     <Content Include="Data\UserSeedData.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-</ItemGroup>
+  </ItemGroup>
 
 </Project>

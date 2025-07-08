@@ -9,6 +9,15 @@ services:
       - "15672:15672"
     restart: unless-stopped
 
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
   apigateway:
     container_name: apigateway
     image: badcourt/apigateway
@@ -42,6 +51,23 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     restart: unless-stopped
 
+  facility_service:
+    container_name: facility_service
+    image: badcourt/facilityservice
+    build:
+      context: .
+      dockerfile: FacilityService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "2000:2000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
   email_service:
     container_name: email_service
     image: badcourt/emailservice
@@ -56,3 +82,4 @@ services:
 
 volumes:
   auth_data:
+  mongodb_data:
