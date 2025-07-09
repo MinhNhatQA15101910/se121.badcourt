@@ -56,6 +56,7 @@ class AuthService {
         onSuccess: () {
           IconSnackBar.show(
             context,
+            maxLines: 2,
             label: 'Account created successfully!',
             snackBarType: SnackBarType.success,
           );
@@ -76,6 +77,7 @@ class AuthService {
       } else {
         IconSnackBar.show(
           context,
+          maxLines: 2,
           label: 'Token not found in the response.',
           snackBarType: SnackBarType.fail,
         );
@@ -84,6 +86,7 @@ class AuthService {
     } catch (error) {
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -122,12 +125,14 @@ class AuthService {
           if (isSignUp) {
             IconSnackBar.show(
               context,
+              maxLines: 2,
               label: 'Account created successfully!',
               snackBarType: SnackBarType.success,
             );
           } else {
             IconSnackBar.show(
               context,
+              maxLines: 2,
               label: 'Change password successfully!',
               snackBarType: SnackBarType.success,
             );
@@ -143,6 +148,7 @@ class AuthService {
     } catch (error) {
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -182,11 +188,12 @@ class AuthService {
 
           SharedPreferences prefs = await SharedPreferences.getInstance();
           final token = jsonDecode(response.body)['token'];
-          
+
           // Lưu token và đánh dấu đã đăng nhập
           await prefs.setString('x-auth-token', token);
           await prefs.setBool('is-logged-in', true);
-          await prefs.setBool('remember-login', true); // Thêm flag remember login
+          await prefs.setBool(
+              'remember-login', true); // Thêm flag remember login
 
           userProvider.setUser(response.body);
           print('User data set in provider');
@@ -204,8 +211,8 @@ class AuthService {
                 onReceiveGroups: groupProvider.groupHubService.onReceiveGroups,
                 onNewMessage: groupProvider.groupHubService.onNewMessage,
                 onGroupUpdated: groupProvider.groupHubService.onGroupUpdated,
-                onNewMessageReceived: groupProvider
-                    .groupHubService.onNewMessageReceived,
+                onNewMessageReceived:
+                    groupProvider.groupHubService.onNewMessageReceived,
               );
 
               print('All SignalR services connected successfully after login');
@@ -230,8 +237,9 @@ class AuthService {
             );
           }
 
-          IconSnackBar.show(
-            context,
+                IconSnackBar.show(
+        context,
+        maxLines: 2,
             label: 'Login successfully!',
             snackBarType: SnackBarType.success,
           );
@@ -243,6 +251,7 @@ class AuthService {
       print('Login error: $error');
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -281,7 +290,7 @@ class AuthService {
 
           SharedPreferences prefs = await SharedPreferences.getInstance();
           final token = jsonDecode(response.body)['token'];
-          
+
           // Lưu token và đánh dấu đã đăng nhập
           await prefs.setString('x-auth-token', token);
           await prefs.setBool('is-logged-in', true);
@@ -307,8 +316,9 @@ class AuthService {
             (route) => false,
           );
 
-          IconSnackBar.show(
-            context,
+                IconSnackBar.show(
+        context,
+        maxLines: 2,
             label: 'Login successfully!',
             snackBarType: SnackBarType.success,
           );
@@ -325,6 +335,7 @@ class AuthService {
       print('Google login error: $error');
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -378,8 +389,9 @@ class AuthService {
 
           return true;
         } else {
-          IconSnackBar.show(
-            context,
+                IconSnackBar.show(
+        context,
+        maxLines: 2,
             label: 'Token not found in response.',
             snackBarType: SnackBarType.fail,
           );
@@ -388,6 +400,7 @@ class AuthService {
       } else {
         IconSnackBar.show(
           context,
+          maxLines: 2,
           label:
               'Failed to validate email. Status Code: ${response.statusCode}',
           snackBarType: SnackBarType.fail,
@@ -397,6 +410,7 @@ class AuthService {
     } catch (error) {
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -439,8 +453,9 @@ class AuthService {
             listen: false,
           );
 
-          IconSnackBar.show(
-            context,
+                IconSnackBar.show(
+        context,
+        maxLines: 2,
             label: 'Change password successfully!',
             snackBarType: SnackBarType.success,
           );
@@ -463,6 +478,7 @@ class AuthService {
     } catch (error) {
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -477,8 +493,9 @@ class AuthService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('x-auth-token');
       bool? rememberLogin = prefs.getBool('remember-login');
-      
-      print('Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
+
+      print(
+          'Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
       print('Remember login: ${rememberLogin ?? false}');
 
       if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
@@ -529,6 +546,7 @@ class AuthService {
       await clearLoginData();
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: error.toString(),
         snackBarType: SnackBarType.fail,
       );
@@ -541,7 +559,7 @@ class AuthService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('x-auth-token');
       bool? rememberLogin = prefs.getBool('remember-login');
-      
+
       if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
         return false;
       }
@@ -556,11 +574,11 @@ class AuthService {
       );
 
       var isValidToken = jsonDecode(tokenRes.body);
-      
+
       if (!isValidToken) {
         await clearLoginData();
       }
-      
+
       return isValidToken == true;
     } catch (error) {
       print('Error checking token validity: $error');
@@ -590,10 +608,10 @@ class AuthService {
       bool? isLoggedIn = prefs.getBool('is-logged-in');
       bool? rememberLogin = prefs.getBool('remember-login');
       String? token = prefs.getString('x-auth-token');
-      
-      return (isLoggedIn ?? false) && 
-             (rememberLogin ?? false) && 
-             (token != null && token.isNotEmpty);
+
+      return (isLoggedIn ?? false) &&
+          (rememberLogin ?? false) &&
+          (token != null && token.isNotEmpty);
     } catch (error) {
       print('Error checking login status: $error');
       return false;
@@ -621,6 +639,7 @@ class AuthService {
 
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: 'Logged out successfully!',
         snackBarType: SnackBarType.success,
       );
@@ -628,6 +647,7 @@ class AuthService {
       print('Error during logout: $error');
       IconSnackBar.show(
         context,
+        maxLines: 2,
         label: 'Error during logout: ${error.toString()}',
         snackBarType: SnackBarType.fail,
       );
@@ -640,7 +660,7 @@ class AuthService {
       await _signalRManager.stopAllConnections();
       await clearLoginData();
       Provider.of<UserProvider>(context, listen: false).setUser('');
-      
+
       Navigator.of(context).pushNamedAndRemoveUntil(
         AuthOptionsScreen.routeName,
         (route) => false,

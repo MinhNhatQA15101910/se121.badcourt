@@ -12,7 +12,6 @@ import 'package:frontend/providers/court_hub_provider.dart';
 
 class CourtScreen extends StatefulWidget {
   static const String routeName = '/courtDetail';
-
   const CourtScreen({Key? key}) : super(key: key);
 
   @override
@@ -25,6 +24,7 @@ class _CourtScreenState extends State<CourtScreen> {
   final _courtService = CourtService();
   List<Court> _courts = [];
   bool _isLoading = true;
+  bool _allDatesDisabled = false;
 
   bool _isDateDisabled(DateTime date, Facility facility) {
     const daysOfWeek = [
@@ -40,16 +40,29 @@ class _CourtScreenState extends State<CourtScreen> {
     return !facility.hasDay(dayName);
   }
 
+  bool _areAllDatesDisabled(Facility facility) {
+    return _dates.every((date) => _isDateDisabled(date, facility));
+  }
+
   Future<void> _fetchCourtByFacilityId(Facility facility) async {
+    // Don't fetch courts if all dates are disabled
+    if (_allDatesDisabled) {
+      setState(() {
+        _courts = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
-
+    
     _courts = await _courtService.fetchCourtByFacilityId(
       context,
       facility.id,
     );
-
+    
     setState(() {
       _isLoading = false;
     });
@@ -64,23 +77,27 @@ class _CourtScreenState extends State<CourtScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Lấy facility từ Provider
+    // Get facility from Provider
     final currentFacilityProvider =
         Provider.of<CurrentFacilityProvider>(context, listen: false);
     final facility = currentFacilityProvider.currentFacility;
 
-    // Khởi tạo danh sách ngày (14 ngày tiếp theo)
+    // Initialize date list (next 14 days)
     final now = DateTime.now();
     for (int i = 0; i < 14; i++) {
       _dates.add(now.add(Duration(days: i)));
     }
 
-    // Tìm ngày hợp lệ đầu tiên để gán vào _selectedDate
-    final firstAvailableDate = _dates.firstWhere(
-        (date) => !_isDateDisabled(date, facility),
-        orElse: () => now);
-    _selectedDate = firstAvailableDate;
+    // Check if all dates are disabled
+    _allDatesDisabled = _areAllDatesDisabled(facility);
+
+    if (!_allDatesDisabled) {
+      // Find first available date to assign to _selectedDate
+      final firstAvailableDate = _dates.firstWhere(
+          (date) => !_isDateDisabled(date, facility),
+          orElse: () => now);
+      _selectedDate = firstAvailableDate;
+    }
 
     _fetchCourtByFacilityId(facility);
   }
@@ -92,6 +109,73 @@ class _CourtScreenState extends State<CourtScreen> {
         Provider.of<CourtHubProvider>(context, listen: false);
     courtHubProvider.disconnectFromAllCourts();
     super.dispose();
+  }
+
+  Widget _buildDisabledCourtArea() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.sports_tennis,
+            size: 64,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Available Days',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This facility is not available on any of the selected dates. Please check the facility\'s operating schedule.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCourtsList() {
+    final currentFacilityProvider = Provider.of<CurrentFacilityProvider>(context, listen: false);
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: GlobalVariables.green,
+        ),
+      );
+    }
+
+    if (_courts.isEmpty) {
+      return Center(
+        child: _subTotalText('No courts available'),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: ListView.builder(
+        itemCount: _courts.length,
+        itemBuilder: (context, index) {
+          final court = _courts[index];
+          return CourtCardPlayer(
+            facility: currentFacilityProvider.currentFacility,
+            court: court,
+            selectedDate: _selectedDate,
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -130,56 +214,39 @@ class _CourtScreenState extends State<CourtScreen> {
                 children: [
                   // Date selector
                   Container(
-                    color: GlobalVariables.white,
-                    padding: EdgeInsets.only(top: 12, bottom: 16),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          SizedBox(width: 16),
-                          for (DateTime date in _dates)
-                            DateTagPlayer(
-                              datetime: date,
-                              isActived: date == _selectedDate,
-                              isDisabled: _isDateDisabled(date, facility),
-                              onPressed: () {
-                                if (!_isDateDisabled(date, facility)) {
-                                  _handleDateTagPressed(date);
-                                }
-                              },
-                            ),
-                          SizedBox(width: 8),
-                        ],
+                    color: _allDatesDisabled 
+                        ? Colors.grey.shade100 
+                        : GlobalVariables.white,
+                    padding: const EdgeInsets.only(top: 12, bottom: 16),
+                    child: Opacity(
+                      opacity: _allDatesDisabled ? 0.6 : 1.0,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            for (DateTime date in _dates)
+                              DateTagPlayer(
+                                datetime: date,
+                                isActived: !_allDatesDisabled && date == _selectedDate,
+                                isDisabled: _isDateDisabled(date, facility),
+                                onPressed: () {
+                                  if (!_isDateDisabled(date, facility) && !_allDatesDisabled) {
+                                    _handleDateTagPressed(date);
+                                  }
+                                },
+                              ),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  // Courts list
+                  // Courts list or disabled message
                   Expanded(
-                    child: _isLoading
-                        ? Center(
-                            child: CircularProgressIndicator(
-                              color: GlobalVariables.green,
-                            ),
-                          )
-                        : _courts.isEmpty
-                            ? Center(
-                                child: _subTotalText('No courts available'),
-                              )
-                            : Container(
-                                padding: EdgeInsets.all(16),
-                                child: ListView.builder(
-                                  itemCount: _courts.length,
-                                  itemBuilder: (context, index) {
-                                    final court = _courts[index];
-
-                                    return CourtCardPlayer(
-                                      facility: facility,
-                                      court: court,
-                                      selectedDate: _selectedDate,
-                                    );
-                                  },
-                                ),
-                              ),
+                    child: _allDatesDisabled 
+                        ? _buildDisabledCourtArea()
+                        : _buildCourtsList(),
                   ),
                 ],
               ),
