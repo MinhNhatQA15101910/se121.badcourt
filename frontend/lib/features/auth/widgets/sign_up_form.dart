@@ -207,7 +207,7 @@ class _SignUpFormState extends State<SignUpForm>
                   Text(
                     'Create Account',
                     style: GoogleFonts.inter(
-                      fontSize: 28,
+                      fontSize: 20,
                       color: GlobalVariables.darkGreen,
                       fontWeight: FontWeight.bold,
                     ),
