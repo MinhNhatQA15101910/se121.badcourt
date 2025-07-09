@@ -432,34 +432,35 @@ class _CourtManagementScreenState extends State<CourtManagementScreen> {
                     },
                     itemCount: _courts.length,
                   ),
-                  const SizedBox(height: 80), // Space for floating button
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ElevatedButton(
+                      onPressed: _addCourt,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GlobalVariables.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        'Add Court',
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                                    const SizedBox(height: 12),
+
                 ],
               ),
             ),
           ),
-          
-          // Floating Add Button
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 12,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: GlobalVariables.green,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.library_add_outlined,
-                    color: GlobalVariables.white,
-                    size: 24,
-                  ),
-                  onPressed: _addCourt,
-                ),
-              ),
-            ),
-          ),
+        
         ],
       ),
     );

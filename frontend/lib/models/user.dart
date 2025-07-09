@@ -9,6 +9,7 @@ class User {
   final List<String> roles;
   final List<Photo> photos;
   final DateTime? lastOnlineAt;
+  final String state;
 
   User({
     required this.id,
@@ -19,6 +20,7 @@ class User {
     this.roles = const [],
     this.photos = const [],
     this.lastOnlineAt,
+    this.state = 'None',
   });
 
   String get role {
@@ -29,66 +31,68 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-  try {
-    List<String> rolesList = [];
-    final rolesJson = json['roles'];
-    if (rolesJson != null) {
-      if (rolesJson is List) {
-        rolesList = rolesJson.map((role) => role.toString()).toList();
-      } else if (rolesJson is String) {
-        rolesList = [rolesJson];
+    try {
+      List<String> rolesList = [];
+      final rolesJson = json['roles'];
+      if (rolesJson != null) {
+        if (rolesJson is List) {
+          rolesList = rolesJson.map((role) => role.toString()).toList();
+        } else if (rolesJson is String) {
+          rolesList = [rolesJson];
+        }
       }
+
+      List<Photo> photoList = [];
+      final photosJson = json['photos'];
+      if (photosJson != null && photosJson is List) {
+        photoList = photosJson.map((p) => Photo.fromJson(p)).toList();
+      }
+
+      return User(
+        id: json['id'] as String? ?? '',
+        username: json['username'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        photoUrl: json['photoUrl'] as String? ?? '',
+        token: json['token'] as String? ?? '',
+        roles: rolesList,
+        photos: photoList,
+        lastOnlineAt: json['lastOnlineAt'] != null
+            ? DateTime.tryParse(json['lastOnlineAt'])?.toLocal()
+            : null,
+        state: json['state'] as String? ?? 'None',
+      );
+    } catch (e, stackTrace) {
+      print('[User] Error parsing JSON: $e');
+      print('[User] Stack trace: $stackTrace');
+      print('[User] JSON data: $json');
+
+      return User(
+        id: json['id'] as String? ?? 'unknown',
+        username: json['username'] as String? ?? 'Unknown User',
+        email: json['email'] as String? ?? 'unknown@example.com',
+        photoUrl: '',
+        token: '',
+        roles: const ['User'],
+        photos: const [],
+        lastOnlineAt: null,
+        state: 'Active',
+      );
     }
-
-    List<Photo> photoList = [];
-    final photosJson = json['photos'];
-    if (photosJson != null && photosJson is List) {
-      photoList = photosJson.map((p) => Photo.fromJson(p)).toList();
-    }
-
-    return User(
-      id: json['id'] as String? ?? '',
-      username: json['username'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      photoUrl: json['photoUrl'] as String? ?? '',
-      token: json['token'] as String? ?? '',
-      roles: rolesList,
-      photos: photoList,
-      lastOnlineAt: json['lastOnlineAt'] != null
-          ? DateTime.tryParse(json['lastOnlineAt'])?.toLocal()
-          : null,
-    );
-  } catch (e, stackTrace) {
-    print('[User] Error parsing JSON: $e');
-    print('[User] Stack trace: $stackTrace');
-    print('[User] JSON data: $json');
-
-    return User(
-      id: json['id'] as String? ?? 'unknown',
-      username: json['username'] as String? ?? 'Unknown User',
-      email: json['email'] as String? ?? 'unknown@example.com',
-      photoUrl: '',
-      token: '',
-      roles: const ['User'],
-      photos: const [],
-      lastOnlineAt: null,
-    );
   }
-}
 
-Map<String, dynamic> toJson() {
-  return {
-    'id': id,
-    'username': username,
-    'email': email,
-    'photoUrl': photoUrl,
-    'token': token,
-    'roles': roles,
-    'photos': photos.map((p) => p.toJson()).toList(),
-    'lastOnlineAt': lastOnlineAt?.toUtc().toIso8601String(),
-  };
-}
-
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'email': email,
+      'photoUrl': photoUrl,
+      'token': token,
+      'roles': roles,
+      'photos': photos.map((p) => p.toJson()).toList(),
+      'lastOnlineAt': lastOnlineAt?.toUtc().toIso8601String(),
+      'state': state,
+    };
+  }
 
   factory User.empty() {
     return User(
@@ -100,6 +104,7 @@ Map<String, dynamic> toJson() {
       token: '',
       photos: [],
       lastOnlineAt: null,
+      state: 'None',
     );
   }
 
@@ -112,6 +117,7 @@ Map<String, dynamic> toJson() {
     List<String>? roles,
     List<Photo>? photos,
     DateTime? lastOnlineAt,
+    String? state,
   }) {
     return User(
       id: id ?? this.id,
@@ -122,11 +128,12 @@ Map<String, dynamic> toJson() {
       roles: roles ?? this.roles,
       photos: photos ?? this.photos,
       lastOnlineAt: lastOnlineAt ?? this.lastOnlineAt,
+      state: state ?? this.state,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles, photos: $photos, lastOnlineAt: $lastOnlineAt)';
+    return 'User(id: $id, username: $username, email: $email, photoUrl: $photoUrl, token: $token, roles: $roles, photos: $photos, lastOnlineAt: $lastOnlineAt, state: $state)';
   }
 }

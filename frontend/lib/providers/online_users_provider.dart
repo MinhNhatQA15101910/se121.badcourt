@@ -5,6 +5,7 @@ class OnlineUsersProvider extends ChangeNotifier {
   final Set<String> _onlineUsers = {};
   final PresenceService _presenceService = PresenceService();
   bool _isInitialized = false;
+  bool _isDisposed = false;
 
   OnlineUsersProvider() {
     print('[OnlineUsersProvider] Constructor called');
@@ -15,83 +16,102 @@ class OnlineUsersProvider extends ChangeNotifier {
 
   bool isUserOnline(String userId) {
     final isOnline = _onlineUsers.contains(userId);
-    print('[OnlineUsersProvider] Checking if user $userId is online: $isOnline');
-    print('[OnlineUsersProvider] Current online users: $_onlineUsers');
+    // Remove excessive logging to prevent spam
+    // print('[OnlineUsersProvider] Checking if user $userId is online: $isOnline');
     return isOnline;
   }
 
-  void _setupListeners() {
-    print('[OnlineUsersProvider] Setting up listeners');
-    
-    // Đảm bảo callbacks được setup trước khi kết nối
-    _presenceService.setCallbacks(
-      onUserOnline: (userId) {
-        print('[OnlineUsersProvider] User came online: $userId');
-        _onlineUsers.add(userId);
-        notifyListeners();
-      },
-      onUserOffline: (userId) {
-        print('[OnlineUsersProvider] User went offline: $userId');
-        _onlineUsers.remove(userId);
-        notifyListeners();
-      },
-      onOnlineUsersReceived: (users) {
-        print('[OnlineUsersProvider] Received online users list: $users');
-        _onlineUsers.clear();
-        _onlineUsers.addAll(users);
-        _isInitialized = true;
-        notifyListeners();
-        print('[OnlineUsersProvider] Updated online users set: $_onlineUsers');
-      },
-    );
-  }
-
   Future<void> initialize(String accessToken) async {
+    if (_isInitialized || _isDisposed) {
+      print('[OnlineUsersProvider] Already initialized or disposed – skipping setup');
+      return;
+    }
+
     try {
-      print('[OnlineUsersProvider] Initializing with token');
-      
-      // Setup listeners TRƯỚC KHI kết nối
+      print('[OnlineUsersProvider] Initializing with token...');
       _setupListeners();
-      
-      // Verify callbacks đã được setup
       _presenceService.testCallbacks();
       
       if (!_presenceService.isConnected) {
         await _presenceService.startConnection(accessToken);
-        _isInitialized = true;
         print('[OnlineUsersProvider] PresenceService connected successfully');
       } else {
         print('[OnlineUsersProvider] PresenceService already connected');
-        _isInitialized = true;
       }
+      
+      _isInitialized = true;
     } catch (e) {
       print('[OnlineUsersProvider] Error initializing: $e');
     }
   }
 
-  // Method to manually refresh online users
+  void _setupListeners() {
+    print('[OnlineUsersProvider] Setting up listeners');
+    _presenceService.setCallbacks(
+      onUserOnline: (userId) {
+        if (_isDisposed) return;
+        if (_onlineUsers.add(userId)) {
+          print('[OnlineUsersProvider] User came online: $userId');
+          _safeNotifyListeners();
+        }
+      },
+      onUserOffline: (userId) {
+        if (_isDisposed) return;
+        if (_onlineUsers.remove(userId)) {
+          print('[OnlineUsersProvider] User went offline: $userId');
+          _safeNotifyListeners();
+        }
+      },
+      onOnlineUsersReceived: (users) {
+        if (_isDisposed) return;
+        final incomingSet = users.toSet();
+        if (!_setsAreEqual(_onlineUsers, incomingSet)) {
+          print('[OnlineUsersProvider] Online users updated from server: $incomingSet');
+          _onlineUsers
+            ..clear()
+            ..addAll(incomingSet);
+          _safeNotifyListeners();
+        }
+      },
+    );
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
+  bool _setsAreEqual(Set<String> a, Set<String> b) {
+    return a.length == b.length && a.containsAll(b);
+  }
+
   void refreshOnlineUsers() {
-    print('[OnlineUsersProvider] Refreshing online users');
-    notifyListeners();
+    if (_isDisposed) return;
+    print('[OnlineUsersProvider] Refreshing online users manually');
+    _safeNotifyListeners();
   }
 
-  // Method to add user manually (for testing)
   void addOnlineUser(String userId) {
-    print('[OnlineUsersProvider] Manually adding online user: $userId');
-    _onlineUsers.add(userId);
-    notifyListeners();
+    if (_isDisposed) return;
+    if (_onlineUsers.add(userId)) {
+      print('[OnlineUsersProvider] Manually added online user: $userId');
+      _safeNotifyListeners();
+    }
   }
 
-  // Method to remove user manually (for testing)
   void removeOnlineUser(String userId) {
-    print('[OnlineUsersProvider] Manually removing online user: $userId');
-    _onlineUsers.remove(userId);
-    notifyListeners();
+    if (_isDisposed) return;
+    if (_onlineUsers.remove(userId)) {
+      print('[OnlineUsersProvider] Manually removed online user: $userId');
+      _safeNotifyListeners();
+    }
   }
 
   @override
   void dispose() {
-    print('[OnlineUsersProvider] Disposing');
+    print('[OnlineUsersProvider] Disposing...');
+    _isDisposed = true;
     _presenceService.stopConnection();
     super.dispose();
   }

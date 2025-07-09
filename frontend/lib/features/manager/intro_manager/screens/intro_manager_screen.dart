@@ -4,7 +4,7 @@ import 'package:frontend/common/widgets/colored_safe_area.dart';
 import 'package:frontend/common/widgets/manager_facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
-import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/facility_registration_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -139,7 +139,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
 
 
   void _navigateToFacilityInfo() {
-    Navigator.of(context).pushNamed(FacilityInfo.routeName);
+    Navigator.of(context).pushNamed(FacilityRegistrationScreen.routeName);
   }
 
   void _fetchFacilitiesByUserId() async {
@@ -316,14 +316,6 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
                           color: GlobalVariables.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_facilityList.length} facilities active',
-                        style: GoogleFonts.inter(
-                          color: GlobalVariables.white.withOpacity(0.8),
-                          fontSize: 14,
                         ),
                       ),
                     ],

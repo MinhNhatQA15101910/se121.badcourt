@@ -3,7 +3,7 @@ import 'package:frontend/Enums/facility_state.dart';
 import 'package:frontend/common/widgets/state_badge_widget.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/facility_registration_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_home/services/manager_home_service.dart';
 import 'package:frontend/models/facility.dart';
@@ -29,7 +29,7 @@ class _FacilityHomeState extends State<FacilityHome> {
   void _navigateToFacilityInfo(Facility? facility) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FacilityInfo(existingFacility: facility),
+        builder: (context) => FacilityRegistrationScreen(existingFacility: facility),
       ),
     );
   }

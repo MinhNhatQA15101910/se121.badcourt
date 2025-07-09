@@ -88,4 +88,14 @@ class Court {
             period.hourFrom.day == date.day)
         .toList();
   }
+
+  // NEW: Add similar method for inactivePeriods
+  List<TimePeriod> getInactiveTimePeriodsByDate(DateTime date) {
+    return inactivePeriods
+        .where((period) =>
+            period.hourFrom.year == date.year &&
+            period.hourFrom.month == date.month &&
+            period.hourFrom.day == date.day)
+        .toList();
+  }
 }

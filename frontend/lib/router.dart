@@ -5,9 +5,7 @@ import 'package:frontend/features/facility_detail/screens/facility_ratings_scree
 import 'package:frontend/features/image_view/screens/full_screen_image_view.dart';
 import 'package:frontend/features/intro/screens/welcome_screen.dart';
 import 'package:frontend/features/manager/account/screen/manager_account_screen.dart';
-import 'package:frontend/features/manager/add_facility/screens/contracts_screen.dart';
-import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
-import 'package:frontend/features/manager/add_facility/screens/manager_info_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/facility_registration_screen.dart';
 import 'package:frontend/features/manager/add_facility/screens/map_screen.dart';
 import 'package:frontend/features/manager/intro_manager/screens/intro_manager_screen.dart';
 import 'package:frontend/features/manager/manager_bottom_bar.dart';
@@ -17,7 +15,6 @@ import 'package:frontend/features/message/screens/message_screen.dart';
 import 'package:frontend/features/notification/screens/notification_screen.dart';
 import 'package:frontend/features/order/screens/order_detail_screen.dart';
 import 'package:frontend/features/order/screens/order_screen.dart';
-import 'package:frontend/features/player/checkout/screens/booking_success_screen.dart';
 import 'package:frontend/features/player/checkout/screens/checkout_screen.dart';
 import 'package:frontend/features/court/screens/court_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
@@ -97,25 +94,15 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         settings: routeSettings,
         builder: (_) => const ManagerBottomBar(),
       );
-    case FacilityInfo.routeName:
+    case FacilityRegistrationScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
-        builder: (_) => const FacilityInfo(),
-      );
-    case ManagerInfoScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const ManagerInfoScreen(),
+        builder: (_) => const FacilityRegistrationScreen(),
       );
     case ManagerAccountScreen.routeName:
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const ManagerAccountScreen(),
-      );
-    case ContractScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const ContractScreen(),
       );
     case MapScreen.routeName:
       return MaterialPageRoute(
@@ -170,11 +157,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(
         settings: routeSettings,
         builder: (_) => const CourtDetailScreen(),
-      );
-    case BookingSuccessScreen.routeName:
-      return MaterialPageRoute(
-        settings: routeSettings,
-        builder: (_) => const BookingSuccessScreen(),
       );
     case PostDetailScreen.routeName:
       final postId = routeSettings.arguments as String;
