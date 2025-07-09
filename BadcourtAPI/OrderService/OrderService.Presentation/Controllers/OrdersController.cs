@@ -83,6 +83,7 @@ public class OrdersController(
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
         var webhookSecret = config["StripeSettings:WebhookSecret"];
+        Console.WriteLine("[OrdersController] Receiving webhook");
 
         try
         {

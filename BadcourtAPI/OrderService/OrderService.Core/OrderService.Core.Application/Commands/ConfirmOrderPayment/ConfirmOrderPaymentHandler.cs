@@ -17,6 +17,7 @@ public class ConfirmOrderPaymentHandler(
 {
     public async Task<bool> Handle(ConfirmOrderPaymentCommand request, CancellationToken cancellationToken)
     {
+        Console.WriteLine(request.PaymentIntentId);
         var order = await orderRepository.GetByPaymentIntentIdAsync(request.PaymentIntentId, cancellationToken)
             ?? throw new OrderNotFoundException(request.PaymentIntentId);
 

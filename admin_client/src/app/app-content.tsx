@@ -21,21 +21,19 @@ export default function AppContent({
   const { data: session, status } = useSession();
   const pathname = usePathname();
 
-  // Check if the current path is the login page
   const isLoginPage = pathname === "/login";
 
-  // If we're on the login page or not authenticated, render without sidebar
   if (isLoginPage || status === "unauthenticated") {
     return <>{children}</>;
   }
 
-  // Otherwise render the full app layout with sidebar
   return (
     <SidebarProvider>
-      <div className="flex h-full w-full">
+      <div className="flex h-screen w-full">
         <AppSidebar />
         <div className="flex flex-col flex-1 h-full">
-          <header className="flex flex-row h-16 shrink-0 items-center gap-2 bg-[#23C16B]">
+          {/* Header cố định chiều cao */}
+          <header className="h-16 shrink-0 flex items-center gap-2 bg-[#23C16B]">
             <div className="flex w-full items-center px-2">
               <div className="flex-shrink-0">
                 <SidebarTrigger className="flex -ml-1 text-white hover:bg-light-green hover:text-green font-bold" />
@@ -55,8 +53,10 @@ export default function AppContent({
               </div>
             </div>
           </header>
+
+          {/* Phần còn lại sẽ scroll nếu tràn */}
           <SidebarInset className="flex-1 flex flex-col">
-            <main className="flex-1 h-full overflow-y-auto mr-3">{children}</main>
+            <main className="flex-1 overflow-y-auto mr-3">{children}</main>
           </SidebarInset>
         </div>
       </div>

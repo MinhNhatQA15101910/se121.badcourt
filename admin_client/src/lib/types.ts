@@ -1,3 +1,10 @@
+
+export interface GroupCallbacks {
+  onReceiveGroups?: (groupList: SignalRGroupList) => void
+  onNewMessageReceived?: (group: SignalRGroup) => void
+  onGroupCreated?: (group: SignalRGroup) => void
+}
+
 // Pagination types matching backend PagedList<T>
 export interface PagedList<T> {
   currentPage: number

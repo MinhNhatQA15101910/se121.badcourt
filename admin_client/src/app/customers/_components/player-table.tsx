@@ -13,7 +13,7 @@ import { TooltipText } from "@/components/ui/tooltip-text"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { userService, type User } from "@/services/userService"
-import { FilterValues, PlayerFilter } from "./player-filter"
+import { type FilterValues, PlayerFilter } from "./player-filter"
 import { UserDetailModal } from "@/components/user-detail-modal"
 
 export function PlayerTable() {
@@ -130,10 +130,38 @@ export function PlayerTable() {
     setSelectedUser(userId)
   }
 
-  const handleMessageClick = (userId: string, event: React.MouseEvent) => {
+  const handleMessageClick = async (userId: string, event: React.MouseEvent) => {
     event.stopPropagation()
-    // Navigate to message page or open message modal
-    router.push(`/messages/${userId}`)
+
+    // Find the user data from the current users array
+    const user = users.find((u) => u.id === userId)
+    if (!user) return
+
+    try {
+      // 1. Save chat user info to localStorage (same as UserDetailModal)
+      const chatData = {
+        userId: user.id,
+        username: user.username,
+        photoUrl: user.photoUrl,
+        timestamp: Date.now(),
+      }
+
+      localStorage.setItem("pendingChatUser", JSON.stringify(chatData))
+      console.log("[PlayerTable] Saved pending chat user to localStorage:", chatData)
+
+      // 2. Navigate to message page (note: "/message" not "/messages")
+      router.push("/message")
+
+      // 3. Dispatch custom event to notify ChatApp
+      window.dispatchEvent(
+        new CustomEvent("initiateChatWithUser", {
+          detail: chatData,
+        }),
+      )
+    } catch (error) {
+      console.error("Error starting chat:", error)
+      alert("Failed to start chat. Please try again.")
+    }
   }
 
   const handleApplyFilter = (filters: FilterValues) => {

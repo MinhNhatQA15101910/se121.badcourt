@@ -152,6 +152,8 @@ public class CreateOrderHandler(
             throw new BadRequestException("Failed to create order.");
         }
 
+        Console.WriteLine(paymentIntent.Id);
+
         return new OrderIntentDto
         {
             ClientSecret = paymentIntent.ClientSecret,

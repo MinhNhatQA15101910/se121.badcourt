@@ -34,6 +34,10 @@ let isPresenceConnected = false
 let isMessageConnected = false
 let isGroupConnected = false
 
+// Track current message connection user
+let currentMessageUserId: string | null = null
+let isConnecting = false
+
 // Limited retry configuration
 const RETRY_DELAYS = [0, 2000, 5000, 10000, 20000]
 const MAX_RETRY_ATTEMPTS = 4
@@ -147,10 +151,15 @@ export async function startGroupConnection(
       console.log("[SignalR] Unread messages count:", count)
     })
 
-    // NEW: Listen for NewMessageReceived event
     groupConnection.on("NewMessageReceived", (groupDto: SignalRGroup) => {
       console.log("[SignalR] NewMessageReceived event:", groupDto)
       groupCallbacks.onNewMessageReceived?.(groupDto)
+    })
+
+    // Trong startGroupConnection function, thêm event listener cho group mới được tạo:
+    groupConnection.on("GroupCreated", (newGroup: SignalRGroup) => {
+      console.log("[SignalR] New group created:", newGroup)
+      groupCallbacks.onGroupCreated?.(newGroup)
     })
 
     groupConnection.onreconnected(() => {
@@ -181,14 +190,43 @@ export async function startMessageConnection(
   otherUserId: string,
   callbacks: MessageCallbacks = {},
 ): Promise<signalR.HubConnection | null> {
+  // Prevent concurrent connections
+  if (isConnecting) {
+    console.log("[SignalR] Already connecting, waiting...")
+    // Wait for current connection attempt to finish
+    let attempts = 0
+    while (isConnecting && attempts < 20) {
+      await new Promise((resolve) => setTimeout(resolve, 250))
+      attempts++
+    }
+  }
+
   try {
+    isConnecting = true
     messageCallbacks = callbacks
 
-    if (messageConnection) {
+    // If already connected to the same user, return existing connection
+    if (
+      messageConnection &&
+      messageConnection.state === signalR.HubConnectionState.Connected &&
+      currentMessageUserId === otherUserId
+    ) {
+      console.log(`[SignalR] Already connected to MessageHub for user: ${otherUserId}`)
+      return messageConnection
+    }
+
+    // Stop existing connection if connecting to different user
+    if (messageConnection && currentMessageUserId !== otherUserId) {
+      console.log(
+        `[SignalR] Stopping existing MessageHub connection (current: ${currentMessageUserId}, new: ${otherUserId})`,
+      )
       await stopMessageConnection()
+      // Add delay to ensure connection is fully closed
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     }
 
     console.log(`[SignalR] Creating LOCAL MessageHub connection with user: ${otherUserId}`)
+    currentMessageUserId = otherUserId
 
     messageConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${MESSAGE_HUB_URL}?user=${otherUserId}`, {
@@ -216,12 +254,22 @@ export async function startMessageConnection(
       console.log("[SignalR] MessageHub reconnected")
     })
 
-    messageConnection.onclose(() => {
+    messageConnection.onclose((error) => {
+      if (error) {
+        console.error("[SignalR] MessageHub connection closed with error:", error)
+      }
       isMessageConnected = false
+      currentMessageUserId = null
       console.log("[SignalR] MessageHub connection closed")
     })
 
-    await messageConnection.start()
+    // Set timeout for connection
+    const connectionTimeout = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Connection timeout")), 10000)
+    })
+
+    await Promise.race([messageConnection.start(), connectionTimeout])
+
     console.log("[SignalR] LOCAL MessageHub connected successfully")
     isMessageConnected = true
 
@@ -229,7 +277,21 @@ export async function startMessageConnection(
   } catch (error) {
     console.error("[SignalR] Error connecting to MessageHub:", error)
     isMessageConnected = false
+    currentMessageUserId = null
+
+    // Clean up failed connection
+    if (messageConnection) {
+      try {
+        await messageConnection.stop()
+      } catch (stopError) {
+        console.error("[SignalR] Error stopping failed connection:", stopError)
+      }
+      messageConnection = null
+    }
+
     return null
+  } finally {
+    isConnecting = false
   }
 }
 
@@ -238,28 +300,50 @@ export async function startMessageConnection(
  */
 export async function stopPresenceConnection(): Promise<void> {
   if (presenceConnection) {
-    await presenceConnection.stop()
-    presenceConnection = null
-    isPresenceConnected = false
-    console.log("[SignalR] GLOBAL PresenceHub disconnected")
+    try {
+      if (presenceConnection.state !== signalR.HubConnectionState.Disconnected) {
+        await presenceConnection.stop()
+      }
+    } catch (error) {
+      console.error("[SignalR] Error stopping PresenceHub:", error)
+    } finally {
+      presenceConnection = null
+      isPresenceConnected = false
+      console.log("[SignalR] GLOBAL PresenceHub disconnected")
+    }
   }
 }
 
 export async function stopGroupConnection(): Promise<void> {
   if (groupConnection) {
-    await groupConnection.stop()
-    groupConnection = null
-    isGroupConnected = false
-    console.log("[SignalR] GLOBAL GroupHub disconnected")
+    try {
+      if (groupConnection.state !== signalR.HubConnectionState.Disconnected) {
+        await groupConnection.stop()
+      }
+    } catch (error) {
+      console.error("[SignalR] Error stopping GroupHub:", error)
+    } finally {
+      groupConnection = null
+      isGroupConnected = false
+      console.log("[SignalR] GLOBAL GroupHub disconnected")
+    }
   }
 }
 
 export async function stopMessageConnection(): Promise<void> {
   if (messageConnection) {
-    await messageConnection.stop()
-    messageConnection = null
-    isMessageConnected = false
-    console.log("[SignalR] LOCAL MessageHub disconnected")
+    try {
+      if (messageConnection.state !== signalR.HubConnectionState.Disconnected) {
+        await messageConnection.stop()
+      }
+    } catch (error) {
+      console.error("[SignalR] Error stopping MessageHub:", error)
+    } finally {
+      messageConnection = null
+      isMessageConnected = false
+      currentMessageUserId = null
+      console.log("[SignalR] LOCAL MessageHub disconnected")
+    }
   }
 }
 
