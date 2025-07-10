@@ -12,7 +12,7 @@ using OrderService.Infrastructure.Persistence;
 namespace OrderService.Infrastructure.Persistence.Migrations;
 
 [DbContext(typeof(DataContext))]
-[Migration("20250710050913_SqlInitial")]
+[Migration("20250710060430_SqlInitial")]
 partial class SqlInitial
 {
     /// <inheritdoc />
@@ -59,7 +59,6 @@ partial class SqlInitial
                     .HasColumnType("text");
 
                 b.Property<string>("FacilityOwnerImageUrl")
-                    .IsRequired()
                     .HasColumnType("text");
 
                 b.Property<string>("FacilityOwnerUsername")
