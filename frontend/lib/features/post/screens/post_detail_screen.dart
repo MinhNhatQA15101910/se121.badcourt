@@ -37,6 +37,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   final ScrollController _scrollController = ScrollController();
 
   Post? _post;
+  Post? _originalPost;
   bool _isLoading = true;
   bool _isLikeLoading = false;
   bool _isCommentLoading = false;
@@ -46,14 +47,11 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   List<Comment> _commentList = [];
   bool _isLoadingComments = false;
 
-  // Local state for like status and count
   bool _isLiked = false;
   int _likeCount = 0;
+  int _commentCount = 0;
 
   late AnimationController _likeController;
-
-  // Add these variables to the _PostDetailScreenState class
-  // Add these variables to the _PostDetailScreenState class
   Map<int, VideoPlayerController> _videoControllers = {};
   Map<int, bool> _videoInitialized = {};
 
@@ -74,14 +72,12 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     _likeController.dispose();
     _commentController.dispose();
     _scrollController.dispose();
-    // Dispose all video controllers
     for (var controller in _videoControllers.values) {
       controller.dispose();
     }
     super.dispose();
   }
 
-  // Add this method after initState()
   void _initializeVideoControllers() {
     if (_post == null) return;
 
@@ -115,14 +111,35 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     Navigator.of(context).pop();
   }
 
+  // FIXED: Immediately navigate back with deletion result
   Future<void> _deletePost() async {
+    // Close the bottom sheet first
+    Navigator.of(context).pop();
+    
     try {
       await _postService.deletePost(
         context: context,
         postId: widget.postId,
       );
-    } catch (error) {}
-    Navigator.of(context).pop();
+      
+      // FIXED: Navigate back immediately with deletion result
+      if (mounted) {
+        Navigator.of(context).pop({
+          'action': 'deleted',
+          'postId': widget.postId,
+        });
+      }
+    } catch (error) {
+      // Even if there's an error, we might want to go back
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete post: $error'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _fetchPostDetails() async {
@@ -139,18 +156,15 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       if (post != null) {
         setState(() {
           _post = post;
-          // Initialize local state from post
+          _originalPost = post;
           _isLiked = post.isLiked;
           _likeCount = post.likesCount;
+          _commentCount = post.commentsCount;
         });
 
-        // Initialize video controllers after getting post details
         _initializeVideoControllers();
-
-        // Fetch comments after getting post details
         _fetchCommentByPostId();
       } else {
-        // Handle post not found
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Post not found'),
@@ -166,6 +180,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           behavior: SnackBarBehavior.floating,
         ),
       );
+      Navigator.pop(context);
     } finally {
       setState(() {
         _isLoading = false;
@@ -217,13 +232,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     await _fetchCommentByPostId();
   }
 
-  // Update the _submitComment method to include images
   Future<void> _submitComment(String commentText, List<File> mediaFiles) async {
-    print(
-        'DEBUG: _submitComment called with text: "$commentText", media count: ${mediaFiles.length}');
-
     if ((commentText.isEmpty && mediaFiles.isEmpty) || _isCommentLoading) {
-      print('DEBUG: Early return - empty content or already loading');
       return;
     }
 
@@ -232,20 +242,21 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     });
 
     try {
-      print('DEBUG: About to call createComment service');
       await _postService.createComment(
         context,
         widget.postId,
         commentText,
-        mediaFiles, // Pass the media files directly
+        mediaFiles,
       );
 
-      print('DEBUG: Comment created successfully');
-
-      // Refresh comments to show the new one
       await _refreshComments();
 
-      // Update the post's comment count
+      // FIXED: Update comment count immediately
+      setState(() {
+        _commentCount++;
+      });
+
+      // Update the post object
       if (_post != null) {
         final updatedPost = Post(
           id: _post!.id,
@@ -256,7 +267,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           publisherImageUrl: _post!.publisherImageUrl,
           resources: _post!.resources,
           likesCount: _likeCount,
-          commentsCount: _post!.commentsCount + 1, // Increment comment count
+          commentsCount: _commentCount,
           isLiked: _isLiked,
           createdAt: _post!.createdAt,
         );
@@ -266,13 +277,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         });
       }
 
-      // Clear media after successful upload
-      // Force the InputComment to clear its media
-      setState(() {
-        // This will trigger a rebuild and the InputComment should clear its media
-      });
     } catch (error) {
-      print('DEBUG: Error creating comment: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to post comment: $error'),
@@ -286,14 +291,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     }
   }
 
-  // Add a simple callback for media selection
   void _onMediaSelected() {
-    // Simple callback when media is selected
-    // Can be used for UI updates if needed
     print('DEBUG: Media selected callback');
   }
-
-  // Add this method to handle image selection
 
   Future<void> _toggleLike() async {
     if (_isLikeLoading || _post == null) return;
@@ -302,7 +302,6 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       _isLikeLoading = true;
     });
 
-    // Optimistic update using local state
     final previousLikedState = _isLiked;
     final previousLikeCount = _likeCount;
 
@@ -322,8 +321,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         postId: widget.postId,
       );
 
-      // If successful, update the post object with a new instance
-      // This is necessary because the properties are final
+      // Update the post object
       if (_post != null) {
         final updatedPost = Post(
           id: _post!.id,
@@ -334,7 +332,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           publisherImageUrl: _post!.publisherImageUrl,
           resources: _post!.resources,
           likesCount: _likeCount,
-          commentsCount: _post!.commentsCount,
+          commentsCount: _commentCount,
           isLiked: _isLiked,
           createdAt: _post!.createdAt,
         );
@@ -344,7 +342,6 @@ class _PostDetailScreenState extends State<PostDetailScreen>
         });
       }
     } catch (error) {
-      // Revert changes if API call fails
       setState(() {
         _isLiked = previousLikedState;
         _likeCount = previousLikeCount;
@@ -360,6 +357,40 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       setState(() {
         _isLikeLoading = false;
       });
+    }
+  }
+
+  // FIXED: Better change detection and navigation result
+  void _navigateBack() {
+    if (_originalPost != null && _post != null) {
+      final hasChanges = _originalPost!.likesCount != _likeCount ||
+                        _originalPost!.commentsCount != _commentCount ||
+                        _originalPost!.isLiked != _isLiked;
+      
+      if (hasChanges) {
+        final updatedPost = Post(
+          id: _post!.id,
+          title: _post!.title,
+          content: _post!.content,
+          publisherId: _post!.publisherId,
+          publisherUsername: _post!.publisherUsername,
+          publisherImageUrl: _post!.publisherImageUrl,
+          resources: _post!.resources,
+          likesCount: _likeCount,
+          commentsCount: _commentCount,
+          isLiked: _isLiked,
+          createdAt: _post!.createdAt,
+        );
+        
+        Navigator.of(context).pop({
+          'action': 'updated',
+          'post': updatedPost,
+        });
+      } else {
+        Navigator.of(context).pop();
+      }
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
@@ -398,7 +429,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
+            onPressed: _navigateBack,
           ),
         ),
         body: const Center(child: Loader()),
@@ -461,318 +492,306 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     final hasTitle = _post!.title.isNotEmpty;
     final hasContent = _post!.content.isNotEmpty;
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: GlobalVariables.green,
-        title: Text(
-          'Post Details',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+    // FIXED: Use WillPopScope to handle back button
+    return WillPopScope(
+      onWillPop: () async {
+        _navigateBack();
+        return false; // Prevent default back navigation
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: GlobalVariables.green,
+          title: Text(
+            'Post Details',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () => _showPostOptions(context, _post!.publisherId),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: _navigateBack, // FIXED: Use custom navigation
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Main content (scrollable)
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await _fetchPostDetails();
-              },
-              color: GlobalVariables.green,
-              child: ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.only(
-                    bottom: 80), // Add padding for the input field
-                children: [
-                  // Post header with user info
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Avatar
-                        CustomAvatar(
-                          radius: 20,
-                          imageUrl: _post!.publisherImageUrl,
-                          userId: _post!.publisherId,
-                        ),
-                        const SizedBox(width: 12),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onPressed: () => _showPostOptions(context, _post!.publisherId),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await _fetchPostDetails();
+                },
+                color: GlobalVariables.green,
+                child: ListView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.only(bottom: 80),
+                  children: [
+                    // Post header with user info
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CustomAvatar(
+                            radius: 20,
+                            imageUrl: _post!.publisherImageUrl,
+                            userId: _post!.publisherId,
+                          ),
+                          const SizedBox(width: 12),
 
-                        // Username and date
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _post!.publisherUsername,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: GlobalVariables.blackGrey,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  formatDate(_post!.createdAt),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: GlobalVariables.darkGrey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    if (hasTitle)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Text(
+                          _post!.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: GlobalVariables.blackGrey,
+                          ),
+                        ),
+                      ),
+
+                    if (hasContent)
+                      Padding(
+                        padding:
+                            EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
+                        child: Text(
+                          _post!.content,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: GlobalVariables.blackGrey,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+
+                    if (imageCount > 0) _buildImageCarousel(imageCount),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 1,
+                            color: Colors.grey.shade200,
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                _post!.publisherUsername,
-                                style: GoogleFonts.inter(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: GlobalVariables.blackGrey,
-                                ),
+                              _buildActionButton(
+                                icon: _isLiked
+                                    ? Icons.thumb_up
+                                    : Icons.thumb_up_outlined,
+                                label:
+                                    'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
+                                isActive: _isLiked,
+                                isLoading: _isLikeLoading,
+                                onTap: _toggleLike,
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                formatDate(_post!.createdAt),
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: GlobalVariables.darkGrey,
-                                ),
+
+                              _buildActionButton(
+                                icon: Icons.comment_outlined,
+                                label:
+                                    'Comment ${_commentCount > 0 ? '($_commentCount)' : ''}',
+                                onTap: () {
+                                  FocusScope.of(context)
+                                      .requestFocus(FocusNode());
+                                  _scrollController.animateTo(
+                                    _scrollController.position.maxScrollExtent,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                  );
+                                },
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Post title (if exists)
-                  if (hasTitle)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: Text(
-                        _post!.title,
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: GlobalVariables.blackGrey,
-                        ),
+                        ],
                       ),
                     ),
 
-                  // Post content (if exists)
-                  if (hasContent)
-                    Padding(
-                      padding:
-                          EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
-                      child: Text(
-                        _post!.content,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          color: GlobalVariables.blackGrey,
-                          height: 1.4,
-                        ),
-                      ),
+                    Container(
+                      height: 8,
+                      color: Colors.grey.shade100,
                     ),
 
-                  // Post images (if any)
-                  if (imageCount > 0) _buildImageCarousel(imageCount),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Comments',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: GlobalVariables.blackGrey,
+                                ),
+                              ),
+                              if (_commentList.isNotEmpty)
+                                TextButton(
+                                  onPressed: _refreshComments,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: GlobalVariables.green,
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(0, 0),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Text(
+                                    'Refresh',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
 
-                  // Post actions (like, comment)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 1,
-                          color: Colors.grey.shade200,
-                        ),
+                          const SizedBox(height: 16),
 
-                        const SizedBox(height: 12),
-
-                        // Action buttons (removed share button)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Like button
-                            _buildActionButton(
-                              icon: _isLiked
-                                  ? Icons.thumb_up
-                                  : Icons.thumb_up_outlined,
-                              label:
-                                  'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
-                              isActive: _isLiked,
-                              isLoading: _isLikeLoading,
-                              onTap: _toggleLike,
-                            ),
-
-                            // Comment button
-                            _buildActionButton(
-                              icon: Icons.comment_outlined,
-                              label:
-                                  'Comment ${_post!.commentsCount > 0 ? '(${_post!.commentsCount})' : ''}',
-                              onTap: () {
-                                FocusScope.of(context)
-                                    .requestFocus(FocusNode());
-                                _scrollController.animateTo(
-                                  _scrollController.position.maxScrollExtent,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
+                          if (_commentList.isEmpty && _isLoadingComments)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      GlobalVariables.green),
+                                ),
+                              ),
+                            )
+                          else if (_commentList.isEmpty && !_isLoadingComments)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.chat_bubble_outline,
+                                      size: 40,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'No comments yet',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: GlobalVariables.darkGrey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Be the first to comment',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _commentList.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: CommentItem(
+                                    comment: _commentList[index],
+                                    formatDateCallback: formatDate,
+                                  ),
                                 );
                               },
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  // Divider before comments
-                  Container(
-                    height: 8,
-                    color: Colors.grey.shade100,
-                  ),
-
-                  // Comments section
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Comments header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Comments',
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: GlobalVariables.blackGrey,
-                              ),
-                            ),
-                            if (_commentList.isNotEmpty)
-                              TextButton(
-                                onPressed: _refreshComments,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: GlobalVariables.green,
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  'Refresh',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Comments list
-                        if (_commentList.isEmpty && _isLoadingComments)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    GlobalVariables.green),
-                              ),
-                            ),
-                          )
-                        else if (_commentList.isEmpty && !_isLoadingComments)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 24),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline,
-                                    size: 40,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No comments yet',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: GlobalVariables.darkGrey,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Be the first to comment',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _commentList.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: CommentItem(
-                                  comment: _commentList[index],
-                                  formatDateCallback: formatDate,
-                                ),
-                              );
-                            },
-                          ),
-
-                        // Load more comments button
-                        if (_currentPage <= _totalPages &&
-                            _commentList.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Center(
-                              child: _isLoadingComments
-                                  ? CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          GlobalVariables.green),
-                                    )
-                                  : TextButton(
-                                      onPressed: _fetchCommentByPostId,
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: GlobalVariables.green,
-                                      ),
-                                      child: Text(
-                                        'Load more comments',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
+                          if (_currentPage <= _totalPages &&
+                              _commentList.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Center(
+                                child: _isLoadingComments
+                                    ? CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                            GlobalVariables.green),
+                                      )
+                                    : TextButton(
+                                        onPressed: _fetchCommentByPostId,
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: GlobalVariables.green,
+                                        ),
+                                        child: Text(
+                                          'Load more comments',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
-                                    ),
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Comment input field (fixed at bottom)
-          // Update the InputComment widget in the build method
-          InputComment(
-            key: ValueKey(
-                _isCommentLoading), // Force rebuild when loading state changes
-            controller: _commentController,
-            isLoading: _isCommentLoading,
-            onSubmit: _submitComment,
-            onMediaSelected: _onMediaSelected,
-          ),
-        ],
+            InputComment(
+              key: ValueKey(_isCommentLoading),
+              controller: _commentController,
+              isLoading: _isCommentLoading,
+              onSubmit: _submitComment,
+              onMediaSelected: _onMediaSelected,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -780,13 +799,12 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   Widget _buildImageCarousel(int imageCount) {
     return Stack(
       children: [
-        // Image carousel
         CarouselSlider.builder(
           itemCount: imageCount,
           options: CarouselOptions(
             viewportFraction: 1.0,
             enableInfiniteScroll: imageCount > 1,
-            height: 300, // Fixed height
+            height: 300,
             enlargeCenterPage: false,
             onPageChanged: (index, reason) => setState(() {
               _activeIndex = index;
@@ -798,7 +816,6 @@ class _PostDetailScreenState extends State<PostDetailScreen>
 
             return GestureDetector(
               onTap: () {
-                // Navigate to full screen media view instead of image view only
                 Navigator.of(context).pushNamed(
                   FullScreenMediaView.routeName,
                   arguments: {
@@ -822,9 +839,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           },
         ),
 
-        // Navigation arrows (only if more than one image)
         if (imageCount > 1) ...[
-          // Left arrow
           Positioned(
             left: 8,
             top: 0,
@@ -853,7 +868,6 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             ),
           ),
 
-          // Right arrow
           Positioned(
             right: 8,
             top: 0,
@@ -883,7 +897,6 @@ class _PostDetailScreenState extends State<PostDetailScreen>
           ),
         ],
 
-        // Image indicators
         if (imageCount > 1)
           Positioned(
             bottom: 16,
@@ -1009,6 +1022,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   icon: Icons.delete,
                   label: 'Delete this post',
                   onTap: _deletePost,
+                  isDestructive: true, // FIXED: Add destructive styling
                 )
               else
                 _buildOptionItem(
@@ -1047,7 +1061,6 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     );
   }
 
-  // Add this method
   Widget _buildVideoPlayer(int index, String videoUrl) {
     final controller = _videoControllers[index];
     final isInitialized = _videoInitialized[index] ?? false;

@@ -14,9 +14,17 @@ import 'package:video_player/video_player.dart';
 
 class PostFormWidget extends StatefulWidget {
   final Post currentPost;
+  // NEW: Add callback functions
+  final Function(String)? onPostDeleted;
+  final Function(Post)? onPostUpdated;
+  final VoidCallback? onNavigateToDetail;
+  
   const PostFormWidget({
     Key? key,
     required this.currentPost,
+    this.onPostDeleted,
+    this.onPostUpdated,
+    this.onNavigateToDetail,
   }) : super(key: key);
 
   @override
@@ -33,8 +41,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
   int _likeCount = 0;
 
   late AnimationController _likeController;
-
-  // Video controllers for each video resource
   Map<int, VideoPlayerController> _videoControllers = {};
   Map<int, bool> _videoInitialized = {};
 
@@ -49,7 +55,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
       duration: const Duration(milliseconds: 300),
     );
 
-    // Initialize video controllers for video resources
     _initializeVideoControllers();
   }
 
@@ -77,7 +82,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
   @override
   void dispose() {
     _likeController.dispose();
-    // Dispose all video controllers
     for (var controller in _videoControllers.values) {
       controller.dispose();
     }
@@ -91,7 +95,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
       _isLikeLoading = true;
     });
 
-    // Optimistic update
     final previousLikedState = _isLiked;
     final previousLikeCount = _likeCount;
 
@@ -110,8 +113,25 @@ class _PostFormWidgetState extends State<PostFormWidget>
         context: context,
         postId: widget.currentPost.id,
       );
+
+      // NEW: Notify parent about the update
+      if (widget.onPostUpdated != null) {
+        final updatedPost = Post(
+          id: widget.currentPost.id,
+          title: widget.currentPost.title,
+          content: widget.currentPost.content,
+          publisherId: widget.currentPost.publisherId,
+          publisherUsername: widget.currentPost.publisherUsername,
+          publisherImageUrl: widget.currentPost.publisherImageUrl,
+          resources: widget.currentPost.resources,
+          likesCount: _likeCount,
+          commentsCount: widget.currentPost.commentsCount,
+          isLiked: _isLiked,
+          createdAt: widget.currentPost.createdAt,
+        );
+        widget.onPostUpdated!(updatedPost);
+      }
     } catch (error) {
-      // Revert changes if API call fails
       setState(() {
         _isLiked = previousLikedState;
         _likeCount = previousLikeCount;
@@ -140,21 +160,32 @@ class _PostFormWidgetState extends State<PostFormWidget>
     Navigator.of(context).pop();
   }
 
+  // NEW: Modified to handle post deletion
   Future<void> _deletePost() async {
     try {
       await _postService.deletePost(
         context: context,
         postId: widget.currentPost.id,
       );
+      
+      // Notify parent about deletion
+      if (widget.onPostDeleted != null) {
+        widget.onPostDeleted!(widget.currentPost.id);
+      }
     } catch (error) {}
     Navigator.of(context).pop();
   }
 
   void _navigateToPostDetail() {
-    Navigator.of(context).pushNamed(
-      PostDetailScreen.routeName,
-      arguments: widget.currentPost.id,
-    );
+    // NEW: Use callback if provided, otherwise use default navigation
+    if (widget.onNavigateToDetail != null) {
+      widget.onNavigateToDetail!();
+    } else {
+      Navigator.of(context).pushNamed(
+        PostDetailScreen.routeName,
+        arguments: widget.currentPost.id,
+      );
+    }
   }
 
   void _navigateToMediaView(int initialIndex) {
@@ -211,13 +242,11 @@ class _PostFormWidgetState extends State<PostFormWidget>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Post header with user info
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Avatar
                     CustomAvatar(
                       radius: 20,
                       imageUrl: widget.currentPost.publisherImageUrl,
@@ -225,7 +254,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
                     ),
                     const SizedBox(width: 12),
 
-                    // Username and date
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,14 +278,12 @@ class _PostFormWidgetState extends State<PostFormWidget>
                       ),
                     ),
 
-                    // More options button
                     IconButton(
                       icon: Icon(
                         Icons.more_horiz,
                         color: GlobalVariables.darkGrey,
                       ),
                       onPressed: () {
-                        // Show post options
                         _showPostOptions(
                             context, widget.currentPost.publisherId);
                       },
@@ -266,7 +292,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
                 ),
               ),
 
-              // Post title (if exists)
               if (hasTitle)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -280,7 +305,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
                   ),
                 ),
 
-              // Post content (if exists)
               if (hasContent)
                 Padding(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
@@ -296,15 +320,12 @@ class _PostFormWidgetState extends State<PostFormWidget>
                   ),
                 ),
 
-              // Post media (images/videos)
               if (resourceCount > 0) _buildMediaCarousel(resourceCount),
 
-              // Post actions (like, comment) - Updated with integrated counts
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // Divider
                     Container(
                       height: 1,
                       color: Colors.grey.shade200,
@@ -312,11 +333,9 @@ class _PostFormWidgetState extends State<PostFormWidget>
 
                     const SizedBox(height: 12),
 
-                    // Action buttons with integrated counts
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Like button with count
                         _buildActionButtonWithCount(
                           icon: _isLiked
                               ? Icons.thumb_up
@@ -330,7 +349,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
                           },
                         ),
 
-                        // Comment button with count
                         _buildActionButtonWithCount(
                           icon: Icons.comment_outlined,
                           label: 'Comment',
@@ -354,19 +372,17 @@ class _PostFormWidgetState extends State<PostFormWidget>
   Widget _buildMediaCarousel(int resourceCount) {
     return Stack(
       children: [
-        // Media carousel with fixed height
         SizedBox(
-          height: 300, // Fixed height for consistent display
+          height: 300,
           child: CarouselSlider.builder(
             itemCount: resourceCount,
             options: CarouselOptions(
               viewportFraction: 1.0,
               enableInfiniteScroll: resourceCount > 1,
-              height: 300, // Match container height
+              height: 300,
               enlargeCenterPage: false,
               onPageChanged: (index, reason) => setState(() {
                 _activeIndex = index;
-                // Pause all videos except the current one
                 _pauseAllVideosExcept(index);
               }),
             ),
@@ -375,8 +391,7 @@ class _PostFormWidgetState extends State<PostFormWidget>
               final isVideo = PostService.isVideoUrl(resource.url);
 
               return GestureDetector(
-                onTap: () => _navigateToMediaView(
-                    index), // Navigate to media view instead of post detail
+                onTap: () => _navigateToMediaView(index),
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   height: 300,
@@ -392,9 +407,7 @@ class _PostFormWidgetState extends State<PostFormWidget>
           ),
         ),
 
-        // Navigation arrows (only if more than one resource)
         if (resourceCount > 1) ...[
-          // Left arrow
           Positioned(
             left: 8,
             top: 0,
@@ -425,7 +438,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
             ),
           ),
 
-          // Right arrow
           Positioned(
             right: 8,
             top: 0,
@@ -457,7 +469,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
           ),
         ],
 
-        // Media indicators
         if (resourceCount > 1)
           Positioned(
             bottom: 16,
@@ -539,7 +550,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Video player with proper sizing
           SizedBox(
             width: double.infinity,
             height: 300,
@@ -552,14 +562,12 @@ class _PostFormWidgetState extends State<PostFormWidget>
               ),
             ),
           ),
-          // Play/Pause button overlay
           GestureDetector(
             onTap: () {
               setState(() {
                 if (controller.value.isPlaying) {
                   controller.pause();
                 } else {
-                  // Pause all other videos first
                   _pauseAllVideosExcept(index);
                   controller.play();
                 }
@@ -579,7 +587,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
               ),
             ),
           ),
-          // Video duration indicator
           Positioned(
             bottom: 8,
             right: 8,
@@ -657,7 +664,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
     return '$minutes:$seconds';
   }
 
-  // FIXED: Updated action button with integrated count - BỎ ScaleTransition
   Widget _buildActionButtonWithCount({
     required IconData icon,
     required String label,
@@ -691,7 +697,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
                 ),
               )
             else
-              // FIXED: Bỏ ScaleTransition, chỉ hiển thị Icon đơn giản
               Icon(
                 icon,
                 size: 20,
