@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/constants/global_variables.dart';
-import 'package:frontend/features/auth/widgets/login_form.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -67,7 +66,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   constraints: const BoxConstraints(
                                     maxWidth: 400,
                                   ),
-                                  child: authProvider.authForm ?? const LoginForm(),
+                                  child: authProvider.authForm,
                                 ),
                               ],
                             ),

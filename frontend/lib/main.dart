@@ -26,7 +26,6 @@ import 'package:provider/single_child_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/providers/notification_provider.dart';
 
-// Danh sách providers
 List<SingleChildWidget> providers = [
   ChangeNotifierProvider(
     create: (context) => AuthProvider(),
