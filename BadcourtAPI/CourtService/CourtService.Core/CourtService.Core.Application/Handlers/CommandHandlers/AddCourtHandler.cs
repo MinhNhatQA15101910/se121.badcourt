@@ -3,7 +3,6 @@ using CourtService.Core.Application.Commands;
 using CourtService.Core.Application.Extensions;
 using CourtService.Core.Application.Interfaces.ServiceClients;
 using CourtService.Core.Domain.Entities;
-using CourtService.Core.Domain.Enums;
 using CourtService.Core.Domain.Repositories;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -49,6 +48,7 @@ public class AddCourtHandler(
         }
 
         var court = mapper.Map<Court>(request.AddCourtDto);
+        court.UserId = userId.ToString();
 
         await courtRepository.AddCourtAsync(court, cancellationToken);
 
