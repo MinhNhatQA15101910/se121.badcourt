@@ -24,7 +24,7 @@ interface PostItemProps {
   currentUser: Partial<User>
 }
 
-export default function PostItem({ post, currentUser }: PostItemProps) {
+export default function PostItem({ post }: PostItemProps) {
   const [showAllComments, setShowAllComments] = useState(false)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false)

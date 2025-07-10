@@ -13,14 +13,14 @@ public class Seed
         if (await courtRepository.AnyAsync()) return;
 
         // Docker
-        // var courtData = await File.ReadAllTextAsync(
-        //     "Data/CourtSeedData.json"
-        // );
+        var courtData = await File.ReadAllTextAsync(
+            "Data/CourtSeedData.json"
+        );
 
         // Development
-        var courtData = await File.ReadAllTextAsync(
-            "../CourtService.Infrastructure/CourtService.Infrastructure.Persistence/Data/CourtSeedData.json"
-        );
+        // var courtData = await File.ReadAllTextAsync(
+        //     "../CourtService.Infrastructure/CourtService.Infrastructure.Persistence/Data/CourtSeedData.json"
+        // );
 
         var options = new JsonSerializerOptions
         {

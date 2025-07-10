@@ -74,8 +74,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IStripeService, StripeService>();
 
         // Background Services
-        // services.AddHostedService<UpdateOrderStateBackgroundService>();
-        // services.AddHostedService<DeletePendingOrdersBackgroundService>();
+        services.AddHostedService<UpdateOrderStateBackgroundService>();
+        services.AddHostedService<DeletePendingOrdersBackgroundService>();
 
         // Api Repositories
         services.AddHttpClient<IFacilityApiRepository, FacilityApiRepository>();

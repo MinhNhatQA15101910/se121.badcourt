@@ -111,12 +111,24 @@ export function PostTable() {
         setTotalItems(response.length)
       } else if (response && typeof response === "object") {
         // If response is an object with items
-        const items = response.items || (response as any).data || response
+        // Use type guard to check for 'data' property
+        type ResponseWithData = { data: Post[] }
+        const items =
+          response.items ||
+          (typeof response === "object" && response !== null && "data" in response
+            ? (response as ResponseWithData).data
+            : undefined) ||
+          response
         const posts = Array.isArray(items) ? items : Array.isArray(response) ? response : []
 
         setPosts(posts)
         setTotalPages(response.totalPages || Math.ceil(posts.length / itemsPerPage) || 1)
-        setTotalItems(response.totalCount || (response as any).total || posts.length)
+        setTotalItems(
+          response.totalCount ||
+            (typeof response === "object" && response !== null && "total" in response && typeof (response as { total: unknown }).total === "number"
+              ? (response as { total: number }).total
+              : posts.length)
+        )
 
         console.log("Processed data:", {
           postsCount: posts.length,
