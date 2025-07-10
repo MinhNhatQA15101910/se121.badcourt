@@ -22,6 +22,6 @@ public class GetCurrentUserHandler(
         var userDto = mapper.Map<UserDto>(user);
         userDto.Token = httpContextAccessor.HttpContext.GetBearerToken();
 
-        return mapper.Map<UserDto>(user);
+        return userDto;
     }
 }

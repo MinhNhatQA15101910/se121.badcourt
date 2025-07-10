@@ -41,7 +41,7 @@ class AuthService {
             'username': username,
             'email': email,
             'password': password,
-            if (!authProvider.isPlayer) 'role': 'manager',
+            if (!authProvider.isPlayer) 'role': 'Manager',
           },
         ),
         headers: <String, String>{
@@ -788,7 +788,7 @@ class AuthService {
         Uri.parse('$uri/gateway/auth/resend-signup-verification'),
         body: jsonEncode({
           'email': email,
-          if (!authProvider.isPlayer) 'role': 'manager',
+          if (!authProvider.isPlayer) 'role': 'Manager',
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -842,7 +842,7 @@ class AuthService {
         Uri.parse('$uri/gateway/auth/resend-forgot-password'),
         body: jsonEncode({
           'email': email,
-          'role': authProvider.isPlayer ? 'player' : 'manager',
+          'role': authProvider.isPlayer ? 'player' : 'Manager',
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
