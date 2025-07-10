@@ -41,6 +41,7 @@ public class OrderRepository(
     public async Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId, CancellationToken cancellationToken = default)
     {
         return await context.Orders
+            .IgnoreQueryFilters()
             .Include(o => o.Rating)
             .FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId, cancellationToken);
     }
