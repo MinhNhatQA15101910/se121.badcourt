@@ -26,10 +26,17 @@ public class UpdateOrderStateBackgroundService(IServiceProvider serviceProvider)
             }, stoppingToken);
             foreach (var order in notPlayOrders)
             {
-                if (currentTime > order.DateTimePeriod.HourFrom && currentTime < order.DateTimePeriod.HourTo)
+                if (currentTime > order.DateTimePeriod.HourFrom)
                 {
-                    order.State = OrderState.Playing;
-                }
+                    if (currentTime < order.DateTimePeriod.HourTo)
+                    {
+                        order.State = OrderState.Playing;
+                    }
+                    else if (currentTime > order.DateTimePeriod.HourTo)
+                    {
+                        order.State = OrderState.Played;
+                    }
+                } 
             }
 
             var playingOrders = await orderRepository.GetAllOrdersAsync(new OrderParams
@@ -46,7 +53,7 @@ public class UpdateOrderStateBackgroundService(IServiceProvider serviceProvider)
 
             await orderRepository.CompleteAsync(stoppingToken);
 
-            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
         }
     }
 }

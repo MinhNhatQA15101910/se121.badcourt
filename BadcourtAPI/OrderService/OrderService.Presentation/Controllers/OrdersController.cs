@@ -6,9 +6,9 @@ using OrderService.Core.Application.Commands.CheckConflict;
 using OrderService.Core.Application.Commands.ConfirmOrderPayment;
 using OrderService.Core.Application.Commands.CreateOrder;
 using OrderService.Core.Application.Commands.CreateRating;
+using OrderService.Core.Application.Interfaces;
 using OrderService.Core.Application.Queries.GetOrderById;
 using OrderService.Core.Application.Queries.GetOrders;
-using OrderService.Infrastructure.ExternalServices.BackgroundServices;
 using OrderService.Presentation.Extensions;
 using SharedKernel;
 using SharedKernel.DTOs;
@@ -19,7 +19,11 @@ namespace OrderService.Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class OrdersController(IMediator mediator, IConfiguration config) : ControllerBase
+public class OrdersController(
+    IMediator mediator,
+    IConfiguration config,
+    IPendingOrderTracker pendingOrderTracker
+) : ControllerBase
 {
     [HttpGet("{id}")]
     [Authorize]
@@ -45,7 +49,7 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
     {
         var orderIntent = await mediator.Send(new CreateOrderCommand(createOrderDto));
 
-        DeletePendingOrdersBackgroundService.HasPendingOrders = true;
+        pendingOrderTracker.HasPendingOrders = true;
 
         return Ok(orderIntent);
     }
@@ -79,6 +83,7 @@ public class OrdersController(IMediator mediator, IConfiguration config) : Contr
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
         var webhookSecret = config["StripeSettings:WebhookSecret"];
+        Console.WriteLine("[OrdersController] Receiving webhook");
 
         try
         {

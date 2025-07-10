@@ -30,8 +30,8 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         var query = context.Users.AsQueryable();
 
         // Filter by date range
-        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(summaryParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Filter by role
@@ -46,8 +46,8 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         var query = context.Users.AsQueryable();
 
         // Filter by date range
-        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(summaryParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Filter by role
@@ -73,10 +73,11 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         // Remove current user
         query = query.Where(u => u.Id != userId);
 
-        // Filter by email
-        if (userParams.Email != null)
+        // Filter by username
+        if (userParams.Search != null)
         {
-            query = query.Where(u => u.NormalizedEmail!.Contains(userParams.Email.ToUpper()));
+            query = query.Where(u => u.UserName!.ToLower().Contains(userParams.Search.ToLower())
+                        || u.NormalizedEmail!.Contains(userParams.Search.ToUpper()));
         }
 
         // Filter by role

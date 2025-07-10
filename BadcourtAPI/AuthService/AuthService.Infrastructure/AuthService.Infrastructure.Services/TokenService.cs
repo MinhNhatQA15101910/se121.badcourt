@@ -28,6 +28,7 @@ public class TokenService(
             new(ClaimTypes.NameIdentifier, "8c5e2d7b-4a3f-1d6e-9b0f-7c5a2d9e4f3b"),
             new(ClaimTypes.Email, "milleradmin@gmail.com"),
             new(ClaimTypes.Name, "adminmiller"),
+            new("user_state", "Active"),
             new(ClaimTypes.Role, "Admin"),
         };
 

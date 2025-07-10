@@ -75,10 +75,9 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
         ),
       ),
       padding: EdgeInsets.symmetric(
-        vertical: 20,
-        horizontal: 14,
+        vertical: 12,
+        horizontal: 16,
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
       child: Form(
         key: _loginFormKey,
         child: SingleChildScrollView(
@@ -90,7 +89,7 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
               Text(
                 'Set a new password',
                 style: GoogleFonts.inter(
-                  fontSize: 26,
+                  fontSize: 20,
                   color: GlobalVariables.darkGreen,
                   fontWeight: FontWeight.bold,
                 ),
@@ -148,10 +147,9 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
 
               // Update password button
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   SizedBox(
-                    width: 150,
                     height: 40,
                     child: ElevatedButton(
                       onPressed: _moveToPreviousForm,
@@ -176,7 +174,6 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
                     ),
                   ),
                   SizedBox(
-                    width: 150,
                     height: 40,
                     child: _isChangePasswordLoading
                         ? const Loader()

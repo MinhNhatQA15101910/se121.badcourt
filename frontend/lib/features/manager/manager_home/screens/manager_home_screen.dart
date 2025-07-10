@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/court/screens/court_screen.dart';
+import 'package:frontend/features/manager/manager_home/services/manager_home_service.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/order/screens/order_screen.dart';
 import 'package:frontend/features/facility_detail/screens/facility_detail_screen.dart';
 import 'package:frontend/features/manager/manager_home/widgets/facility_home.dart';
@@ -15,6 +18,7 @@ class ManagerHomeScreen extends StatefulWidget {
 }
 
 class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
+  ManagerHomeService managerHomeService = new ManagerHomeService();
   void _navigateToCourtScreen() {
     Navigator.of(context).pushNamed(CourtScreen.routeName);
   }
@@ -31,6 +35,23 @@ class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
 
   void _navigateToStatisticScreen() {
     Navigator.of(context).pushNamed(StatisticScreen.routeName);
+  }
+
+  Future<void> _navigateToDetailMessageScreen(BuildContext context) async {
+    final adminId = await managerHomeService.getAdminUserId(context);
+
+    if (adminId != null) {
+      Navigator.of(context).pushNamed(
+        MessageDetailScreen.routeName,
+        arguments: adminId,
+      );
+    } else {
+      IconSnackBar.show(
+        context,
+        label: 'Failed to retrieve admin ID.',
+        snackBarType: SnackBarType.fail,
+      );
+    }
   }
 
   @override
@@ -74,14 +95,14 @@ class _ManagerHomeScreenState extends State<ManagerHomeScreen> {
                 description:
                     'Statistics on your badminton facility business activities',
                 imgPath: 'assets/images/img_statistic.png',
-                onTap: _navigateToStatisticScreen, // Updated
+                onTap: _navigateToStatisticScreen,
                 isVisibleArrow: true,
               ),
               ItemTag(
                 title: 'Support',
                 description: 'Message admin for support',
                 imgPath: 'assets/images/img_support.png',
-                onTap: () {},
+                onTap: () => _navigateToDetailMessageScreen(context),
                 isVisibleArrow: true,
               ),
               SizedBox(

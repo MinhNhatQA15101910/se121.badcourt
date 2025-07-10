@@ -197,7 +197,7 @@ class SearchService {
         Uri.parse('$uri/gateway/facilities/provinces'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': userProvider.user.token,
+          'Authorization': userProvider.user.token,
         },
       );
 

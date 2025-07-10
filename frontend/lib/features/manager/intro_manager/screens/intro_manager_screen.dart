@@ -4,7 +4,7 @@ import 'package:frontend/common/widgets/colored_safe_area.dart';
 import 'package:frontend/common/widgets/manager_facility_item.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
-import 'package:frontend/features/manager/add_facility/screens/facility_info_screen.dart';
+import 'package:frontend/features/manager/add_facility/screens/facility_registration_screen.dart';
 import 'package:frontend/features/manager/intro_manager/services/intro_manager_service.dart';
 import 'package:frontend/models/facility.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,7 +42,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _fetchFacilitiesByUserId();
     _animationController.forward();
   }
@@ -98,7 +98,8 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -120,7 +121,8 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: GlobalVariables.green,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -137,9 +139,8 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
     );
   }
 
-
   void _navigateToFacilityInfo() {
-    Navigator.of(context).pushNamed(FacilityInfo.routeName);
+    Navigator.of(context).pushNamed(FacilityRegistrationScreen.routeName);
   }
 
   void _fetchFacilitiesByUserId() async {
@@ -201,20 +202,20 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Title with better typography
               Text(
                 'No Badminton Facilities Yet',
                 style: GoogleFonts.inter(
                   color: GlobalVariables.white,
-                  fontSize: 28,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   height: 1.2,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              
+
               // Subtitle
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -229,7 +230,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
                 ),
               ),
               const SizedBox(height: 40),
-              
+
               // Enhanced button
               Container(
                 decoration: BoxDecoration(
@@ -262,6 +263,44 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 16,
+              ),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 36),
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: GlobalVariables.white,
+                    width: 2,
+                  ),
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: _logOut,
+                  icon: const Icon(
+                    Icons.logout_rounded,
+                    size: 24,
+                    color: GlobalVariables.white,
+                  ),
+                  label: Text(
+                    'Log Out',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: GlobalVariables.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
                     ),
                   ),
                 ),
@@ -318,21 +357,13 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_facilityList.length} facilities active',
-                        style: GoogleFonts.inter(
-                          color: GlobalVariables.white.withOpacity(0.8),
-                          fontSize: 14,
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          
+
           // Facility list
           ..._facilityList.asMap().entries.map((entry) {
             final index = entry.key;
@@ -402,7 +433,11 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
             ),
             child: ElevatedButton.icon(
               onPressed: _logOut,
-              icon: const Icon(Icons.logout_rounded, size: 24, color: GlobalVariables.white,),
+              icon: const Icon(
+                Icons.logout_rounded,
+                size: 24,
+                color: GlobalVariables.white,
+              ),
               label: Text(
                 'Log Out',
                 style: GoogleFonts.inter(
@@ -488,7 +523,7 @@ class _IntroManagerScreenState extends State<IntroManagerScreen>
           children: [
             // Gradient background
             _buildGradientBackground(),
-            
+
             // Main content
             CustomScrollView(
               physics: const BouncingScrollPhysics(),

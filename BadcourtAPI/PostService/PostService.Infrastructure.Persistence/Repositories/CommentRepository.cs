@@ -33,6 +33,12 @@ public class CommentRepository : ICommentRepository
         await _comments.InsertOneAsync(comment, cancellationToken: cancellationToken);
     }
 
+    public Task DeleteCommentsByPostIdAsync(string postId, CancellationToken cancellationToken)
+    {
+        var filter = Builders<Comment>.Filter.Eq(c => c.PostId, postId);
+        return _comments.DeleteManyAsync(filter, cancellationToken);
+    }
+
     public Task<List<Comment>> GetAllCommentsAsync(CommentParams commentParams, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Comment>.Filter.Empty;

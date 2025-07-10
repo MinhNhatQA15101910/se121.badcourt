@@ -1,183 +1,121 @@
-"use client";
+"use client"
 
-import type React from "react";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
-import Image from "next/image";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import type React from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ArrowUpDown, ArrowUp, ArrowDown, Filter, MessageCircle } from 'lucide-react'
+import Image from "next/image"
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import {
-  Pagination,
-} from "@/components/ui/pagination";
-import { TooltipText } from "@/components/ui/tooltip-text";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlayerFilter, type FilterValues } from "./player-filter";
-
-// Mock data for players
-const players = [
-  {
-    id: 1,
-    playerName: "Alex Johnson",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "alex.j@example.com",
-    playerId: "PLY001",
-    createDate: "2023-01-15",
-    lastActivity: "2023-06-20",
-    totalBooking: 12,
-    totalSpend: 3500000,
-    status: "Active",
-    province: "p1",
-    district: "d1",
-  },
-  {
-    id: 2,
-    playerName: "Maria Garcia",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "maria.g@example.com",
-    playerId: "PLY002",
-    createDate: "2023-02-05",
-    lastActivity: "2023-06-18",
-    totalBooking: 8,
-    totalSpend: 2100000,
-    status: "Active",
-    province: "p2",
-    district: "d6",
-  },
-  {
-    id: 3,
-    playerName: "James Wilson",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "james.w@example.com",
-    playerId: "PLY003",
-    createDate: "2023-02-10",
-    lastActivity: "2023-05-30",
-    totalBooking: 5,
-    totalSpend: 1250000,
-    status: "Inactive",
-    province: "p5",
-    district: "d18",
-  },
-  {
-    id: 4,
-    playerName: "Sophie Chen",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "sophie.c@example.com",
-    playerId: "PLY004",
-    createDate: "2023-03-01",
-    lastActivity: "2023-06-15",
-    totalBooking: 15,
-    totalSpend: 4200000,
-    status: "Active",
-    province: "p1",
-    district: "d2",
-  },
-  {
-    id: 5,
-    playerName: "David Kim",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "david.k@example.com",
-    playerId: "PLY005",
-    createDate: "2023-03-15",
-    lastActivity: "2023-06-10",
-    totalBooking: 7,
-    totalSpend: 1850000,
-    status: "Active",
-    province: "p4",
-    district: "d14",
-  },
-  {
-    id: 6,
-    playerName: "Emma Thompson",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "emma.t@example.com",
-    playerId: "PLY006",
-    createDate: "2023-04-02",
-    lastActivity: "2023-05-25",
-    totalBooking: 3,
-    totalSpend: 750000,
-    status: "Inactive",
-    province: "p2",
-    district: "d7",
-  },
-  {
-    id: 7,
-    playerName: "Michael Brown",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "michael.b@example.com",
-    playerId: "PLY007",
-    createDate: "2023-04-10",
-    lastActivity: "2023-06-19",
-    totalBooking: 10,
-    totalSpend: 2800000,
-    status: "Active",
-    province: "p3",
-    district: "d11",
-  },
-  {
-    id: 8,
-    playerName: "Olivia Davis",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "olivia.d@example.com",
-    playerId: "PLY008",
-    createDate: "2023-04-25",
-    lastActivity: "2023-06-17",
-    totalBooking: 9,
-    totalSpend: 2350000,
-    status: "Active",
-    province: "p3",
-    district: "d12",
-  },
-  {
-    id: 9,
-    playerName: "Daniel Martinez",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "daniel.m@example.com",
-    playerId: "PLY009",
-    createDate: "2023-05-05",
-    lastActivity: "2023-06-01",
-    totalBooking: 2,
-    totalSpend: 500000,
-    status: "Inactive",
-    province: "p2",
-    district: "d8",
-  },
-  {
-    id: 10,
-    playerName: "Sophia Rodriguez",
-    playerImage: "/placeholder.svg?height=40&width=40",
-    playerEmail: "sophia.r@example.com",
-    playerId: "PLY010",
-    createDate: "2023-05-20",
-    lastActivity: "2023-06-16",
-    totalBooking: 6,
-    totalSpend: 1650000,
-    status: "Active",
-    province: "p3",
-    district: "d10",
-  },
-]
+  Pagination
+} from "@/components/ui/pagination"
+import { TooltipText } from "@/components/ui/tooltip-text"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { userService, type User } from "@/services/userService"
+import { type FilterValues, PlayerFilter } from "./player-filter"
+import { UserDetailModal } from "@/components/user-detail-modal"
 
 export function PlayerTable() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [sortColumn, setSortColumn] = useState("")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
   const [selectAll, setSelectAll] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "")
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
-    province: "all",
-    district: "all",
     status: "all",
     searchTerm: "",
   })
 
+  // API state
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
+
+  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+
+  // Update search query when URL params change
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get("q") || ""
+    setSearchQuery(urlSearchQuery)
+    // Update activeFilters to include URL search
+    setActiveFilters(prev => ({
+      ...prev,
+      searchTerm: urlSearchQuery
+    }))
+  }, [searchParams])
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    if (searchQuery !== searchParams.get("q")) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery, searchParams])
+
+  // Fetch users function - using role=player instead of manager
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Combine URL search with filter search (URL search takes priority)
+      const finalSearchTerm = searchQuery || activeFilters.searchTerm
+
+      const params = {
+        pageNumber: currentPage,
+        pageSize: itemsPerPage,
+        role: "player" as const, // Changed from "manager" to "player"
+        state: activeFilters.status === "all" ? undefined : (activeFilters.status as "locked" | "active"),
+        search: finalSearchTerm.trim() || undefined,
+      }
+
+      console.log("Fetching players with params:", params)
+      const response = await userService.getUsers(params)
+      console.log("API Response:", response)
+
+      if (response && typeof response === "object") {
+        setUsers(response.items || [])
+        setTotalPages(response.totalPages || 0)
+        setTotalItems(response.totalCount || 0)
+
+        console.log("Pagination info:", {
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
+          totalItems: response.totalCount,
+          pageSize: response.pageSize,
+        })
+      } else {
+        console.warn("Invalid response:", response)
+        setUsers([])
+        setTotalPages(0)
+        setTotalItems(0)
+      }
+    } catch (err) {
+      console.error("Failed to fetch players:", err)
+      setError(`Failed to load players: ${err instanceof Error ? err.message : "Unknown error"}`)
+      setUsers([])
+      setTotalPages(0)
+      setTotalItems(0)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, itemsPerPage, activeFilters, searchQuery])
+
+  // Fetch data when filters or pagination changes
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -194,85 +132,67 @@ export function PlayerTable() {
 
     const newSelectedRows: Record<string, boolean> = {}
     if (newSelectAll) {
-      paginatedPlayers.forEach((player) => {
-        newSelectedRows[player.playerId] = true
+      users.forEach((user) => {
+        newSelectedRows[user.id] = true
       })
     }
     setSelectedRows(newSelectedRows)
   }
 
-  const handleSelectRow = (playerId: string, checked: boolean, event: React.MouseEvent) => {
-    // Stop propagation to prevent row click navigation when clicking checkbox
+  const handleSelectRow = (userId: string, checked: boolean, event: React.MouseEvent) => {
     event.stopPropagation()
 
     setSelectedRows((prev) => ({
       ...prev,
-      [playerId]: checked,
+      [userId]: checked,
     }))
 
-    // Update selectAll state based on whether all rows are selected
-    const allSelected = Object.keys(selectedRows).length === paginatedPlayers.length - 1 && checked
+    const allSelected = Object.keys(selectedRows).length === users.length - 1 && checked
     setSelectAll(allSelected)
   }
 
-  const handleRowClick = (playerId: string) => {
-    router.push(`/player-detail/${playerId}`)
+  const handleRowClick = (userId: string) => {
+    setSelectedUser(userId)
+  }
+
+  const handleMessageClick = async (userId: string, event: React.MouseEvent) => {
+    event.stopPropagation()
+
+    // Find the user data from the current users array
+    const user = users.find((u) => u.id === userId)
+    if (!user) return
+
+    try {
+      // 1. Save chat user info to localStorage (same as UserDetailModal)
+      const chatData = {
+        userId: user.id,
+        username: user.username,
+        photoUrl: user.photoUrl,
+        timestamp: Date.now(),
+      }
+
+      localStorage.setItem("pendingChatUser", JSON.stringify(chatData))
+      console.log("[PlayerTable] Saved pending chat user to localStorage:", chatData)
+
+      // 2. Navigate to message page (note: "/message" not "/messages")
+      router.push("/message")
+
+      // 3. Dispatch custom event to notify ChatApp
+      window.dispatchEvent(
+        new CustomEvent("initiateChatWithUser", {
+          detail: chatData,
+        }),
+      )
+    } catch (error) {
+      console.error("Error starting chat:", error)
+      alert("Failed to start chat. Please try again.")
+    }
   }
 
   const handleApplyFilter = (filters: FilterValues) => {
     setActiveFilters(filters)
-    setCurrentPage(1) // Reset to first page when applying filters
+    setCurrentPage(1)
   }
-
-  // Apply filters to players
-  const filteredPlayers = players.filter((player) => {
-    // Filter by search term (keeping this for compatibility)
-    if (
-      activeFilters.searchTerm &&
-      !player.playerName.toLowerCase().includes(activeFilters.searchTerm.toLowerCase()) &&
-      !player.playerId.toLowerCase().includes(activeFilters.searchTerm.toLowerCase())
-    ) {
-      return false
-    }
-
-    // Filter by province (skip if empty or "all")
-    if (activeFilters.province && activeFilters.province !== "all" && player.province !== activeFilters.province) {
-      return false
-    }
-
-    // Filter by district (skip if empty or "all")
-    if (activeFilters.district && activeFilters.district !== "all" && player.district !== activeFilters.district) {
-      return false
-    }
-
-    // Filter by status (skip if "all")
-    if (activeFilters.status !== "all" && player.status.toLowerCase() !== activeFilters.status.toLowerCase()) {
-      return false
-    }
-
-    return true
-  })
-
-  const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-    if (sortColumn === "") return 0
-
-    const aValue = a[sortColumn as keyof typeof a]
-    const bValue = b[sortColumn as keyof typeof a]
-
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue
-    }
-
-    // Sort strings
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
-    return 0
-  })
-
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedPlayers.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedPlayers = sortedPlayers.slice(startIndex, startIndex + itemsPerPage)
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -280,7 +200,7 @@ export function PlayerTable() {
 
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value))
-    setCurrentPage(1) // Reset to first page when changing items per page
+    setCurrentPage(1)
   }
 
   const getSortIcon = (column: string) => {
@@ -288,35 +208,48 @@ export function PlayerTable() {
     return sortDirection === "asc" ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
   }
 
-  // Format currency to VND format
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
-
-  // Format date to display format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return new Intl.DateTimeFormat("en-US", {
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    }).format(date)
+    })
   }
 
-  // Count selected rows
   const selectedCount = Object.values(selectedRows).filter(Boolean).length
 
-  // Check if any filters are active
-  const hasActiveFilters =
-    (activeFilters.province !== "" && activeFilters.province !== "all") ||
-    (activeFilters.district !== "" && activeFilters.district !== "all") ||
-    activeFilters.status !== "all" ||
-    activeFilters.searchTerm !== ""
+  const hasActiveFilters = activeFilters.status !== "all" || activeFilters.searchTerm !== "" || searchQuery !== ""
+
+  const handleUserUpdate = useCallback((userId: string, newState: "Active" | "Locked") => {
+    console.log("Updating player state:", userId, newState)
+
+    setUsers((prevUsers) => prevUsers.map((user) => (user.id === userId ? { ...user, state: newState } : user)))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-white">
+        <div className="text-center bg-white p-8 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading players...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-white">
+        <div className="text-center bg-white p-8 rounded-lg">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={fetchUsers} variant="outline" className="bg-white border border-gray-300">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <TooltipProvider>
@@ -324,7 +257,6 @@ export function PlayerTable() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-800">Player Management</h2>
-
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -356,42 +288,31 @@ export function PlayerTable() {
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/40">
                   <TableHead className="w-[60px] rounded-tl-xl">No</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("playerName")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("username")}>
                     <div className="flex items-center">
-                      Player Name
-                      {getSortIcon("playerName")}
+                      Username
+                      {getSortIcon("username")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("createDate")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
                     <div className="flex items-center">
-                      Create Date
-                      {getSortIcon("createDate")}
+                      Email
+                      {getSortIcon("email")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("lastActivity")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("createdAt")}>
                     <div className="flex items-center">
-                      Last Activity
-                      {getSortIcon("lastActivity")}
+                      Created At
+                      {getSortIcon("createdAt")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("totalBooking")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("state")}>
                     <div className="flex items-center">
-                      Total Booking
-                      {getSortIcon("totalBooking")}
+                      State
+                      {getSortIcon("state")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("totalSpend")}>
-                    <div className="flex items-center">
-                      Total Spend
-                      {getSortIcon("totalSpend")}
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
-                    <div className="flex items-center">
-                      Status
-                      {getSortIcon("status")}
-                    </div>
-                  </TableHead>
+                  <TableHead>Actions</TableHead>
                   <TableHead className="w-[100px] rounded-tr-xl">
                     <div className="flex items-center cursor-pointer" onClick={handleSelectAll}>
                       {selectAll ? "Unselect All" : "Select All"}
@@ -400,80 +321,115 @@ export function PlayerTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedPlayers.map((player, index) => (
-                  <TableRow
-                    key={player.playerId}
-                    className={`${
-                      selectedRows[player.playerId] ? "bg-green-50" : ""
-                    } hover:bg-muted/20 transition-colors cursor-pointer`}
-                    onClick={() => handleRowClick(player.playerId)}
-                  >
-                    <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full overflow-hidden shadow-sm border">
-                          <Image
-                            src={player.playerImage || "/placeholder.svg"}
-                            alt={player.playerName}
-                            width={40}
-                            height={40}
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
+                {users && users.length > 0 ? (
+                  users.map((user, index) => (
+                    <TableRow
+                      key={user.id}
+                      className={`${
+                        selectedRows[user.id] ? "bg-green-50" : ""
+                      } hover:bg-muted/20 transition-colors cursor-pointer`}
+                      onClick={() => handleRowClick(user.id)}
+                    >
+                      <TableCell className="font-medium">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full overflow-hidden shadow-sm border flex-shrink-0">
+                            <Image
+                              src={user.photoUrl || "/placeholder.svg?height=40&width=40"}
+                              alt={user.username}
+                              width={40}
+                              height={40}
+                              className="object-cover"
+                            />
+                          </div>
                           <div className="font-medium text-gray-900 max-w-[200px]">
-                            <TooltipText text={player.playerName} maxLength={25} />
-                          </div>
-                          <div className="text-xs text-muted-foreground max-w-[200px]">
-                            <TooltipText text={player.playerEmail} maxLength={30} />
+                            <TooltipText text={user.username} maxLength={25} />
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-[250px]">
+                          <TooltipText text={user.email} maxLength={30} />
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatDate(user.createdAt)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            user.state === "Active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {user.state}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={user.state === "Locked"}
+                          onClick={(e) => handleMessageClick(user.id, e)}
+                          className={`h-8 w-8 p-0 ${
+                            user.state === "Locked" 
+                              ? "bg-gray-100 hover:bg-gray-100 cursor-not-allowed" 
+                              : "bg-[#D7FAE0] hover:bg-[#D7FAE0]/80"
+                          }`}
+                        >
+                          <MessageCircle className={`h-4 w-4 ${
+                            user.state === "Locked" ? "text-gray-400" : "text-[#23C16B]"
+                          }`} />
+                        </Button>
+                      </TableCell>
+                      <TableCell
+                        className="text-center"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                      >
+                        <Checkbox
+                          checked={selectedRows[user.id] || false}
+                          onCheckedChange={(checked) => {
+                            const syntheticEvent = {
+                              stopPropagation: () => {},
+                            } as React.MouseEvent
+                            handleSelectRow(user.id, checked as boolean, syntheticEvent)
+                          }}
+                          aria-label={`Select ${user.username}`}
+                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      <div className="flex flex-col items-center gap-2">
+                        {searchQuery ? (
+                          <>
+                            <p>No players found for &quot;{searchQuery}&quot;</p>
+                            <p className="text-sm text-gray-400">Try adjusting your search terms</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>No players found</p>
+                            <p className="text-sm text-gray-400">
+                              {hasActiveFilters ? "Try adjusting your filters" : "No data available"}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell>{formatDate(player.createDate)}</TableCell>
-                    <TableCell>{formatDate(player.lastActivity)}</TableCell>
-                    <TableCell className="text-center">{player.totalBooking}</TableCell>
-                    <TableCell className="font-medium text-left">{formatCurrency(player.totalSpend)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          player.status === "Active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {player.status}
-                      </span>
-                    </TableCell>
-                    <TableCell
-                      className="text-center"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                      }}
-                    >
-                      <Checkbox
-                        checked={selectedRows[player.playerId] || false}
-                        onCheckedChange={(checked) => {
-                          // Create a synthetic mouse event
-                          const syntheticEvent = {
-                            stopPropagation: () => {},
-                          } as React.MouseEvent
-                          handleSelectRow(player.playerId, checked as boolean, syntheticEvent)
-                        }}
-                        aria-label={`Select ${player.playerName}`}
-                        className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                      />
-                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={8} className="rounded-b-xl p-0">
+                  <TableCell colSpan={7} className="rounded-b-xl p-0">
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
-                      totalItems={filteredPlayers.length}
+                      totalItems={totalItems}
                       itemsPerPage={itemsPerPage}
-                      startIndex={startIndex}
+                      startIndex={(currentPage - 1) * itemsPerPage}
                       onPageChange={handlePageChange}
                       onItemsPerPageChange={handleItemsPerPageChange}
                     />
@@ -484,6 +440,16 @@ export function PlayerTable() {
           </div>
         </div>
       </div>
+      {selectedUser && (
+        <UserDetailModal
+          userId={selectedUser}
+          open={!!selectedUser}
+          onOpenChange={(open) => {
+            if (!open) setSelectedUser(null)
+          }}
+          onUserUpdate={handleUserUpdate}
+        />
+      )}
     </TooltipProvider>
   )
 }

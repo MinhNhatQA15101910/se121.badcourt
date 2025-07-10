@@ -80,6 +80,15 @@ public class AuthController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("token-is-valid")]
+    [Authorize]
+    public async Task<IActionResult> ValidateToken()
+    {
+        var command = new ValidateTokenCommand();
+        var isValid = await mediator.Send(command);
+        return Ok(isValid);
+    }
+
     [HttpGet("fully-access-token")]
     public async Task<ActionResult<string>> GetFullyAccessToken()
     {

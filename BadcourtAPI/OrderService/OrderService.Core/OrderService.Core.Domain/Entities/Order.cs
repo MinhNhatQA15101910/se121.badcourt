@@ -9,6 +9,8 @@ public class Order
     public string Username { get; set; } = string.Empty;
     public string? UserImageUrl { get; set; }
     public string FacilityOwnerId { get; set; } = null!;
+    public string FacilityOwnerUsername { get; set; } = string.Empty;
+    public string? FacilityOwnerImageUrl { get; set; } = string.Empty;
     public string FacilityId { get; set; } = null!;
     public string FacilityName { get; set; } = string.Empty;
     public string CourtId { get; set; } = null!;

@@ -26,7 +26,6 @@ import 'package:provider/single_child_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/providers/notification_provider.dart';
 
-// Danh sách providers
 List<SingleChildWidget> providers = [
   ChangeNotifierProvider(
     create: (context) => AuthProvider(),
@@ -185,7 +184,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       
-      String? savedToken = prefs.getString('x-auth-token');
+      String? savedToken = prefs.getString('Authorization');
       bool? rememberLogin = prefs.getBool('remember-login');
       bool? isLoggedIn = prefs.getBool('is-logged-in');
       
@@ -295,7 +294,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
   Future<void> _clearLoginData() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('x-auth-token');
+      await prefs.remove('Authorization');
       await prefs.remove('Authorization');
       await prefs.setBool('is-logged-in', false);
       await prefs.setBool('remember-login', false);
@@ -500,7 +499,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
         
         if (isUserLoggedIn) {
           // Phân biệt role để chuyển đến màn hình phù hợp
-          if (userProvider.user.role == 'manager') {
+          if (userProvider.user.role == 'Manager') {
             return const IntroManagerScreen();
           } else {
             return const PlayerBottomBar();

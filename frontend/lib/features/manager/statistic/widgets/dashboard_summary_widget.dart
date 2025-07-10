@@ -13,7 +13,7 @@ class DashboardSummaryWidget extends StatefulWidget {
   State<DashboardSummaryWidget> createState() => _DashboardSummaryWidgetState();
 }
 
-String _formatPrice(double price) {
+String _formatPrice(int price) {
   if (price >= 1000000) {
     double millions = price / 1000000;
     if (millions == millions.toInt()) {

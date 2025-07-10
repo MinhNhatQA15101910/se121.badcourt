@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  postgres-auth:
+    container_name: postgres-auth
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: BadCourt_Auth
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  postgres-order:
+    container_name: postgres-order
+    image: postgres:15
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: BadCourt_Orders
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: stripe-cli
+    command: listen --forward-to http://order-service:4000/api/orders/webhook
+    env_file:
+      - .env
+    environment:
+      - STRIPE_API_KEY=${StripeSettings__SecretKey}
+    depends_on:
+      - order-service
+
+  apigateway:
+    container_name: apigateway
+    image: badcourt/apigateway
+    build:
+      context: .
+      dockerfile: APIGateway/Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth-service
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  auth-service:
+    container_name: auth-service
+    image: badcourt/authservice
+    build:
+      context: .
+      dockerfile: AuthService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "1000:1000"
+    depends_on:
+      - rabbitmq
+      - postgres-auth
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  facility-service:
+    container_name: facility-service
+    image: badcourt/facilityservice
+    build:
+      context: .
+      dockerfile: FacilityService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "2000:2000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  court-service:
+    container_name: court-service
+    image: badcourt/courtservice
+    build:
+      context: .
+      dockerfile: CourtService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  order-service:
+    container_name: order-service
+    image: badcourt/orderservice
+    build:
+      context: .
+      dockerfile: OrderService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    depends_on:
+      - rabbitmq
+      - postgres-order
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  post-service:
+    container_name: post-service
+    image: badcourt/postservice
+    build:
+      context: .
+      dockerfile: PostService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "6000:6000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  realtime-service:
+    container_name: realtime-service
+    image: badcourt/realtimeservice
+    build:
+      context: .
+      dockerfile: RealtimeService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "7000:7000"
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  admin-service:
+    container_name: admin-service
+    image: badcourt/adminservice
+    build:
+      context: .
+      dockerfile: AdminService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  manager-service:
+    container_name: manager-service
+    image: badcourt/managerservice
+    build:
+      context: .
+      dockerfile: ManagerService/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+  email-service:
+    container_name: email-service
+    image: badcourt/emailservice
+    build:
+      context: .
+      dockerfile: EmailService/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  postgres_auth_data:
+  postgres_order_data:

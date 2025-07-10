@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ArrowUpDown, ArrowUp, ArrowDown, Filter, MessageCircle } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -14,157 +13,107 @@ import { TooltipText } from "@/components/ui/tooltip-text"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { FacilityOwnersFilter, type FilterValues } from "./facility-owners-filter"
-
-const owners = [
-  {
-    id: 1,
-    ownerName: "John Smith",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "john.smith@example.com",
-    ownerId: "OWN001",
-    ownerAddress: "123 Main St, New York, NY 10001, United States of America",
-    numberOfFacilities: 3,
-    totalRevenue: 325000000,
-    status: "Activated",
-    province: "p1",
-    district: "d1",
-  },
-  {
-    id: 2,
-    ownerName: "Sarah Johnson",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "sarah.j@example.com",
-    ownerId: "OWN002",
-    ownerAddress: "456 West Ave, Los Angeles, CA 90001",
-    numberOfFacilities: 1,
-    totalRevenue: 87500000,
-    status: "Activated",
-    province: "p2",
-    district: "d6",
-  },
-  {
-    id: 3,
-    ownerName: "Robert Williams",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "r.williams@example.com",
-    ownerId: "OWN003",
-    ownerAddress: "789 East Blvd, Chicago, IL 60007",
-    numberOfFacilities: 2,
-    totalRevenue: 210000000,
-    status: "Deactivated",
-    province: "p5",
-    district: "d18",
-  },
-  {
-    id: 4,
-    ownerName: "Emily Davis",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "emily.d@example.com",
-    ownerId: "OWN004",
-    ownerAddress: "321 North Rd, Boston, MA 02108",
-    numberOfFacilities: 1,
-    totalRevenue: 65000000,
-    status: "Activated",
-    province: "p1",
-    district: "d2",
-  },
-  {
-    id: 5,
-    ownerName: "Michael Brown",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "m.brown@example.com",
-    ownerId: "OWN005",
-    ownerAddress: "654 South St, Miami, FL 33101",
-    numberOfFacilities: 2,
-    totalRevenue: 175000000,
-    status: "Activated",
-    province: "p4",
-    district: "d14",
-  },
-  {
-    id: 6,
-    ownerName: "Jennifer Wilson",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "j.wilson@example.com",
-    ownerId: "OWN006",
-    ownerAddress: "987 Downtown Ave, Seattle, WA 98101",
-    numberOfFacilities: 1,
-    totalRevenue: 92000000,
-    status: "Deactivated",
-    province: "p2",
-    district: "d7",
-  },
-  {
-    id: 7,
-    ownerName: "David Miller",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "david.m@example.com",
-    ownerId: "OWN007",
-    ownerAddress: "159 Riverside Dr, Austin, TX 78701",
-    numberOfFacilities: 1,
-    totalRevenue: 145000000,
-    status: "Activated",
-    province: "p3",
-    district: "d11",
-  },
-  {
-    id: 8,
-    ownerName: "Lisa Taylor",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "lisa.t@example.com",
-    ownerId: "OWN008",
-    ownerAddress: "753 Mountain Rd, Denver, CO 80202",
-    numberOfFacilities: 1,
-    totalRevenue: 195000000,
-    status: "Activated",
-    province: "p3",
-    district: "d12",
-  },
-  {
-    id: 9,
-    ownerName: "Thomas Anderson",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "t.anderson@example.com",
-    ownerId: "OWN009",
-    ownerAddress: "426 Ocean Dr, San Diego, CA 92101",
-    numberOfFacilities: 1,
-    totalRevenue: 78000000,
-    status: "Deactivated",
-    province: "p2",
-    district: "d8",
-  },
-  {
-    id: 10,
-    ownerName: "Amanda Martinez",
-    ownerImage: "/placeholder.svg?height=40&width=40",
-    ownerEmail: "a.martinez@example.com",
-    ownerId: "OWN010",
-    ownerAddress: "871 Valley Blvd, Phoenix, AZ 85001",
-    numberOfFacilities: 1,
-    totalRevenue: 155000000,
-    status: "Activated",
-    province: "p3",
-    district: "d10",
-  },
-]
+import { userService, type User } from "@/services/userService"
+import { UserDetailModal } from "@/components/user-detail-modal"
 
 export function FacilityOwnersTable() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [sortColumn, setSortColumn] = useState("")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
   const [selectAll, setSelectAll] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "")
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
-    province: "all",
-    district: "all",
     status: "all",
     searchTerm: "",
   })
 
+  // API state
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
+
+  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+
+  // Update search query when URL params change
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get("q") || ""
+    setSearchQuery(urlSearchQuery)
+    // Update activeFilters to include URL search
+    setActiveFilters((prev) => ({
+      ...prev,
+      searchTerm: urlSearchQuery,
+    }))
+  }, [searchParams])
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    if (searchQuery !== searchParams.get("q")) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery, searchParams])
+
+  // Fetch users function
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Combine URL search with filter search (URL search takes priority)
+      const finalSearchTerm = searchQuery || activeFilters.searchTerm
+
+      const params = {
+        pageNumber: currentPage,
+        pageSize: itemsPerPage,
+        role: "manager" as const,
+        state: activeFilters.status === "all" ? undefined : (activeFilters.status as "locked" | "active"),
+        search: finalSearchTerm.trim() || undefined,
+      }
+
+      console.log("Fetching users with params:", params)
+      const response = await userService.getUsers(params)
+      console.log("API Response:", response)
+
+      if (response && typeof response === "object") {
+        setUsers(response.items || [])
+        setTotalPages(response.totalPages || 0)
+        setTotalItems(response.totalCount || 0)
+
+        console.log("Pagination info:", {
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
+          totalItems: response.totalCount,
+          pageSize: response.pageSize,
+        })
+      } else {
+        console.warn("Invalid response:", response)
+        setUsers([])
+        setTotalPages(0)
+        setTotalItems(0)
+      }
+    } catch (err) {
+      console.error("Failed to fetch users:", err)
+      setError(`Failed to load users: ${err instanceof Error ? err.message : "Unknown error"}`)
+      setUsers([])
+      setTotalPages(0)
+      setTotalItems(0)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, itemsPerPage, activeFilters, searchQuery])
+
+  // Fetch data when filters or pagination changes
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -181,85 +130,67 @@ export function FacilityOwnersTable() {
 
     const newSelectedRows: Record<string, boolean> = {}
     if (newSelectAll) {
-      paginatedOwners.forEach((owner) => {
-        newSelectedRows[owner.ownerId] = true
+      users.forEach((user) => {
+        newSelectedRows[user.id] = true
       })
     }
     setSelectedRows(newSelectedRows)
   }
 
-  const handleSelectRow = (ownerId: string, checked: boolean, event: React.MouseEvent) => {
-    // Stop propagation to prevent row click navigation when clicking checkbox
+  const handleSelectRow = (userId: string, checked: boolean, event: React.MouseEvent) => {
     event.stopPropagation()
 
     setSelectedRows((prev) => ({
       ...prev,
-      [ownerId]: checked,
+      [userId]: checked,
     }))
 
-    // Update selectAll state based on whether all rows are selected
-    const allSelected = Object.keys(selectedRows).length === paginatedOwners.length - 1 && checked
+    const allSelected = Object.keys(selectedRows).length === users.length - 1 && checked
     setSelectAll(allSelected)
   }
 
-  const handleRowClick = (ownerId: string) => {
-    router.push(`/facility-owners-detail/${ownerId}`)
+  const handleRowClick = (userId: string) => {
+    setSelectedUser(userId)
+  }
+
+  const handleMessageClick = async (userId: string, event: React.MouseEvent) => {
+    event.stopPropagation()
+
+    // Find the user data from the current users array
+    const user = users.find((u) => u.id === userId)
+    if (!user) return
+
+    try {
+      // 1. Save chat user info to localStorage (same as UserDetailModal)
+      const chatData = {
+        userId: user.id,
+        username: user.username,
+        photoUrl: user.photoUrl,
+        timestamp: Date.now(),
+      }
+
+      localStorage.setItem("pendingChatUser", JSON.stringify(chatData))
+      console.log("[FacilityOwnersTable] Saved pending chat user to localStorage:", chatData)
+
+      // 2. Navigate to message page (note: "/message" not "/messages")
+      router.push("/message")
+
+      // 3. Dispatch custom event to notify ChatApp
+      window.dispatchEvent(
+        new CustomEvent("initiateChatWithUser", {
+          detail: chatData,
+        }),
+      )
+    } catch (error) {
+      console.error("Error starting chat:", error)
+      alert("Failed to start chat. Please try again.")
+    }
   }
 
   const handleApplyFilter = (filters: FilterValues) => {
     setActiveFilters(filters)
-    setCurrentPage(1) // Reset to first page when applying filters
+    setCurrentPage(1)
   }
-
-  // Apply filters to owners
-  const filteredOwners = owners.filter((owner) => {
-    // Filter by search term (keeping this for compatibility)
-    if (
-      activeFilters.searchTerm &&
-      !owner.ownerName.toLowerCase().includes(activeFilters.searchTerm.toLowerCase()) &&
-      !owner.ownerId.toLowerCase().includes(activeFilters.searchTerm.toLowerCase())
-    ) {
-      return false
-    }
-
-    // Filter by province (skip if empty or "all")
-    if (activeFilters.province && activeFilters.province !== "all" && owner.province !== activeFilters.province) {
-      return false
-    }
-
-    // Filter by district (skip if empty or "all")
-    if (activeFilters.district && activeFilters.district !== "all" && owner.district !== activeFilters.district) {
-      return false
-    }
-
-    // Filter by status (skip if "all")
-    if (activeFilters.status !== "all" && owner.status.toLowerCase() !== activeFilters.status.toLowerCase()) {
-      return false
-    }
-
-    return true
-  })
-
-  const sortedOwners = [...filteredOwners].sort((a, b) => {
-    if (sortColumn === "") return 0
-
-    const aValue = a[sortColumn as keyof typeof a]
-    const bValue = b[sortColumn as keyof typeof a]
-
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue
-    }
-
-    // Sort strings
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
-    return 0
-  })
-
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedOwners.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedOwners = sortedOwners.slice(startIndex, startIndex + itemsPerPage)
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -267,7 +198,7 @@ export function FacilityOwnersTable() {
 
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value))
-    setCurrentPage(1) // Reset to first page when changing items per page
+    setCurrentPage(1)
   }
 
   const getSortIcon = (column: string) => {
@@ -275,32 +206,55 @@ export function FacilityOwnersTable() {
     return sortDirection === "asc" ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
   }
 
-  // Format currency to VND format
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
   }
 
-  // Count selected rows
   const selectedCount = Object.values(selectedRows).filter(Boolean).length
 
-  // Check if any filters are active
-  const hasActiveFilters =
-    (activeFilters.province !== "" && activeFilters.province !== "all") ||
-    (activeFilters.district !== "" && activeFilters.district !== "all") ||
-    activeFilters.status !== "all" ||
-    activeFilters.searchTerm !== ""
+  const hasActiveFilters = activeFilters.status !== "all" || activeFilters.searchTerm !== "" || searchQuery !== ""
+
+  const handleUserUpdate = useCallback((userId: string, newState: "Active" | "Locked") => {
+    console.log("Updating user state:", userId, newState)
+
+    setUsers((prevUsers) => prevUsers.map((user) => (user.id === userId ? { ...user, state: newState } : user)))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-white">
+        <div className="text-center bg-white p-8 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading users...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-white">
+        <div className="text-center bg-white p-8 rounded-lg">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={fetchUsers} variant="outline" className="bg-white border border-gray-300">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <TooltipProvider>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold text-gray-800">Facility Owners Management</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Facility Owner Management</h2>
 
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogTrigger asChild>
@@ -314,7 +268,7 @@ export function FacilityOwnersTable() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px] p-4">
-                <DialogTitle className="text-2xl text-black-grey">Filter Owners</DialogTitle>
+                <DialogTitle className="text-2xl text-black-grey">Filter Users</DialogTitle>
                 <FacilityOwnersFilter onClose={() => setFilterOpen(false)} onApplyFilter={handleApplyFilter} />
               </DialogContent>
             </Dialog>
@@ -322,7 +276,7 @@ export function FacilityOwnersTable() {
 
           {selectedCount > 0 && (
             <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-              {selectedCount} {selectedCount === 1 ? "owner" : "owners"} selected
+              {selectedCount} {selectedCount === 1 ? "user" : "users"} selected
             </div>
           )}
         </div>
@@ -333,42 +287,31 @@ export function FacilityOwnersTable() {
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/40">
                   <TableHead className="w-[60px] rounded-tl-xl">No</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("ownerName")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("username")}>
                     <div className="flex items-center">
-                      Owner Name
-                      {getSortIcon("ownerName")}
+                      Username
+                      {getSortIcon("username")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("ownerId")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
                     <div className="flex items-center">
-                      Owner ID
-                      {getSortIcon("ownerId")}
+                      Email
+                      {getSortIcon("email")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("ownerAddress")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("createdAt")}>
                     <div className="flex items-center">
-                      Owner Address
-                      {getSortIcon("ownerAddress")}
+                      Created At
+                      {getSortIcon("createdAt")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("numberOfFacilities")}>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("state")}>
                     <div className="flex items-center">
-                      Number of Facilities
-                      {getSortIcon("numberOfFacilities")}
+                      State
+                      {getSortIcon("state")}
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("totalRevenue")}>
-                    <div className="flex items-center">
-                      Total Revenue
-                      {getSortIcon("totalRevenue")}
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
-                    <div className="flex items-center">
-                      Status
-                      {getSortIcon("status")}
-                    </div>
-                  </TableHead>
+                  <TableHead>Actions</TableHead>
                   <TableHead className="w-[100px] rounded-tr-xl">
                     <div className="flex items-center cursor-pointer" onClick={handleSelectAll}>
                       {selectAll ? "Unselect All" : "Select All"}
@@ -377,84 +320,115 @@ export function FacilityOwnersTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedOwners.map((owner, index) => (
-                  <TableRow
-                    key={owner.ownerId}
-                    className={`${
-                      selectedRows[owner.ownerId] ? "bg-green-50" : ""
-                    } hover:bg-muted/20 transition-colors cursor-pointer`}
-                    onClick={() => handleRowClick(owner.ownerId)}
-                  >
-                    <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full overflow-hidden shadow-sm border">
-                          <Image
-                            src={owner.ownerImage || "/placeholder.svg"}
-                            alt={owner.ownerName}
-                            width={40}
-                            height={40}
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 max-w-[200px]">
-                            <TooltipText text={owner.ownerName} maxLength={25} />
-                          </div>
-                          <div className="text-xs text-muted-foreground max-w-[200px]">
-                            <TooltipText text={owner.ownerEmail} maxLength={30} />
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{owner.ownerId}</TableCell>
-                    <TableCell>
-                      <div className="max-w-[200px]">
-                        <TooltipText text={owner.ownerAddress} maxLength={30} />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">{owner.numberOfFacilities}</TableCell>
-                    <TableCell className="font-medium text-left">{formatCurrency(owner.totalRevenue)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          owner.status === "Activated" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {owner.status}
-                      </span>
-                    </TableCell>
-                    <TableCell
-                      className="text-center"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                      }}
+                {users && users.length > 0 ? (
+                  users.map((user, index) => (
+                    <TableRow
+                      key={user.id}
+                      className={`${
+                        selectedRows[user.id] ? "bg-green-50" : ""
+                      } hover:bg-muted/20 transition-colors cursor-pointer`}
+                      onClick={() => handleRowClick(user.id)}
                     >
-                      <Checkbox
-                        checked={selectedRows[owner.ownerId] || false}
-                        onCheckedChange={(checked) => {
-                          // Create a synthetic mouse event
-                          const syntheticEvent = {
-                            stopPropagation: () => {},
-                          } as React.MouseEvent
-                          handleSelectRow(owner.ownerId, checked as boolean, syntheticEvent)
+                      <TableCell className="font-medium">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full overflow-hidden shadow-sm border flex-shrink-0">
+                            <Image
+                              src={user.photoUrl || "/placeholder.svg?height=40&width=40"}
+                              alt={user.username}
+                              width={40}
+                              height={40}
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="font-medium text-gray-900 max-w-[200px]">
+                            <TooltipText text={user.username} maxLength={25} />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-[250px]">
+                          <TooltipText text={user.email} maxLength={30} />
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatDate(user.createdAt)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            user.state === "Active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {user.state}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={user.state === "Locked"}
+                          onClick={(e) => handleMessageClick(user.id, e)}
+                          className={`h-8 w-8 p-0 ${
+                            user.state === "Locked"
+                              ? "bg-gray-100 hover:bg-gray-100 cursor-not-allowed"
+                              : "bg-[#D7FAE0] hover:bg-[#D7FAE0]/80"
+                          }`}
+                        >
+                          <MessageCircle
+                            className={`h-4 w-4 ${user.state === "Locked" ? "text-gray-400" : "text-[#23C16B]"}`}
+                          />
+                        </Button>
+                      </TableCell>
+                      <TableCell
+                        className="text-center"
+                        onClick={(e) => {
+                          e.stopPropagation()
                         }}
-                        aria-label={`Select ${owner.ownerName}`}
-                        className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                      />
+                      >
+                        <Checkbox
+                          checked={selectedRows[user.id] || false}
+                          onCheckedChange={(checked) => {
+                            const syntheticEvent = {
+                              stopPropagation: () => {},
+                            } as React.MouseEvent
+                            handleSelectRow(user.id, checked as boolean, syntheticEvent)
+                          }}
+                          aria-label={`Select ${user.username}`}
+                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      <div className="flex flex-col items-center gap-2">
+                        {searchQuery ? (
+                          <>
+                            <p>No users found for &quot;{searchQuery}&quot;</p>
+                            <p className="text-sm text-gray-400">Try adjusting your search terms</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>No users found</p>
+                            <p className="text-sm text-gray-400">
+                              {hasActiveFilters ? "Try adjusting your filters" : "No data available"}
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={8} className="rounded-b-xl p-0">
+                  <TableCell colSpan={7} className="rounded-b-xl p-0">
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
-                      totalItems={filteredOwners.length}
+                      totalItems={totalItems}
                       itemsPerPage={itemsPerPage}
-                      startIndex={startIndex}
+                      startIndex={(currentPage - 1) * itemsPerPage}
                       onPageChange={handlePageChange}
                       onItemsPerPageChange={handleItemsPerPageChange}
                     />
@@ -465,7 +439,16 @@ export function FacilityOwnersTable() {
           </div>
         </div>
       </div>
+      {selectedUser && (
+        <UserDetailModal
+          userId={selectedUser}
+          open={!!selectedUser}
+          onOpenChange={(open) => {
+            if (!open) setSelectedUser(null)
+          }}
+          onUserUpdate={handleUserUpdate}
+        />
+      )}
     </TooltipProvider>
   )
 }
-

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/common/widgets/profile_header_widget.dart';
 import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/features/auth/screens/auth_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/widgets/pinput_form.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/order/screens/order_screen.dart';
+import 'package:frontend/features/player/account/services/player_account_service.dart';
 import 'package:frontend/features/player/favorite/screens/favorite_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
@@ -13,7 +16,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class PlayerAccountScreen extends StatelessWidget {
-  const PlayerAccountScreen({super.key});
+  PlayerAccountScreen({super.key});
+
+  final PlayerAccountService playerAccountService = PlayerAccountService();
+
+  Future<void> _navigateToDetailMessageScreen(BuildContext context) async {
+    final adminId = await playerAccountService.getAdminUserId(context);
+
+    if (adminId != null) {
+      Navigator.of(context).pushNamed(
+        MessageDetailScreen.routeName,
+        arguments: adminId,
+      );
+    } else {
+      IconSnackBar.show(
+        context,
+        label: 'Failed to retrieve admin ID.',
+        snackBarType: SnackBarType.fail,
+      );
+    }
+  }
 
   void navigateToPinputForm(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(
@@ -103,6 +125,7 @@ class PlayerAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -256,14 +279,12 @@ class PlayerAccountScreen extends StatelessWidget {
           'Support',
           'Get help with your account',
           Icons.headset_mic_outlined,
-          () {
-            // Support functionality
-          },
+          () => _navigateToDetailMessageScreen(context),
         ),
         const SizedBox(height: 16),
         _buildAccountOptionItem(
           'Change Password',
-          'Update your account password',
+          'Update your password',
           Icons.lock_outline_rounded,
           () => navigateToPinputForm(context),
         ),

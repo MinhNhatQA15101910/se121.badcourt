@@ -1,5 +1,3 @@
-import 'package:dotted_line/dotted_line.dart';
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -13,6 +11,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:email_validator/email_validator.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -21,89 +20,63 @@ class LoginForm extends StatefulWidget {
   State<LoginForm> createState() => _LoginFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _LoginFormState extends State<LoginForm>
+    with TickerProviderStateMixin {
   final _authService = AuthService();
   var _isLoading = false;
   var _isLoginWithGoogleLoading = false;
 
   final _loginFormKey = GlobalKey<FormState>();
-
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Email validator
+  late AnimationController _formAnimationController;
+  late Animation<double> _formFadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _formAnimationController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _formFadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _formAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _formAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _formAnimationController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   String? _validateEmail(String? email) {
     if (email == null || email.isEmpty) {
       return 'Please enter your email.';
     }
-
-    // Check basic email format
     if (!EmailValidator.validate(email)) {
       return 'Please enter a valid email address.';
     }
-
-    // Additional validation
-    if (email.length > 254) {
-      return 'Email too long (maximum 254 characters).';
-    }
-
-    if (email.contains('..')) {
-      return 'Email cannot contain consecutive periods.';
-    }
-
-    // Check for valid domain
-    final parts = email.split('@');
-    if (parts.length != 2) {
-      return 'Invalid email.';
-    }
-
-    final domain = parts[1];
-    if (domain.isEmpty || domain.startsWith('.') || domain.endsWith('.')) {
-      return 'Invalid email domain.';
-    }
-
     return null;
   }
 
-  bool containsUppercase(String input) {
-    final uppercaseRegex = RegExp(r'[A-Z]');
-    return uppercaseRegex.hasMatch(input);
-  }
-
-  bool containsLowercase(String input) {
-    final lowercaseRegex = RegExp(r'[a-z]');
-    return lowercaseRegex.hasMatch(input);
-  }
-
-  // Password validator for login
   String? _validatePassword(String? password) {
     if (password == null || password.isEmpty) {
       return 'Please enter your password.';
     }
-
-    if (!containsUppercase(password) || !containsLowercase(password)) {
-      return 'Password must contain uppercase and lowercase letters.';
-    }
-
     if (password.length < 8) {
       return 'Password must be at least 8 characters.';
     }
-
-    // Additional security check - prevent common weak passwords
-    final commonPasswords = [
-      '12345678',
-      'password',
-      'qwerty123',
-      'abc12345',
-      '11111111',
-      '00000000',
-      'password123'
-    ];
-
-    if (commonPasswords.contains(password.toLowerCase())) {
-      return 'Password is too simple, please choose another password.';
-    }
-
     return null;
   }
 
@@ -120,13 +93,15 @@ class _LoginFormState extends State<LoginForm> {
           password: _passwordController.text.trim(),
         );
 
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
 
-        if (isSuccessful) {
-          _emailController.clear();
-          _passwordController.clear();
+          if (isSuccessful) {
+            _emailController.clear();
+            _passwordController.clear();
+          }
         }
       });
     }
@@ -138,9 +113,7 @@ class _LoginFormState extends State<LoginForm> {
     });
 
     Future.delayed(Duration(seconds: 2), () async {
-      GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email'],
-      );
+      GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
       GoogleSignInAccount? account = await googleSignIn.signIn();
       if (account != null) {
         await _authService.logInWithGoogle(
@@ -149,320 +122,254 @@ class _LoginFormState extends State<LoginForm> {
         );
       }
 
-      setState(() {
-        _isLoginWithGoogleLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoginWithGoogleLoading = false;
+        });
+      }
     });
   }
 
   void _moveToSignUpForm() {
-    final authProvider = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    );
-
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.setForm(SignUpForm());
   }
 
   void _moveToForgotPasswordForm() {
-    final authProvider = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    );
-
-    authProvider.setPreviousForm(
-      LoginForm(),
-    );
-
-    authProvider.setForm(
-      ForgotPasswordForm(),
-    );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.setPreviousForm(LoginForm());
+    authProvider.setForm(ForgotPasswordForm());
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: GlobalVariables.defaultColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: GlobalVariables.lightGreen.withOpacity(0.5),
-        ),
-      ),
-      padding: EdgeInsets.symmetric(
-        vertical: 20,
-        horizontal: 14,
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      child: Form(
-        key: _loginFormKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Log in text
-              Text(
-                'Log in',
-                style: GoogleFonts.inter(
-                    fontSize: 26,
-                    color: GlobalVariables.darkGreen,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 36),
-
-              // Email text form field
-              CustomTextfield(
-                controller: _emailController,
-                hintText: 'Email address',
-                isEmail: true,
-                validator: _validateEmail,
-              ),
-              const SizedBox(height: 16),
-
-              // Password text form field
-              CustomTextfield(
-                controller: _passwordController,
-                isPassword: true,
-                hintText: 'Password',
-                validator: _validatePassword,
-              ),
-              const SizedBox(height: 16),
-
-              // Forgot your password text
-              Align(
-                alignment: Alignment.bottomRight,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: RichText(
-                    textAlign: TextAlign.right,
-                    text: TextSpan(
-                      text: 'Forgot your ',
-                      style: GoogleFonts.inter(
-                          color: GlobalVariables.darkGreen,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w300),
-                      children: [
-                        TextSpan(
-                            text: 'password?',
-                            style: GoogleFonts.inter(
-                                color: GlobalVariables.darkGreen,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = _moveToForgotPasswordForm)
-                      ],
+    return AnimatedBuilder(
+      animation: _formAnimationController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _formFadeAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12,),
+            child: Form(
+              key: _loginFormKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Welcome text
+                  Text(
+                    'Welcome back!',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      color: GlobalVariables.darkGreen,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 36),
+                  SizedBox(height: 8),
+                  Text(
+                    'Sign in to your ${authProvider.isPlayer ? 'player' : 'manager'} account',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: GlobalVariables.blackGrey,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 32),
 
-              // Log in button
-              Align(
-                alignment: Alignment.center,
-                child: _isLoading
-                    ? const Loader()
-                    : SizedBox(
-                        width: 216,
-                        height: 40,
-                        child: ElevatedButton(
-                          onPressed: _logInUser,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: GlobalVariables.green,
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'Log in',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: GlobalVariables.white,
-                            ),
-                          ),
+                  // Email field
+                  CustomTextfield(
+                    controller: _emailController,
+                    hintText: 'Email address',
+                    isEmail: true,
+                    validator: _validateEmail,
+                  ),
+                  SizedBox(height: 16),
+
+                  // Password field
+                  CustomTextfield(
+                    controller: _passwordController,
+                    isPassword: true,
+                    hintText: 'Password',
+                    validator: _validatePassword,
+                  ),
+                  SizedBox(height: 12),
+
+                  // Forgot password link
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _moveToForgotPasswordForm,
+                      child: Text(
+                        'Forgot password?',
+                        style: GoogleFonts.inter(
+                          color: GlobalVariables.green,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-              ),
-              const SizedBox(height: 16),
+                    ),
+                  ),
+                  SizedBox(height: 24),
 
-              // Continue with separator
-              if (authProvider.isPlayer)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                      width: 78,
-                      height: 1,
-                      color: GlobalVariables.lightGreen,
-                    ),
-                    Text(
-                      'Continue with',
-                      style: GoogleFonts.inter(
-                        color: GlobalVariables.darkGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                    Container(
-                      width: 78,
-                      height: 1,
-                      color: GlobalVariables.lightGreen,
-                    ),
-                  ],
-                ),
-              if (authProvider.isPlayer) const SizedBox(height: 16),
-
-              // Sign in with Google button
-              if (authProvider.isPlayer)
-                Align(
-                  alignment: Alignment.center,
-                  child: _isLoginWithGoogleLoading
-                      ? const Loader()
-                      : SizedBox(
-                          width: 216,
-                          height: 40,
-                          child: ElevatedButton(
-                            onPressed: _loginWithGoogle,
+                  // Login button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: _isLoading
+                        ? Center(child: Loader())
+                        : ElevatedButton(
+                            onPressed: _logInUser,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: GlobalVariables.lightGrey,
+                              backgroundColor: GlobalVariables.green,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: BorderSide(
-                                  color: GlobalVariables.green,
-                                ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/vectors/vector-google.svg',
-                                  width: 24,
-                                  height: 24,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'Log in with Google',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: GlobalVariables.green,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              'Sign In',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                  ),
+
+                  // Google login for players only
+                  if (authProvider.isPlayer) ...[
+                    SizedBox(height: 16),
+                    
+                    // Divider
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: GlobalVariables.lightGreen)),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'or',
+                            style: GoogleFonts.inter(
+                              color: GlobalVariables.blackGrey,
+                              fontSize: 14,
                             ),
                           ),
                         ),
-                ),
-              if (authProvider.isPlayer) const SizedBox(height: 16),
-
-              // OR Separator
-              if (authProvider.isPlayer)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    DottedLine(
-                      lineLength: 120,
-                      lineThickness: 1,
-                      dashLength: 2,
-                      dashGapLength: 2,
-                      dashColor: GlobalVariables.lightGreen,
+                        Expanded(child: Divider(color: GlobalVariables.lightGreen)),
+                      ],
                     ),
-                    Text(
-                      'OR',
-                      style: GoogleFonts.inter(
-                        color: GlobalVariables.darkGreen,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 19,
-                      ),
+                    
+                    SizedBox(height: 16),
+                    
+                    // Google login button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: _isLoginWithGoogleLoading
+                          ? Center(child: Loader())
+                          : OutlinedButton(
+                              onPressed: _loginWithGoogle,
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: GlobalVariables.lightGreen),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/vectors/vector-google.svg',
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Continue with Google',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: GlobalVariables.darkGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                     ),
-                    DottedLine(
-                      lineLength: 120,
-                      lineThickness: 1,
-                      dashLength: 2,
-                      dashGapLength: 2,
-                      dashColor: GlobalVariables.lightGreen,
-                    ),
-                  ],
-                ),
-              if (authProvider.isPlayer) const SizedBox(height: 16),
-
-              // Continue as a guest button
-              if (authProvider.isPlayer)
-                Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: 216,
-                    height: 40,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: GlobalVariables.lightGrey,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
+                    
+                    SizedBox(height: 16),
+                    
+                    // Guest option for players
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: TextButton(
+                        onPressed: () {
+                          // Handle guest login
+                        },
+                        style: TextButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Continue as Guest',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                             color: GlobalVariables.green,
                           ),
                         ),
                       ),
-                      child: Text(
-                        'Guest',
+                    ),
+                  ],
+
+                  SizedBox(height: 24),
+
+                  // Sign up link
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Don't have an account? ",
                         style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: GlobalVariables.green,
+                          color: GlobalVariables.blackGrey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              if (authProvider.isPlayer) const SizedBox(height: 16),
-
-              // Navigate to Sign Up form text
-              Align(
-                alignment: Alignment.center,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: RichText(
-                    textAlign: TextAlign.right,
-                    text: TextSpan(
-                      text: 'Don\'t have an account? ',
-                      style: GoogleFonts.inter(
-                        color: GlobalVariables.darkGreen,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w300,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Sign up',
-                          style: GoogleFonts.inter(
-                            color: GlobalVariables.darkGreen,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
+                        children: [
+                          TextSpan(
+                            text: 'Sign up',
+                            style: GoogleFonts.inter(
+                              color: GlobalVariables.green,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = _moveToSignUpForm,
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = _moveToSignUpForm,
-                        )
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }

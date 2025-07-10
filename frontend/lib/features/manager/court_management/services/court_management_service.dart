@@ -280,7 +280,7 @@ class CourtManagementService {
 
     try {
       final response = await http.delete(
-        Uri.parse('$uri/manager/delete-court/$courtId'),
+        Uri.parse('$uri/gateway/courts/$courtId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${userProvider.user.token}',

@@ -1,11 +1,15 @@
-import SocialFeed from "@/app/post/_components/social-feed";
 import React from "react";
+import { PostTable } from "./_components/post-table";
 
 function PostPage() {
   return (
-    <div className="min-h-screen bg-[#f0f2f5] py-6">
-      <SocialFeed />
-    </div>
+        <div className="min-h-full w-full p-6 overflow-y-auto">
+          <div className="grid grid-cols-12 gap-6 overflow-y-auto">
+            <div className="col-span-12">
+              <PostTable />
+            </div>
+          </div>
+        </div>
   );
 }
 

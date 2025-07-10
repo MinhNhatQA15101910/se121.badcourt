@@ -12,6 +12,7 @@ import 'package:frontend/providers/manager/current_facility_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FacilityDetailScreen extends StatefulWidget {
   static const String routeName = '/facility-detail-screen';
@@ -37,6 +38,23 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
       PlayerMapScreen.routeName,
       arguments: facility,
     );
+  }
+
+  Future<void> _navigateToCallPhoneScreen(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      print('Lỗi mở ứng dụng gọi điện: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể mở ứng dụng gọi điện')),
+        );
+      }
+    }
   }
 
   void _navigateToDetailMessageScreen(BuildContext context, String userId) {
@@ -403,17 +421,23 @@ class _FacilityDetailScreenState extends State<FacilityDetailScreen> {
                         ],
                       ),
                     ),
-                    Container(
-                      height: 32,
-                      width: 32,
-                      decoration: BoxDecoration(
-                        color: GlobalVariables.green,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.call_outlined,
-                          color: GlobalVariables.white,
+                    GestureDetector(
+                      onTap: () {
+                        _navigateToCallPhoneScreen(
+                            currentFacility.managerInfo.phoneNumber);
+                      },
+                      child: Container(
+                        height: 32,
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: GlobalVariables.green,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.call_outlined,
+                            color: GlobalVariables.white,
+                          ),
                         ),
                       ),
                     ),

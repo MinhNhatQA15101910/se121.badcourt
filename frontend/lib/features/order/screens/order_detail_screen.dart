@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/order/widgets/total_price.dart';
 import 'package:frontend/features/order/services/order_service.dart';
 import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
@@ -21,7 +22,6 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final OrderService _bookingService = OrderService();
-
   Order? order;
   bool isLoading = true;
   bool isCancelling = false;
@@ -51,12 +51,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         context: context,
         orderId: orderId,
       );
-
       if (success) {
         // Refresh the order details to get updated state
         await _fetchOrderDetails(orderId);
       }
-    } catch (e) {} finally {
+    } catch (e) {
+    } finally {
       if (mounted) {
         setState(() {
           isCancelling = false;
@@ -71,7 +71,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       RatingScreen.routeName,
       arguments: order,
     );
-
     if (result == true) {
       final String orderId =
           ModalRoute.of(context)!.settings.arguments as String;
@@ -86,6 +85,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         arguments: order!.rating!.id,
       );
     }
+  }
+
+  void _navigateToDetailMessageScreen(BuildContext context, String userId) {
+    Navigator.of(context).pushNamed(
+      MessageDetailScreen.routeName,
+      arguments: userId,
+    );
   }
 
   Future<bool?> _showCancelConfirmationDialog() {
@@ -142,12 +148,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         isLoading = true;
         error = null;
       });
-
       final fetchedOrder = await _bookingService.fetchOrderById(
         context: context,
         orderId: orderId,
       );
-
       setState(() {
         order = fetchedOrder;
         isLoading = false;
@@ -166,6 +170,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+
     if (isLoading) {
       return Scaffold(
         backgroundColor: GlobalVariables.defaultColor,
@@ -305,7 +310,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               onPressed: () => Navigator.pop(context),
             ),
           ),
-
           // Content
           SliverToBoxAdapter(
             child: Container(
@@ -356,7 +360,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
 
+                  // Booking Person Information Section
+                  _buildSectionHeader(context, 'Booking Person'),
+                  CustomContainer(
+                    child: _buildPersonInfo(
+                      name: order!.username.isNotEmpty
+                          ? order!.username
+                          : 'Unknown Player',
+                      imageUrl: order!.userImageUrl,
+                      role: 'Player',
+                      userId: order!.userId,
+                      showContactButton: userProvider.user.role == 'Manager',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Facility Owner Section
+                  _buildSectionHeader(context, 'Facility Owner'),
+                  CustomContainer(
+                    child: _buildPersonInfo(
+                      name: order!.facilityOwnerUsername.isNotEmpty
+                          ? order!.facilityOwnerUsername
+                          : 'Unknown Owner',
+                      imageUrl: order!.facilityOwnerImageUrl,
+                      role: 'Owner',
+                      userId: order!.facilityOwnerId,
+                      showContactButton: userProvider.user.role == 'Player',
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Booking Details Section
@@ -364,6 +397,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   CustomContainer(
                     child: Column(
                       children: [
+                        _buildDetailRow(
+                          context,
+                          'Booking ID',
+                          '#${order!.id.substring(0, 8).toUpperCase()}',
+                          icon: Icons.confirmation_number_outlined,
+                        ),
+                        _buildDivider(),
                         _buildDetailRow(
                           context,
                           'Booking Date',
@@ -374,22 +414,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         _buildDetailRow(
                           context,
                           'Status',
-                          order!.state,
-                          valueColor: order!.state == 'Played'
-                              ? GlobalVariables.darkGreen
-                              : order!.state == 'Cancelled'
-                                  ? GlobalVariables.red
-                                  : GlobalVariables.darkYellow,
-                          icon: order!.state == 'Played'
-                              ? Icons.check_circle_outline
-                              : order!.state == 'Cancelled'
-                                  ? Icons.cancel
-                                  : Icons.schedule,
-                          iconColor: order!.state == 'Played'
-                              ? GlobalVariables.darkGreen
-                              : order!.state == 'Cancelled'
-                                  ? GlobalVariables.darkRed
-                                  : GlobalVariables.darkYellow,
+                          _getStatusDisplayText(order!.state),
+                          valueColor: _getStatusColor(order!.state),
+                          icon: _getStatusIcon(order!.state),
+                          iconColor: _getStatusColor(order!.state),
                         ),
                         // Show rating if it exists
                         if (order!.rating != null) ...[
@@ -441,79 +469,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Facility Owner Section
-                  // _buildSectionHeader(context, 'Facility Owner'),
-                  // CustomContainer(
-                  //   child: Row(
-                  //     children: [
-                  //       Container(
-                  //         width: 56,
-                  //         height: 56,
-                  //         decoration: BoxDecoration(
-                  //           shape: BoxShape.circle,
-                  //           border: Border.all(
-                  //             color: GlobalVariables.lightGrey,
-                  //             width: 1,
-                  //           ),
-                  //         ),
-                  //         child: ClipOval(
-                  //           child: Image.asset(
-                  //             'assets/images/demo_facility.png',
-                  //             fit: BoxFit.cover,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //       const SizedBox(width: 16),
-                  //       Expanded(
-                  //         child: Column(
-                  //           crossAxisAlignment: CrossAxisAlignment.start,
-                  //           children: [
-                  //             Text(
-                  //               'Mai Hoàng Nhật Duy',
-                  //               style: GoogleFonts.inter(
-                  //                 fontSize: 16,
-                  //                 fontWeight: FontWeight.w600,
-                  //                 color: GlobalVariables.blackGrey,
-                  //               ),
-                  //             ),
-                  //             const SizedBox(height: 4),
-                  //             Row(
-                  //               children: [
-                  //                 Icon(
-                  //                   Icons.location_on_outlined,
-                  //                   size: 16,
-                  //                   color: GlobalVariables.darkGrey,
-                  //                 ),
-                  //                 const SizedBox(width: 4),
-                  //                 Text(
-                  //                   'TP Hồ Chí Minh',
-                  //                   style: GoogleFonts.inter(
-                  //                     fontSize: 14,
-                  //                     color: GlobalVariables.darkGrey,
-                  //                   ),
-                  //                 ),
-                  //               ],
-                  //             ),
-                  //           ],
-                  //         ),
-                  //       ),
-                  //       IconButton(
-                  //         icon: Icon(
-                  //           Icons.message_outlined,
-                  //           color: GlobalVariables.green,
-                  //         ),
-                  //         onPressed: () {
-                  //           // Contact owner functionality
-                  //         },
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-
-                  // const SizedBox(height: 16),
 
                   // Booking Info Section
                   _buildSectionHeader(context, 'Booking Information'),
@@ -559,7 +515,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Court 1',
+                                    order!.courtName.isNotEmpty
+                                        ? order!.courtName
+                                        : 'Court 1',
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -625,94 +583,95 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
 
                   // Payment Summary
                   TotalPrice(promotionPrice: 0, subTotalPrice: order!.price),
-
                   const SizedBox(height: 24),
 
                   // Action Buttons
-                  if(userProvider.user.role == 'Player')
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _shouldShowRatingButton()
-                                ? _navigateToRatingScreen
-                                : order!.rating != null
-                                    ? _navigateToRatingDetailScreen
-                                    : null,
-                            icon: Icon(_shouldShowRatingButton()
-                                ? Icons.star_outline
-                                : Icons.visibility_outlined),
-                            label: Text(_shouldShowRatingButton()
-                                ? 'Rate Experience'
-                                : 'View Rating'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: GlobalVariables.green,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: GlobalVariables.green),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: (order!.state != 'NotPlay' ||
-                                    isCancelling)
-                                ? null
-                                : () => cancelOrder(order!.id),
-                            icon: isCancelling
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.cancel_outlined,
-                                    color: Colors.red,
-                                  ),
-                            label: Text(isCancelling
-                                ? 'Cancelling...'
-                                : 'Cancel Booking'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  (order!.state != 'NotPlay' || isCancelling)
-                                      ? Colors.grey.shade300
-                                      : Colors.white,
-                              foregroundColor:
-                                  (order!.state != 'NotPlay' || isCancelling)
-                                      ? Colors.grey.shade600
-                                      : Colors.red,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: (order!.state != 'NotPlay' ||
-                                          isCancelling)
-                                      ? Colors.grey.shade300
-                                      : Colors.red,
+                  if (userProvider.user.role == 'Player')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _shouldShowRatingButton()
+                                  ? _navigateToRatingScreen
+                                  : order!.rating != null
+                                      ? _navigateToRatingDetailScreen
+                                      : null,
+                              icon: Icon(_shouldShowRatingButton()
+                                  ? Icons.star_outline
+                                  : Icons.visibility_outlined),
+                              label: Text(_shouldShowRatingButton()
+                                  ? 'Rate Experience'
+                                  : 'View Rating'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: GlobalVariables.green,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side:
+                                      BorderSide(color: GlobalVariables.green),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed:
+                                  (order!.state != 'NotPlay' || isCancelling)
+                                      ? null
+                                      : () => cancelOrder(order!.id),
+                              icon: isCancelling
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.red),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.cancel_outlined,
+                                      color: Colors.red,
+                                    ),
+                              label: Text(isCancelling
+                                  ? 'Cancelling...'
+                                  : 'Cancel Booking'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    (order!.state != 'NotPlay' || isCancelling)
+                                        ? Colors.grey.shade300
+                                        : Colors.white,
+                                foregroundColor:
+                                    (order!.state != 'NotPlay' || isCancelling)
+                                        ? Colors.grey.shade600
+                                        : Colors.red,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                    color: (order!.state != 'NotPlay' ||
+                                            isCancelling)
+                                        ? Colors.grey.shade300
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-
                   const SizedBox(height: 24),
                 ],
               ),
@@ -726,6 +685,141 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // Add method to determine if rating button should be shown
   bool _shouldShowRatingButton() {
     return order!.rating == null && order!.state == 'Played';
+  }
+
+  // Helper methods for status display
+  String _getStatusDisplayText(String state) {
+    switch (state) {
+      case 'NotPlay':
+        return 'Pending';
+      case 'Played':
+        return 'Completed';
+      case 'Cancelled':
+        return 'Cancelled';
+      default:
+        return state;
+    }
+  }
+
+  Color _getStatusColor(String state) {
+    switch (state) {
+      case 'Played':
+        return GlobalVariables.darkGreen;
+      case 'Cancelled':
+        return GlobalVariables.red;
+      case 'NotPlay':
+        return GlobalVariables.darkYellow;
+      default:
+        return GlobalVariables.blackGrey;
+    }
+  }
+
+  IconData _getStatusIcon(String state) {
+    switch (state) {
+      case 'Played':
+        return Icons.check_circle_outline;
+      case 'Cancelled':
+        return Icons.cancel;
+      case 'NotPlay':
+        return Icons.schedule;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  Widget _buildPersonInfo({
+    required String name,
+    required String imageUrl,
+    required String role,
+    required String userId,
+    bool showContactButton = false,
+  }) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            // Avatar
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: GlobalVariables.lightGrey,
+                  width: 1,
+                ),
+              ),
+              child: ClipOval(
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildDefaultAvatar(role),
+                      )
+                    : _buildDefaultAvatar(role),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // User Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: GlobalVariables.blackGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 14,
+                        color: GlobalVariables.darkGrey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        role,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: GlobalVariables.darkGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (showContactButton)
+              IconButton(
+                icon: Icon(
+                  Icons.message_outlined,
+                  color: GlobalVariables.green,
+                ),
+                onPressed: () {
+                  _navigateToDetailMessageScreen(context, userId);
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultAvatar(String role) {
+    return Container(
+      color: GlobalVariables.green.withOpacity(0.1),
+      child: Icon(
+        role == 'Player' ? Icons.person : Icons.business,
+        size: 28,
+        color: GlobalVariables.green,
+      ),
+    );
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
@@ -806,29 +900,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            state == "Played"
-                ? Icons.check_circle_outline
-                : state == "Cancelled"
-                    ? Icons.cancel
-                    : Icons.schedule,
+            _getStatusIcon(state),
             size: 14,
-            color: state == "Played"
-                ? GlobalVariables.darkGreen
-                : state == "Cancelled"
-                    ? GlobalVariables.darkRed
-                    : GlobalVariables.darkYellow,
+            color: _getStatusColor(state),
           ),
           const SizedBox(width: 4),
           Text(
-            state,
+            _getStatusDisplayText(state),
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: state == "Played"
-                  ? GlobalVariables.darkGreen
-                  : state == "Cancelled"
-                      ? GlobalVariables.darkRed
-                      : GlobalVariables.darkYellow,
+              color: _getStatusColor(state),
             ),
           ),
         ],

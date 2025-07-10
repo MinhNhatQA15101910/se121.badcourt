@@ -35,7 +35,7 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
   String _currentFilter = 'Latest';
   String _searchQuery = '';
   final int _pageSize = 20;
-  bool _hasMoreData = true; // Track if there's more data to load
+  bool _hasMoreData = true;
 
   @override
   void initState() {
@@ -46,9 +46,7 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 300),
     );
     
-    // Add scroll listener for infinite scroll
     _scrollController.addListener(_onScroll);
-    
     _fetchAllPost();
     _animationController.forward();
   }
@@ -62,23 +60,19 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  // Enhanced scroll listener for infinite scroll
   void _onScroll() {
-    // Handle FAB animation
     if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
       _animationController.reverse();
     } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
       _animationController.forward();
     }
 
-    // Infinite scroll - load more when near bottom
     if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 300) { // Increased threshold
+        _scrollController.position.maxScrollExtent - 300) {
       _loadMorePosts();
     }
   }
 
-  // Initial load
   Future<void> _fetchAllPost() async {
     if (_isLoading) return;
 
@@ -123,9 +117,7 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     }
   }
 
-  // Load more posts for infinite scroll
   Future<void> _loadMorePosts() async {
-    // Prevent multiple simultaneous requests and check if there's more data
     if (_isLoadingMore || _isLoading || !_hasMoreData || _currentPage >= _totalPages) {
       return;
     }
@@ -136,8 +128,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
 
     try {
       final nextPage = _currentPage + 1;
-      
-      print('Loading page $nextPage of $_totalPages'); // Debug log
       
       final result = await _postService.fetchAllPosts(
         context: context,
@@ -152,20 +142,17 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
       if (mounted) {
         setState(() {
           if (newPosts.isNotEmpty) {
-            _postList.addAll(newPosts); // Append new posts
+            _postList.addAll(newPosts);
             _currentPage = nextPage;
             _totalPages = totalPages;
             _hasMoreData = _currentPage < _totalPages;
           } else {
-            _hasMoreData = false; // No more data available
+            _hasMoreData = false;
           }
         });
-        
-        print('Loaded ${newPosts.length} posts. Total: ${_postList.length}'); // Debug log
       }
     } catch (error) {
       if (mounted) {
-        print('Error loading more posts: $error'); // Debug log
         IconSnackBar.show(
           context,
           label: 'Failed to load more posts: $error',
@@ -181,7 +168,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     }
   }
 
-  // Refresh posts (pull to refresh)
   Future<void> _refreshPosts() async {
     if (_isRefreshing) return;
     
@@ -235,6 +221,75 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     }
   }
 
+  // FIXED: Proper navigation to post detail with result handling
+  Future<void> _navigateToPostDetail(String postId, int postIndex) async {
+    print('DEBUG: Navigating to post detail for postId: $postId, index: $postIndex');
+    
+    final result = await Navigator.of(context).pushNamed(
+      '/post-detail',
+      arguments: postId,
+    );
+
+    print('DEBUG: Navigation result: $result');
+
+    // FIXED: Handle the result from post detail screen
+    if (result != null && result is Map<String, dynamic>) {
+      final action = result['action'];
+      print('DEBUG: Action received: $action');
+      
+      if (action == 'deleted') {
+        // Remove the deleted post from the list
+        print('DEBUG: Removing post at index $postIndex');
+        setState(() {
+          if (postIndex >= 0 && postIndex < _postList.length) {
+            _postList.removeAt(postIndex);
+          }
+        });
+        
+        IconSnackBar.show(
+          context,
+          label: 'Post deleted successfully',
+          snackBarType: SnackBarType.success,
+        );
+      } else if (action == 'updated') {
+        // Update the post with new like/comment counts
+        final updatedPost = result['post'] as Post;
+        print('DEBUG: Updating post at index $postIndex with new data');
+        setState(() {
+          if (postIndex >= 0 && postIndex < _postList.length) {
+            _postList[postIndex] = updatedPost;
+          }
+        });
+      }
+    }
+  }
+
+  // FIXED: Handle post deletion from post form
+  void _handlePostDeleted(String postId) {
+    print('DEBUG: Handling post deletion for postId: $postId');
+    setState(() {
+      _postList.removeWhere((post) => post.id == postId);
+    });
+    
+    IconSnackBar.show(
+      context,
+      label: 'Post deleted successfully',
+      snackBarType: SnackBarType.success,
+    );
+  }
+
+  // FIXED: Handle post updates (like/comment count changes)
+  void _handlePostUpdated(Post updatedPost) {
+    print('DEBUG: Handling post update for postId: ${updatedPost.id}');
+    final index = _postList.indexWhere((post) => post.id == updatedPost.id);
+    if (index != -1) {
+      print('DEBUG: Updating post at index $index');
+      setState(() {
+        _postList[index] = updatedPost;
+      });
+    }
+  }
+
   void _navigateToUserProfile(UserProvider userProvider) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -245,7 +300,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     );
   }
 
-  // Enhanced search
   void _performSearch(String query) {
     setState(() {
       _searchQuery = query.trim();
@@ -257,7 +311,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     _fetchAllPost();
   }
 
-  // Clear search
   void _clearSearch() {
     _searchController.clear();
     setState(() {
@@ -381,7 +434,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
         onRefresh: _refreshPosts,
         child: NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
-            // Additional scroll notification for better infinite scroll detection
             if (scrollInfo is ScrollEndNotification &&
                 scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 100) {
               _loadMorePosts();
@@ -405,59 +457,8 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                 ),
               ),
 
-              // Search results info
-              if (_searchQuery.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: GlobalVariables.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: GlobalVariables.green.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.search,
-                          size: 16,
-                          color: GlobalVariables.green,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Search results for "${_searchQuery}"',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: GlobalVariables.green,
-                            ),
-                          ),
-                        ),
-                        if (_postList.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: GlobalVariables.green,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${_postList.length}',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
               
-              // Posts list or empty state
+              
               if (_postList.isEmpty && !_isLoading)
                 SliverFillRemaining(
                   child: _buildEmptyState(),
@@ -474,7 +475,16 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                             right: 16, 
                             bottom: 16
                           ),
-                          child: PostFormWidget(currentPost: _postList[index]),
+                          child: PostFormWidget(
+                            currentPost: _postList[index],
+                            // FIXED: Pass proper callbacks
+                            onPostDeleted: _handlePostDeleted,
+                            onPostUpdated: _handlePostUpdated,
+                            onNavigateToDetail: () {
+                              print('DEBUG: PostForm navigation callback called for index $index');
+                              _navigateToPostDetail(_postList[index].id, index);
+                            },
+                          ),
                         );
                       },
                       childCount: _postList.length,
@@ -482,13 +492,11 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                   ),
                 ),
 
-              // Loading more indicator
               if (_isLoadingMore)
                 SliverToBoxAdapter(
                   child: _buildLoadingMoreIndicator(),
                 ),
 
-              // End of list indicator
               if (_postList.isNotEmpty && !_hasMoreData && !_isLoadingMore)
                 SliverToBoxAdapter(
                   child: Container(
@@ -527,7 +535,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
                   ),
                 ),
 
-              // Bottom spacing
               const SliverToBoxAdapter(
                 child: SizedBox(height: 20),
               ),
@@ -538,7 +545,6 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
     );
   }
 
-  // Loading more indicator
   Widget _buildLoadingMoreIndicator() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),

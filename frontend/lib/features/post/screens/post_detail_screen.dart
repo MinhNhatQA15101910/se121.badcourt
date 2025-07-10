@@ -10,8 +10,10 @@ import 'package:frontend/features/post/widgets/comment_item.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
 import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
 
@@ -28,12 +30,14 @@ class PostDetailScreen extends StatefulWidget {
   State<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 
-class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerProviderStateMixin {
+class _PostDetailScreenState extends State<PostDetailScreen>
+    with SingleTickerProviderStateMixin {
   final _postService = PostService();
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   Post? _post;
+  Post? _originalPost;
   bool _isLoading = true;
   bool _isLikeLoading = false;
   bool _isCommentLoading = false;
@@ -42,54 +46,48 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   int _totalPages = 1;
   List<Comment> _commentList = [];
   bool _isLoadingComments = false;
-  
-  // Local state for like status and count
+
   bool _isLiked = false;
   int _likeCount = 0;
-  
-  late AnimationController _likeController;
+  int _commentCount = 0;
 
-  // Add these variables to the _PostDetailScreenState class
-  // Add these variables to the _PostDetailScreenState class
+  late AnimationController _likeController;
   Map<int, VideoPlayerController> _videoControllers = {};
   Map<int, bool> _videoInitialized = {};
 
   @override
   void initState() {
     super.initState();
-    
+
     _likeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
-    
+
     _fetchPostDetails();
   }
-  
+
   @override
   void dispose() {
     _likeController.dispose();
     _commentController.dispose();
     _scrollController.dispose();
-    // Dispose all video controllers
     for (var controller in _videoControllers.values) {
       controller.dispose();
     }
     super.dispose();
   }
 
-  // Add this method after initState()
   void _initializeVideoControllers() {
     if (_post == null) return;
-    
+
     for (int i = 0; i < _post!.resources.length; i++) {
       final resource = _post!.resources[i];
       if (PostService.isVideoUrl(resource.url)) {
         final controller = VideoPlayerController.network(resource.url);
         _videoControllers[i] = controller;
         _videoInitialized[i] = false;
-        
+
         controller.initialize().then((_) {
           if (mounted) {
             setState(() {
@@ -99,6 +97,47 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         }).catchError((error) {
           print('Error initializing video: $error');
         });
+      }
+    }
+  }
+
+  Future<void> _reportPost() async {
+    try {
+      await _postService.reportPost(
+        context: context,
+        postId: widget.postId,
+      );
+    } catch (error) {}
+    Navigator.of(context).pop();
+  }
+
+  // FIXED: Immediately navigate back with deletion result
+  Future<void> _deletePost() async {
+    // Close the bottom sheet first
+    Navigator.of(context).pop();
+    
+    try {
+      await _postService.deletePost(
+        context: context,
+        postId: widget.postId,
+      );
+      
+      // FIXED: Navigate back immediately with deletion result
+      if (mounted) {
+        Navigator.of(context).pop({
+          'action': 'deleted',
+          'postId': widget.postId,
+        });
+      }
+    } catch (error) {
+      // Even if there's an error, we might want to go back
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete post: $error'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -117,18 +156,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       if (post != null) {
         setState(() {
           _post = post;
-          // Initialize local state from post
+          _originalPost = post;
           _isLiked = post.isLiked;
           _likeCount = post.likesCount;
+          _commentCount = post.commentsCount;
         });
-        
-        // Initialize video controllers after getting post details
+
         _initializeVideoControllers();
-        
-        // Fetch comments after getting post details
         _fetchCommentByPostId();
       } else {
-        // Handle post not found
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Post not found'),
@@ -144,6 +180,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           behavior: SnackBarBehavior.floating,
         ),
       );
+      Navigator.pop(context);
     } finally {
       setState(() {
         _isLoading = false;
@@ -195,12 +232,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     await _fetchCommentByPostId();
   }
 
-  // Update the _submitComment method to include images
   Future<void> _submitComment(String commentText, List<File> mediaFiles) async {
-    print('DEBUG: _submitComment called with text: "$commentText", media count: ${mediaFiles.length}');
-    
     if ((commentText.isEmpty && mediaFiles.isEmpty) || _isCommentLoading) {
-      print('DEBUG: Early return - empty content or already loading');
       return;
     }
 
@@ -209,20 +242,21 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     });
 
     try {
-      print('DEBUG: About to call createComment service');
       await _postService.createComment(
         context,
         widget.postId,
         commentText,
-        mediaFiles, // Pass the media files directly
+        mediaFiles,
       );
-      
-      print('DEBUG: Comment created successfully');
-      
-      // Refresh comments to show the new one
+
       await _refreshComments();
-      
-      // Update the post's comment count
+
+      // FIXED: Update comment count immediately
+      setState(() {
+        _commentCount++;
+      });
+
+      // Update the post object
       if (_post != null) {
         final updatedPost = Post(
           id: _post!.id,
@@ -233,24 +267,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           publisherImageUrl: _post!.publisherImageUrl,
           resources: _post!.resources,
           likesCount: _likeCount,
-          commentsCount: _post!.commentsCount + 1, // Increment comment count
+          commentsCount: _commentCount,
           isLiked: _isLiked,
           createdAt: _post!.createdAt,
         );
-        
+
         setState(() {
           _post = updatedPost;
         });
       }
-      
-      // Clear media after successful upload
-      // Force the InputComment to clear its media
-      setState(() {
-        // This will trigger a rebuild and the InputComment should clear its media
-      });
-      
+
     } catch (error) {
-      print('DEBUG: Error creating comment: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to post comment: $error'),
@@ -264,14 +291,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     }
   }
 
-  // Add a simple callback for media selection
   void _onMediaSelected() {
-    // Simple callback when media is selected
-    // Can be used for UI updates if needed
     print('DEBUG: Media selected callback');
   }
-
-  // Add this method to handle image selection
 
   Future<void> _toggleLike() async {
     if (_isLikeLoading || _post == null) return;
@@ -280,7 +302,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       _isLikeLoading = true;
     });
 
-    // Optimistic update using local state
     final previousLikedState = _isLiked;
     final previousLikeCount = _likeCount;
 
@@ -299,9 +320,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         context: context,
         postId: widget.postId,
       );
-      
-      // If successful, update the post object with a new instance
-      // This is necessary because the properties are final
+
+      // Update the post object
       if (_post != null) {
         final updatedPost = Post(
           id: _post!.id,
@@ -312,22 +332,21 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           publisherImageUrl: _post!.publisherImageUrl,
           resources: _post!.resources,
           likesCount: _likeCount,
-          commentsCount: _post!.commentsCount,
+          commentsCount: _commentCount,
           isLiked: _isLiked,
           createdAt: _post!.createdAt,
         );
-        
+
         setState(() {
           _post = updatedPost;
         });
       }
     } catch (error) {
-      // Revert changes if API call fails
       setState(() {
         _isLiked = previousLikedState;
         _likeCount = previousLikeCount;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to toggle like. Please try again.'),
@@ -341,10 +360,44 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     }
   }
 
+  // FIXED: Better change detection and navigation result
+  void _navigateBack() {
+    if (_originalPost != null && _post != null) {
+      final hasChanges = _originalPost!.likesCount != _likeCount ||
+                        _originalPost!.commentsCount != _commentCount ||
+                        _originalPost!.isLiked != _isLiked;
+      
+      if (hasChanges) {
+        final updatedPost = Post(
+          id: _post!.id,
+          title: _post!.title,
+          content: _post!.content,
+          publisherId: _post!.publisherId,
+          publisherUsername: _post!.publisherUsername,
+          publisherImageUrl: _post!.publisherImageUrl,
+          resources: _post!.resources,
+          likesCount: _likeCount,
+          commentsCount: _commentCount,
+          isLiked: _isLiked,
+          createdAt: _post!.createdAt,
+        );
+        
+        Navigator.of(context).pop({
+          'action': 'updated',
+          'post': updatedPost,
+        });
+      } else {
+        Navigator.of(context).pop();
+      }
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   String formatDate(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     if (difference.inDays > 7) {
       return DateFormat('MMM dd, yyyy').format(createdAt);
     } else if (difference.inDays > 0) {
@@ -376,7 +429,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
+            onPressed: _navigateBack,
           ),
         ),
         body: const Center(child: Loader()),
@@ -439,321 +492,319 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     final hasTitle = _post!.title.isNotEmpty;
     final hasContent = _post!.content.isNotEmpty;
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: GlobalVariables.green,
-        title: Text(
-          'Post Details',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+    // FIXED: Use WillPopScope to handle back button
+    return WillPopScope(
+      onWillPop: () async {
+        _navigateBack();
+        return false; // Prevent default back navigation
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: GlobalVariables.green,
+          title: Text(
+            'Post Details',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () => _showPostOptions(context),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: _navigateBack, // FIXED: Use custom navigation
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Main content (scrollable)
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await _fetchPostDetails();
-              },
-              color: GlobalVariables.green,
-              child: ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.only(bottom: 80), // Add padding for the input field
-                children: [
-                  // Post header with user info
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Avatar
-                        CustomAvatar(
-                          radius: 20,
-                          imageUrl: _post!.publisherImageUrl,
-                          userId: _post!.publisherId,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onPressed: () => _showPostOptions(context, _post!.publisherId),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await _fetchPostDetails();
+                },
+                color: GlobalVariables.green,
+                child: ListView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.only(bottom: 80),
+                  children: [
+                    // Post header with user info
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CustomAvatar(
+                            radius: 20,
+                            imageUrl: _post!.publisherImageUrl,
+                            userId: _post!.publisherId,
+                          ),
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _post!.publisherUsername,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: GlobalVariables.blackGrey,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  formatDate(_post!.createdAt),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: GlobalVariables.darkGrey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    if (hasTitle)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Text(
+                          _post!.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: GlobalVariables.blackGrey,
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                        
-                        // Username and date
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+
+                    if (hasContent)
+                      Padding(
+                        padding:
+                            EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
+                        child: Text(
+                          _post!.content,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: GlobalVariables.blackGrey,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+
+                    if (imageCount > 0) _buildImageCarousel(imageCount),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 1,
+                            color: Colors.grey.shade200,
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                _post!.publisherUsername,
-                                style: GoogleFonts.inter(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: GlobalVariables.blackGrey,
-                                ),
+                              _buildActionButton(
+                                icon: _isLiked
+                                    ? Icons.thumb_up
+                                    : Icons.thumb_up_outlined,
+                                label:
+                                    'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
+                                isActive: _isLiked,
+                                isLoading: _isLikeLoading,
+                                onTap: _toggleLike,
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                formatDate(_post!.createdAt),
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: GlobalVariables.darkGrey,
-                                ),
+
+                              _buildActionButton(
+                                icon: Icons.comment_outlined,
+                                label:
+                                    'Comment ${_commentCount > 0 ? '($_commentCount)' : ''}',
+                                onTap: () {
+                                  FocusScope.of(context)
+                                      .requestFocus(FocusNode());
+                                  _scrollController.animateTo(
+                                    _scrollController.position.maxScrollExtent,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                  );
+                                },
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Post title (if exists)
-                  if (hasTitle)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: Text(
-                        _post!.title,
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: GlobalVariables.blackGrey,
-                        ),
+                        ],
                       ),
                     ),
-                  
-                  // Post content (if exists)
-                  if (hasContent)
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
-                      child: Text(
-                        _post!.content,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          color: GlobalVariables.blackGrey,
-                          height: 1.4,
-                        ),
-                      ),
+
+                    Container(
+                      height: 8,
+                      color: Colors.grey.shade100,
                     ),
-                  
-                  // Post images (if any)
-                  if (imageCount > 0)
-                    _buildImageCarousel(imageCount),
-                  
-                  // Post actions (like, comment)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 1,
-                          color: Colors.grey.shade200,
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Action buttons (removed share button)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Like button
-                            _buildActionButton(
-                              icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                              label: 'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
-                              isActive: _isLiked,
-                              isLoading: _isLikeLoading,
-                              onTap: _toggleLike,
-                            ),
-                            
-                            // Comment button
-                            _buildActionButton(
-                              icon: Icons.comment_outlined,
-                              label:  'Comment ${_post!.commentsCount > 0 ? '(${_post!.commentsCount})' : ''}',
-                              onTap: () {
-                                FocusScope.of(context).requestFocus(FocusNode());
-                                _scrollController.animateTo(
-                                  _scrollController.position.maxScrollExtent,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Comments',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: GlobalVariables.blackGrey,
+                                ),
+                              ),
+                              if (_commentList.isNotEmpty)
+                                TextButton(
+                                  onPressed: _refreshComments,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: GlobalVariables.green,
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(0, 0),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Text(
+                                    'Refresh',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          if (_commentList.isEmpty && _isLoadingComments)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      GlobalVariables.green),
+                                ),
+                              ),
+                            )
+                          else if (_commentList.isEmpty && !_isLoadingComments)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.chat_bubble_outline,
+                                      size: 40,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'No comments yet',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: GlobalVariables.darkGrey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Be the first to comment',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _commentList.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: CommentItem(
+                                    comment: _commentList[index],
+                                    formatDateCallback: formatDate,
+                                  ),
                                 );
                               },
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Divider before comments
-                  Container(
-                    height: 8,
-                    color: Colors.grey.shade100,
-                  ),
-                  
-                  // Comments section
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Comments header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Comments',
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: GlobalVariables.blackGrey,
-                              ),
-                            ),
-                            if (_commentList.isNotEmpty)
-                              TextButton(
-                                onPressed: _refreshComments,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: GlobalVariables.green,
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  'Refresh',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // Comments list
-                        if (_commentList.isEmpty && _isLoadingComments)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
-                              ),
-                            ),
-                          )
-                        else if (_commentList.isEmpty && !_isLoadingComments)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 24),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline,
-                                    size: 40,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No comments yet',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: GlobalVariables.darkGrey,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Be the first to comment',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _commentList.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: CommentItem(
-                                  comment: _commentList[index],
-                                  formatDateCallback: formatDate,
-                                ),
-                              );
-                            },
-                          ),
-                        
-                        // Load more comments button
-                        if (_currentPage <= _totalPages && _commentList.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Center(
-                              child: _isLoadingComments
-                                  ? CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
-                                    )
-                                  : TextButton(
-                                      onPressed: _fetchCommentByPostId,
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: GlobalVariables.green,
-                                      ),
-                                      child: Text(
-                                        'Load more comments',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
+
+                          if (_currentPage <= _totalPages &&
+                              _commentList.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Center(
+                                child: _isLoadingComments
+                                    ? CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                            GlobalVariables.green),
+                                      )
+                                    : TextButton(
+                                        onPressed: _fetchCommentByPostId,
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: GlobalVariables.green,
+                                        ),
+                                        child: Text(
+                                          'Load more comments',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
-                                    ),
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          
-          // Comment input field (fixed at bottom)
-          // Update the InputComment widget in the build method
-          InputComment(
-            key: ValueKey(_isCommentLoading), // Force rebuild when loading state changes
-            controller: _commentController,
-            isLoading: _isCommentLoading,
-            onSubmit: _submitComment,
-            onMediaSelected: _onMediaSelected,
-          ),
-        ],
+
+            InputComment(
+              key: ValueKey(_isCommentLoading),
+              controller: _commentController,
+              isLoading: _isCommentLoading,
+              onSubmit: _submitComment,
+              onMediaSelected: _onMediaSelected,
+            ),
+          ],
+        ),
       ),
     );
   }
-  
+
   Widget _buildImageCarousel(int imageCount) {
     return Stack(
       children: [
-        // Image carousel
         CarouselSlider.builder(
           itemCount: imageCount,
           options: CarouselOptions(
             viewportFraction: 1.0,
             enableInfiniteScroll: imageCount > 1,
-            height: 300, // Fixed height
+            height: 300,
             enlargeCenterPage: false,
             onPageChanged: (index, reason) => setState(() {
               _activeIndex = index;
@@ -762,10 +813,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           itemBuilder: (context, index, realIndex) {
             final resource = _post!.resources[index];
             final isVideo = PostService.isVideoUrl(resource.url);
-            
+
             return GestureDetector(
               onTap: () {
-                // Navigate to full screen media view instead of image view only
                 Navigator.of(context).pushNamed(
                   FullScreenMediaView.routeName,
                   arguments: {
@@ -781,24 +831,23 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                 ),
-                child: isVideo 
-                  ? _buildVideoPlayer(index, resource.url)
-                  : _buildImageWidget(resource.url),
+                child: isVideo
+                    ? _buildVideoPlayer(index, resource.url)
+                    : _buildImageWidget(resource.url),
               ),
             );
           },
         ),
-        
-        // Navigation arrows (only if more than one image)
+
         if (imageCount > 1) ...[
-          // Left arrow
           Positioned(
             left: 8,
             top: 0,
             bottom: 0,
             child: GestureDetector(
               onTap: () {
-                int newIndex = _activeIndex > 0 ? _activeIndex - 1 : imageCount - 1;
+                int newIndex =
+                    _activeIndex > 0 ? _activeIndex - 1 : imageCount - 1;
                 setState(() {
                   _activeIndex = newIndex;
                 });
@@ -818,15 +867,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               ),
             ),
           ),
-          
-          // Right arrow
+
           Positioned(
             right: 8,
             top: 0,
             bottom: 0,
             child: GestureDetector(
               onTap: () {
-                int newIndex = _activeIndex < imageCount - 1 ? _activeIndex + 1 : 0;
+                int newIndex =
+                    _activeIndex < imageCount - 1 ? _activeIndex + 1 : 0;
                 setState(() {
                   _activeIndex = newIndex;
                 });
@@ -847,8 +896,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             ),
           ),
         ],
-        
-        // Image indicators
+
         if (imageCount > 1)
           Positioned(
             bottom: 16,
@@ -892,7 +940,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       ],
     );
   }
-  
+
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -906,7 +954,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: isActive ? GlobalVariables.green.withOpacity(0.1) : Colors.transparent,
+          color: isActive
+              ? GlobalVariables.green.withOpacity(0.1)
+              : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -925,7 +975,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               Icon(
                 icon,
                 size: 20,
-                color: isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
+                color:
+                    isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
               ),
             const SizedBox(width: 6),
             Text(
@@ -933,7 +984,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
+                color:
+                    isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
               ),
             ),
           ],
@@ -941,8 +993,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       ),
     );
   }
-  
-  void _showPostOptions(BuildContext context) {
+
+  void _showPostOptions(BuildContext context, String userId) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -963,23 +1017,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                 ),
               ),
               const SizedBox(height: 16),
-              _buildOptionItem(
-                icon: Icons.bookmark_border,
-                label: 'Save post',
-                onTap: () {
-                  Navigator.pop(context);
-                  // Save post functionality
-                },
-              ),
-              _buildOptionItem(
-                icon: Icons.report_outlined,
-                label: 'Report post',
-                isDestructive: true,
-                onTap: () {
-                  Navigator.pop(context);
-                  // Report post functionality
-                },
-              ),
+              if (userProvider.user.id == userId)
+                _buildOptionItem(
+                  icon: Icons.delete,
+                  label: 'Delete this post',
+                  onTap: _deletePost,
+                  isDestructive: true, // FIXED: Add destructive styling
+                )
+              else
+                _buildOptionItem(
+                  icon: Icons.report_outlined,
+                  label: 'Report this post',
+                  onTap: _reportPost,
+                ),
               const SizedBox(height: 16),
             ],
           ),
@@ -987,7 +1037,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       },
     );
   }
-  
+
   Widget _buildOptionItem({
     required IconData icon,
     required String label,
@@ -1011,7 +1061,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
     );
   }
 
-  // Add this method
   Widget _buildVideoPlayer(int index, String videoUrl) {
     final controller = _videoControllers[index];
     final isInitialized = _videoInitialized[index] ?? false;
@@ -1026,7 +1075,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(GlobalVariables.green),
               ),
               const SizedBox(height: 8),
               Text(

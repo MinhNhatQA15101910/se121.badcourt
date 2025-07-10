@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem} from "@/components/ui/sidebar"
+import { signOut } from "next-auth/react"
 
 export function AccountDropdown({
   user,
@@ -76,7 +77,11 @@ export function AccountDropdown({
               
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => {
+                signOut({ callbackUrl: "/login" });
+              }}
+            >
               <LogOut />
               Log out
             </DropdownMenuItem>

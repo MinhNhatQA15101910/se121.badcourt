@@ -28,7 +28,7 @@ class ScheduleManagementWidget extends StatelessWidget {
   });
 
   // Time validation constants
-  static const int MIN_HOUR = 7;
+  static const int MIN_HOUR = 4;
   static const int MAX_HOUR = 23;
   static const int MIN_DURATION_HOURS = 1;
 

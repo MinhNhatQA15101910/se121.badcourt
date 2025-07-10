@@ -12,7 +12,7 @@ class UserProvider extends ChangeNotifier {
       _user = User.empty();
     } else {
       final Map<String, dynamic> userMap = json.decode(userJson);
-      _user = User.fromJson(userMap); // ✅ sử dụng fromJson(Map)
+      _user = User.fromJson(userMap);
     }
     notifyListeners();
   }

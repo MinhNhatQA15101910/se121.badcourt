@@ -34,6 +34,14 @@ public class PostRepository : IPostRepository
         await _posts.InsertOneAsync(post, cancellationToken: cancellationToken);
     }
 
+    public Task DeletePostAsync(Post post, CancellationToken cancellationToken = default)
+    {
+        return _posts.DeleteOneAsync(
+            p => p.Id == post.Id,
+            cancellationToken: cancellationToken
+        );
+    }
+
     public Task<List<Post>> GetAllPostsAsync(PostParams postParams, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Post>.Filter.Empty;
@@ -73,6 +81,9 @@ public class PostRepository : IPostRepository
             case "category":
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("Category", postParams.SortBy == "asc" ? 1 : -1)));
                 break;
+            case "reportsCount":
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("ReportsCount", postParams.SortBy == "asc" ? 1 : -1)));
+                break;
             case "createdAt":
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("CreatedAt", postParams.SortBy == "asc" ? 1 : -1)));
@@ -91,6 +102,26 @@ public class PostRepository : IPostRepository
             pipeline.Add(new BsonDocument("$match", new BsonDocument("Category", postParams.Category)));
         }
 
+        // Filter by search term
+        if (!string.IsNullOrEmpty(postParams.Search))
+        {
+            var searchFilter = new BsonDocument("$or", new BsonArray
+            {
+                new BsonDocument("Title", new BsonDocument
+                {
+                    { "$regex", postParams.Search },
+                    { "$options", "i" }
+                }),
+                new BsonDocument("Content", new BsonDocument
+                {
+                    { "$regex", postParams.Search },
+                    { "$options", "i" }
+                })
+            });
+
+            pipeline.Add(new BsonDocument("$match", searchFilter));
+        }
+
         var posts = await PagedList<Post>.CreateAsync(
             _posts,
             pipeline,
@@ -107,6 +138,11 @@ public class PostRepository : IPostRepository
                 if (posts[i].LikedUsers.Contains(currentUserId))
                 {
                     postDtos[i].IsLiked = true;
+                }
+
+                if (posts[i].ReportUsers.Contains(currentUserId))
+                {
+                    postDtos[i].IsReported = true;
                 }
             }
         }

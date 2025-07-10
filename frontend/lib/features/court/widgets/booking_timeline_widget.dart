@@ -3,6 +3,7 @@ import 'package:frontend/constants/global_variables.dart';
 import 'package:frontend/models/booking_time.dart';
 import 'package:frontend/models/court.dart';
 import 'package:frontend/models/time_period.dart';
+import 'package:frontend/providers/player/selected_court_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/court_hub_provider.dart';
@@ -46,6 +47,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   void dispose() {
     if (_courtHubProvider != null) {
       _courtHubProvider!.clearCourtInactivePeriods(widget.court.id);
+      _courtHubProvider!.clearNewOrderPeriods(widget.court.id);
     }
     super.dispose();
   }
@@ -56,8 +58,8 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   }
 
   // Convert PeriodTime to BookingTime
-  BookingTime? _convertPeriodTimeToBookingTime(
-      TimePeriod period, int virtualId, {bool isInactive = false}) {
+  BookingTime? _convertPeriodTimeToBookingTime(TimePeriod period, int virtualId,
+      {bool isInactive = false}) {
     try {
       DateTime? startDate;
       DateTime? endDate;
@@ -102,7 +104,8 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
 
       if (endDate == null) {
         try {
-          final endParts = period.hourTo.toIso8601String().split('T')[1].split(':');
+          final endParts =
+              period.hourTo.toIso8601String().split('T')[1].split(':');
           if (endParts.length >= 2) {
             final endHour = int.parse(endParts[0]);
             final endMinute = int.parse(endParts[1]);
@@ -138,18 +141,20 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           endDate.minute,
         );
 
-        // Create BookingTime with status for inactive periods
+        // MODIFIED: Treat new orders same as existing bookings
         final bookingTime = BookingTime(
           id: virtualId,
           startDate: normalizedStartDate,
           endDate: normalizedEndDate,
-          status: isInactive ? 2 : 0, // Status 2 for inactive, 0 for regular
+          status: isInactive
+              ? 2
+              : 0, // Only distinguish inactive (2) vs bookings (0)
         );
 
         return bookingTime;
       }
     } catch (e) {
-      // Ignore error
+      print('[BookingTimeline] Error converting period: $e');
     }
 
     return null;
@@ -162,16 +167,36 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         // START WITH EXISTING BOOKINGS
         List<BookingTime> allBookings = List.from(widget.bookingTimeList);
 
-        // Get realtime periods (only inactive periods now)
-        final inactivePeriods =
-            courtProvider.getCourtInactivePeriods(widget.court.id);
+        // MODIFIED: Get new order periods and treat them as regular bookings
+        final newOrderPeriods =
+            courtProvider.getNewOrderPeriods(widget.court.id);
+
+        // Get inactive periods
+        final selectedCourtProvider =
+            Provider.of<SelectedCourtProvider>(context, listen: false);
+        final inactivePeriods = courtProvider.getCourtInactivePeriods(
+            widget.court.id, selectedCourtProvider.selectedDate ?? DateTime.now());
 
         int virtualId = 10000;
 
+        // MODIFIED: Convert new order periods as regular bookings (same as existing)
+        for (var period in newOrderPeriods) {
+          final bookingTime = _convertPeriodTimeToBookingTime(
+              period, virtualId++,
+              isInactive: false // Treat as regular booking
+              );
+          if (bookingTime != null) {
+            allBookings.add(bookingTime);
+            print(
+                '[BookingTimeline] Added new order as regular booking: ${period.hourFrom} - ${period.hourTo}');
+          }
+        }
+
         // CONVERT INACTIVE PERIODS
         for (var period in inactivePeriods) {
-          final bookingTime =
-              _convertPeriodTimeToBookingTime(period, virtualId++, isInactive: true);
+          final bookingTime = _convertPeriodTimeToBookingTime(
+              period, virtualId++,
+              isInactive: true);
           if (bookingTime != null) {
             allBookings.add(bookingTime);
           }
@@ -188,7 +213,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
               bookingOverlays.add(overlay);
             }
           } catch (e) {
-            // Ignore error
+            print('[BookingTimeline] Error creating overlay: $e');
           }
         }
 
@@ -198,8 +223,9 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         List<Widget> timeText =
             generateTimeText(widget.startTime, widget.endTime);
 
-        // Calculate total bookings to display
-        int totalBookingsCount = widget.bookingTimeList.length + inactivePeriods.length;
+        // MODIFIED: Calculate bookings - combine existing + new orders
+        int totalExistingBookings =
+            widget.bookingTimeList.length + newOrderPeriods.length;
 
         return Container(
           padding: EdgeInsets.only(
@@ -246,39 +272,25 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                 ],
               ),
               SizedBox(height: 12),
-              // Legend - show different types of bookings
+              // MODIFIED: Simplified legend - only show bookings and inactive
               Container(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   children: [
-                    // Existing bookings legend
-                    if (widget.bookingTimeList.isNotEmpty)
+                    // Combined bookings legend (existing + new orders)
+                    if (totalExistingBookings > 0)
                       _buildLegendItem(
                         color: GlobalVariables.lightGreen,
                         borderColor: GlobalVariables.green,
-                        label: 'Existing bookings (${widget.bookingTimeList.length})',
+                        label: 'Bookings ($totalExistingBookings)',
                       ),
-                    
+
                     // Inactive periods legend
                     if (inactivePeriods.isNotEmpty)
                       _buildLegendItem(
                         color: Colors.grey.withOpacity(0.2),
                         borderColor: Colors.grey,
                         label: 'Inactive periods (${inactivePeriods.length})',
-                      ),
-                    
-                    // Total count if multiple types exist
-                    if (totalBookingsCount > 0 && inactivePeriods.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Total periods: $totalBookingsCount',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: GlobalVariables.darkGrey,
-                          ),
-                        ),
                       ),
                   ],
                 ),
@@ -339,7 +351,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     return intersects;
   }
 
-  // Create overlay with different colors for different types
+  // MODIFIED: Simplified overlay creation - only 2 types now
   Widget _createBookingOverlay(BookingTime booking, int index) {
     // Calculate effective position
     int timelineStartMinutes = _timeToMinutes(widget.startTime);
@@ -351,6 +363,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     int effectiveStartMinutes = bookingStartMinutes < timelineStartMinutes
         ? timelineStartMinutes
         : bookingStartMinutes;
+
     int effectiveEndMinutes = bookingEndMinutes > timelineEndMinutes
         ? timelineEndMinutes
         : bookingEndMinutes;
@@ -382,20 +395,20 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     String timeRange =
         '${effectiveStart.hour.toString().padLeft(2, '0')}:${effectiveStart.minute.toString().padLeft(2, '0')} - ${effectiveEnd.hour.toString().padLeft(2, '0')}:${effectiveEnd.minute.toString().padLeft(2, '0')}';
 
-    bool isInactive = booking.status == 2; // Status 2 for inactive periods
-
-    // Choose colors based on booking type
+    // SIMPLIFIED: Only 2 types - bookings vs inactive
     Color backgroundColor;
     Color borderColor;
     Color textColor;
     IconData iconData;
 
-    if (isInactive) {
+    if (booking.status == 2) {
+      // Inactive period
       backgroundColor = Colors.grey.withOpacity(0.2);
       borderColor = Colors.grey;
       textColor = Colors.grey;
       iconData = Icons.block;
     } else {
+      // All bookings (existing + new) look the same
       backgroundColor = GlobalVariables.lightGreen;
       borderColor = GlobalVariables.green;
       textColor = GlobalVariables.green;
@@ -485,6 +498,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
 
     for (int i = 0; i < hours; i++) {
       currentTime = currentTime.add(Duration(minutes: 60));
+
       children.add(Container(
         height: 40,
         decoration: BoxDecoration(
@@ -574,14 +588,18 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
   double calculateMarginTop(DateTime startTime, DateTime bookingStartTime) {
     int minutesFromStart = bookingStartTime.difference(startTime).inMinutes;
     if (minutesFromStart < 0) minutesFromStart = 0;
+
     double result = 10.0 + (minutesFromStart / 60.0) * 40.0;
+
     return result;
   }
 
   double calculateHeight(DateTime startTime, DateTime endTime) {
     int durationInMinutes = endTime.difference(startTime).inMinutes;
     if (durationInMinutes <= 0) return 0;
+
     double result = (durationInMinutes / 60.0) * 40.0;
+
     return result;
   }
 

@@ -120,6 +120,8 @@ public class CreateOrderHandler(
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
         var user = await userApiRepository.GetUserByIdAsync(userId.ToString(), cancellationToken)
             ?? throw new UserNotFoundException(userId);
+        var facilityOwner = await userApiRepository.GetUserByIdAsync(facility.UserId.ToString(), cancellationToken)
+            ?? throw new UserNotFoundException(facility.UserId);
 
         var facilityMainPhoto = facility.Photos.FirstOrDefault(p => p.IsMain);
         var draftOrder = new Order
@@ -128,6 +130,8 @@ public class CreateOrderHandler(
             Username = user.Username,
             UserImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url,
             FacilityOwnerId = facility.UserId.ToString(),
+            FacilityOwnerUsername = facilityOwner.Username,
+            FacilityOwnerImageUrl = facilityOwner.PhotoUrl,
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
             CourtName = court.CourtName,
@@ -152,6 +156,8 @@ public class CreateOrderHandler(
             throw new BadRequestException("Failed to create order.");
         }
 
+        Console.WriteLine(paymentIntent.Id);
+
         return new OrderIntentDto
         {
             ClientSecret = paymentIntent.ClientSecret,
@@ -161,7 +167,24 @@ public class CreateOrderHandler(
 
     private static bool IsTimePeriodInside(TimePeriodDto inner, TimePeriodDto outer)
     {
-        return inner.HourFrom >= outer.HourFrom && inner.HourTo <= outer.HourTo;
+        bool crossesMidnight = outer.HourFrom > outer.HourTo;
+
+        static int ToShiftedMinutes(TimeOnly time, TimeOnly reference, bool crossesMidnight)
+        {
+            int minutes = time.Hour * 60 + time.Minute;
+            int referenceMinutes = reference.Hour * 60 + reference.Minute;
+            return crossesMidnight && minutes < referenceMinutes
+                ? minutes + 24 * 60
+                : minutes;
+        }
+
+        var outerFromMinutes = ToShiftedMinutes(outer.HourFrom, outer.HourFrom, false);
+        var outerToMinutes = ToShiftedMinutes(outer.HourTo, outer.HourFrom, crossesMidnight);
+
+        var innerFromMinutes = ToShiftedMinutes(inner.HourFrom, outer.HourFrom, crossesMidnight);
+        var innerToMinutes = ToShiftedMinutes(inner.HourTo, outer.HourFrom, crossesMidnight);
+
+        return innerFromMinutes >= outerFromMinutes && innerToMinutes <= outerToMinutes;
     }
 
     private static bool IsTimePeriodOverlapping(DateTimePeriodDto period1, DateTimePeriodDto period2)

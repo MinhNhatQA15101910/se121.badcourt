@@ -1,9 +1,8 @@
 "use client"
 
-import { ArrowLeft, Phone, Video, Info } from "lucide-react"
+import { ArrowLeft} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import type { ConversationType } from "@/lib/types"
 
 interface ChatHeaderProps {
@@ -13,7 +12,7 @@ interface ChatHeaderProps {
 
 export default function ChatHeader({ conversation, onBackClick }: ChatHeaderProps) {
   return (
-    <div className="p-4 border-b border-[#e2e8f0] flex items-center justify-between bg-white shadow-sm">
+    <div className="pl-4 pr-4 h-16 border-b border-[#e2e8f0] flex items-center justify-between bg-white">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="md:hidden rounded-full hover:bg-[#f1f5f9]" onClick={onBackClick}>
           <ArrowLeft className="w-5 h-5 text-[#64748b]" />
@@ -32,46 +31,7 @@ export default function ChatHeader({ conversation, onBackClick }: ChatHeaderProp
           </span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-[#f1f5f9]">
-                <Phone className="w-5 h-5 text-[#64748b]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Call</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-[#f1f5f9]">
-                <Video className="w-5 h-5 text-[#64748b]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Video call</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-[#f1f5f9]">
-                <Info className="w-5 h-5 text-[#64748b]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Info</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      
     </div>
   )
 }

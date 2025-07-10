@@ -66,10 +66,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
       ),
       padding: EdgeInsets.symmetric(
         vertical: 12,
-        horizontal: 14,
-      ),
-      margin: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: 16,
       ),
       child: Form(
         key: _forgotPasswordFormKey,
@@ -82,7 +79,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               Text(
                 'Forgot your password',
                 style: GoogleFonts.inter(
-                  fontSize: 26,
+                  fontSize: 20,
                   color: GlobalVariables.darkGreen,
                   fontWeight: FontWeight.bold,
                 ),
@@ -120,10 +117,9 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               const SizedBox(height: 16),
 
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   SizedBox(
-                    width: 150,
                     height: 40,
                     child: ElevatedButton(
                       onPressed: _moveToPreviousForm,
@@ -148,7 +144,6 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                     ),
                   ),
                   SizedBox(
-                    width: 150,
                     height: 40,
                     child: _isValidateLoading
                         ? const Loader()
@@ -159,7 +154,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                               elevation: 0,
                             ),
                             child: Text(
-                              'Next',
+                              '     Next     ',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,

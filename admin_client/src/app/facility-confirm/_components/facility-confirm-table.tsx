@@ -116,7 +116,7 @@ const PriceRange = ({
 export function FacilityConfirmTable() {
   const searchParams = useSearchParams();
   const [sortColumn, setSortColumn] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -250,10 +250,10 @@ export function FacilityConfirmTable() {
     }
 
     if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDirection(sortDirection === "desc" ? "asc" : "desc");
     } else {
       setSortColumn(column);
-      setSortDirection("asc");
+      setSortDirection("desc");
     }
   };
 
@@ -313,7 +313,7 @@ export function FacilityConfirmTable() {
     }
 
     if (sortColumn !== column) return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    return sortDirection === "asc" ? (
+    return sortDirection === "desc" ? (
       <ArrowUp className="ml-2 h-4 w-4" />
     ) : (
       <ArrowDown className="ml-2 h-4 w-4" />

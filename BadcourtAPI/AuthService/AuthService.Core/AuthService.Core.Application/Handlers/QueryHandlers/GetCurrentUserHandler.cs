@@ -19,6 +19,9 @@ public class GetCurrentUserHandler(
 
         var user = await userRepository.GetUserByIdAsync(userId, cancellationToken);
 
-        return mapper.Map<UserDto>(user);
+        var userDto = mapper.Map<UserDto>(user);
+        userDto.Token = httpContextAccessor.HttpContext.GetBearerToken();
+
+        return userDto;
     }
 }

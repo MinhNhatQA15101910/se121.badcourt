@@ -28,7 +28,7 @@ class _PlayerBottomBarState extends State<PlayerBottomBar> {
     const HomeScreen(),
     const SearchScreen(),
     const PostScreen(),
-    const PlayerAccountScreen(),
+    PlayerAccountScreen(),
   ];
 
   @override
