@@ -21,7 +21,6 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final OrderService _bookingService = OrderService();
-
   Order? order;
   bool isLoading = true;
   bool isCancelling = false;
@@ -51,7 +50,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         context: context,
         orderId: orderId,
       );
-
       if (success) {
         // Refresh the order details to get updated state
         await _fetchOrderDetails(orderId);
@@ -71,7 +69,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       RatingScreen.routeName,
       arguments: order,
     );
-
     if (result == true) {
       final String orderId =
           ModalRoute.of(context)!.settings.arguments as String;
@@ -142,12 +139,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         isLoading = true;
         error = null;
       });
-
       final fetchedOrder = await _bookingService.fetchOrderById(
         context: context,
         orderId: orderId,
       );
-
       setState(() {
         order = fetchedOrder;
         isLoading = false;
@@ -166,6 +161,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+    
     if (isLoading) {
       return Scaffold(
         backgroundColor: GlobalVariables.defaultColor,
@@ -305,7 +301,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               onPressed: () => Navigator.pop(context),
             ),
           ),
-
           // Content
           SliverToBoxAdapter(
             child: Container(
@@ -356,7 +351,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
 
+                  // Booking Person Information Section
+                  _buildSectionHeader(context, 'Booking Person'),
+                  CustomContainer(
+                    child: _buildPersonInfo(
+                      name: order!.playerName ?? 'Unknown Player',
+                      phone: order!.playerPhone ?? 'N/A',
+                      email: order!.playerEmail ?? 'N/A',
+                      avatar: order!.playerAvatar,
+                      role: 'Player',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Facility Owner Section
+                  _buildSectionHeader(context, 'Facility Owner'),
+                  CustomContainer(
+                    child: _buildPersonInfo(
+                      name: order!.ownerName ?? 'Unknown Owner',
+                      phone: order!.ownerPhone ?? 'N/A',
+                      email: order!.ownerEmail ?? 'N/A',
+                      avatar: order!.ownerAvatar,
+                      role: 'Owner',
+                      showContactButton: userProvider.user.role == 'Player',
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Booking Details Section
@@ -364,6 +385,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   CustomContainer(
                     child: Column(
                       children: [
+                        _buildDetailRow(
+                          context,
+                          'Booking ID',
+                          '#${order!.id.substring(0, 8).toUpperCase()}',
+                          icon: Icons.confirmation_number_outlined,
+                        ),
+                        _buildDivider(),
                         _buildDetailRow(
                           context,
                           'Booking Date',
@@ -441,79 +469,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Facility Owner Section
-                  // _buildSectionHeader(context, 'Facility Owner'),
-                  // CustomContainer(
-                  //   child: Row(
-                  //     children: [
-                  //       Container(
-                  //         width: 56,
-                  //         height: 56,
-                  //         decoration: BoxDecoration(
-                  //           shape: BoxShape.circle,
-                  //           border: Border.all(
-                  //             color: GlobalVariables.lightGrey,
-                  //             width: 1,
-                  //           ),
-                  //         ),
-                  //         child: ClipOval(
-                  //           child: Image.asset(
-                  //             'assets/images/demo_facility.png',
-                  //             fit: BoxFit.cover,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //       const SizedBox(width: 16),
-                  //       Expanded(
-                  //         child: Column(
-                  //           crossAxisAlignment: CrossAxisAlignment.start,
-                  //           children: [
-                  //             Text(
-                  //               'Mai Hoàng Nhật Duy',
-                  //               style: GoogleFonts.inter(
-                  //                 fontSize: 16,
-                  //                 fontWeight: FontWeight.w600,
-                  //                 color: GlobalVariables.blackGrey,
-                  //               ),
-                  //             ),
-                  //             const SizedBox(height: 4),
-                  //             Row(
-                  //               children: [
-                  //                 Icon(
-                  //                   Icons.location_on_outlined,
-                  //                   size: 16,
-                  //                   color: GlobalVariables.darkGrey,
-                  //                 ),
-                  //                 const SizedBox(width: 4),
-                  //                 Text(
-                  //                   'TP Hồ Chí Minh',
-                  //                   style: GoogleFonts.inter(
-                  //                     fontSize: 14,
-                  //                     color: GlobalVariables.darkGrey,
-                  //                   ),
-                  //                 ),
-                  //               ],
-                  //             ),
-                  //           ],
-                  //         ),
-                  //       ),
-                  //       IconButton(
-                  //         icon: Icon(
-                  //           Icons.message_outlined,
-                  //           color: GlobalVariables.green,
-                  //         ),
-                  //         onPressed: () {
-                  //           // Contact owner functionality
-                  //         },
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-
-                  // const SizedBox(height: 16),
 
                   // Booking Info Section
                   _buildSectionHeader(context, 'Booking Information'),
@@ -625,12 +581,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
 
                   // Payment Summary
                   TotalPrice(promotionPrice: 0, subTotalPrice: order!.price),
-
                   const SizedBox(height: 24),
 
                   // Action Buttons
@@ -712,7 +666,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
                 ],
               ),
@@ -726,6 +679,228 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // Add method to determine if rating button should be shown
   bool _shouldShowRatingButton() {
     return order!.rating == null && order!.state == 'Played';
+  }
+
+  Widget _buildPersonInfo({
+    required String name,
+    required String phone,
+    required String email,
+    String? avatar,
+    required String role,
+    bool showContactButton = false,
+  }) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            // Avatar
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: GlobalVariables.lightGrey,
+                  width: 1,
+                ),
+              ),
+              child: ClipOval(
+                child: avatar != null && avatar.isNotEmpty
+                    ? Image.network(
+                        avatar,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => 
+                            _buildDefaultAvatar(role),
+                      )
+                    : _buildDefaultAvatar(role),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // User Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: GlobalVariables.blackGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.phone_outlined,
+                        size: 14,
+                        color: GlobalVariables.darkGrey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        phone,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: GlobalVariables.darkGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.email_outlined,
+                        size: 14,
+                        color: GlobalVariables.darkGrey,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          email,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: GlobalVariables.darkGrey,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Contact Button (only for facility owner when user is player)
+            if (showContactButton)
+              IconButton(
+                icon: Icon(
+                  Icons.message_outlined,
+                  color: GlobalVariables.green,
+                ),
+                onPressed: () {
+                  _showContactOptions(name, phone);
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultAvatar(String role) {
+    return Container(
+      color: GlobalVariables.green.withOpacity(0.1),
+      child: Icon(
+        role == 'Player' ? Icons.person : Icons.business,
+        size: 28,
+        color: GlobalVariables.green,
+      ),
+    );
+  }
+
+  void _showContactOptions(String name, String phone) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: GlobalVariables.lightGrey,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Contact $name',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: GlobalVariables.blackGrey,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: GlobalVariables.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.phone,
+                    color: GlobalVariables.green,
+                  ),
+                ),
+                title: Text(
+                  'Call',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: GlobalVariables.blackGrey,
+                  ),
+                ),
+                subtitle: Text(
+                  phone,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: GlobalVariables.darkGrey,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Implement call functionality
+                  // You can use url_launcher package: launch('tel:$phone')
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: GlobalVariables.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.message,
+                    color: GlobalVariables.green,
+                  ),
+                ),
+                title: Text(
+                  'Message',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: GlobalVariables.blackGrey,
+                  ),
+                ),
+                subtitle: Text(
+                  'Send SMS',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: GlobalVariables.darkGrey,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Implement SMS functionality
+                  // You can use url_launcher package: launch('sms:$phone')
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
