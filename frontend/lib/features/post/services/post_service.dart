@@ -219,100 +219,99 @@ class PostService {
   }
 
   Future<Map<String, dynamic>> fetchPostsByUserId({
-  required BuildContext context,
-  required String publisherId,
-  int pageNumber = 1,
-  int pageSize = 20,
-}) async {
-  final userProvider = Provider.of<UserProvider>(
-    context,
-    listen: false,
-  );
-
-  List<Post> posts = [];
-  int totalPages = 1;
-
-  try {
-    String url =
-        '$uri/gateway/posts?publisherId=$publisherId&pageSize=$pageSize&pageNumber=$pageNumber';
-
-    http.Response response = await http.get(
-      Uri.parse(url),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer ${userProvider.user.token}',
-      },
-    );
-
-    httpErrorHandler(
-      response: response,
-      context: context,
-      onSuccess: () {
-        try {
-          final jsonResponse = jsonDecode(response.body);
-
-          // Get totalPages from response headers (like fetchAllPosts)
-          if (response.headers.containsKey('pagination')) {
-            final paginationHeader = response.headers['pagination'];
-            if (paginationHeader != null) {
-              final paginationMap = jsonDecode(paginationHeader);
-              final rawTotalPages = paginationMap['totalPages'];
-              if (rawTotalPages is int) {
-                totalPages = rawTotalPages;
-              } else if (rawTotalPages is String) {
-                totalPages = int.tryParse(rawTotalPages) ?? 1;
-              }
-            }
-          }
-
-          // Parse posts
-          if (jsonResponse is List) {
-            // If it's a plain list
-            for (var object in jsonResponse) {
-              try {
-                posts.add(Post.fromMap(object));
-              } catch (e) {
-                print('Error parsing individual post: $e');
-                print('Post data: $object');
-              }
-            }
-          } else if (jsonResponse is Map) {
-            // If it's a wrapped response (edge case)
-            final rawPosts = jsonResponse['posts'] ?? [];
-            for (var object in rawPosts) {
-              try {
-                posts.add(Post.fromMap(object));
-              } catch (e) {
-                print('Error parsing individual post: $e');
-                print('Post data: $object');
-              }
-            }
-          }
-        } catch (e) {
-          print('Error parsing response: $e');
-          print('Response body: ${response.body}');
-          IconSnackBar.show(
-            context,
-            label: 'Error parsing posts data: ${e.toString()}',
-            snackBarType: SnackBarType.fail,
-          );
-        }
-      },
-    );
-  } catch (error) {
-    IconSnackBar.show(
+    required BuildContext context,
+    required String publisherId,
+    int pageNumber = 1,
+    int pageSize = 20,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
       context,
-      label: error.toString(),
-      snackBarType: SnackBarType.fail,
+      listen: false,
     );
+
+    List<Post> posts = [];
+    int totalPages = 1;
+
+    try {
+      String url =
+          '$uri/gateway/posts?publisherId=$publisherId&pageSize=$pageSize&pageNumber=$pageNumber';
+
+      http.Response response = await http.get(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ${userProvider.user.token}',
+        },
+      );
+
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          try {
+            final jsonResponse = jsonDecode(response.body);
+
+            // Get totalPages from response headers (like fetchAllPosts)
+            if (response.headers.containsKey('pagination')) {
+              final paginationHeader = response.headers['pagination'];
+              if (paginationHeader != null) {
+                final paginationMap = jsonDecode(paginationHeader);
+                final rawTotalPages = paginationMap['totalPages'];
+                if (rawTotalPages is int) {
+                  totalPages = rawTotalPages;
+                } else if (rawTotalPages is String) {
+                  totalPages = int.tryParse(rawTotalPages) ?? 1;
+                }
+              }
+            }
+
+            // Parse posts
+            if (jsonResponse is List) {
+              // If it's a plain list
+              for (var object in jsonResponse) {
+                try {
+                  posts.add(Post.fromMap(object));
+                } catch (e) {
+                  print('Error parsing individual post: $e');
+                  print('Post data: $object');
+                }
+              }
+            } else if (jsonResponse is Map) {
+              // If it's a wrapped response (edge case)
+              final rawPosts = jsonResponse['posts'] ?? [];
+              for (var object in rawPosts) {
+                try {
+                  posts.add(Post.fromMap(object));
+                } catch (e) {
+                  print('Error parsing individual post: $e');
+                  print('Post data: $object');
+                }
+              }
+            }
+          } catch (e) {
+            print('Error parsing response: $e');
+            print('Response body: ${response.body}');
+            IconSnackBar.show(
+              context,
+              label: 'Error parsing posts data: ${e.toString()}',
+              snackBarType: SnackBarType.fail,
+            );
+          }
+        },
+      );
+    } catch (error) {
+      IconSnackBar.show(
+        context,
+        label: error.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+
+    return {
+      'posts': posts,
+      'totalPages': totalPages,
+    };
   }
-
-  return {
-    'posts': posts,
-    'totalPages': totalPages,
-  };
-}
-
 
   Future<Post?> fetchPostById({
     required BuildContext context,
@@ -675,5 +674,45 @@ class PostService {
       }
     }
     return false;
+  }
+
+  Future<void> reportPost({
+    required BuildContext context,
+    required String postId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      http.Response response = await http.post(
+        Uri.parse('$uri/gateway/posts/report/$postId'),
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 204) {
+        IconSnackBar.show(
+          context,
+          label: 'You have reported successfully',
+          snackBarType: SnackBarType.success,
+        );
+      }
+      if (response.statusCode == 400) {
+        IconSnackBar.show(
+          context,
+          label: 'You have reported this post before',
+          snackBarType: SnackBarType.alert,
+        );
+      }
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: e.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
   }
 }
