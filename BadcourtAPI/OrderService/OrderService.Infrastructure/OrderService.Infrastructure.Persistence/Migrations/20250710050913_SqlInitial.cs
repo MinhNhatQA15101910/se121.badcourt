@@ -38,6 +38,8 @@ public partial class SqlInitial : Migration
                 Username = table.Column<string>(type: "text", nullable: false),
                 UserImageUrl = table.Column<string>(type: "text", nullable: true),
                 FacilityOwnerId = table.Column<string>(type: "text", nullable: false),
+                FacilityOwnerUsername = table.Column<string>(type: "text", nullable: false),
+                FacilityOwnerImageUrl = table.Column<string>(type: "text", nullable: false),
                 FacilityId = table.Column<string>(type: "text", nullable: false),
                 FacilityName = table.Column<string>(type: "text", nullable: false),
                 CourtId = table.Column<string>(type: "text", nullable: false),

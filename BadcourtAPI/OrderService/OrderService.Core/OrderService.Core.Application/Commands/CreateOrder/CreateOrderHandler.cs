@@ -120,6 +120,8 @@ public class CreateOrderHandler(
         var userId = httpContextAccessor.HttpContext.User.GetUserId();
         var user = await userApiRepository.GetUserByIdAsync(userId.ToString(), cancellationToken)
             ?? throw new UserNotFoundException(userId);
+        var facilityOwner = await userApiRepository.GetUserByIdAsync(facility.UserId.ToString(), cancellationToken)
+            ?? throw new UserNotFoundException(facility.UserId);
 
         var facilityMainPhoto = facility.Photos.FirstOrDefault(p => p.IsMain);
         var draftOrder = new Order
@@ -128,6 +130,8 @@ public class CreateOrderHandler(
             Username = user.Username,
             UserImageUrl = user.Photos.FirstOrDefault(p => p.IsMain)?.Url,
             FacilityOwnerId = facility.UserId.ToString(),
+            FacilityOwnerUsername = facilityOwner.Username,
+            FacilityOwnerImageUrl = facilityOwner.PhotoUrl,
             FacilityId = court.FacilityId,
             CourtId = request.CreateOrderDto.CourtId,
             CourtName = court.CourtName,

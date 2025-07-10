@@ -6,6 +6,9 @@ public class OrderDto
     public Guid UserId { get; set; }
     public string Username { get; set; } = string.Empty;
     public string UserImageUrl { get; set; } = string.Empty;
+    public string FacilityOwnerId { get; set; } = string.Empty;
+    public string FacilityOwnerUsername { get; set; } = string.Empty;
+    public string? FacilityOwnerImageUrl { get; set; }
     public string FacilityName { get; set; } = string.Empty;
     public string CourtName { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
