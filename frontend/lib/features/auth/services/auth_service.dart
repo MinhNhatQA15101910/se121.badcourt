@@ -180,7 +180,7 @@ class AuthService {
         body: jsonEncode({
           'email': email,
           'password': password,
-          if (!authProvider.isPlayer) 'role': 'manager',
+          if (!authProvider.isPlayer) 'role': 'Manager',
         }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -196,7 +196,7 @@ class AuthService {
           final token = jsonDecode(response.body)['token'];
 
           // Save token and mark as logged in
-          await prefs.setString('x-auth-token', token);
+          await prefs.setString('Authorization', token);
           await prefs.setBool('is-logged-in', true);
           await prefs.setBool('remember-login', true);
 
@@ -299,7 +299,7 @@ class AuthService {
           final token = jsonDecode(response.body)['token'];
 
           // Save token and mark as logged in
-          await prefs.setString('x-auth-token', token);
+          await prefs.setString('Authorization', token);
           await prefs.setBool('is-logged-in', true);
           await prefs.setBool('remember-login', true);
 
@@ -368,7 +368,6 @@ class AuthService {
         body: jsonEncode(
           {
             'email': email,
-            'role': authProvider.isPlayer ? 'player' : 'manager',
           },
         ),
         headers: <String, String>{
@@ -570,84 +569,79 @@ class AuthService {
 
   // Enhanced getUserData with proper state management
   Future<void> getUserData(BuildContext context) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('x-auth-token');
-      bool? rememberLogin = prefs.getBool('remember-login');
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('Authorization');
+    bool? rememberLogin = prefs.getBool('remember-login');
 
-      print('Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
-      print('Remember login: ${rememberLogin ?? false}');
+    print('Checking stored token: ${token != null ? 'Token exists' : 'No token'}');
+    print('Remember login: ${rememberLogin ?? false}');
 
-      if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
-        await prefs.setString('x-auth-token', '');
-        await prefs.setBool('is-logged-in', false);
-        
-        // Reset auth state when no valid session
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        authProvider.resetAuthState();
-        
-        return;
-      }
+    if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
+      await prefs.setString('Authorization', '');
+      await prefs.setBool('is-logged-in', false);
 
-      var tokenRes = await http.post(
-        Uri.parse('$uri/gateway/token-is-valid'),
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.resetAuthState();
+      return;
+    }
+
+    final tokenRes = await http.post(
+      Uri.parse('$uri/gateway/token-is-valid'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': token,
+      },
+    );
+
+    print('Token validation status code: ${tokenRes.statusCode}');
+      var isValidToken = jsonDecode(tokenRes.body);
+    if (tokenRes.statusCode == 200 && isValidToken) {
+      final userRes = await http.get(
+        Uri.parse('$uri/gateway/users/me'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': token,
+          'Authorization': token,
         },
       );
 
-      var isValidToken = jsonDecode(tokenRes.body);
-      print('Token validation result: $isValidToken');
+      Provider.of<UserProvider>(context, listen: false).setUser(userRes.body);
+      print('User data loaded successfully');
 
-      if (isValidToken) {
-        http.Response userRes = await http.get(
-          Uri.parse('$uri/user'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-            'x-auth-token': token,
-          },
-        );
-
-        Provider.of<UserProvider>(context, listen: false).setUser(userRes.body);
-        print('User data loaded successfully');
-
-        // Auto-connect to all SignalR services
-        try {
-          String cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
-          await _signalRManager.startAllConnections(cleanToken);
-          print('All SignalR services auto-connected for existing user session');
-        } catch (signalRError) {
-          print('Error auto-connecting to SignalR services: $signalRError');
-        }
-      } else {
-        // Token invalid, clear stored data and reset state
-        await clearLoginData();
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        authProvider.resetAuthState();
+      try {
+        String cleanToken = token.startsWith('Bearer ') ? token.substring(7) : token;
+        await _signalRManager.startAllConnections(cleanToken);
+        print('All SignalR services auto-connected for existing user session');
+      } catch (signalRError) {
+        print('Error auto-connecting to SignalR services: $signalRError');
       }
-    } catch (error) {
-      print('Error in getUserData: $error');
+    } else {
       await clearLoginData();
-      
-      // Reset auth state on error
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.resetAuthState();
-      
-      IconSnackBar.show(
-        context,
-        maxLines: 2,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
     }
+  } catch (error) {
+    print('Error in getUserData: $error');
+    await clearLoginData();
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.resetAuthState();
+
+    IconSnackBar.show(
+      context,
+      maxLines: 2,
+      label: error.toString(),
+      snackBarType: SnackBarType.fail,
+    );
   }
+}
+
 
   // Enhanced refresh token method
   Future<bool> refreshTokenIfNeeded() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('x-auth-token');
+      String? token = prefs.getString('Authorization');
       bool? rememberLogin = prefs.getBool('remember-login');
 
       if (token == null || token.isEmpty || !(rememberLogin ?? false)) {
@@ -659,7 +653,7 @@ class AuthService {
         Uri.parse('$uri/gateway/token-is-valid'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'x-auth-token': token,
+          'Authorization': token,
         },
       );
 
@@ -680,7 +674,7 @@ class AuthService {
   Future<void> clearLoginData() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('x-auth-token');
+      await prefs.remove('Authorization');
       await prefs.remove('Authorization');
       await prefs.setBool('is-logged-in', false);
       await prefs.setBool('remember-login', false);
@@ -700,7 +694,7 @@ class AuthService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       bool? isLoggedIn = prefs.getBool('is-logged-in');
       bool? rememberLogin = prefs.getBool('remember-login');
-      String? token = prefs.getString('x-auth-token');
+      String? token = prefs.getString('Authorization');
 
       return (isLoggedIn ?? false) &&
           (rememberLogin ?? false) &&

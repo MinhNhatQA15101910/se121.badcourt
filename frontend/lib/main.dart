@@ -184,7 +184,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       
-      String? savedToken = prefs.getString('x-auth-token');
+      String? savedToken = prefs.getString('Authorization');
       bool? rememberLogin = prefs.getBool('remember-login');
       bool? isLoggedIn = prefs.getBool('is-logged-in');
       
@@ -294,7 +294,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
   Future<void> _clearLoginData() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('x-auth-token');
+      await prefs.remove('Authorization');
       await prefs.remove('Authorization');
       await prefs.setBool('is-logged-in', false);
       await prefs.setBool('remember-login', false);
