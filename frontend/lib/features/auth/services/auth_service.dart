@@ -587,10 +587,10 @@ class AuthService {
     }
 
     final tokenRes = await http.post(
-      Uri.parse('$uri/gateway/token-is-valid'),
+      Uri.parse('$uri/gateway/auth/token-is-valid'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': token,
+        'Authorization': 'Bearer $token',
       },
     );
 
@@ -601,7 +601,7 @@ class AuthService {
         Uri.parse('$uri/gateway/users/me'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': token,
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -650,10 +650,10 @@ class AuthService {
 
       // Check token validity
       var tokenRes = await http.post(
-        Uri.parse('$uri/gateway/token-is-valid'),
+        Uri.parse('$uri/gateway/auth/token-is-valid'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': token,
+          'Authorization': 'Bearer $token',
         },
       );
 

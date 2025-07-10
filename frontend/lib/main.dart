@@ -499,7 +499,7 @@ class _MyAppContentState extends State<MyAppContent> with WidgetsBindingObserver
         
         if (isUserLoggedIn) {
           // Phân biệt role để chuyển đến màn hình phù hợp
-          if (userProvider.user.role == 'manager') {
+          if (userProvider.user.role == 'Manager') {
             return const IntroManagerScreen();
           } else {
             return const PlayerBottomBar();
