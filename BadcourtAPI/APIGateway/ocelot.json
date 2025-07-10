@@ -341,6 +341,13 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
+      "DownstreamPathTemplate": "/api/posts{postId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts{postId}",
+      "UpstreamHttpMethod": ["Delete"]
+    },
+    {
       "DownstreamPathTemplate": "/api/posts/toggle-like/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],

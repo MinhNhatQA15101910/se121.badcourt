@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PostService.Application.Commands.CreatePost;
+using PostService.Application.Commands.DeletePost;
 using PostService.Application.Commands.ToggleLikePost;
 using PostService.Application.Queries.GetPostById;
 using PostService.Application.Queries.GetPosts;
@@ -47,5 +48,14 @@ public class PostsController(IMediator mediator) : ControllerBase
     {
         await mediator.Send(new ToggleLikePostCommand(id));
         return NoContent();
+    }
+
+    [HttpDelete("{postId}")]
+    [Authorize]
+    public async Task<IActionResult> DeletePost(string postId)
+    {
+        var command = new DeletePostCommand(postId);
+        await mediator.Send(command);
+        return Ok();
     }
 }

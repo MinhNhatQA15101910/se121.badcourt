@@ -34,6 +34,14 @@ public class PostRepository : IPostRepository
         await _posts.InsertOneAsync(post, cancellationToken: cancellationToken);
     }
 
+    public Task DeletePostAsync(Post post, CancellationToken cancellationToken = default)
+    {
+        return _posts.DeleteOneAsync(
+            p => p.Id == post.Id,
+            cancellationToken: cancellationToken
+        );
+    }
+
     public Task<List<Post>> GetAllPostsAsync(PostParams postParams, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Post>.Filter.Empty;

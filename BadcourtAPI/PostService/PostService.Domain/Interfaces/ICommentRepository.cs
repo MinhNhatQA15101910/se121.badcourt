@@ -8,6 +8,7 @@ namespace PostService.Domain.Interfaces;
 public interface ICommentRepository
 {
     Task CreateCommentAsync(Comment comment, CancellationToken cancellationToken = default);
+    Task DeleteCommentsByPostIdAsync(string postId, CancellationToken cancellationToken);
     Task<List<Comment>> GetAllCommentsAsync(CommentParams commentParams, CancellationToken cancellationToken = default);
     Task<Comment?> GetCommentByIdAsync(string commentId, CancellationToken cancellationToken);
     Task<PagedList<CommentDto>> GetCommentsAsync(CommentParams commentParams, string? currentUserId, CancellationToken cancellationToken = default);
