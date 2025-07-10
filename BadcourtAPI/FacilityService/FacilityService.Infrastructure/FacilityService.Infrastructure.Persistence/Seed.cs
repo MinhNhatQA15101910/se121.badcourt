@@ -12,8 +12,14 @@ public class Seed
     {
         if (await facilityRepository.AnyAsync()) return;
 
+        // Docker
+        // var facilityData = await File.ReadAllTextAsync(
+        //     "Data/FacilitySeedData.json"
+        // );
+
+        // Development
         var facilityData = await File.ReadAllTextAsync(
-            "Data/FacilitySeedData.json"
+            "../FacilityService.Infrastructure/FacilityService.Infrastructure.Persistence/Data/FacilitySeedData.json"
         );
 
         var options = new JsonSerializerOptions
