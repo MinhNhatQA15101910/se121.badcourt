@@ -136,6 +136,11 @@ public class PostRepository : IPostRepository
                 {
                     postDtos[i].IsLiked = true;
                 }
+
+                if (posts[i].ReportUsers.Contains(currentUserId))
+                {
+                    postDtos[i].IsReported = true;
+                }
             }
         }
 

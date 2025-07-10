@@ -355,6 +355,13 @@
       "UpstreamHttpMethod": ["Post"]
     },
     {
+      "DownstreamPathTemplate": "/api/posts/report/{postId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/report/{postId}",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
       "DownstreamPathTemplate": "/api/comments",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],
