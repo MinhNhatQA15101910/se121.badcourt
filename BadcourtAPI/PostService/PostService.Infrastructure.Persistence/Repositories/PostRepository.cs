@@ -81,6 +81,9 @@ public class PostRepository : IPostRepository
             case "category":
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("Category", postParams.SortBy == "asc" ? 1 : -1)));
                 break;
+            case "reportsCount":
+                pipeline.Add(new BsonDocument("$sort", new BsonDocument("ReportsCount", postParams.SortBy == "asc" ? 1 : -1)));
+                break;
             case "createdAt":
             default:
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("CreatedAt", postParams.SortBy == "asc" ? 1 : -1)));

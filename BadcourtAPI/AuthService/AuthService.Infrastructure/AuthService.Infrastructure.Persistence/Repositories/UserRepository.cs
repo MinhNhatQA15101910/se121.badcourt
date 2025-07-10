@@ -73,10 +73,11 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         // Remove current user
         query = query.Where(u => u.Id != userId);
 
-        // Filter by email
-        if (userParams.Email != null)
+        // Filter by username
+        if (userParams.Search != null)
         {
-            query = query.Where(u => u.NormalizedEmail!.Contains(userParams.Email.ToUpper()));
+            query = query.Where(u => u.UserName!.ToLower().Contains(userParams.Search.ToLower())
+                        || u.NormalizedEmail!.Contains(userParams.Search.ToUpper()));
         }
 
         // Filter by role
