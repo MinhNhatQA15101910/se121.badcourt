@@ -167,7 +167,24 @@ public class CreateOrderHandler(
 
     private static bool IsTimePeriodInside(TimePeriodDto inner, TimePeriodDto outer)
     {
-        return inner.HourFrom >= outer.HourFrom && inner.HourTo <= outer.HourTo;
+        bool crossesMidnight = outer.HourFrom > outer.HourTo;
+
+        static int ToShiftedMinutes(TimeOnly time, TimeOnly reference, bool crossesMidnight)
+        {
+            int minutes = time.Hour * 60 + time.Minute;
+            int referenceMinutes = reference.Hour * 60 + reference.Minute;
+            return crossesMidnight && minutes < referenceMinutes
+                ? minutes + 24 * 60
+                : minutes;
+        }
+
+        var outerFromMinutes = ToShiftedMinutes(outer.HourFrom, outer.HourFrom, false);
+        var outerToMinutes = ToShiftedMinutes(outer.HourTo, outer.HourFrom, crossesMidnight);
+
+        var innerFromMinutes = ToShiftedMinutes(inner.HourFrom, outer.HourFrom, crossesMidnight);
+        var innerToMinutes = ToShiftedMinutes(inner.HourTo, outer.HourFrom, crossesMidnight);
+
+        return innerFromMinutes >= outerFromMinutes && innerToMinutes <= outerToMinutes;
     }
 
     private static bool IsTimePeriodOverlapping(DateTimePeriodDto period1, DateTimePeriodDto period2)
