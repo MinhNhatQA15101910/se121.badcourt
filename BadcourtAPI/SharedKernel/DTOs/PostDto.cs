@@ -14,5 +14,7 @@ public class PostDto
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
     public bool IsLiked { get; set; }
+    public int ReportsCount { get; set; }
+    public bool IsReported { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

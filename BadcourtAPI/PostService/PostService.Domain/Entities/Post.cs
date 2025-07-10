@@ -26,6 +26,8 @@ public class Post
     public IEnumerable<string> LikedUsers { get; set; } = [];
     public int CommentsCount { get; set; }
     public IEnumerable<string> CommentedUsers { get; set; } = [];
+    public int ReportsCount { get; set; }
+    public List<string> ReportUsers { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

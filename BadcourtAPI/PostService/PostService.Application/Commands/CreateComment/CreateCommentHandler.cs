@@ -6,7 +6,7 @@ using MongoDB.Bson;
 using PostService.Application.ApiRepositories;
 using PostService.Application.Extensions;
 using PostService.Application.Interfaces;
-using PostService.Application.Notifications;
+using PostService.Application.Notifications.CommentCreated;
 using PostService.Domain.Entities;
 using PostService.Domain.Enums;
 using PostService.Domain.Interfaces;

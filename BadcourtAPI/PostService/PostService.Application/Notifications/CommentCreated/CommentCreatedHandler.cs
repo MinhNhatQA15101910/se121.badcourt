@@ -2,7 +2,7 @@ using MediatR;
 using PostService.Domain.Interfaces;
 using SharedKernel.Exceptions;
 
-namespace PostService.Application.Notifications;
+namespace PostService.Application.Notifications.CommentCreated;
 
 public class CommentCreatedHandler(IPostRepository postRepository) : INotificationHandler<CommentCreatedNotification>
 {

@@ -341,10 +341,24 @@
       "UpstreamHttpMethod": ["Get"]
     },
     {
+      "DownstreamPathTemplate": "/api/posts{postId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts{postId}",
+      "UpstreamHttpMethod": ["Delete"]
+    },
+    {
       "DownstreamPathTemplate": "/api/posts/toggle-like/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],
       "UpstreamPathTemplate": "/gateway/posts/toggle-like/{id}",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/posts/report/{postId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "post-service", "Port": 6000 }],
+      "UpstreamPathTemplate": "/gateway/posts/report/{postId}",
       "UpstreamHttpMethod": ["Post"]
     },
     {
