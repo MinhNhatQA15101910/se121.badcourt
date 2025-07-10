@@ -133,6 +133,7 @@ class AuthOptionsScreen extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

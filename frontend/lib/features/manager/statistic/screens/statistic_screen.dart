@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class StatisticScreen extends StatefulWidget {
   static const String routeName = '/statistic';
-  
+
   const StatisticScreen({Key? key}) : super(key: key);
 
   @override
@@ -53,9 +53,9 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ),
             const SizedBox(height: 16),
             const DashboardSummaryWidget(),
-            
+
             const SizedBox(height: 32),
-            
+
             // 2. Revenue Chart
             Text(
               'Revenue Analytics',
@@ -67,9 +67,9 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ),
             const SizedBox(height: 16),
             const RevenueChartWidget(),
-            
+
             const SizedBox(height: 32),
-            
+
             // 3. Court Revenue Chart (NEW)
             Text(
               'Court Performance',
@@ -81,9 +81,9 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ),
             const SizedBox(height: 16),
             const CourtRevenueWidget(),
-            
+
             const SizedBox(height: 32),
-            
+
             // 4. Orders Table
             Text(
               'Orders Management',
@@ -95,7 +95,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
             ),
             const SizedBox(height: 16),
             const OrdersTableWidget(),
-            
+
             const SizedBox(height: 20),
           ],
         ),

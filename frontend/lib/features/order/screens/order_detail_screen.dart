@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/widgets/custom_container.dart';
 import 'package:frontend/constants/global_variables.dart';
+import 'package:frontend/features/message/screens/message_detail_screen.dart';
 import 'package:frontend/features/order/widgets/total_price.dart';
 import 'package:frontend/features/order/services/order_service.dart';
 import 'package:frontend/features/player/rating/screens/rating_detail_screen.dart';
@@ -54,7 +55,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         // Refresh the order details to get updated state
         await _fetchOrderDetails(orderId);
       }
-    } catch (e) {} finally {
+    } catch (e) {
+    } finally {
       if (mounted) {
         setState(() {
           isCancelling = false;
@@ -83,6 +85,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         arguments: order!.rating!.id,
       );
     }
+  }
+
+  void _navigateToDetailMessageScreen(BuildContext context, String userId) {
+    Navigator.of(context).pushNamed(
+      MessageDetailScreen.routeName,
+      arguments: userId,
+    );
   }
 
   Future<bool?> _showCancelConfirmationDialog() {
@@ -161,7 +170,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    
+
     if (isLoading) {
       return Scaffold(
         backgroundColor: GlobalVariables.defaultColor,
@@ -357,11 +366,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   _buildSectionHeader(context, 'Booking Person'),
                   CustomContainer(
                     child: _buildPersonInfo(
-                      name: order!.playerName ?? 'Unknown Player',
-                      phone: order!.playerPhone ?? 'N/A',
-                      email: order!.playerEmail ?? 'N/A',
-                      avatar: order!.playerAvatar,
+                      name: order!.username.isNotEmpty
+                          ? order!.username
+                          : 'Unknown Player',
+                      imageUrl: order!.userImageUrl,
                       role: 'Player',
+                      userId: order!.userId,
+                      showContactButton: userProvider.user.role == 'Manager',
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -370,11 +381,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   _buildSectionHeader(context, 'Facility Owner'),
                   CustomContainer(
                     child: _buildPersonInfo(
-                      name: order!.ownerName ?? 'Unknown Owner',
-                      phone: order!.ownerPhone ?? 'N/A',
-                      email: order!.ownerEmail ?? 'N/A',
-                      avatar: order!.ownerAvatar,
+                      name: order!.facilityOwnerUsername.isNotEmpty
+                          ? order!.facilityOwnerUsername
+                          : 'Unknown Owner',
+                      imageUrl: order!.facilityOwnerImageUrl,
                       role: 'Owner',
+                      userId: order!.facilityOwnerId,
                       showContactButton: userProvider.user.role == 'Player',
                     ),
                   ),
@@ -402,22 +414,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         _buildDetailRow(
                           context,
                           'Status',
-                          order!.state,
-                          valueColor: order!.state == 'Played'
-                              ? GlobalVariables.darkGreen
-                              : order!.state == 'Cancelled'
-                                  ? GlobalVariables.red
-                                  : GlobalVariables.darkYellow,
-                          icon: order!.state == 'Played'
-                              ? Icons.check_circle_outline
-                              : order!.state == 'Cancelled'
-                                  ? Icons.cancel
-                                  : Icons.schedule,
-                          iconColor: order!.state == 'Played'
-                              ? GlobalVariables.darkGreen
-                              : order!.state == 'Cancelled'
-                                  ? GlobalVariables.darkRed
-                                  : GlobalVariables.darkYellow,
+                          _getStatusDisplayText(order!.state),
+                          valueColor: _getStatusColor(order!.state),
+                          icon: _getStatusIcon(order!.state),
+                          iconColor: _getStatusColor(order!.state),
                         ),
                         // Show rating if it exists
                         if (order!.rating != null) ...[
@@ -515,7 +515,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Court 1',
+                                    order!.courtName.isNotEmpty
+                                        ? order!.courtName
+                                        : 'Court 1',
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -588,84 +590,88 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   const SizedBox(height: 24),
 
                   // Action Buttons
-                  if(userProvider.user.role == 'Player')
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _shouldShowRatingButton()
-                                ? _navigateToRatingScreen
-                                : order!.rating != null
-                                    ? _navigateToRatingDetailScreen
-                                    : null,
-                            icon: Icon(_shouldShowRatingButton()
-                                ? Icons.star_outline
-                                : Icons.visibility_outlined),
-                            label: Text(_shouldShowRatingButton()
-                                ? 'Rate Experience'
-                                : 'View Rating'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: GlobalVariables.green,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: GlobalVariables.green),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: (order!.state != 'NotPlay' ||
-                                    isCancelling)
-                                ? null
-                                : () => cancelOrder(order!.id),
-                            icon: isCancelling
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.cancel_outlined,
-                                    color: Colors.red,
-                                  ),
-                            label: Text(isCancelling
-                                ? 'Cancelling...'
-                                : 'Cancel Booking'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  (order!.state != 'NotPlay' || isCancelling)
-                                      ? Colors.grey.shade300
-                                      : Colors.white,
-                              foregroundColor:
-                                  (order!.state != 'NotPlay' || isCancelling)
-                                      ? Colors.grey.shade600
-                                      : Colors.red,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: (order!.state != 'NotPlay' ||
-                                          isCancelling)
-                                      ? Colors.grey.shade300
-                                      : Colors.red,
+                  if (userProvider.user.role == 'Player')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _shouldShowRatingButton()
+                                  ? _navigateToRatingScreen
+                                  : order!.rating != null
+                                      ? _navigateToRatingDetailScreen
+                                      : null,
+                              icon: Icon(_shouldShowRatingButton()
+                                  ? Icons.star_outline
+                                  : Icons.visibility_outlined),
+                              label: Text(_shouldShowRatingButton()
+                                  ? 'Rate Experience'
+                                  : 'View Rating'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: GlobalVariables.green,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side:
+                                      BorderSide(color: GlobalVariables.green),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed:
+                                  (order!.state != 'NotPlay' || isCancelling)
+                                      ? null
+                                      : () => cancelOrder(order!.id),
+                              icon: isCancelling
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.red),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.cancel_outlined,
+                                      color: Colors.red,
+                                    ),
+                              label: Text(isCancelling
+                                  ? 'Cancelling...'
+                                  : 'Cancel Booking'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    (order!.state != 'NotPlay' || isCancelling)
+                                        ? Colors.grey.shade300
+                                        : Colors.white,
+                                foregroundColor:
+                                    (order!.state != 'NotPlay' || isCancelling)
+                                        ? Colors.grey.shade600
+                                        : Colors.red,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                    color: (order!.state != 'NotPlay' ||
+                                            isCancelling)
+                                        ? Colors.grey.shade300
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -681,12 +687,51 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return order!.rating == null && order!.state == 'Played';
   }
 
+  // Helper methods for status display
+  String _getStatusDisplayText(String state) {
+    switch (state) {
+      case 'NotPlay':
+        return 'Pending';
+      case 'Played':
+        return 'Completed';
+      case 'Cancelled':
+        return 'Cancelled';
+      default:
+        return state;
+    }
+  }
+
+  Color _getStatusColor(String state) {
+    switch (state) {
+      case 'Played':
+        return GlobalVariables.darkGreen;
+      case 'Cancelled':
+        return GlobalVariables.red;
+      case 'NotPlay':
+        return GlobalVariables.darkYellow;
+      default:
+        return GlobalVariables.blackGrey;
+    }
+  }
+
+  IconData _getStatusIcon(String state) {
+    switch (state) {
+      case 'Played':
+        return Icons.check_circle_outline;
+      case 'Cancelled':
+        return Icons.cancel;
+      case 'NotPlay':
+        return Icons.schedule;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
   Widget _buildPersonInfo({
     required String name,
-    required String phone,
-    required String email,
-    String? avatar,
+    required String imageUrl,
     required String role,
+    required String userId,
     bool showContactButton = false,
   }) {
     return Column(
@@ -705,11 +750,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
               child: ClipOval(
-                child: avatar != null && avatar.isNotEmpty
+                child: imageUrl.isNotEmpty
                     ? Image.network(
-                        avatar,
+                        imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => 
+                        errorBuilder: (context, error, stackTrace) =>
                             _buildDefaultAvatar(role),
                       )
                     : _buildDefaultAvatar(role),
@@ -733,13 +778,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   Row(
                     children: [
                       Icon(
-                        Icons.phone_outlined,
+                        Icons.person_outline,
                         size: 14,
                         color: GlobalVariables.darkGrey,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        phone,
+                        role,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           color: GlobalVariables.darkGrey,
@@ -747,31 +792,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.email_outlined,
-                        size: 14,
-                        color: GlobalVariables.darkGrey,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          email,
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: GlobalVariables.darkGrey,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
-            // Contact Button (only for facility owner when user is player)
             if (showContactButton)
               IconButton(
                 icon: Icon(
@@ -779,7 +802,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   color: GlobalVariables.green,
                 ),
                 onPressed: () {
-                  _showContactOptions(name, phone);
+                  _navigateToDetailMessageScreen(context, userId);
                 },
               ),
           ],
@@ -796,110 +819,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         size: 28,
         color: GlobalVariables.green,
       ),
-    );
-  }
-
-  void _showContactOptions(String name, String phone) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: GlobalVariables.lightGrey,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Contact $name',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: GlobalVariables.blackGrey,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: GlobalVariables.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.phone,
-                    color: GlobalVariables.green,
-                  ),
-                ),
-                title: Text(
-                  'Call',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: GlobalVariables.blackGrey,
-                  ),
-                ),
-                subtitle: Text(
-                  phone,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: GlobalVariables.darkGrey,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement call functionality
-                  // You can use url_launcher package: launch('tel:$phone')
-                },
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: GlobalVariables.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.message,
-                    color: GlobalVariables.green,
-                  ),
-                ),
-                title: Text(
-                  'Message',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: GlobalVariables.blackGrey,
-                  ),
-                ),
-                subtitle: Text(
-                  'Send SMS',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: GlobalVariables.darkGrey,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement SMS functionality
-                  // You can use url_launcher package: launch('sms:$phone')
-                },
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -981,29 +900,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            state == "Played"
-                ? Icons.check_circle_outline
-                : state == "Cancelled"
-                    ? Icons.cancel
-                    : Icons.schedule,
+            _getStatusIcon(state),
             size: 14,
-            color: state == "Played"
-                ? GlobalVariables.darkGreen
-                : state == "Cancelled"
-                    ? GlobalVariables.darkRed
-                    : GlobalVariables.darkYellow,
+            color: _getStatusColor(state),
           ),
           const SizedBox(width: 4),
           Text(
-            state,
+            _getStatusDisplayText(state),
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: state == "Played"
-                  ? GlobalVariables.darkGreen
-                  : state == "Cancelled"
-                      ? GlobalVariables.darkRed
-                      : GlobalVariables.darkYellow,
+              color: _getStatusColor(state),
             ),
           ),
         ],
