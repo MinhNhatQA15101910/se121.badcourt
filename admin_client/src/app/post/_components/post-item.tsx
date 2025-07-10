@@ -6,9 +6,8 @@ import { UserAvatar } from "./user-avatar"
 import { Button } from "@/components/ui/button"
 import type { Post, User, Comment } from "@/lib/types"
 import CommentList from "./comment-list"
-import CommentInput from "./comment-input"
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Globe } from "lucide-react"
 import Image from "next/image"
+import { MoreHorizontal, Globe, ThumbsUp } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -17,26 +16,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
 import { commentService } from "@/services/commentService"
 import ImageViewer from "./image-viewer2"
 
 interface PostItemProps {
   post: Post
-  onLike: (postId: string) => void
-  onAddComment: (postId: string, content: string) => Promise<Comment>
-  onLikeComment: (commentId: string) => void
   currentUser: Partial<User>
 }
 
-export default function PostItem({ post, onLike, onAddComment, onLikeComment, currentUser }: PostItemProps) {
+export default function PostItem({ post, currentUser }: PostItemProps) {
   const [showAllComments, setShowAllComments] = useState(false)
-  const [isCommentInputFocused, setIsCommentInputFocused] = useState(false)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [loadingComments, setLoadingComments] = useState(false)
-  const commentInputRef = useRef<HTMLInputElement>(null)
   const hasFetchedRef = useRef(false)
 
   // Fetch comments when component mounts
@@ -63,69 +56,8 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
   const visibleComments = showAllComments ? comments : comments.slice(Math.max(0, comments.length - 3))
   const hiddenCommentsCount = comments.length - visibleComments.length
 
-  const handleLike = () => {
-    onLike(post.id)
-  }
-
-  const handleAddComment = async (content: string, resources?: File[]): Promise<void> => {
-    try {
-      let newComment: Comment
-
-      // If there are no resources, use the original onAddComment function
-      if (!resources || resources.length === 0) {
-        newComment = await onAddComment(post.id, content)
-      } else {
-        // If there are resources, use the commentService directly
-        const commentData = {
-          postId: post.id,
-          content,
-          resources: resources,
-        }
-        newComment = await commentService.createComment(commentData)
-      }
-
-      // Add the new comment to the list
-      setComments((prevComments) => [...prevComments, newComment])
-
-      // If we're only showing the last 3 comments, make sure to show all comments
-      // when a new one is added so the user can see their comment
-      if (!showAllComments && comments.length >= 3) {
-        setShowAllComments(true)
-      }
-    } catch (err) {
-      console.error("Failed to add comment:", err)
-      throw err
-    }
-  }
-
   const handleShowComments = () => {
     setShowAllComments(true)
-  }
-
-  const handleFocusCommentInput = () => {
-    setIsCommentInputFocused(true)
-    if (commentInputRef.current) {
-      commentInputRef.current.focus()
-    }
-  }
-
-  const handleLikeComment = (commentId: string) => {
-    onLikeComment(commentId)
-
-    // Update UI optimistically
-    setComments(
-      comments.map((comment) => {
-        if (comment.id === commentId) {
-          const newIsLiked = !comment.isLiked
-          return {
-            ...comment,
-            likesCount: newIsLiked ? comment.likesCount + 1 : comment.likesCount - 1,
-            isLiked: newIsLiked,
-          }
-        }
-        return comment
-      }),
-    )
   }
 
   // Map resources to mediaUrls for compatibility with the UI
@@ -237,14 +169,6 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
 
         <p className="text-[#0b0f19] mb-4 whitespace-pre-line">{post.content}</p>
 
-        {post.category && (
-          <div className="mb-3">
-            <Badge variant="outline" className="bg-[#f0f2f5] text-[#565973] hover:bg-[#e4e6eb] border-none">
-              #{post.category}
-            </Badge>
-          </div>
-        )}
-
         {mediaUrls.length > 0 && (
           <div
             className="relative mb-4 rounded-xl overflow-hidden bg-[#f0f2f5] cursor-pointer"
@@ -333,27 +257,6 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
         </div>
       </div>
 
-      <div className="border-t border-b border-[#e4e6eb] py-1 px-2">
-        <div className="flex items-center justify-around">
-          <Button
-            variant="ghost"
-            className={`flex-1 rounded-md gap-2 ${post.isLiked ? "text-[#23c16b]" : "text-[#565973]"}`}
-            onClick={handleLike}
-          >
-            <ThumbsUp className={`h-5 w-5 ${post.isLiked ? "fill-[#23c16b] text-[#23c16b]" : ""}`} />
-            Like
-          </Button>
-          <Button variant="ghost" className="flex-1 rounded-md gap-2 text-[#565973]" onClick={handleFocusCommentInput}>
-            <MessageCircle className="h-5 w-5" />
-            Comment
-          </Button>
-          <Button variant="ghost" className="flex-1 rounded-md gap-2 text-[#565973]">
-            <Share2 className="h-5 w-5" />
-            Share
-          </Button>
-        </div>
-      </div>
-
       {loadingComments && (
         <div className="p-4">
           <div className="animate-pulse space-y-3">
@@ -383,21 +286,9 @@ export default function PostItem({ post, onLike, onAddComment, onLikeComment, cu
                 </button>
               )}
 
-              <CommentList comments={visibleComments} postId={post.id} onLikeComment={handleLikeComment} />
+              <CommentList comments={visibleComments} postId={post.id} />
             </>
           ) : null}
-        </div>
-      )}
-
-      {currentUser && (
-        <div className="border-t border-[#e4e6eb] p-4 flex items-center gap-3">
-          <UserAvatar user={currentUser} size="sm" />
-          <CommentInput
-            onAddComment={handleAddComment}
-            isFocused={isCommentInputFocused}
-            onFocusChange={setIsCommentInputFocused}
-            inputRef={commentInputRef}
-          />
         </div>
       )}
 

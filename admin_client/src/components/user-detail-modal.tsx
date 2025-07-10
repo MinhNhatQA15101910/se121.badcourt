@@ -216,18 +216,24 @@ export function UserDetailModal({ userId, open, onOpenChange, onUserUpdate }: Us
             {/* Actions */}
             <div className="flex justify-end space-x-3 pt-4">
               <Button
-                variant="outline"
-                onClick={handleChatWithUser}
-                disabled={chatLoading}
-                className="flex items-center space-x-2 bg-[#D7FAE0] hover:bg-[#D7FAE0]/80 border-[#23C16B] text-[#23C16B] font-medium"
-              >
-                {chatLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#23C16B]"></div>
-                ) : (
-                  <MessageCircle className="h-4 w-4" />
-                )}
-                <span>{chatLoading ? "Opening Chat..." : "Chat with User"}</span>
-              </Button>
+              variant="outline"
+              onClick={handleChatWithUser}
+              disabled={chatLoading || user.state === "Locked"}
+              className={`flex items-center space-x-2 font-medium ${
+                user.state === "Locked"
+                  ? "bg-gray-100 hover:bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                  : "bg-[#D7FAE0] hover:bg-[#D7FAE0]/80 border-[#23C16B] text-[#23C16B]"
+              }`}
+            >
+              {chatLoading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+              ) : (
+                <MessageCircle className="h-4 w-4" />
+              )}
+              <span>
+                {chatLoading ? "Opening Chat..." : user.state === "Locked" ? "Chat Disabled" : "Chat with User"}
+              </span>
+            </Button>
 
               {user.state === "Active" ? (
                 <Button

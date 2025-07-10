@@ -2,13 +2,15 @@
 
 import type React from "react"
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowUpDown, ArrowUp, ArrowDown, Filter, MessageCircle } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ArrowUpDown, ArrowUp, ArrowDown, Filter, MessageCircle } from 'lucide-react'
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { Pagination } from "@/components/ui/pagination"
+import {
+  Pagination
+} from "@/components/ui/pagination"
 import { TooltipText } from "@/components/ui/tooltip-text"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -18,11 +20,13 @@ import { UserDetailModal } from "@/components/user-detail-modal"
 
 export function PlayerTable() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [sortColumn, setSortColumn] = useState("")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({})
   const [selectAll, setSelectAll] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "")
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
     status: "all",
     searchTerm: "",
@@ -41,18 +45,39 @@ export function PlayerTable() {
 
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
 
+  // Update search query when URL params change
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get("q") || ""
+    setSearchQuery(urlSearchQuery)
+    // Update activeFilters to include URL search
+    setActiveFilters(prev => ({
+      ...prev,
+      searchTerm: urlSearchQuery
+    }))
+  }, [searchParams])
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    if (searchQuery !== searchParams.get("q")) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery, searchParams])
+
   // Fetch users function - using role=player instead of manager
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
+      // Combine URL search with filter search (URL search takes priority)
+      const finalSearchTerm = searchQuery || activeFilters.searchTerm
+
       const params = {
         pageNumber: currentPage,
         pageSize: itemsPerPage,
         role: "player" as const, // Changed from "manager" to "player"
         state: activeFilters.status === "all" ? undefined : (activeFilters.status as "locked" | "active"),
-        search: activeFilters.searchTerm || undefined,
+        search: finalSearchTerm.trim() || undefined,
       }
 
       console.log("Fetching players with params:", params)
@@ -85,7 +110,7 @@ export function PlayerTable() {
     } finally {
       setLoading(false)
     }
-  }, [currentPage, itemsPerPage, activeFilters])
+  }, [currentPage, itemsPerPage, activeFilters, searchQuery])
 
   // Fetch data when filters or pagination changes
   useEffect(() => {
@@ -194,7 +219,7 @@ export function PlayerTable() {
 
   const selectedCount = Object.values(selectedRows).filter(Boolean).length
 
-  const hasActiveFilters = activeFilters.status !== "all" || activeFilters.searchTerm !== ""
+  const hasActiveFilters = activeFilters.status !== "all" || activeFilters.searchTerm !== "" || searchQuery !== ""
 
   const handleUserUpdate = useCallback((userId: string, newState: "Active" | "Locked") => {
     console.log("Updating player state:", userId, newState)
@@ -232,7 +257,6 @@ export function PlayerTable() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-800">Player Management</h2>
-
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -342,10 +366,17 @@ export function PlayerTable() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          disabled={user.state === "Locked"}
                           onClick={(e) => handleMessageClick(user.id, e)}
-                          className="h-8 w-8 p-0 bg-[#D7FAE0] hover:bg-[#D7FAE0]/80"
+                          className={`h-8 w-8 p-0 ${
+                            user.state === "Locked" 
+                              ? "bg-gray-100 hover:bg-gray-100 cursor-not-allowed" 
+                              : "bg-[#D7FAE0] hover:bg-[#D7FAE0]/80"
+                          }`}
                         >
-                          <MessageCircle className="h-4 w-4 text-[#23C16B]" />
+                          <MessageCircle className={`h-4 w-4 ${
+                            user.state === "Locked" ? "text-gray-400" : "text-[#23C16B]"
+                          }`} />
                         </Button>
                       </TableCell>
                       <TableCell
@@ -372,10 +403,19 @@ export function PlayerTable() {
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                       <div className="flex flex-col items-center gap-2">
-                        <p>No players found</p>
-                        <p className="text-sm text-gray-400">
-                          {hasActiveFilters ? "Try adjusting your filters" : "No data available"}
-                        </p>
+                        {searchQuery ? (
+                          <>
+                            <p>No players found for &quot;{searchQuery}&quot;</p>
+                            <p className="text-sm text-gray-400">Try adjusting your search terms</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>No players found</p>
+                            <p className="text-sm text-gray-400">
+                              {hasActiveFilters ? "Try adjusting your filters" : "No data available"}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
