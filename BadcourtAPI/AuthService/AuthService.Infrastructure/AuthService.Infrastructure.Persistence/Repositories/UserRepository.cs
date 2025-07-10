@@ -30,8 +30,8 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         var query = context.Users.AsQueryable();
 
         // Filter by date range
-        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(summaryParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Filter by role
@@ -46,8 +46,8 @@ public class UserRepository(DataContext context, IMapper mapper) : IUserReposito
         var query = context.Users.AsQueryable();
 
         // Filter by date range
-        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(summaryParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Filter by role

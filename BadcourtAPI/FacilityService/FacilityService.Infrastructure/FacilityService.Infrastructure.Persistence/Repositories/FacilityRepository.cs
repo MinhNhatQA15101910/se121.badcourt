@@ -50,10 +50,7 @@ public class FacilityRepository : IFacilityRepository
 
     public async Task<PagedList<FacilityDto>> GetFacilitiesAsync(FacilityParams facilityParams, CancellationToken cancellationToken = default)
     {
-        var pipeline = new List<BsonDocument>
-        {
-            new("$match", new BsonDocument("UserState", new BsonDocument("$ne", "Locked")))
-        };
+        var pipeline = new List<BsonDocument>();
 
         switch (facilityParams.OrderBy)
         {
@@ -83,6 +80,9 @@ public class FacilityRepository : IFacilityRepository
                 pipeline.Add(new BsonDocument("$sort", new BsonDocument("RegisteredAt", facilityParams.SortBy == "asc" ? 1 : -1)));
                 break;
         }
+
+        // Excluding locked facilities
+        pipeline.Add(new("$match", new BsonDocument("UserState", new BsonDocument("$ne", "Locked"))));
 
         // Filter by user id
         if (!string.IsNullOrEmpty(facilityParams.UserId))

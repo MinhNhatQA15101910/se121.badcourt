@@ -91,6 +91,26 @@ public class PostRepository : IPostRepository
             pipeline.Add(new BsonDocument("$match", new BsonDocument("Category", postParams.Category)));
         }
 
+        // Filter by search term
+        if (!string.IsNullOrEmpty(postParams.Search))
+        {
+            var searchFilter = new BsonDocument("$or", new BsonArray
+            {
+                new BsonDocument("Title", new BsonDocument
+                {
+                    { "$regex", postParams.Search },
+                    { "$options", "i" }
+                }),
+                new BsonDocument("Content", new BsonDocument
+                {
+                    { "$regex", postParams.Search },
+                    { "$options", "i" }
+                })
+            });
+
+            pipeline.Add(new BsonDocument("$match", searchFilter));
+        }
+
         var posts = await PagedList<Post>.CreateAsync(
             _posts,
             pipeline,

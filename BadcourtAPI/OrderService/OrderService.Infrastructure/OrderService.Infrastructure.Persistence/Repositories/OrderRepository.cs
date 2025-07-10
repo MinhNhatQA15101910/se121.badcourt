@@ -86,8 +86,8 @@ public class OrderRepository(
         var query = context.Orders.AsQueryable();
 
         // Filter by date range
-        var startDateTime = facilityRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = facilityRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(facilityRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(facilityRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Exclude pending orders
@@ -326,8 +326,8 @@ public class OrderRepository(
         var query = context.Orders.AsQueryable();
 
         // Filter by date range
-        var startDateTime = provinceRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = provinceRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(provinceRevenueParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(provinceRevenueParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Exclude pending orders
@@ -443,8 +443,8 @@ public class OrderRepository(
         var query = context.Orders.AsQueryable();
 
         // Filter by date range
-        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(summaryParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Exclude pending orders
@@ -477,8 +477,8 @@ public class OrderRepository(
         var query = context.Orders.AsQueryable();
 
         // Filter by date range
-        var startDateTime = summaryParams.StartDate.ToDateTime(TimeOnly.MinValue);
-        var endDateTime = summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue);
+        var startDateTime = DateTime.SpecifyKind(summaryParams.StartDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDateTime = DateTime.SpecifyKind(summaryParams.EndDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         query = query.Where(o => o.CreatedAt >= startDateTime && o.CreatedAt <= endDateTime);
 
         // Exclude pending orders
