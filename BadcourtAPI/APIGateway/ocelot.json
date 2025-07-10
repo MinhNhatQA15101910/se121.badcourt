@@ -36,6 +36,13 @@
       "UpstreamHttpMethod": ["Patch"]
     },
     {
+      "DownstreamPathTemplate": "/api/auth/token-is-valid",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "auth-service", "Port": 1000 }],
+      "UpstreamPathTemplate": "/gateway/auth/token-is-valid",
+      "UpstreamHttpMethod": ["Post"]
+    },
+    {
       "DownstreamPathTemplate": "/api/auth/fully-access-token",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "auth-service", "Port": 1000 }],

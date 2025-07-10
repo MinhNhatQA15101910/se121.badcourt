@@ -42,7 +42,7 @@ public class VerifyPincodeHandler(
 
             pincodeStore.RemoveValidateUser(request.VerifyPincodeDto.Email!);
 
-            var roleResult = await userManager.AddToRoleAsync(user, "Player");
+            var roleResult = await userManager.AddToRoleAsync(user, validateSignupDto.Role);
             if (!roleResult.Succeeded)
             {
                 throw new IdentityErrorException(roleResult.Errors);

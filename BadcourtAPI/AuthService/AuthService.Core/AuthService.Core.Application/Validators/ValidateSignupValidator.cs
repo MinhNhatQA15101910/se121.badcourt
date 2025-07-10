@@ -19,5 +19,10 @@ public class ValidateSignupValidator : AbstractValidator<ValidateSignupCommand>
         RuleFor(x => x.ValidateSignupDto.Password)
             .NotEmpty().WithMessage("Password is required")
             .MinimumLength(8).WithMessage("Password must be at least 8 characters");
+
+        RuleFor(x => x.ValidateSignupDto.Role)
+            .NotEmpty().WithMessage("Role is required")
+            .Must(role => role == "Player" || role == "Manager")
+            .WithMessage("Role must be either 'Player' or 'Manager'.");
     }
 }

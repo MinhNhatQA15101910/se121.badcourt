@@ -1,5 +1,4 @@
-
-using MassTransit.Mediator;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using PostService.Application.Extensions;
 using PostService.Application.Notifications.PostDeleted;
