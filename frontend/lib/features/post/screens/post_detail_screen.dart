@@ -10,8 +10,10 @@ import 'package:frontend/features/post/widgets/comment_item.dart';
 import 'package:frontend/features/post/widgets/input_comment.dart';
 import 'package:frontend/models/comment.dart';
 import 'package:frontend/models/post.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
 
@@ -28,11 +30,12 @@ class PostDetailScreen extends StatefulWidget {
   State<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 
-class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerProviderStateMixin {
+class _PostDetailScreenState extends State<PostDetailScreen>
+    with SingleTickerProviderStateMixin {
   final _postService = PostService();
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   Post? _post;
   bool _isLoading = true;
   bool _isLikeLoading = false;
@@ -42,11 +45,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   int _totalPages = 1;
   List<Comment> _commentList = [];
   bool _isLoadingComments = false;
-  
+
   // Local state for like status and count
   bool _isLiked = false;
   int _likeCount = 0;
-  
+
   late AnimationController _likeController;
 
   // Add these variables to the _PostDetailScreenState class
@@ -57,16 +60,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    
+
     _likeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
-    
+
     _fetchPostDetails();
   }
-  
+
   @override
   void dispose() {
     _likeController.dispose();
@@ -82,14 +84,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   // Add this method after initState()
   void _initializeVideoControllers() {
     if (_post == null) return;
-    
+
     for (int i = 0; i < _post!.resources.length; i++) {
       final resource = _post!.resources[i];
       if (PostService.isVideoUrl(resource.url)) {
         final controller = VideoPlayerController.network(resource.url);
         _videoControllers[i] = controller;
         _videoInitialized[i] = false;
-        
+
         controller.initialize().then((_) {
           if (mounted) {
             setState(() {
@@ -101,6 +103,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         });
       }
     }
+  }
+
+  Future<void> _reportPost() async {
+    try {
+      await _postService.reportPost(
+        context: context,
+        postId: widget.postId,
+      );
+    } catch (error) {}
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _deletePost() async {
+    try {
+      await _postService.deletePost(
+        context: context,
+        postId: widget.postId,
+      );
+    } catch (error) {}
+    Navigator.of(context).pop();
   }
 
   Future<void> _fetchPostDetails() async {
@@ -121,10 +143,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           _isLiked = post.isLiked;
           _likeCount = post.likesCount;
         });
-        
+
         // Initialize video controllers after getting post details
         _initializeVideoControllers();
-        
+
         // Fetch comments after getting post details
         _fetchCommentByPostId();
       } else {
@@ -197,8 +219,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
 
   // Update the _submitComment method to include images
   Future<void> _submitComment(String commentText, List<File> mediaFiles) async {
-    print('DEBUG: _submitComment called with text: "$commentText", media count: ${mediaFiles.length}');
-    
+    print(
+        'DEBUG: _submitComment called with text: "$commentText", media count: ${mediaFiles.length}');
+
     if ((commentText.isEmpty && mediaFiles.isEmpty) || _isCommentLoading) {
       print('DEBUG: Early return - empty content or already loading');
       return;
@@ -216,12 +239,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         commentText,
         mediaFiles, // Pass the media files directly
       );
-      
+
       print('DEBUG: Comment created successfully');
-      
+
       // Refresh comments to show the new one
       await _refreshComments();
-      
+
       // Update the post's comment count
       if (_post != null) {
         final updatedPost = Post(
@@ -237,18 +260,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           isLiked: _isLiked,
           createdAt: _post!.createdAt,
         );
-        
+
         setState(() {
           _post = updatedPost;
         });
       }
-      
+
       // Clear media after successful upload
       // Force the InputComment to clear its media
       setState(() {
         // This will trigger a rebuild and the InputComment should clear its media
       });
-      
     } catch (error) {
       print('DEBUG: Error creating comment: $error');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -299,7 +321,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         context: context,
         postId: widget.postId,
       );
-      
+
       // If successful, update the post object with a new instance
       // This is necessary because the properties are final
       if (_post != null) {
@@ -316,7 +338,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           isLiked: _isLiked,
           createdAt: _post!.createdAt,
         );
-        
+
         setState(() {
           _post = updatedPost;
         });
@@ -327,7 +349,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         _isLiked = previousLikedState;
         _likeCount = previousLikeCount;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to toggle like. Please try again.'),
@@ -344,7 +366,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
   String formatDate(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     if (difference.inDays > 7) {
       return DateFormat('MMM dd, yyyy').format(createdAt);
     } else if (difference.inDays > 0) {
@@ -459,7 +481,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () => _showPostOptions(context),
+            onPressed: () => _showPostOptions(context, _post!.publisherId),
           ),
         ],
       ),
@@ -474,7 +496,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               color: GlobalVariables.green,
               child: ListView(
                 controller: _scrollController,
-                padding: const EdgeInsets.only(bottom: 80), // Add padding for the input field
+                padding: const EdgeInsets.only(
+                    bottom: 80), // Add padding for the input field
                 children: [
                   // Post header with user info
                   Padding(
@@ -489,7 +512,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                           userId: _post!.publisherId,
                         ),
                         const SizedBox(width: 12),
-                        
+
                         // Username and date
                         Expanded(
                           child: Column(
@@ -517,7 +540,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                       ],
                     ),
                   ),
-                  
+
                   // Post title (if exists)
                   if (hasTitle)
                     Padding(
@@ -531,11 +554,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         ),
                       ),
                     ),
-                  
+
                   // Post content (if exists)
                   if (hasContent)
                     Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
+                      padding:
+                          EdgeInsets.fromLTRB(16, 0, 16, hasTitle ? 12 : 16),
                       child: Text(
                         _post!.content,
                         style: GoogleFonts.inter(
@@ -545,11 +569,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                         ),
                       ),
                     ),
-                  
+
                   // Post images (if any)
-                  if (imageCount > 0)
-                    _buildImageCarousel(imageCount),
-                  
+                  if (imageCount > 0) _buildImageCarousel(imageCount),
+
                   // Post actions (like, comment)
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -559,28 +582,33 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                           height: 1,
                           color: Colors.grey.shade200,
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         // Action buttons (removed share button)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Like button
                             _buildActionButton(
-                              icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                              label: 'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
+                              icon: _isLiked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_outlined,
+                              label:
+                                  'Like ${_likeCount > 0 ? '($_likeCount)' : ''}',
                               isActive: _isLiked,
                               isLoading: _isLikeLoading,
                               onTap: _toggleLike,
                             ),
-                            
+
                             // Comment button
                             _buildActionButton(
                               icon: Icons.comment_outlined,
-                              label:  'Comment ${_post!.commentsCount > 0 ? '(${_post!.commentsCount})' : ''}',
+                              label:
+                                  'Comment ${_post!.commentsCount > 0 ? '(${_post!.commentsCount})' : ''}',
                               onTap: () {
-                                FocusScope.of(context).requestFocus(FocusNode());
+                                FocusScope.of(context)
+                                    .requestFocus(FocusNode());
                                 _scrollController.animateTo(
                                   _scrollController.position.maxScrollExtent,
                                   duration: const Duration(milliseconds: 300),
@@ -593,13 +621,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                       ],
                     ),
                   ),
-                  
+
                   // Divider before comments
                   Container(
                     height: 8,
                     color: Colors.grey.shade100,
                   ),
-                  
+
                   // Comments section
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -625,7 +653,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                                   foregroundColor: GlobalVariables.green,
                                   padding: EdgeInsets.zero,
                                   minimumSize: const Size(0, 0),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: Text(
                                   'Refresh',
@@ -637,16 +666,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                               ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 16),
-                        
+
                         // Comments list
                         if (_commentList.isEmpty && _isLoadingComments)
                           Center(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    GlobalVariables.green),
                               ),
                             ),
                           )
@@ -697,15 +727,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                               );
                             },
                           ),
-                        
+
                         // Load more comments button
-                        if (_currentPage <= _totalPages && _commentList.isNotEmpty)
+                        if (_currentPage <= _totalPages &&
+                            _commentList.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 16),
                             child: Center(
                               child: _isLoadingComments
                                   ? CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          GlobalVariables.green),
                                     )
                                   : TextButton(
                                       onPressed: _fetchCommentByPostId,
@@ -729,11 +761,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               ),
             ),
           ),
-          
+
           // Comment input field (fixed at bottom)
           // Update the InputComment widget in the build method
           InputComment(
-            key: ValueKey(_isCommentLoading), // Force rebuild when loading state changes
+            key: ValueKey(
+                _isCommentLoading), // Force rebuild when loading state changes
             controller: _commentController,
             isLoading: _isCommentLoading,
             onSubmit: _submitComment,
@@ -743,7 +776,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       ),
     );
   }
-  
+
   Widget _buildImageCarousel(int imageCount) {
     return Stack(
       children: [
@@ -762,7 +795,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
           itemBuilder: (context, index, realIndex) {
             final resource = _post!.resources[index];
             final isVideo = PostService.isVideoUrl(resource.url);
-            
+
             return GestureDetector(
               onTap: () {
                 // Navigate to full screen media view instead of image view only
@@ -781,14 +814,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                 ),
-                child: isVideo 
-                  ? _buildVideoPlayer(index, resource.url)
-                  : _buildImageWidget(resource.url),
+                child: isVideo
+                    ? _buildVideoPlayer(index, resource.url)
+                    : _buildImageWidget(resource.url),
               ),
             );
           },
         ),
-        
+
         // Navigation arrows (only if more than one image)
         if (imageCount > 1) ...[
           // Left arrow
@@ -798,7 +831,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             bottom: 0,
             child: GestureDetector(
               onTap: () {
-                int newIndex = _activeIndex > 0 ? _activeIndex - 1 : imageCount - 1;
+                int newIndex =
+                    _activeIndex > 0 ? _activeIndex - 1 : imageCount - 1;
                 setState(() {
                   _activeIndex = newIndex;
                 });
@@ -818,7 +852,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               ),
             ),
           ),
-          
+
           // Right arrow
           Positioned(
             right: 8,
@@ -826,7 +860,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             bottom: 0,
             child: GestureDetector(
               onTap: () {
-                int newIndex = _activeIndex < imageCount - 1 ? _activeIndex + 1 : 0;
+                int newIndex =
+                    _activeIndex < imageCount - 1 ? _activeIndex + 1 : 0;
                 setState(() {
                   _activeIndex = newIndex;
                 });
@@ -847,7 +882,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             ),
           ),
         ],
-        
+
         // Image indicators
         if (imageCount > 1)
           Positioned(
@@ -892,7 +927,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       ],
     );
   }
-  
+
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -906,7 +941,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: isActive ? GlobalVariables.green.withOpacity(0.1) : Colors.transparent,
+          color: isActive
+              ? GlobalVariables.green.withOpacity(0.1)
+              : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -925,7 +962,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               Icon(
                 icon,
                 size: 20,
-                color: isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
+                color:
+                    isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
               ),
             const SizedBox(width: 6),
             Text(
@@ -933,7 +971,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
+                color:
+                    isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
               ),
             ),
           ],
@@ -941,8 +980,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       ),
     );
   }
-  
-  void _showPostOptions(BuildContext context) {
+
+  void _showPostOptions(BuildContext context, String userId) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -963,23 +1004,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
                 ),
               ),
               const SizedBox(height: 16),
-              _buildOptionItem(
-                icon: Icons.bookmark_border,
-                label: 'Save post',
-                onTap: () {
-                  Navigator.pop(context);
-                  // Save post functionality
-                },
-              ),
-              _buildOptionItem(
-                icon: Icons.report_outlined,
-                label: 'Report post',
-                isDestructive: true,
-                onTap: () {
-                  Navigator.pop(context);
-                  // Report post functionality
-                },
-              ),
+              if (userProvider.user.id == userId)
+                _buildOptionItem(
+                  icon: Icons.delete,
+                  label: 'Delete this post',
+                  onTap: _deletePost,
+                )
+              else
+                _buildOptionItem(
+                  icon: Icons.report_outlined,
+                  label: 'Report this post',
+                  onTap: _reportPost,
+                ),
               const SizedBox(height: 16),
             ],
           ),
@@ -987,7 +1023,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
       },
     );
   }
-  
+
   Widget _buildOptionItem({
     required IconData icon,
     required String label,
@@ -1026,7 +1062,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> with SingleTickerPr
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(GlobalVariables.green),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(GlobalVariables.green),
               ),
               const SizedBox(height: 8),
               Text(

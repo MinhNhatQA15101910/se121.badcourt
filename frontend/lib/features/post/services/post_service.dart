@@ -715,4 +715,41 @@ class PostService {
       );
     }
   }
+
+  Future<void> deletePost({
+    required BuildContext context,
+    required String postId,
+  }) async {
+    final userProvider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      http.Response response = await http.delete(
+        Uri.parse('$uri/gateway/posts/$postId'),
+        headers: {
+          'Authorization': 'Bearer ${userProvider.user.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+      httpErrorHandler(
+        response: response,
+        context: context,
+        onSuccess: () {
+          IconSnackBar.show(
+            context,
+            label: 'you have deleted successfully',
+            snackBarType: SnackBarType.success,
+          );
+        },
+      );
+    } catch (e) {
+      IconSnackBar.show(
+        context,
+        label: e.toString(),
+        snackBarType: SnackBarType.fail,
+      );
+    }
+  }
 }

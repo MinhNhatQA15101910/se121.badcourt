@@ -6,8 +6,10 @@ import 'package:frontend/common/screens/full_screen_media_view.dart';
 import 'package:frontend/features/post/screens/post_detail_screen.dart';
 import 'package:frontend/features/post/services/post_service.dart';
 import 'package:frontend/models/post.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class PostFormWidget extends StatefulWidget {
@@ -46,7 +48,6 @@ class _PostFormWidgetState extends State<PostFormWidget>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-
 
     // Initialize video controllers for video resources
     _initializeVideoControllers();
@@ -127,6 +128,26 @@ class _PostFormWidgetState extends State<PostFormWidget>
         _isLikeLoading = false;
       });
     }
+  }
+
+  Future<void> _reportPost() async {
+    try {
+      await _postService.reportPost(
+        context: context,
+        postId: widget.currentPost.id,
+      );
+    } catch (error) {}
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _deletePost() async {
+    try {
+      await _postService.deletePost(
+        context: context,
+        postId: widget.currentPost.id,
+      );
+    } catch (error) {}
+    Navigator.of(context).pop();
   }
 
   void _navigateToPostDetail() {
@@ -237,7 +258,8 @@ class _PostFormWidgetState extends State<PostFormWidget>
                       ),
                       onPressed: () {
                         // Show post options
-                        _showPostOptions(context);
+                        _showPostOptions(
+                            context, widget.currentPost.publisherId);
                       },
                     ),
                   ],
@@ -673,9 +695,8 @@ class _PostFormWidgetState extends State<PostFormWidget>
               Icon(
                 icon,
                 size: 20,
-                color: isActive
-                    ? GlobalVariables.green
-                    : GlobalVariables.darkGrey,
+                color:
+                    isActive ? GlobalVariables.green : GlobalVariables.darkGrey,
               ),
             const SizedBox(width: 6),
             Text(
@@ -693,7 +714,9 @@ class _PostFormWidgetState extends State<PostFormWidget>
     );
   }
 
-  void _showPostOptions(BuildContext context) {
+  void _showPostOptions(BuildContext context, String userId) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -714,23 +737,18 @@ class _PostFormWidgetState extends State<PostFormWidget>
                 ),
               ),
               const SizedBox(height: 16),
-              _buildOptionItem(
-                icon: Icons.bookmark_border,
-                label: 'Save post',
-                onTap: () {
-                  Navigator.pop(context);
-                  // Save post functionality
-                },
-              ),
-              _buildOptionItem(
-                icon: Icons.report_outlined,
-                label: 'Report post',
-                isDestructive: true,
-                onTap: () {
-                  Navigator.pop(context);
-                  // Report post functionality
-                },
-              ),
+              if (userProvider.user.id == userId)
+                _buildOptionItem(
+                  icon: Icons.delete,
+                  label: 'Delete this post',
+                  onTap: _deletePost,
+                )
+              else
+                _buildOptionItem(
+                  icon: Icons.report_outlined,
+                  label: 'Report this post',
+                  onTap: _reportPost,
+                ),
               const SizedBox(height: 16),
             ],
           ),
@@ -743,19 +761,18 @@ class _PostFormWidgetState extends State<PostFormWidget>
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-    bool isDestructive = false,
   }) {
     return ListTile(
       leading: Icon(
         icon,
-        color: isDestructive ? Colors.red : GlobalVariables.darkGrey,
+        color: GlobalVariables.darkGrey,
       ),
       title: Text(
         label,
         style: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : GlobalVariables.blackGrey,
+          color: GlobalVariables.blackGrey,
         ),
       ),
       onTap: onTap,
