@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { ArrowUpDown, ArrowUp, ArrowDown, FileText, Trash2 } from "lucide-react"
 import Image from "next/image"
+
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -119,15 +120,19 @@ export function PostTable() {
             ? (response as ResponseWithData).data
             : undefined) ||
           response
+
         const posts = Array.isArray(items) ? items : Array.isArray(response) ? response : []
 
         setPosts(posts)
         setTotalPages(response.totalPages || Math.ceil(posts.length / itemsPerPage) || 1)
         setTotalItems(
           response.totalCount ||
-            (typeof response === "object" && response !== null && "total" in response && typeof (response as { total: unknown }).total === "number"
+            (typeof response === "object" &&
+            response !== null &&
+            "total" in response &&
+            typeof (response as { total: unknown }).total === "number"
               ? (response as { total: number }).total
-              : posts.length)
+              : posts.length),
         )
 
         console.log("Processed data:", {
@@ -188,7 +193,6 @@ export function PostTable() {
   const handleSelectAll = () => {
     const newSelectAll = !selectAll
     setSelectAll(newSelectAll)
-
     const newSelectedRows: Record<string, boolean> = {}
     if (newSelectAll) {
       posts.forEach((post) => {
@@ -200,7 +204,6 @@ export function PostTable() {
 
   const handleSelectRow = (postId: string, checked: boolean, event: React.MouseEvent) => {
     event.stopPropagation()
-
     setSelectedRows((prev) => ({
       ...prev,
       [postId]: checked,
@@ -274,7 +277,6 @@ export function PostTable() {
               </div>
             )}
           </div>
-
           {selectedCount > 0 && (
             <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
               {selectedCount} {selectedCount === 1 ? "post" : "posts"} selected
@@ -445,6 +447,7 @@ export function PostTable() {
           </div>
         </div>
       </div>
+
       {selectedPost && (
         <Dialog open={!!selectedPost} onOpenChange={(open) => !open && setSelectedPost(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
@@ -452,17 +455,6 @@ export function PostTable() {
               <DialogTitle>Post Details</DialogTitle>
             </VisuallyHidden>
             <div className="relative h-full">
-              <div className="absolute top-4 right-4 z-10 flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeletePost(selectedPost.id)}
-                  className="bg-red-600 hover:bg-red-700 shadow-lg"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
-                </Button>
-              </div>
               {/* Custom scrollable container with hidden scrollbar */}
               <div
                 className="h-[90vh] overflow-y-auto scrollbar-hide"
@@ -477,6 +469,21 @@ export function PostTable() {
                   }
                 `}</style>
                 <PostItem post={selectedPost} currentUser={{}} />
+
+                {/* Delete button positioned at the bottom */}
+                <div className="p-6 border-t bg-gray-50">
+                  <div className="flex justify-center">
+                    <Button
+                      variant="destructive"
+                      size="lg"
+                      onClick={() => handleDeletePost(selectedPost.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+                    >
+                      <Trash2 className="h-5 w-5 mr-2" />
+                      Delete Post
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </DialogContent>

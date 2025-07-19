@@ -30,21 +30,11 @@ class MessageService {
         },
       );
 
-      httpErrorHandler(
-        response: response,
-        context: context,
-        onSuccess: () {
-          final Map<String, dynamic> responseBody = jsonDecode(response.body);
-          paginatedResponse = PaginatedMessagesDto.fromJson(responseBody);
-        },
-      );
-    } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-    }
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        paginatedResponse = PaginatedMessagesDto.fromJson(responseBody);
+      }
+    } catch (error) {}
 
     return paginatedResponse ??
         PaginatedMessagesDto(
@@ -55,21 +45,21 @@ class MessageService {
             totalCount: 0);
   }
 
-  Future<PaginatedGroupsDto> fetchGroup({ 
+  Future<PaginatedGroupsDto> fetchGroup({
     required BuildContext context,
     int pageNumber = 1,
     String? username, // Added search parameter
   }) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     PaginatedGroupsDto? paginatedResponse;
-    
+
     try {
       // Build URL with search query if provided
       String url = '$uri/gateway/groups?pageNumber=$pageNumber';
       if (username != null && username.trim().isNotEmpty) {
         url += '&username=${Uri.encodeComponent(username.trim())}';
       }
-      
+
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -78,21 +68,11 @@ class MessageService {
         },
       );
 
-      httpErrorHandler(
-        response: response,
-        context: context,
-        onSuccess: () {
-          final Map<String, dynamic> responseBody = jsonDecode(response.body);
-          paginatedResponse = PaginatedGroupsDto.fromJson(responseBody);
-        },
-      );
-    } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
-    }
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        paginatedResponse = PaginatedGroupsDto.fromJson(responseBody);
+      }
+    } catch (error) {}
 
     return paginatedResponse ??
         PaginatedGroupsDto(
@@ -159,31 +139,22 @@ class MessageService {
       );
 
       User? user;
-      httpErrorHandler(
-        response: res,
-        context: context,
-        onSuccess: () {
-          try {
-            final data = jsonDecode(res.body);
-            user = User.fromJson(data);
-          } catch (e) {
-            print('Error parsing post by ID: $e');
-            print('Post data: ${res.body}');
-            IconSnackBar.show(
-              context,
-              label: 'Error parsing post data',
-              snackBarType: SnackBarType.fail,
-            );
-          }
-        },
-      );
+      if (res.statusCode == 200) {
+        try {
+          final data = jsonDecode(res.body);
+          user = User.fromJson(data);
+        } catch (e) {
+          print('Error parsing post by ID: $e');
+          print('Post data: ${res.body}');
+          IconSnackBar.show(
+            context,
+            label: 'Error parsing post data',
+            snackBarType: SnackBarType.fail,
+          );
+        }
+      }
       return user;
     } catch (error) {
-      IconSnackBar.show(
-        context,
-        label: error.toString(),
-        snackBarType: SnackBarType.fail,
-      );
       return null;
     }
   }

@@ -516,7 +516,7 @@ class _FacilityRegistrationScreenState extends State<FacilityRegistrationScreen>
   String? _validateFacebookUrl(String? value) {
     if (value != null && value.isNotEmpty) {
       final urlRegex = RegExp(
-        r'^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9.]+\/?$',
+        r'^https?:\/\/(www\.)?facebook\.com',
         caseSensitive: false,
       );
       if (!urlRegex.hasMatch(value)) {

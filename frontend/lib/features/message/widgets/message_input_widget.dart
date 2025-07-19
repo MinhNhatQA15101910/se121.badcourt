@@ -266,7 +266,7 @@ class _MessageInputWidgetState extends State<MessageInputWidget>
                   Expanded(
                     child: _buildMediaButton(
                       icon: Icons.image_rounded,
-                      label: 'Hình ảnh',
+                      label: 'Image',
                       color: Colors.blue,
                       onTap: _pickImages,
                     ),

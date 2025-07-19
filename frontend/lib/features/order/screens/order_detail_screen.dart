@@ -691,7 +691,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   String _getStatusDisplayText(String state) {
     switch (state) {
       case 'NotPlay':
-        return 'Pending';
+        return 'NotPlay';
       case 'Played':
         return 'Completed';
       case 'Cancelled':
